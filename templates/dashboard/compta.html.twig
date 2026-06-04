@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Comptabilité - Gestion & Visites</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
+        .card-counter:hover { transform: translateY(-3px); }
+        .nav-tabs .nav-link.active { border-bottom: 3px solid #198754 !important; font-weight: bold; color: #198754 !important; }
+        .nav-tabs .nav-link { color: #6c757d; }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    {# Barre de navigation #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-wallet text-success me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="mb-4 pb-3 border-bottom">
+            <h1 class="fw-bold text-dark">Espace Financier & Logistique</h1>
+            <p class="text-muted m-0">Accordez les budgets pour les livraisons, planifiez les visites et suivez l'analyse des consommables.</p>
+        </div>
+        
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Ligne de compteurs épurée (Blocs Coordon et Guérite ENLEVÉS) #}
+        <div class="row g-3 mb-4">
+            <div class="col-12">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Demandes logistiques en attente d'engagement</h6>
+                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }} demandes</h3>
+                        </div>
+                        <i class="fas fa-file-invoice-dollar fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Système d'onglets pour organiser les nouvelles fonctionnalités #}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white p-0 border-bottom">
+                <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="comptaTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active py-3 px-4 fw-bold border-0" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget-pane" type="button" role="tab">
+                            <i class="fas fa-coins me-2 text-success"></i>Engagements & Livraisons
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button" role="tab">
+                            <i class="fas fa-calendar-plus me-2 text-primary"></i>Réserver une Visite
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button" role="tab">
+                            <i class="fas fa-chart-line me-2 text-danger"></i>Matériels les plus demandés
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="card-body p-4">
+                <div class="tab-content">
+                    
+                    {# ONGLET 1 : VALIDATION BUDGETAIRE #}
+                    <div class="tab-pane fade show active" id="budget-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle m-0">
+                                <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                    <tr>
+                                        <th>Code Demande</th>
+                                        <th>Service Demandeur</th>
+                                        <th>Consommable / Matériel</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th class="text-center">Statut du Flux</th>
+                                        <th class="text-center">Validation Compta</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    {% for d in demandes %}
+                                        <tr>
+                                            <td class="fw-bold">#DEM-{{ d.id }}</td>
+                                            <td>
+                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
+                                                    {{ d.departement }}
+                                                </span>
+                                            </td>
+                                            <td class="fw-semibold text-dark">{{ d.materiel }}</td>
+                                            <td class="text-center fw-bold text-secondary">{{ d.quantite|default('1') }}</td>
+                                            <td class="text-center">
+                                                {% if d.statut == 'En attente' %}
+                                                    <span class="badge bg-warning text-dark px-2.5 py-1.5"><i class="fas fa-clock me-1"></i> En attente</span>
+                                                {% elseif d.statut == 'Validé Compta' %}
+                                                    <span class="badge bg-primary text-white px-2.5 py-1.5"><i class="fas fa-thumbs-up me-1"></i> Budget Accordé</span>
+                                                {% elseif d.statut == 'Livré par le Stock' %}
+                                                    <span class="badge bg-info text-white px-2.5 py-1.5"><i class="fas fa-truck me-1"></i> Livré (Attente confirmation)</span>
+                                                {% elseif d.statut == 'Reçu / Clôturé' %}
+                                                    <span class="badge bg-success text-white px-2.5 py-1.5"><i class="fas fa-check-double me-1"></i> Reçu / Confirmé</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark border px-2.5 py-1.5">{{ d.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if d.statut == 'En attente' %}
+                                                    <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
+                                                        <button class="btn btn-sm btn-success fw-bold px-3">
+                                                            <i class="fas fa-dollar-sign me-1"></i> Accorder Budget
+                                                        </button>
+                                                    </form>
+                                                {% elseif d.statut == 'Validé Compta' %}
+                                                    <span class="text-success fw-bold small"><i class="fas fa-check me-1"></i> Budget Validé</span>
+                                                {% else %}
+                                                    <span class="text-muted small"><i class="fas fa-lock me-1"></i> Traité</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">Aucun flux logistique en cours.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {# ONGLET 2 : RESERVATION DE VISITE (FORMULAIRE) #}
+                    <div class="tab-pane fade" id="visite-pane" role="tabpanel">
+                        <div class="d-flex justify-content-center align-items-center py-2">
+                            <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 550px; border-radius: 12px;">
+                                <div class="text-center mb-4">
+                                    <i class="fas fa-id-card text-primary fa-2x mb-2"></i>
+                                    <h5 class="fw-bold text-dark m-0">Enregistrer un Visiteur / Partenaire</h5>
+                                    <small class="text-muted">Planification d'accès pour les auditeurs, clients ou prestataires</small>
+                                </div>
+                                
+                                {% if formVisite is not null %}
+                                    {{ form_start(formVisite) }}
+                                        {# Symfony s'occupe de générer les champs de VisiteType de manière propre #}
+                                        <div class="mb-3">
+                                            {{ form_widget(formVisite) }}
+                                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+                                            <i class="fas fa-calendar-check me-2"></i>Confirmer la réservation
+                                        </button>
+                                    {{ form_end(formVisite) }}
+                                {% else %}
+                                    <div class="alert alert-danger text-center m-0">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite (VisiteType) n'est pas chargé par le contrôleur.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ONGLET 3 : STATUT DU MATERIEL LE PLUS DEMANDÉ #}
+                    <div class="tab-pane fade" id="stats-pane" role="tabpanel">
+                        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-danger me-2"></i>Analyse de la Consommation</h5>
+                        <p class="text-muted">Classement des articles les plus sollicités par l'ensemble des départements de l'imprimerie.</p>
+                        
+                        <div class="row g-4 mt-1">
+                            <div class="col-md-6">
+                                <div class="table-responsive border rounded bg-white">
+                                    <table class="table table-hover align-middle m-0">
+                                        <thead class="table-light small fw-bold">
+                                            <tr>
+                                                <th>Rang</th>
+                                                <th>Désignation du Matériel</th>
+                                                <th class="text-center">Occurrences de demandes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {# Regroupement et affichage basé sur le tableau des demandes transmis #}
+                                            {% set counts = {} %}
+                                            {% for d in demandes %}
+                                                {% set counts = counts|merge({ (d.materiel): (counts[d.materiel]|default(0) + 1) }) %}
+                                            {% endfor %}
+                                            
+                                            {% set rank = 1 %}
+                                            {% for mat, count in counts|sort|reverse %}
+                                                {% if rank <= 5 %}
+                                                <tr>
+                                                    <td class="fw-bold text-muted">#{{ rank }}</td>
+                                                    <td class="fw-semibold text-dark"><i class="fas fa-box text-secondary me-2"></i>{{ mat }}</td>
+                                                    <td class="text-center"><span class="badge bg-danger bg-opacity-10 text-danger fw-bold px-3 py-1.5 fs-6 rounded-pill">{{ count }}</span></td>
+                                                </tr>
+                                                {% endif %}
+                                                {% set rank = rank + 1 %}
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="3" class="text-center py-4 text-muted">Données insuffisantes pour établir des statistiques.</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card p-4 bg-white border h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                                    <i class="fas fa-info-circle text-info fa-2x mb-3"></i>
+                                    <h6 class="fw-bold text-dark">Indicateur de flux direct</h6>
+                                    <p class="text-muted small px-3">Ces calculs dynamiques permettent au service comptable de prévoir les futures lignes budgétaires à accorder en priorité pour éviter les ruptures critiques de stock au dépôt.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

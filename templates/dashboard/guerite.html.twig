@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Poste de Contrôle - Guérite Sécurité</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-light text-dark">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="fas fa-shield-alt text-warning me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Sécurité Guérite</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-user-shield text-warning me-2"></i><strong>Agent de Sécurité</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h1 class="fw-bold text-dark m-0">Contrôle de Sécurité Entrées / Sorties</h1>
+                <p class="text-muted m-0">Gestion en temps réel des flux de marchandises et des visiteurs de l'usine.</p>
+            </div>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card bg-white p-4 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons de sortie en attente</h6>
+                            <h3 class="fw-bold m-0 text-warning">{{ b_sorties|default(bonsSortie)|length }}</h3>
+                        </div>
+                        <i class="fas fa-file-invoice fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card bg-white p-4 shadow-sm border-start border-info border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Visiteurs attendus</h6>
+                            <h3 class="fw-bold m-0 text-info">{{ visites|length }}</h3>
+                        </div>
+                        <i class="fas fa-user-check fa-2x text-info bg-info bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-5">
+            <div class="card-header bg-info bg-opacity-10 py-3 border-bottom border-info border-opacity-25">
+                <h4 class="card-title m-0 fw-bold text-dark"><i class="fas fa-users-viewfinder me-2 text-info"></i>Liste des Visites Réservées</h4>
+            </div>
+            <div class="card-body p-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom du Visiteur</th>
+                                <th>Département Visité</th>
+                                <th>Pourquoi (Motif)</th>
+                                <th>Statut</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for v in visites %}
+                                <tr>
+                                    <td class="fw-bold text-secondary">#{{ v.id }}</td>
+                                    <td class="fw-semibold text-dark">{{ v.nomVisiteur }}</td>
+                                    <td><span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">{{ v.departement }}</span></td>
+                                    <td class="text-muted fw-light">{{ v.motif }}</td>
+                                    <td><span class="badge bg-warning text-dark px-2.5 py-1">En attente Entrée</span></td>
+                                    <td class="text-center">
+                                        <form action="{{ path('app_visite_valider_guerite', {'id': v.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-info text-white fw-bold px-3">
+                                                <i class="fas fa-check me-1"></i> Valider l'entrée
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">Aucune réservation de visite pour le moment.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h4 class="card-title m-0 fw-bold text-dark"><i class="fas fa-list-check me-2 text-muted"></i>Registre des Sorties Marchandises</h4>
+            </div>
+            <div class="card-body p-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                            <tr>
+                                <th>Code</th>
+                                <th>Nom de l'Agent</th>
+                                <th>Département</th>
+                                <th>Statut Actuel</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for b in bonsSortie %}
+                                <tr>
+                                    <td class="fw-bold text-secondary">#{{ b.id }}</td>
+                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
+                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
+                                    <td><span class="badge bg-primary px-2.5 py-1">{{ b.statut }}</span></td>
+                                    <td class="text-center">
+                                        <form action="{{ path('app_bon_autoriser', {'id': b.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
+                                                <i class="fas fa-door-open me-1"></i> Autoriser la sortie
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">Aucun bon en attente de sortie physique.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

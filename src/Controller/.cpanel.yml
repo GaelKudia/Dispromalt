@@ -1,0 +1,12 @@
+---
+deployment:
+  tasks:
+    # 1. Déplacer les fichiers vers le dossier de l'hébergement
+    - export DEPLOYPATH=/home/yumbatec/public_html/
+    - rsync -avz --exclude '.git' --exclude 'var/cache' ./ $DEPLOYPATH
+    
+    # 2. Se placer dans le dossier de production pour exécuter les tâches Symfony
+    - cd $DEPLOYPATH
+    - composer install --no-dev --optimize-autoloader
+    - php bin/console doctrine:migrations:migrate --no-interaction
+    - APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Magasinier - Gestion du Stock</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
+        .card-counter:hover { transform: translateY(-3px); }
+        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; color: #0d6efd !important; }
+        .nav-tabs .nav-link { color: #6c757d; }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    {# Navbar #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="fas fa-print text-primary me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-warehouse text-warning me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="mb-4 pb-3 border-bottom">
+            <h1 class="fw-bold text-dark">Espace de Gestion des Stocks (Dépôt)</h1>
+            <p class="text-muted m-0">Ajustez l'inventaire, fixez les couplages de colis (ex: Gilets par 25) et extrayez les rapports par commune.</p>
+        </div>
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Compteurs #}
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Demandes en attente</h6>
+                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }}</h3>
+                        </div>
+                        <i class="fas fa-clock fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons à signer (Coordon)</h6>
+                            <h3 class="fw-bold m-0 text-primary">{{ stats.bons_a_valider }}</h3>
+                        </div>
+                        <i class="fas fa-pen-nib fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons validés Guérite</h6>
+                            <h3 class="fw-bold m-0 text-success">{{ stats.bons_guerite }}</h3>
+                        </div>
+                        <i class="fas fa-shield-alt fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Navigation des 5 Onglets #}
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white p-0 border-bottom">
+                        <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="stockTab" role="tablist">
+                            <li class="nav-item">
+                                <button class="nav-link active py-3 px-4 fw-bold border-0" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button" role="tab">
+                                    <i class="fas fa-plus-circle me-2 text-primary"></i>Entrée des Données & Seuils
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button" role="tab">
+                                    <i class="fas fa-list text-success me-2"></i>Inventaire Global
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
+                                    <i class="fas fa-calendar-day me-2 text-warning"></i>Suivi Journalier (Matin)
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                                    <i class="fas fa-file-invoice me-2 text-info"></i>Rapport Général Hist.
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert-pane" type="button" role="tab">
+                                    <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Alertes Critiques
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="tab-content">
+                            
+                            {# ONGLET 1 : FORMULAIRE CENTRÉ #}
+                            <div class="tab-pane fade show active" id="input-pane" role="tabpanel">
+                                <div class="d-flex justify-content-center align-items-center py-4">
+                                    <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 500px; border-radius: 12px;">
+                                        <div class="text-center mb-4">
+                                            <i class="fas fa-layer-group text-primary fa-2x mb-2"></i>
+                                            <h5 class="fw-bold text-dark m-0">Alimenter la Base de Données</h5>
+                                            <small class="text-muted">Enregistrement des consommables et de leurs limites</small>
+                                        </div>
+                                        
+                                        {% if formStock is not null %}
+                                            {{ form_start(formStock) }}
+                                                <div class="mb-3">
+                                                    <label class="form-label small fw-bold text-secondary">Nom de l'article / Consommable</label>
+                                                    {{ form_widget(formStock.article, {'attr': {'class': 'form-control py-2', 'placeholder': 'Ex: Gilets, Rames papier'}}) }}
+                                                </div>
+                                                <div class="row g-3 mb-4">
+                                                    <div class="col-6">
+                                                        <label class="form-label small fw-bold text-secondary">Quantité Initiale (Unités)</label>
+                                                        {{ form_widget(formStock.quantite, {'attr': {'class': 'form-control py-2'}}) }}
+                                                        <small class="text-muted style-italic" style="font-size:0.75rem;">Pour 300 pqts de gilets, mettre 7500.</small>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label small fw-bold text-danger">Seuil d'Alerte</label>
+                                                        <input type="number" name="seuil_alerte" id="seuil_alerte" class="form-control py-2" min="1" value="5" required>
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="fas fa-save me-2"></i>Enregistrer dans la BDD</button>
+                                            {{ form_end(formStock) }}
+                                        {% else %}
+                                            <p class="text-danger text-center">Le formulaire Symfony (StockType) n'est pas chargé.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# ONGLET 2 : TABLEAU INVENTAIRE GLOBAL #}
+                            <div class="tab-pane fade" id="list-pane" role="tabpanel">
+                                <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-warehouse text-success me-2"></i>État Actuel de l'Entrepôt</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle border m-0">
+                                        <thead class="table-dark small text-uppercase fw-bold">
+                                            <tr>
+                                                <th>Réf / ID</th>
+                                                <th>Désignation de l'Article</th>
+                                                <th class="text-center">Quantité en Stock</th>
+                                                <th class="text-center">Seuil de Sécurité</th>
+                                                <th class="text-center">Statut / État</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for art in articles %}
+                                                <tr>
+                                                    <td class="fw-bold text-muted">#STK-{{ art.id }}</td>
+                                                    <td class="fw-semibold text-dark">{{ art.nom }}</td>
+                                                    <td class="text-center fw-bold fs-6 {% if art.quantite <= art.seuilAlerte %}text-danger{% endif %}">
+                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
+                                                            {% set paquets = (art.quantite / 25)|round(0, 'floor') %}
+                                                            {% set reste = art.quantite % 25 %}
+                                                            <span class="text-primary">{{ paquets }} pqt(s) {% if reste > 0 %}et {{ reste }} unité(s){% endif %}</span>
+                                                            <br><small class="text-muted fw-normal">({{ art.quantite }} gilets au total)</small>
+                                                        {% else %}
+                                                            {{ art.quantite }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center text-muted fw-bold">
+                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
+                                                            {{ art.seuilAlerte }} gilets
+                                                        {% else %}
+                                                            {{ art.seuilAlerte }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        {% if art.quantite <= 0 %}
+                                                            <span class="badge bg-danger text-white px-2.5 py-1.5"><i class="fas fa-times-circle me-1"></i> Rupture</span>
+                                                        {% elseif art.quantite <= art.seuilAlerte %}
+                                                            <span class="badge bg-warning text-dark px-2.5 py-1.5"><i class="fas fa-exclamation-triangle me-1"></i> Stock Bas</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success text-white px-2.5 py-1.5"><i class="fas fa-check-circle me-1"></i> Correct</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun article disponible.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# ONGLET 3 : SUIVI DES DEMANDES (MATIN) #}
+                            <div class="tab-pane fade" id="dem-pane" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold text-warning m-0"><i class="fas fa-calendar-check me-2"></i>Flux de matériel de ce matin</h5>
+                                    <span class="badge bg-dark px-3 py-2">Date du jour : {{ "now"|date("d/m/Y") }}</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle m-0 border">
+                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                            <tr>
+                                                <th>Heure</th>
+                                                <th>Département</th>
+                                                <th>Site Origine</th>
+                                                <th>Matériel Demandé</th>
+                                                <th class="text-center">Quantité</th>
+                                                <th>Destination (Commune)</th>
+                                                <th>Statut</th>
+                                                <th class="text-center">Action Stock</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for d in demandes %}
+                                                <tr>
+                                                    <td class="fw-bold text-muted">{{ d.createdAt|date('H:i') }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
+                                                    
+                                                    {# 🌍 AFFICHAGE DYNAMIQUE DE L'ORIGINE DE LA DEMANDE #}
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
+                                                            <i class="fas fa-building me-1 text-muted"></i>
+                                                            {{ d.localisation|default('Direction')|upper }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="fw-semibold text-dark">{{ d.materiel }}</td>
+                                                    <td class="text-center fw-bold text-primary">
+                                                        {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
+                                                            {% set p_dem = (d.quantite / 25)|round(0, 'floor') %}
+                                                            {% set r_dem = d.quantite % 25 %}
+                                                            <span>{{ p_dem }} pqt(s) {% if r_dem > 0 %}{{ r_dem }} u{% endif %}</span>
+                                                            <br><small class="text-muted" style="font-size:11px;">({{ d.quantite }} unités)</small>
+                                                        {% else %}
+                                                            {{ d.quantite|default('1') }}
+                                                        {% endif %}
+                                                    </td>
+                                                    
+                                                    <td class="fw-bold text-dark"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ d.destination|default('Non spécifiée')|upper }}</td>
+                                                    <td>
+                                                        {% if d.statut == 'En attente' %}
+                                                            <span class="badge rounded-pill bg-warning text-dark px-2.5 py-1">En attente compta</span>
+                                                        {% elseif d.statut == 'Validé Compta' %}
+                                                            <span class="badge rounded-pill bg-primary text-white px-2.5 py-1">Budget Accordé</span>
+                                                        {% elseif d.statut == 'Livré par le Stock' %}
+                                                            <span class="badge rounded-pill bg-success text-white px-2.5 py-1">Livré</span>
+                                                        {% else %}
+                                                            <span class="badge rounded-pill bg-secondary text-white px-2.5 py-1">{{ d.statut }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        {% if d.statut == 'Validé Compta' %}
+                                                            <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
+                                                                <button class="btn btn-sm btn-success fw-bold shadow-sm"><i class="fas fa-truck me-1"></i> Livrer le matériel</button>
+                                                            </form>
+                                                        {% elseif d.statut == 'En attente' %}
+                                                            <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-lock me-1"></i> Attente Compta</button>
+                                                        {% else %}
+                                                            <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-check me-1"></i> Traité</button>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-folder-open me-2"></i>Aucune demande logistique enregistrée ce matin.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# 📑 ONGLET 4 : RAPPORT GÉNÉRAL HISTORIQUE #}
+                            <div class="tab-pane fade" id="report-pane" role="tabpanel">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
+                                
+                                {# FORMULAIRE DE RECHERCHE FILTRE #}
+                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Du (Date Début) :</label>
+                                        <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Au (Date Fin) :</label>
+                                        <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-info text-white fw-bold w-100 py-2 shadow-sm">
+                                            <i class="fas fa-filter me-2"></i> Filtrer l'historique
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle m-0 border">
+                                        <thead class="table-dark small text-uppercase">
+                                            <tr>
+                                                <th>Date de Demande</th>
+                                                <th>Département</th>
+                                                <th>Localisation Origine</th> 
+                                                <th>Consommable / Article</th>
+                                                <th class="text-center">Quantité Distribuée</th>
+                                                <th>Destination (Site / Commune)</th>
+                                                <th class="text-center">État Logistique</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for rg in rapportGlobal %}
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                                                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
+                                                    
+                                                    {# 🌍 RESOLUTION DU PROBLÈME : AFFICHAGE 100% DYNAMIQUE DE LA LOCALISATION SANS EN-DUR #}
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">
+                                                            <i class="fas fa-building me-1 text-muted"></i>
+                                                            {{ rg.localisation|default('Direction')|upper }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="fw-bold text-dark">{{ rg.materiel }}</td>
+                                                    <td class="text-center fw-bold">
+                                                        {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
+                                                            {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
+                                                            {% set r_rep = rg.quantite % 25 %}
+                                                            <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
+                                                        {% else %}
+                                                            {{ rg.quantite }}
+                                                        {% endif %}
+                                                    </td>
+                                                    
+                                                    {# 🌍 RESOLUTION DU PROBLÈME : AFFICHAGE 100% DYNAMIQUE DE LA DESTINATION #}
+                                                    <td class="fw-bold"><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
+                                                    
+                                                    <td class="text-center">
+                                                        {% if rg.statut == 'Livré par le Stock' %}
+                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Livré & Sorti</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary px-2.5 py-1.5">{{ rg.statut }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucune archive trouvée pour cette sélection de dates.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# ONGLET 5 : ALERTES & GRAPHIQUE #}
+                            <div class="tab-pane fade" id="alert-pane" role="tabpanel">
+                                <div class="row g-4">
+                                    <div class="col-lg-6">
+                                        <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-bell text-danger me-2"></i>Niveaux de stock critiques</h5>
+                                        {% set has_alert = false %}
+                                        {% for art in articles %}
+                                            {% if art.quantite <= art.seuilAlerte %}
+                                                {% set has_alert = true %}
+                                                <div class="alert {% if art.quantite == 0 %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center shadow-sm mb-3" role="alert">
+                                                    <i class="fas fa-exclamation-circle fs-4 me-3"></i>
+                                                    <div>
+                                                        <strong>{{ art.nom }} :</strong> Stock critique à {{ art.quantite }} unités (Seuil d'alerte configuré à {{ art.seuilAlerte }}).
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if not has_alert %}
+                                            <div class="alert alert-success d-flex align-items-center shadow-sm" role="alert">
+                                                <i class="fas fa-check-circle fs-4 me-3"></i>
+                                                <div>Tout est sous contrôle ! Aucun article sous le seuil critique.</div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="card border p-3 bg-white shadow-sm">
+                                            <h6 class="fw-bold text-dark mb-3 text-center"><i class="fas fa-chart-bar text-primary me-2"></i>Visualisation Graphique (Unités globales)</h6>
+                                            <div style="position: relative; height:220px; width:100%">
+                                                <canvas id="stockChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Script Graphique #}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [{% for art in articles %}"{{ art.nom }}",{% endfor %}],
+                    datasets: [{
+                        label: 'Quantité disponible (unités)',
+                        data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
+                        backgroundColor: [
+                            {% for art in articles %}
+                                {% if art.quantite <= 0 %} '#dc3545'
+                                {% elseif art.quantite <= art.seuilAlerte %} '#ffc107'
+                                {% else %} '#0d6efd'
+                                {% endif %},
+                            {% endfor %}
+                        ],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('date_debut')) {
+                const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
+                reportTab.show();
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

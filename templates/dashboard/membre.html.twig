@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Espace Membre & Validation - Imprimerie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
+        .card-counter:hover { transform: translateY(-3px); }
+        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-user text-info me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="mb-4 pb-3 border-bottom">
+            <h1 class="fw-bold text-dark">Espace de Gestion des Flux</h1>
+            <p class="text-muted m-0">
+                {% if userRole == 'ROLE_DG' %}
+                    Consultez l'état d'inventaire en temps réel et l'historique complet des mouvements logistiques de l'entreprise.
+                {% else %}
+                    Créez vos demandes et traitez les autorisations logistiques selon vos privilèges de service.
+                {% endif %}
+            </p>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Demandes en attente</h6>
+                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }}</h3>
+                        </div>
+                        <i class="fas fa-clock fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons à signer (Coordon)</h6>
+                            <h3 class="fw-bold m-0 text-primary">{{ stats.bons_a_valider }}</h3>
+                        </div>
+                        <i class="fas fa-pen-nib fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons validés Guérite</h6>
+                            <h3 class="fw-bold m-0 text-success">{{ stats.bons_guerite }}</h3>
+                        </div>
+                        <i class="fas fa-shield-alt fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            {# CRÉATION MASQUÉE POUR LE COORDON, LE STOCK, LA GUÉRITE ET LE DG #}
+            {% if userRole != 'ROLE_COORDON' and userRole != 'ROLE_STOCK' and userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') %}
+            <div class="col-xl-4 col-lg-5">
+                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #0d6efd !important;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title m-0 fw-bold"><i class="fas fa-box-open text-primary me-2"></i>Demander du Matériel</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(formDemande) }}
+                            {{ form_widget(formDemande) }}
+                            <button type="submit" class="btn btn-primary w-100 fw-bold mt-3">Envoyer la Demande</button>
+                        {{ form_end(formDemande) }}
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #198754 !important;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title m-0 fw-bold"><i class="fas fa-file-invoice text-success me-2"></i>Créer un Bon de Sortie</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(formBon) }}
+                            {{ form_widget(formBon) }}
+                            <button type="submit" class="btn btn-success w-100 fw-bold mt-3">Émettre le Bon</button>
+                        {{ form_end(formBon) }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# PLEINE LARGEUR DE L'ÉCRAN SI COMPTE DE SUPERVISION / DG / COORDON #}
+            <div class="{% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_STOCK' or userRole == 'ROLE_GUERITE' or userRole == 'ROLE_DG' %}col-12{% else %}col-xl-8 col-lg-7{% endif %}">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white p-0 border-bottom">
+                        <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="memberTab" role="tablist">
+                            
+                            {% if userRole != 'ROLE_DG' %}
+                            <li class="nav-item">
+                                <button class="nav-link active py-3 px-4 fw-bold border-0 text-primary" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
+                                    <i class="fas fa-boxes me-2"></i>Suivi des Demandes
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0 text-success" id="bon-tab" data-bs-toggle="tab" data-bs-target="#bon-pane" type="button" role="tab">
+                                    <i class="fas fa-file-signature me-2"></i>Registre des Bons de Sortie
+                                </button>
+                            </li>
+                            {% endif %}
+                            
+                            {# ONGLET HISTORIQUE ACCESSIBLE AU COORDONNATEUR ET AU DG #}
+                            {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
+                            <li class="nav-item">
+                                <button class="nav-link {% if userRole == 'ROLE_DG' %}active{% endif %} py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                                    <i class="fas fa-file-invoice me-2"></i>Rapport Général Hist.
+                                </button>
+                            </li>
+                            {% endif %}
+
+                            {# ONGLET SITUATION DU STOCK EN DIRECT EXCLUSIF AU DG #}
+                            {% if userRole == 'ROLE_DG' %}
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0 text-warning" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stock-pane" type="button" role="tab">
+                                    <i class="fas fa-warehouse me-2"></i>Situation des Stocks Réels
+                                </button>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div class="card-body p-3">
+                        <div class="tab-content">
+                            
+                            {% if userRole != 'ROLE_DG' %}
+                            {# ONGLET : SUIVI DES DEMANDES #}
+                            <div class="tab-pane fade show active" id="dem-pane" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle m-0">
+                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Département</th>
+                                                <th>Localisation</th>
+                                                <th>Matériel</th>
+                                                <th class="text-center">Quantité</th>
+                                                <th>Statut</th>
+                                                {% if userRole == 'ROLE_STOCK' %}<th class="text-center">Action Stock</th>{% endif %}
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for d in demandes %}
+                                                <tr>
+                                                    <td class="fw-bold">#{{ d.id }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
+                                                    
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
+                                                            <i class="fas fa-building me-1 text-muted"></i>
+                                                            {{ d.localisation|default('Direction')|upper }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="fw-semibold text-dark">{{ d.materiel }}</td>
+                                                    
+                                                    <td class="text-center fw-bold text-primary">
+                                                        {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
+                                                            {% set p_dem = (d.quantite / 25)|round(0, 'floor') %}
+                                                            {% set r_dem = d.quantite % 25 %}
+                                                            <span>{{ p_dem }} pqt(s) {% if r_dem > 0 %}{{ r_dem }} u{% endif %}</span>
+                                                        {% else %}
+                                                            {{ d.quantite|default('1') }}
+                                                        {% endif %}
+                                                    </td>
+
+                                                    <td><span class="badge rounded-pill px-2.5 py-1 bg-warning text-dark">{{ d.statut }}</span></td>
+                                                    
+                                                    {% if userRole == 'ROLE_STOCK' %}
+                                                    <td class="text-center">
+                                                        <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
+                                                            <button class="btn btn-sm btn-outline-success fw-bold"><i class="fas fa-truck me-1"></i> Livrer le matériel</button>
+                                                        </form>
+                                                    </td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucune demande logistique enregistrée aujourd'hui.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {# ONGLET : REGISTRE DES BONS #}
+                            <div class="tab-pane fade" id="bon-pane" role="tabpanel">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle m-0">
+                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Employé</th>
+                                                <th>Département</th>
+                                                <th>Localisation</th>
+                                                <th>État du Bon</th>
+                                                {% if userRole == 'ROLE_COORDON' %}<th class="text-center">Signature Coordon</th>{% endif %}
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for b in bonsSortie %}
+                                                <tr>
+                                                    <td class="fw-bold">#{{ b.id }}</td>
+                                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
+                                                    
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
+                                                            <i class="fas fa-building me-1 text-muted"></i>
+                                                            {{ b.localisation|default('Direction')|upper }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td><span class="badge rounded-pill px-2.5 py-1 bg-primary text-white">{{ b.statut }}</span></td>
+                                                    
+                                                    {% if userRole == 'ROLE_COORDON' %}
+                                                    <td class="text-center">
+                                                        <form action="{{ path('app_bon_valider', {'id': b.id}) }}" method="POST" class="d-inline">
+                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                                                                <i class="fas fa-pen-fancy me-1"></i> Signer le Bon
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun bon de sortie en traitement.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# CONTENU DE L'ONGLET RAPPORT GÉNÉRAL HISTORIQUE (PARTAGÉ COORDON ET DG) #}
+                            {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
+                            <div class="tab-pane fade {% if userRole == 'ROLE_DG' %}show active{% endif %}" id="report-pane" role="tabpanel">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
+                                
+                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Du (Date Début) :</label>
+                                        <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold text-secondary">Au (Date Fin) :</label>
+                                        <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <button type="submit" class="btn btn-info text-white fw-bold w-100 py-2 shadow-sm">
+                                            <i class="fas fa-filter me-2"></i> Filtrer l'historique
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle m-0 border">
+                                        <thead class="table-dark small text-uppercase">
+                                            <tr>
+                                                <th>Date de Demande</th>
+                                                <th>Département</th>
+                                                <th>Localisation Origine</th>
+                                                <th>Consommable / Article</th>
+                                                <th class="text-center">Quantité Distribuée</th>
+                                                <th>Destination (Site / Commune)</th>
+                                                <th class="text-center">État Logistique</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for rg in rapportGlobal %}
+                                                <tr>
+                                                    <td class="fw-semibold text-muted">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                                                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
+                                                    
+                                                    <td class="fw-bold text-dark">
+                                                        <span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">
+                                                            <i class="fas fa-building me-1 text-muted"></i>
+                                                            {{ rg.localisation|default('Direction')|upper }}
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="fw-bold text-dark">{{ rg.materiel }}</td>
+                                                    <td class="text-center fw-bold">
+                                                        {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
+                                                            {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
+                                                            {% set r_rep = rg.quantite % 25 %}
+                                                            <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
+                                                        {% else %}
+                                                            {{ rg.quantite }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="fw-bold"><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
+                                                    <td class="text-center">
+                                                        {% if rg.statut == 'Livré par le Stock' %}
+                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Livré & Sorti</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary px-2.5 py-1.5">{{ rg.statut }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucune archive trouvée pour cette sélection de dates.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# BLOC EXCLUSIF DU DG : SITUATION DE L'INVENTAIRE DU STOCK EN TEMPS RÉEL #}
+                            {% if userRole == 'ROLE_DG' %}
+                            <div class="tab-pane fade" id="stock-pane" role="tabpanel">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-cubes text-warning me-2"></i>Situation Globale du Stock Dépôt</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-striped align-middle border m-0">
+                                        <thead class="table-warning small text-uppercase fw-bold text-dark">
+                                            <tr>
+                                                <th>Nom de l'Article / Marchandise</th>
+                                                <th class="text-center">Quantité Réelle Restante</th>
+                                                <th class="text-center">Seuil d'Alerte Configuré</th>
+                                                <th class="text-center">État Critique</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for art in articles %}
+                                                <tr>
+                                                    <td class="fw-bold text-dark">{{ art.nom }}</td>
+                                                    
+                                                    <td class="text-center fw-bold fs-6 text-primary">
+                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
+                                                            {% set paquets_dg = (art.quantite / 25)|round(0, 'floor') %}
+                                                            {% set reste_dg = art.quantite % 25 %}
+                                                            <span>{{ paquets_dg }} pqt(s) {% if reste_dg > 0 %}et {{ reste_dg }} u{% endif %}</span>
+                                                            <br><small class="text-muted fw-normal">({{ art.quantite }} unités totales)</small>
+                                                        {% else %}
+                                                            {{ art.quantite }}
+                                                        {% endif %}
+                                                    </td>
+
+                                                    <td class="text-center text-muted fw-bold">
+                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
+                                                            {{ art.seuilAlerte|default(5) }} u
+                                                        {% else %}
+                                                            {{ art.seuilAlerte|default(5) }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center">
+                                                        {% if art.quantite <= art.seuilAlerte|default(5) %}
+                                                            <span class="badge bg-danger px-2.5 py-1.5"><i class="fas fa-exclamation-triangle me-1"></i> Approvisionnement Requis</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check-circle me-1"></i> Stock Correct</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="4" class="text-center py-4 text-muted">Aucun article enregistré au dépôt central.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+
+                {# FORMULAIRE DE VISITE MASQUÉ POUR LE DG #}
+                {% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
+                <div class="card border-0 shadow-sm mt-4" style="border-top: 4px solid #ffc107 !important;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(formVisite) }}
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Nom du Visiteur</label>
+                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Département Visité</label>
+                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Impression'}}) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Motif de la visite</label>
+                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Réunion, Maintenance'}}) }}
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning w-100 text-white fw-bold mt-2">Enregistrer la Visite</button>
+                        {{ form_end(formVisite) }}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Maintien automatique de l'onglet Historique si un filtre de date est appliqué
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('date_debut') && document.querySelector('#report-tab')) {
+            const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
+            reportTab.show();
+        }
+
+        // Gestion de la contrainte de destination obligatoire pour les gilets
+        const champMateriel = document.getElementById('demande_materiel');
+        const champDestination = document.getElementById('demande_destination');
+        
+        if (champMateriel && champDestination) {
+            function verifierConditionCommune() {
+                const valeurMateriel = champMateriel.value.trim().toLowerCase();
+                if (valeurMateriel.includes('gilet')) {
+                    champDestination.setAttribute('required', 'required');
+                } else {
+                    champDestination.removeAttribute('required');
+                }
+            }
+            
+            champMateriel.addEventListener('input', verifierConditionCommune);
+            verifierConditionCommune();
+        }
+    });
+    </script>
+</body>
+</html>
