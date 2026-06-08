@@ -41,18 +41,16 @@ jobs:
 
     # Étape E : On synchronise les fichiers de la machine GitHub vers ton cPanel via SSH/rsync.
     # C'est ici que GitHub va lire tes 4 secrets (avec ${{ secrets.NOM_DU_SECRET }}) pour s'identifier
+    # 5. On envoie TOUT proprement sur ton cPanel via SFTP
     - name: Synchroniser les fichiers avec cPanel
-      uses: svenstaro/upload-deploy-action@v2
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        status-name: 'Deploiement cPanel'
-        file: ./
-        # C'est le chemin absolu vers ton projet sur ton cPanel (celui qui contient src, templates, var...)
-        target: /home/yumbatec/Gestion-stock-imprimerie-main/
-        host: ${{ secrets.CPANEL_HOST }}
+        server: ${{ secrets.CPANEL_HOST }}
         username: ${{ secrets.CPANEL_USERNAME }}
-        ssh-private-key: ${{ secrets.CPANEL_KEY }}
+        password: ${{ secrets.CPANEL_KEY }} # GitHub va utiliser ta clé SSH comme mot de passe de connexion
         port: ${{ secrets.CPANEL_PORT }}
+        local-dir: ./
+        server-dir: /home/yumbatec/Gestion-stock-imprimerie-main/
 
     # Étape F : Une fois les fichiers copiés, GitHub se connecte une fraction de seconde 
     # en SSH directement sur ton terminal cPanel pour nettoyer le dossier de cache de Symfony
