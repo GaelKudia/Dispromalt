@@ -1,59 +1,42 @@
-# Le nom de l'action qui s'affichera dans l'interface de GitHub
 name: Deploiement Automatique Dispromalt
 
-# "on :" définit l'événement déclencheur. On dit ici à GitHub : 
-# "Dès qu'il y a un 'push' (envoi de code) sur la branche appelée 'main', réveille-toi."
 on:
   push:
     branches:
       - main
 
-# "jobs :" liste le bloc de tâches que la machine virtuelle de GitHub va exécuter
 jobs:
   deploy:
-    # On demande à GitHub de démarrer un ordinateur virtuel sous Linux Ubuntu récent
     runs-on: ubuntu-latest
 
-    # "steps :" détaille les actions chronologiques (étape par étape)
     steps:
-    
-    # Étape A : GitHub se connecte à ton dépôt et télécharge ton code sur sa machine virtuelle
     - name: Recuperer le code du depot
       uses: actions/checkout@v3
 
-    # Étape B : On installe la même version de PHP que ton cPanel pour que Symfony puisse fonctionner
     - name: Configurer PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl
 
-    # Étape C : On demande à Composer d'installer tes dépendances sans les fichiers de développement (--no-dev)
-    # pour optimiser la vitesse et la légèreté de l'application en production (--optimize-autoloader)
     - name: Installer les dependances Composer
       run: |
         composer install --no-dev --optimize-autoloader
 
-    # Étape D : On exécute la commande de ton bundle PWA pour générer le manifest et le service worker officiels
     - name: Compiler les assets PWA
       run: |
         php bin/console pwa:compile
 
-    # Étape E : On synchronise les fichiers de la machine GitHub vers ton cPanel via SSH/rsync.
-    # C'est ici que GitHub va lire tes 4 secrets (avec ${{ secrets.NOM_DU_SECRET }}) pour s'identifier
-    # 5. On envoie TOUT proprement sur ton cPanel via SFTP
     - name: Synchroniser les fichiers avec cPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
         server: ${{ secrets.CPANEL_HOST }}
         username: ${{ secrets.CPANEL_USERNAME }}
-        password: ${{ secrets.CPANEL_KEY }} # GitHub va utiliser ta clé SSH comme mot de passe de connexion
+        password: ${{ secrets.CPANEL_KEY }}
         port: ${{ secrets.CPANEL_PORT }}
         local-dir: ./
         server-dir: /home/yumbatec/Gestion-stock-imprimerie-main/
 
-    # Étape F : Une fois les fichiers copiés, GitHub se connecte une fraction de seconde 
-    # en SSH directement sur ton terminal cPanel pour nettoyer le dossier de cache de Symfony
     - name: Vider le cache de production sur cPanel
       uses: appleboy/ssh-action@master
       with:
