@@ -34,17 +34,17 @@ jobs:
       run: |
         php bin/console pwa:compile
 
-    # 5. Synchroniser les fichiers avec cPanel via SFTP (Sécurisé)
-    # 5. Synchroniser les fichiers avec cPanel via SFTP (Sécurisé)
+    # 5. Synchroniser les fichiers avec cPanel via Rsync (Plus stable et rapide)
     - name: Synchroniser les fichiers avec cPanel
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      uses: Burnett01/rsync-deployments@v7.0.1
       with:
-        username: ${{ secrets.CPANEL_USERNAME }}
-        server: ${{ secrets.CPANEL_HOST }} # Correction ici : 'server' au lieu de 'host'
-        ssh_private_key: ${{ secrets.CPANEL_KEY }}
+        switches: -avzr --delete
+        path: ./
+        remote_path: /home/yumbatec/Gestion-stock-imprimerie-main
+        host: ${{ secrets.CPANEL_HOST }}
         port: ${{ secrets.CPANEL_PORT }}
-        local_path: './'
-        remote_path: '/home/yumbatec/Gestion-stock-imprimerie-main' # On retire l'étoile à la fin
+        user: ${{ secrets.CPANEL_USERNAME }}
+        key: ${{ secrets.CPANEL_KEY }}
 
     # 6. Vider le cache de production sur cPanel
     - name: Vider le cache de production sur cPanel
