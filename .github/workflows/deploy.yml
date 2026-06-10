@@ -35,16 +35,16 @@ jobs:
         php bin/console pwa:compile
 
     # 5. Synchroniser les fichiers avec cPanel via SFTP (Sécurisé)
+    # 5. Synchroniser les fichiers avec cPanel via SFTP (Sécurisé)
     - name: Synchroniser les fichiers avec cPanel
       uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
         username: ${{ secrets.CPANEL_USERNAME }}
-        host: ${{ secrets.CPANEL_HOST }}
-        ssh_private_key: ${{ secrets.CPANEL_KEY }} # Utilise ta clé SSH générée sur cPanel
+        server: ${{ secrets.CPANEL_HOST }} # Correction ici : 'server' au lieu de 'host'
+        ssh_private_key: ${{ secrets.CPANEL_KEY }}
         port: ${{ secrets.CPANEL_PORT }}
         local_path: './'
-        # Attention : Cet outil veut que le chemin se termine par une étoile '*' pour tout copier
-        remote_path: '/home/yumbatec/Gestion-stock-imprimerie-main/*'
+        remote_path: '/home/yumbatec/Gestion-stock-imprimerie-main' # On retire l'étoile à la fin
 
     # 6. Vider le cache de production sur cPanel
     - name: Vider le cache de production sur cPanel
