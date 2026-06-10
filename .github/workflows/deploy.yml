@@ -5,28 +5,38 @@ on:
     branches:
       - main
 
+# On définit ici globalement que la machine virtuelle travaille en mode PRODUCTION
+env:
+  APP_ENV: prod
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+    # 1. Récupérer le code
     - name: Recuperer le code du depot
       uses: actions/checkout@v3
 
+    # 2. Configurer PHP
     - name: Configurer PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl
 
+    # 3. Installer les dépendances Composer
+    # AJOUT de --no-scripts pour éviter que Symfony ne cherche les bundles de dev avant la fin
     - name: Installer les dependances Composer
       run: |
-        composer install --no-dev --optimize-autoloader
+        composer install --no-dev --optimize-autoloader --no-scripts
 
+    # 4. Compiler la PWA
     - name: Compiler les assets PWA
       run: |
         php bin/console pwa:compile
 
+    # 5. Synchroniser les fichiers avec cPanel
     - name: Synchroniser les fichiers avec cPanel
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -37,6 +47,7 @@ jobs:
         local-dir: ./
         server-dir: /home/yumbatec/Gestion-stock-imprimerie-main/
 
+    # 6. Vider le cache de production sur cPanel
     - name: Vider le cache de production sur cPanel
       uses: appleboy/ssh-action@master
       with:
