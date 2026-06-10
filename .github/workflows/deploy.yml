@@ -37,7 +37,7 @@ jobs:
     # 5. Synchroniser les fichiers avec cPanel via Rsync (Plus stable et rapide)
     # 5. Synchroniser les fichiers avec cPanel via Rsync (Plus stable et rapide)
     - name: Synchroniser les fichiers avec cPanel
-      uses: Burnett01/rsync-deployments@v6.0.1
+      uses: Burnett01/rsync-deployments@main
       with:
         switches: -avzr --delete
         path: ./
@@ -46,7 +46,6 @@ jobs:
         port: ${{ secrets.CPANEL_PORT }}
         user: ${{ secrets.CPANEL_USERNAME }}
         key: ${{ secrets.CPANEL_KEY }}
-
     # 6. Vider le cache de production sur cPanel
     - name: Vider le cache de production sur cPanel
       uses: appleboy/ssh-action@master
