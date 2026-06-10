@@ -5,7 +5,6 @@ on:
     branches:
       - main
 
-# On définit ici globalement que la machine virtuelle travaille en mode PRODUCTION
 env:
   APP_ENV: prod
 
@@ -26,7 +25,6 @@ jobs:
         extensions: mbstring, xml, ctype, iconv, intl
 
     # 3. Installer les dépendances Composer
-    # AJOUT de --no-scripts pour éviter que Symfony ne cherche les bundles de dev avant la fin
     - name: Installer les dependances Composer
       run: |
         composer install --no-dev --optimize-autoloader --no-scripts
@@ -36,16 +34,17 @@ jobs:
       run: |
         php bin/console pwa:compile
 
-    # 5. Synchroniser les fichiers avec cPanel
+    # 5. Synchroniser les fichiers avec cPanel via SFTP (Sécurisé)
     - name: Synchroniser les fichiers avec cPanel
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
-        server: ${{ secrets.CPANEL_HOST }}
         username: ${{ secrets.CPANEL_USERNAME }}
-        password: ${{ secrets.CPANEL_KEY }}
+        host: ${{ secrets.CPANEL_HOST }}
+        ssh_private_key: ${{ secrets.CPANEL_KEY }} # Utilise ta clé SSH générée sur cPanel
         port: ${{ secrets.CPANEL_PORT }}
-        local-dir: ./
-        server-dir: /home/yumbatec/Gestion-stock-imprimerie-main/
+        local_path: './'
+        # Attention : Cet outil veut que le chemin se termine par une étoile '*' pour tout copier
+        remote_path: '/home/yumbatec/Gestion-stock-imprimerie-main/*'
 
     # 6. Vider le cache de production sur cPanel
     - name: Vider le cache de production sur cPanel
