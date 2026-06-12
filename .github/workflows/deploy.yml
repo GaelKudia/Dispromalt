@@ -13,18 +13,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. On récupère le code
+    # 1. On récupère le code du dépôt GitHub
     - name: Recuperer le code du depot
       uses: actions/checkout@v3
 
-    # 2. On configure PHP
+    # 2. On configure PHP sur la machine GitHub
     - name: Configurer PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
         extensions: mbstring, xml, ctype, iconv, intl
 
-    # 3. On installe les dépendances Composer sans les outils de dev
+    # 3. On installe les dépendances Composer (sans les outils de dev)
     - name: Installer les dependances Composer
       run: |
         composer install --no-dev --optimize-autoloader --no-scripts
@@ -34,21 +34,9 @@ jobs:
       run: |
         php bin/console pwa:compile
 
-    # 5. Connexion directe en SSH pour synchroniser les fichiers et vider le cache
-    # Cette méthode utilise un outil officiel et blindé de GitHub
+    # 5. Connexion directe en SSH via mot de passe uniquement
     - name: Connexion SSH et Deploiement cPanel
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.CPANEL_HOST }}
-        username: ${{ secrets.CPANEL_USERNAME }}
-        key: ${{ secrets.CPANEL_KEY }}
-        port: ${{ secrets.CPANEL_PORT }}
-        script: |
-          echo "Connexion etablie avec le cPanel !"
-          # On force Git à récupérer les fichiers directement sur le serveur cPanel
-          cd /home/yumbatec/Gestion-stock-imprimerie-main
-          git pull origin main
-          
-          # On nettoie le cache Symfony de production
-          rm -rf var/cache/*
-          echo "Deploiement termine avec succes !"
+        username: ${{ secrets.CPANEL_
