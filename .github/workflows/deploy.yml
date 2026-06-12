@@ -1,51 +1,23 @@
-name: Deploiement Automatique Dispromalt
+name: Deploiement Automatique FTP
 
 on:
   push:
     branches:
       - main
 
-env:
-  APP_ENV: prod
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-    # 1. On récupère le code du dépôt GitHub
-    - name: Recuperer le code du depot
+    - name: Recuperer le code
       uses: actions/checkout@v3
 
-    # 2. On configure PHP sur la machine GitHub
-    - name: Configurer PHP
-      uses: shivammathur/setup-php@v2
+    - name: Synchroniser les fichiers avec cPanel (FTP)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl
-
-    # 3. On installe les dépendances Composer (sans les outils de dev)
-    - name: Installer les dependances Composer
-      run: |
-        composer install --no-dev --optimize-autoloader --no-scripts
-
-    # 4. On compile les assets de la PWA
-    - name: Compiler les assets PWA
-      run: |
-        php bin/console pwa:compile
-
-    # 5. Connexion directe en SSH via mot de passe uniquement
-    - name: Connexion SSH et Deploiement cPanel
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.CPANEL_HOST }}
+        server: ${{ secrets.CPANEL_HOST }}
         username: ${{ secrets.CPANEL_USERNAME }}
         password: ${{ secrets.CPANEL_KEY }}
-        port: ${{ secrets.CPANEL_PORT }}
-        key: ""
-        script: |
-          echo "Connexion reussie avec le mot de passe cPanel !"
-          cd /home/yumbatec/Gestion-stock-imprimerie-main
-          git pull origin main
-          rm -rf var/cache/*
-          echo "Deploiement et nettoyage du cache termines avec succes !"
+        port: 21
+        local-dir: ./
+        server-dir: /home/yumbatec/gestion_imprimerie/
