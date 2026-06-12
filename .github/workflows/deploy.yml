@@ -39,4 +39,13 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.CPANEL_HOST }}
-        username: ${{ secrets.CPANEL_
+        username: ${{ secrets.CPANEL_USERNAME }}
+        password: ${{ secrets.CPANEL_KEY }}
+        port: ${{ secrets.CPANEL_PORT }}
+        key: ""
+        script: |
+          echo "Connexion reussie avec le mot de passe cPanel !"
+          cd /home/yumbatec/Gestion-stock-imprimerie-main
+          git pull origin main
+          rm -rf var/cache/*
+          echo "Deploiement et nettoyage du cache termines avec succes !"
