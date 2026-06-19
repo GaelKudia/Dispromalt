@@ -31,6 +31,9 @@ class Devis
     #[ORM\Column(length: 50)]
     private ?string $statut = null;
 
+    #[ORM\Column(length: 3)]
+    private ?string $devise = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -104,6 +107,18 @@ class Devis
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getDevise(): ?string
+    {
+        return $this->devise;
+    }
+
+    public function setDevise(string $devise): static
+    {
+        $this->devise = $devise;
 
         return $this;
     }

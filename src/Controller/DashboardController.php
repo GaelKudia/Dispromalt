@@ -180,7 +180,10 @@ class DashboardController extends AbstractController
         $rapportGlobal = [];
         $articles = []; 
         $devisListe = [];
-        $totalDevisValides = 0;
+        
+        // Variables de cumul séparées par devise pour éviter les totaux erronés
+        $totalDevisUSD = 0;
+        $totalDevisCDF = 0;
 
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui = new \DateTime('today 23:59:59');
@@ -242,7 +245,7 @@ class DashboardController extends AbstractController
                                           ->getResult();
             }
 
-            // 📑 LOGIQUE DU RAPPORT DES DEVIS ACCESSIBLE À TOUS
+            // 📑 LOGIQUE DU RAPPORT DES DEVIS (Correction des totaux synchronisés)
             if (class_exists('App\Entity\Devis')) {
                 $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d');
 
@@ -260,7 +263,11 @@ class DashboardController extends AbstractController
 
                 foreach ($devisListe as $d) {
                     if ($d->getStatut() === 'VALIDE') {
-                        $totalDevisValides += $d->getMontant();
+                        if ($d->getDevise() === 'CDF') {
+                            $totalDevisCDF += $d->getMontant();
+                        } else {
+                            $totalDevisUSD += $d->getMontant(); // Par défaut ou USD
+                        }
                     }
                 }
             }
@@ -326,7 +333,8 @@ class DashboardController extends AbstractController
                 'demandes' => $demandeRepository->findBy(['statut' => 'En attente'], ['id' => 'DESC']),
                 'rapportGlobal' => $rapportGlobal,
                 'devisListe' => $devisListe,
-                'totalDevisValides' => $totalDevisValides,
+                'totalDevisUSD' => $totalDevisUSD,
+                'totalDevisCDF' => $totalDevisCDF,
                 'userRole' => $roleLabel,
                 'stats' => $stats,
                 'formVisite' => $formVisiteView,
@@ -355,7 +363,8 @@ class DashboardController extends AbstractController
             'rapportGlobal' => $rapportGlobal, 
             'articles' => $articles,
             'devisListe' => $devisListe, 
-            'totalDevisValides' => $totalDevisValides,
+            'totalDevisUSD' => $totalDevisUSD,
+            'totalDevisCDF' => $totalDevisCDF,
             'userRole' => $roleLabel,
             'stats' => $stats,
             'formDemande' => $formDemandeView, 
@@ -373,19 +382,19 @@ class DashboardController extends AbstractController
     #[Route('/dashboard/devis/nouveau', name: 'app_devis_nouveau')]
     public function nouveauDevis(Request $request, EntityManagerInterface $em): Response
     {
-        // On vérifie si ton entité est mappée ou non pour l'en-tête (Option 1 vs Option 2)
         $devis = new Devis();
         $form = $this->createForm(DevisType::class, $devis);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Sécurité : On récupère la valeur de l'en-tête que le champ soit mappé ou non
             $entete = $form->has('entete') ? $form->get('entete')->getData() : '';
             
+            // Correction 1 : On ajoute bien la clé 'devise' dans le tableau de Session
             $request->getSession()->set('devis_brouillon', [
-                'entete' => $entete ?: ($devis->hasProperty('entete') ? $devis->getEntete() : 'Nouveau Devis'),
+                'entete' => $entete ?: (method_exists($devis, 'getEntete') ? $devis->getEntete() : 'Nouveau Devis'),
                 'description' => $devis->getDescription(),
-                'montant' => $devis->getMontant()
+                'montant' => $devis->getMontant(),
+                'devise' => $form->get('devise')->getData() ?? 'USD'
             ]);
             return $this->redirectToRoute('app_devis_apercu');
         }
@@ -406,17 +415,18 @@ class DashboardController extends AbstractController
         if ($request->isMethod('POST')) {
             $devis = new Devis();
             
-            // Si ta bdd possède le champ entete, on l'enregistre
             if (method_exists($devis, 'setEntete')) {
-    // Si 'entete' n'existe pas dans la session, on met une valeur par défaut
-    $devis->setEntete($sessionData['entete'] ?? 'Nouveau Devis');
-}
+                $devis->setEntete($sessionData['entete'] ?? 'Nouveau Devis');
+            }
             
             $devis->setDescription($sessionData['description']);
             $devis->setMontant($sessionData['montant']);
             $devis->setStatut('EN_ATTENTE');
             $devis->setCreatedAt(new \DateTime());
             $devis->setCreatedBy($this->getUser()->getUserIdentifier());
+
+            // Correction 2 : Récupération sécurisée depuis la Session sans passer par $form
+            $devis->setDevise($sessionData['devise'] ?? 'USD');
 
             $em->persist($devis);
             $em->flush();

@@ -199,7 +199,14 @@
                     <div class="tab-pane fade" id="devis-pane" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Analyse financière des Devis reçus</h5>
-                            <span class="badge bg-warning text-dark fw-bold fs-6 py-2 px-3 rounded-pill">Cumul Validé Période : {{ totalDevisValides|number_format(2, ',', ' ') }} €</span>
+                            <div class="d-flex gap-2">
+    <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+        <i class="fas fa-dollar-sign me-1"></i> {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
+    </span>
+    <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+        <i class="fas fa-money-bill-wave me-1"></i> {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
+    </span>
+</div>
                         </div>
                         
                         {# 🔍 Barre de filtrage par date pour les devis #}
@@ -240,8 +247,19 @@
                                     {% for devis in devisListe %}
                                         <tr>
                                             <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
-                                            <td style="max-width: 300px;" class="text-wrap">{{ devis.description|nl2br }}</td>
-                                            <td class="fw-bold text-primary">{{ devis.montant|number_format(2, ',', ' ') }} €</td>
+                                            <td style="max-width: 300px;" class="text-wrap">
+    {% if devis.entete is defined and devis.entete %}
+        <strong class="text-dark d-block mb-1">{{ devis.entete }}</strong>
+    {% endif %}
+    <span class="text-muted small">{{ devis.description|nl2br }}</span>
+</td>
+                                            <td class="fw-bold text-dark">
+    {% if devis.devise == 'CDF' %}
+        {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary fw-bold small">FC</span>
+    {% else %}
+        {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success fw-bold">$</span>
+    {% endif %}
+</td>
                                             <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
                                             <td class="text-center">
                                                 {% if devis.statut == 'EN_ATTENTE' %}
