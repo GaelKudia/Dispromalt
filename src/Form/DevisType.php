@@ -16,11 +16,16 @@ class DevisType extends AbstractType // 👈 2. On change "AbstractFormType" par
     {
         $builder
 
-        ->add('entete', TextType::class, [
-        'label' => 'En-tête du devis',
-        'mapped' => false, // 👈 Dis à Symfony de ne pas chercher cette propriété dans l'entité Devis
-        'attr' => ['placeholder' => 'Ex: Devis pour l\'impression des flyers...']
-    ])
+        ->add('entete')
+        ->add('description')
+        ->add('montant')
+        ->add('devise', ChoiceType::class, [
+            'choices'  => [
+                'USD ($)' => 'USD',
+                'CDF (FC)' => 'CDF',
+            ],
+            'attr' => ['class' => 'form-select']
+        ])
             
             ->add('description', TextareaType::class, [
                 'label' => 'Description du devis',
