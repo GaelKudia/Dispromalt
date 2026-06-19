@@ -6,11 +6,14 @@ use App\Entity\Demande;
 use App\Entity\BonSortie;
 use App\Entity\Article;
 use App\Entity\Visite; 
+use App\Entity\Devis; 
 
 use App\Form\DemandeType;
 use App\Form\BonSortieType;
 use App\Form\VisiteType;
 use App\Form\StockType;
+use App\Form\DevisType;
+
 use App\Repository\DemandeRepository;
 use App\Repository\BonSortieRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -83,7 +86,7 @@ class DashboardController extends AbstractController
         }
 
         // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
-        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE')) {
+        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA')) {
             
             // Demande de matériel
             $demande = new Demande();
@@ -166,8 +169,8 @@ class DashboardController extends AbstractController
                 }
                 $formVisiteView = $formVisite->createView();
             }
-        }   
-
+        }  
+        
         // =========================================================================
         // 🔍 3. RÉCUPÉRATION DES DONNÉES ET FILTRES TEMPORELS SYNCHRONISÉS
         // =========================================================================
@@ -176,11 +179,12 @@ class DashboardController extends AbstractController
         $visites = [];
         $rapportGlobal = [];
         $articles = []; 
+        $devisListe = [];
+        $totalDevisValides = 0;
 
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui = new \DateTime('today 23:59:59');
 
-        // Initialisation des variables de date pour la vue Twig
         $dateDebutFiltre = $request->query->get('date_debut');
         $dateFinFiltre = $request->query->get('date_fin');
 
@@ -199,7 +203,7 @@ class DashboardController extends AbstractController
                     ->orderBy('d.id', 'DESC')
                     ->getQuery()
                     ->getResult();
-            } elseif (!$this->isGranted('ROLE_DG')) {
+            } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
                 $demandes = $demandeRepository->createQueryBuilder('d')
                     ->where('d.departement = :dept')
                     ->andWhere('d.createdAt BETWEEN :debut AND :fin')
@@ -211,27 +215,21 @@ class DashboardController extends AbstractController
                     ->getResult();
             }
 
-            // 📑 LOGIQUE DU RAPPORT GÉNÉRAL HISTORIQUE (PARTAGÉ : MAGASINIER, COORDONNATEUR ET DIRECTEUR GÉNÉRAL)
-            if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') || $this->isGranted('ROLE_DG')) {
+            // 📑 LOGIQUE DU RAPPORT GÉNÉRAL HISTORIQUE
+            if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') || $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
                 $articles = $em->getRepository(Article::class)->findAll();
                 $siteParam = $request->query->get('localisation'); 
 
                 $qbGlobal = $demandeRepository->createQueryBuilder('d');
 
-                // Traitement dynamique du filtre temporel
                 if ($dateDebutFiltre && $dateFinFiltre) {
                     $qbGlobal->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
                              ->setParameter('dateDebut', new \DateTime($dateDebutFiltre . ' 00:00:00'))
                              ->setParameter('dateFin', new \DateTime($dateFinFiltre . ' 23:59:59'));
                 } else {
-                    // Si aucun filtre saisi, on injecte par défaut la date d'aujourd'hui
                     $qbGlobal->where('d.createdAt BETWEEN :debutAujourdhui AND :finAujourdhui')
                              ->setParameter('debutAujourdhui', $debutAujourdhui)
                              ->setParameter('finAujourdhui', $finAujourdhui);
-                    
-                    // On transmet ces valeurs par défaut aux inputs Twig pour éviter qu'ils restent vides
-                    $dateDebutFiltre = $debutAujourdhui->format('Y-m-d');
-                    $dateFinFiltre = $finAujourdhui->format('Y-m-d');
                 }
 
                 if ($siteParam) {
@@ -244,6 +242,29 @@ class DashboardController extends AbstractController
                                           ->getResult();
             }
 
+            // 📑 LOGIQUE DU RAPPORT DES DEVIS ACCESSIBLE À TOUS
+            if (class_exists('App\Entity\Devis')) {
+                $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d');
+
+                if ($dateDebutFiltre && $dateFinFiltre) {
+                    $qbDevis->where('d.createdAt BETWEEN :start AND :end')
+                            ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                            ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'));
+                } else {
+                    $qbDevis->where('d.createdAt BETWEEN :debut AND :fin')
+                            ->setParameter('debut', $debutAujourdhui)
+                            ->setParameter('fin', $finAujourdhui);
+                }
+
+                $devisListe = $qbDevis->orderBy('d.id', 'DESC')->getQuery()->getResult();
+
+                foreach ($devisListe as $d) {
+                    if ($d->getStatut() === 'VALIDE') {
+                        $totalDevisValides += $d->getMontant();
+                    }
+                }
+            }
+
             // Suivi du Registre des Bons de Sortie
             if ($this->isGranted('ROLE_COORDON')) {
                 $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
@@ -252,9 +273,15 @@ class DashboardController extends AbstractController
                 if (class_exists('App\Entity\Visite')) {
                     $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
                 }
-            } elseif (!$this->isGranted('ROLE_DG')) {
+            } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
                 $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
             }
+        }
+
+        // Fix des dates par défaut si vides pour Twig
+        if (!$dateDebutFiltre || !$dateFinFiltre) {
+            $dateDebutFiltre = $debutAujourdhui->format('Y-m-d');
+            $dateFinFiltre = $finAujourdhui->format('Y-m-d');
         }
 
         // =========================================================================
@@ -297,9 +324,14 @@ class DashboardController extends AbstractController
         if ($this->isGranted('ROLE_COMPTA')) {
             return $this->render('dashboard/compta.html.twig', [
                 'demandes' => $demandeRepository->findBy(['statut' => 'En attente'], ['id' => 'DESC']),
+                'rapportGlobal' => $rapportGlobal,
+                'devisListe' => $devisListe,
+                'totalDevisValides' => $totalDevisValides,
                 'userRole' => $roleLabel,
                 'stats' => $stats,
-                'formVisite' => $formVisiteView
+                'formVisite' => $formVisiteView,
+                'date_debut' => $dateDebutFiltre,
+                'date_fin' => $dateFinFiltre
             ]);
         }
 
@@ -316,12 +348,14 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // Rendu partagé par défaut (Comptes membres, Coordonnateur et Directeur Général)
+        // VUE PAR DÉFAUT : USER / MEMBRE OPERATIONNEL
         return $this->render('dashboard/membre.html.twig', [
             'demandes' => $demandes,
             'bonsSortie' => $bonsSortie,
             'rapportGlobal' => $rapportGlobal, 
             'articles' => $articles,
+            'devisListe' => $devisListe, 
+            'totalDevisValides' => $totalDevisValides,
             'userRole' => $roleLabel,
             'stats' => $stats,
             'formDemande' => $formDemandeView, 
@@ -330,7 +364,86 @@ class DashboardController extends AbstractController
             'date_debut' => $dateDebutFiltre,
             'date_fin' => $dateFinFiltre
         ]);
-    } 
+    }
+
+    // =========================================================================
+    // 📄 WORKFLOW DES DEVIS (Saisie -> Aperçu -> Envoi Compta)
+    // =========================================================================
+
+    #[Route('/dashboard/devis/nouveau', name: 'app_devis_nouveau')]
+    public function nouveauDevis(Request $request, EntityManagerInterface $em): Response
+    {
+        // On vérifie si ton entité est mappée ou non pour l'en-tête (Option 1 vs Option 2)
+        $devis = new Devis();
+        $form = $this->createForm(DevisType::class, $devis);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Sécurité : On récupère la valeur de l'en-tête que le champ soit mappé ou non
+            $entete = $form->has('entete') ? $form->get('entete')->getData() : '';
+            
+            $request->getSession()->set('devis_brouillon', [
+                'entete' => $entete ?: ($devis->hasProperty('entete') ? $devis->getEntete() : 'Nouveau Devis'),
+                'description' => $devis->getDescription(),
+                'montant' => $devis->getMontant()
+            ]);
+            return $this->redirectToRoute('app_devis_apercu');
+        }
+
+        return $this->render('dashboard/devis_form.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    #[Route('/dashboard/devis/apercu', name: 'app_devis_apercu')]
+    public function apercuDevis(Request $request, EntityManagerInterface $em): Response
+    {
+        $sessionData = $request->getSession()->get('devis_brouillon');
+        if (!$sessionData) {
+            return $this->redirectToRoute('app_devis_nouveau');
+        }
+
+        if ($request->isMethod('POST')) {
+            $devis = new Devis();
+            
+            // Si ta bdd possède le champ entete, on l'enregistre
+            if (method_exists($devis, 'setEntete')) {
+    // Si 'entete' n'existe pas dans la session, on met une valeur par défaut
+    $devis->setEntete($sessionData['entete'] ?? 'Nouveau Devis');
+}
+            
+            $devis->setDescription($sessionData['description']);
+            $devis->setMontant($sessionData['montant']);
+            $devis->setStatut('EN_ATTENTE');
+            $devis->setCreatedAt(new \DateTime());
+            $devis->setCreatedBy($this->getUser()->getUserIdentifier());
+
+            $em->persist($devis);
+            $em->flush();
+
+            $request->getSession()->remove('devis_brouillon');
+            $this->addFlash('success', '🚀 Votre devis a été rédigé et envoyé à la comptabilité !');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        return $this->render('dashboard/devis_apercu.html.twig', [
+            'devis' => $sessionData
+        ]);
+    }
+
+    #[Route('/dashboard/compta/devis/valider/{id}', name: 'app_devis_compta_valider', methods: ['POST'])]
+    public function validerDevisCompta(Devis $devis, EntityManagerInterface $em): Response
+    {
+        $devis->setStatut('VALIDE');
+        $em->flush();
+        
+        $this->addFlash('success', '✅ Le devis a été validé et le montant ajouté aux dépenses cumulées.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // =========================================================================
+    // 🎛️ ACTIONS DE VALIDATIONS DES DEMANDES CLASSIQUES
+    // =========================================================================
 
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
@@ -392,5 +505,85 @@ class DashboardController extends AbstractController
         $em->flush();
         $this->addFlash('success', '🚪 Le départ du visiteur ' . $visite->getNomVisiteur() . ' a bien été signalé.');
         return $this->redirectToRoute('app_dashboard');
+    }
+
+    // =========================================================================
+    // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL
+    // =========================================================================
+
+    #[Route('/dashboard/rapport/pdf', name: 'app_rapport_pdf', methods: ['GET'])]
+    public function exportPdf(Request $request, DemandeRepository $demandeRepository): Response
+    {
+        $dateDebut = $request->query->get('date_debut');
+        $dateFin = $request->query->get('date_fin');
+
+        $qb = $demandeRepository->createQueryBuilder('d');
+        if ($dateDebut && $dateFin) {
+            $qb->where('d.createdAt BETWEEN :start AND :end')
+               ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+               ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+        }
+        $donnees = $qb->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
+
+        $html = $this->renderView('dashboard/rapport_pdf.html.twig', [
+            'donnees' => $donnees,
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin
+        ]);
+
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'Helvetica');
+        
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        return new Response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="rapport_imprimerie_'.$dateDebut.'.pdf"',
+        ]);
+    }
+
+    #[Route('/dashboard/rapport/excel', name: 'app_rapport_excel', methods: ['GET'])]
+    public function exportExcel(Request $request, DemandeRepository $demandeRepository): Response
+    {
+        $dateDebut = $request->query->get('date_debut');
+        $dateFin = $request->query->get('date_fin');
+
+        $qb = $demandeRepository->createQueryBuilder('d');
+        if ($dateDebut && $dateFin) {
+            $qb->where('d.createdAt BETWEEN :start AND :end')
+               ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+               ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+        }
+        $donnees = $qb->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'Code');
+        $sheet->setCellValue('B1', 'Département');
+        $sheet->setCellValue('C1', 'Localisation');
+        $sheet->setCellValue('D1', 'Matériel');
+        $sheet->setCellValue('E1', 'Quantité');
+        $sheet->setCellValue('F1', 'Statut');
+
+        $ligne = 2;
+        foreach ($donnees as $d) {
+            $sheet->setCellValue('A' . $ligne, '#' . $d->getId());
+            $sheet->setCellValue('B' . $ligne, $d->getDepartement());
+            $sheet->setCellValue('C' . $ligne, strtoupper($d->getLocalisation()));
+            $sheet->setCellValue('D' . $ligne, $d->getMateriel());
+            $sheet->setCellValue('E' . $ligne, $d->getQuantite());
+            $sheet->setCellValue('F' . $ligne, $d->getStatut());
+            $ligne++;
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $tempFile = tempnam(sys_get_temp_dir(), 'excel');
+        $writer->save($tempFile);
+
+        return $this->file($tempFile, 'rapport_imprimerie_'.$dateDebut.'.xlsx');
     }
 }

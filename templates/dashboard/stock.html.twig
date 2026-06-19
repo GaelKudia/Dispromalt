@@ -87,6 +87,8 @@
             </div>
         </div>
 
+
+
         {# Navigation des 5 Onglets #}
         <div class="row g-4">
             <div class="col-12">
@@ -108,6 +110,8 @@
                                     <i class="fas fa-calendar-day me-2 text-warning"></i>Suivi Journalier (Matin)
                                 </button>
                             </li>
+
+
                             <li class="nav-item">
                                 <button class="nav-link py-3 px-4 fw-bold border-0" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
                                     <i class="fas fa-file-invoice me-2 text-info"></i>Rapport Général Hist.
@@ -294,6 +298,13 @@
 
                             {# 📑 ONGLET 4 : RAPPORT GÉNÉRAL HISTORIQUE #}
                             <div class="tab-pane fade" id="report-pane" role="tabpanel">
+                            <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm">
+    <i class="fas fa-file-pdf"></i> Exporter PDF
+</a>
+
+<a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm">
+    <i class="fas fa-file-excel"></i> Exporter Excel
+</a>
                                 <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
                                 
                                 {# FORMULAIRE DE RECHERCHE FILTRE #}

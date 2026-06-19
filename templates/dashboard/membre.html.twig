@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Espace Membre & Validation - Imprimerie</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
@@ -38,7 +39,7 @@
                 {% if userRole == 'ROLE_DG' %}
                     Consultez l'état d'inventaire en temps réel et l'historique complet des mouvements logistiques de l'entreprise.
                 {% else %}
-                    Créez vos demandes et traitez les autorisations logistiques selon vos privilèges de service.
+                    Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques selon vos privilèges de service.
                 {% endif %}
             </p>
         </div>
@@ -90,9 +91,11 @@
 
         <div class="row g-4">
             
-            {# CRÉATION MASQUÉE POUR LE COORDON, LE STOCK, LA GUÉRITE ET LE DG #}
+            {# COLONNE DE GAUCHE : FORMULAIRES DE SAISIE OPÉRATIONNELLE #}
             {% if userRole != 'ROLE_COORDON' and userRole != 'ROLE_STOCK' and userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') %}
             <div class="col-xl-4 col-lg-5">
+                
+                <!-- Formulaire Demande Matériel -->
                 <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #0d6efd !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold"><i class="fas fa-box-open text-primary me-2"></i>Demander du Matériel</h5>
@@ -105,6 +108,20 @@
                     </div>
                 </div>
 
+                <!-- Formulaire Nouveau Devis (Récemment ajouté à la place du tableau pour l'utilisateur) -->
+                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #ffc107 !important;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title m-0 fw-bold text-dark"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Soumettre un Devis</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small">Saisissez les informations financières liées à votre commande avant de générer l'aperçu et le transmettre.</p>
+                        <a href="{{ path('app_devis_nouveau') }}" class="btn btn-warning w-100 fw-bold text-dark">
+                            <i class="fas fa-plus-circle me-1"></i> Rédiger & Prévisualiser Devis
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Formulaire Bon de Sortie -->
                 <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #198754 !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold"><i class="fas fa-file-invoice text-success me-2"></i>Créer un Bon de Sortie</h5>
@@ -119,7 +136,7 @@
             </div>
             {% endif %}
 
-            {# PLEINE LARGEUR DE L'ÉCRAN SI COMPTE DE SUPERVISION / DG / COORDON #}
+            {# COLONNE DE DROITE : VISIONNEUSES ET RAPPORTS DE TRACABILITÉ #}
             <div class="{% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_STOCK' or userRole == 'ROLE_GUERITE' or userRole == 'ROLE_DG' %}col-12{% else %}col-xl-8 col-lg-7{% endif %}">
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white p-0 border-bottom">
@@ -129,11 +146,6 @@
                             <li class="nav-item">
                                 <button class="nav-link active py-3 px-4 fw-bold border-0 text-primary" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
                                     <i class="fas fa-boxes me-2"></i>Suivi des Demandes
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0 text-success" id="bon-tab" data-bs-toggle="tab" data-bs-target="#bon-pane" type="button" role="tab">
-                                    <i class="fas fa-file-signature me-2"></i>Registre des Bons de Sortie
                                 </button>
                             </li>
                             {% endif %}
@@ -162,7 +174,7 @@
                         <div class="tab-content">
                             
                             {% if userRole != 'ROLE_DG' %}
-                            {# ONGLET : SUIVI DES DEMANDES #}
+                            {# 1️⃣ ONGLET : SUIVI DES DEMANDES #}
                             <div class="tab-pane fade show active" id="dem-pane" role="tabpanel">
                                 <div class="table-responsive">
                                     <table class="table table-hover align-middle m-0">
@@ -219,57 +231,9 @@
                                     </table>
                                 </div>
                             </div>
-
-                            {# ONGLET : REGISTRE DES BONS #}
-                            <div class="tab-pane fade" id="bon-pane" role="tabpanel">
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle m-0">
-                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                            <tr>
-                                                <th>ID</th>
-                                                <th>Employé</th>
-                                                <th>Département</th>
-                                                <th>Localisation</th>
-                                                <th>État du Bon</th>
-                                                {% if userRole == 'ROLE_COORDON' %}<th class="text-center">Signature Coordon</th>{% endif %}
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for b in bonsSortie %}
-                                                <tr>
-                                                    <td class="fw-bold">#{{ b.id }}</td>
-                                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
-                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
-                                                    
-                                                    <td class="fw-bold text-dark">
-                                                        <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
-                                                            <i class="fas fa-building me-1 text-muted"></i>
-                                                            {{ b.localisation|default('Direction')|upper }}
-                                                        </span>
-                                                    </td>
-
-                                                    <td><span class="badge rounded-pill px-2.5 py-1 bg-primary text-white">{{ b.statut }}</span></td>
-                                                    
-                                                    {% if userRole == 'ROLE_COORDON' %}
-                                                    <td class="text-center">
-                                                        <form action="{{ path('app_bon_valider', {'id': b.id}) }}" method="POST" class="d-inline">
-                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
-                                                                <i class="fas fa-pen-fancy me-1"></i> Signer le Bon
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                    {% endif %}
-                                                </tr>
-                                            {% else %}
-                                                <tr><td colspan="6" class="text-center py-4 text-muted">Aucun bon de sortie en traitement.</td></tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                             {% endif %}
 
-                            {# CONTENU DE L'ONGLET RAPPORT GÉNÉRAL HISTORIQUE (PARTAGÉ COORDON ET DG) #}
+                            {# 2️⃣ CONTENU DE L'ONGLET RAPPORT GÉNÉRAL HISTORIQUE (Pour les encadrants) #}
                             {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
                             <div class="tab-pane fade {% if userRole == 'ROLE_DG' %}show active{% endif %}" id="report-pane" role="tabpanel">
                                 <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
@@ -344,7 +308,7 @@
                             </div>
                             {% endif %}
 
-                            {# BLOC EXCLUSIF DU DG : SITUATION DE L'INVENTAIRE DU STOCK EN TEMPS RÉEL #}
+                            {# 3️⃣ BLOC EXCLUSIF DU DG : SITUATION DE L'INVENTAIRE #}
                             {% if userRole == 'ROLE_DG' %}
                             <div class="tab-pane fade" id="stock-pane" role="tabpanel">
                                 <h5 class="fw-bold text-dark mb-3"><i class="fas fa-cubes text-warning me-2"></i>Situation Globale du Stock Dépôt</h5>
@@ -402,7 +366,7 @@
                     </div>
                 </div>
 
-                {# FORMULAIRE DE VISITE MASQUÉ POUR LE DG #}
+                {# FORMULAIRE DE VISITE BAS DE PAGE (Sauf pour le DG) #}
                 {% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
                 <div class="card border-0 shadow-sm mt-4" style="border-top: 4px solid #ffc107 !important;">
                     <div class="card-header bg-white py-3">
@@ -421,10 +385,10 @@
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label small fw-bold">Motif de la visite</label>
-                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Réunion, Maintenance'}}) }}
+                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Maintenance'}}) }}
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-warning w-100 text-white fw-bold mt-2">Enregistrer la Visite</button>
+                            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2">Enregistrer la Visite</button>
                         {{ form_end(formVisite) }}
                     </div>
                 </div>
@@ -435,33 +399,5 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Maintien automatique de l'onglet Historique si un filtre de date est appliqué
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('date_debut') && document.querySelector('#report-tab')) {
-            const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
-            reportTab.show();
-        }
-
-        // Gestion de la contrainte de destination obligatoire pour les gilets
-        const champMateriel = document.getElementById('demande_materiel');
-        const champDestination = document.getElementById('demande_destination');
-        
-        if (champMateriel && champDestination) {
-            function verifierConditionCommune() {
-                const valeurMateriel = champMateriel.value.trim().toLowerCase();
-                if (valeurMateriel.includes('gilet')) {
-                    champDestination.setAttribute('required', 'required');
-                } else {
-                    champDestination.removeAttribute('required');
-                }
-            }
-            
-            champMateriel.addEventListener('input', verifierConditionCommune);
-            verifierConditionCommune();
-        }
-    });
-    </script>
 </body>
 </html>

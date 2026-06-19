@@ -136,7 +136,21 @@
                                     <div class="list-group-item p-3 d-flex justify-content-between align-items-center small">
                                         <div style="max-width: 60%;">
                                             <span class="d-block fw-bold text-dark text-truncate" title="{{ u.email }}">{{ u.email }}</span>
-                                            <span class="badge bg-light text-secondary border font-monospace mt-1" style="font-size: 10px;">{{ u.roles[0]|default('ROLE_USER') }}</span>
+                                            
+                                            {# Modification ici : Personnalisation des badges selon le rôle de l'agent #}
+                                            {% if u.roles[0] is defined %}
+                                                {% if 'ROLE_ADMIN' in u.roles %}
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle mt-1" style="font-size: 10px;">ADMINISTRATEUR</span>
+                                                {% elseif 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle mt-1" style="font-size: 10px;"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
+                                                {% elseif 'ROLE_GUERITE' in u.roles %}
+                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle mt-1" style="font-size: 10px;"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-secondary border font-monospace mt-1" style="font-size: 10px;">{{ u.roles[0] }}</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-secondary border font-monospace mt-1" style="font-size: 10px;">ROLE_USER</span>
+                                            {% endif %}
                                             
                                             {% if u.localisation is defined and u.localisation %}
                                                 <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle mt-1" style="font-size: 10px;"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>

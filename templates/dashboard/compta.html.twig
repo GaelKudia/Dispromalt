@@ -38,7 +38,7 @@
             <h1 class="fw-bold text-dark">Espace Financier & Logistique</h1>
             <p class="text-muted m-0">Accordez les budgets pour les livraisons, planifiez les visites et suivez l'analyse des consommables.</p>
         </div>
-        
+
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
@@ -49,7 +49,7 @@
             {% endfor %}
         {% endfor %}
 
-        {# Ligne de compteurs épurée (Blocs Coordon et Guérite ENLEVÉS) #}
+        {# Ligne de compteurs épurée #}
         <div class="row g-3 mb-4">
             <div class="col-12">
                 <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
@@ -66,7 +66,7 @@
 
         {# Système d'onglets pour organiser les nouvelles fonctionnalités #}
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white p-0 border-bottom">
+            <div class="card-header bg-white p-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="comptaTab" role="tablist">
                     <li class="nav-item">
                         <button class="nav-link active py-3 px-4 fw-bold border-0" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget-pane" type="button" role="tab">
@@ -79,17 +79,32 @@
                         </button>
                     </li>
                     <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
+                            <i class="fas fa-file-invoice-dollar me-2 text-warning"></i>Rapport de Dépenses (Devis)
+                        </button>
+                    </li>
+                    <li class="nav-item">
                         <button class="nav-link py-3 px-4 fw-bold border-0" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button" role="tab">
                             <i class="fas fa-chart-line me-2 text-danger"></i>Matériels les plus demandés
                         </button>
                     </li>
                 </ul>
+
+                {# Actions d'exports placées intelligemment en haut à droite des onglets #}
+                <div class="d-flex gap-2 me-2">
+                    <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm fw-bold">
+                        <i class="fas fa-file-pdf me-1"></i> Exporter PDF
+                    </a>
+                    <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm fw-bold">
+                        <i class="fas fa-file-excel me-1"></i> Exporter Excel
+                    </a>
+                </div>
             </div>
             
             <div class="card-body p-4">
                 <div class="tab-content">
                     
-                    {# ONGLET 1 : VALIDATION BUDGETAIRE #}
+                    {# 1️⃣ ONGLET : VALIDATION BUDGETAIRE #}
                     <div class="tab-pane fade show active" id="budget-pane" role="tabpanel">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle m-0">
@@ -151,7 +166,7 @@
                         </div>
                     </div>
 
-                    {# ONGLET 2 : RESERVATION DE VISITE (FORMULAIRE) #}
+                    {# 2️⃣ ONGLET : RESERVATION DE VISITE (FORMULAIRE) #}
                     <div class="tab-pane fade" id="visite-pane" role="tabpanel">
                         <div class="d-flex justify-content-center align-items-center py-2">
                             <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 550px; border-radius: 12px;">
@@ -163,7 +178,6 @@
                                 
                                 {% if formVisite is not null %}
                                     {{ form_start(formVisite) }}
-                                        {# Symfony s'occupe de générer les champs de VisiteType de manière propre #}
                                         <div class="mb-3">
                                             {{ form_widget(formVisite) }}
                                         </div>
@@ -180,7 +194,83 @@
                         </div>
                     </div>
 
-                    {# ONGLET 3 : STATUT DU MATERIEL LE PLUS DEMANDÉ #}
+                    {# 3️⃣ ONGLET : RAPPORT DES DEVIS INTEGRÉ ICI #}
+                    {# 3️⃣ ONGLET : RAPPORT DES DEVIS INTEGRÉ AVEC FILTRE #}
+                    <div class="tab-pane fade" id="devis-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Analyse financière des Devis reçus</h5>
+                            <span class="badge bg-warning text-dark fw-bold fs-6 py-2 px-3 rounded-pill">Cumul Validé Période : {{ totalDevisValides|number_format(2, ',', ' ') }} €</span>
+                        </div>
+                        
+                        {# 🔍 Barre de filtrage par date pour les devis #}
+                        <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
+                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
+                                <div class="col-md-4 col-sm-6">
+                                    <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de début</label>
+                                    <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                                </div>
+                                <div class="col-md-4 col-sm-6">
+                                    <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de fin</label>
+                                    <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                                </div>
+                                <div class="col-md-4 col-12 d-flex gap-2">
+                                    <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
+                                        <i class="fas fa-filter me-1"></i> Filtrer la période
+                                    </button>
+                                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold" title="Réinitialiser">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle m-0">
+                                <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Demande / Description</th>
+                                        <th>Montant Estimé</th>
+                                        <th>Date d'envoi</th>
+                                        <th class="text-center">Statut</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    {% for devis in devisListe %}
+                                        <tr>
+                                            <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
+                                            <td style="max-width: 300px;" class="text-wrap">{{ devis.description|nl2br }}</td>
+                                            <td class="fw-bold text-primary">{{ devis.montant|number_format(2, ',', ' ') }} €</td>
+                                            <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
+                                            <td class="text-center">
+                                                {% if devis.statut == 'EN_ATTENTE' %}
+                                                    <span class="badge bg-info text-white px-2.5 py-1.5">En attente</span>
+                                                {% elseif devis.statut == 'VALIDE' %}
+                                                    <span class="badge bg-success text-white px-2.5 py-1.5">Validé</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if devis.statut == 'EN_ATTENTE' %}
+                                                    <form method="POST" action="{{ path('app_devis_compta_valider', {'id': devis.id}) }}" onsubmit="return confirm('Confirmer la validation financière de ce devis ?');" class="d-inline">
+                                                        <button class="btn btn-sm btn-success fw-bold px-3"><i class="fas fa-check me-1"></i> Valider</button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-muted small fw-bold"><i class="fas fa-lock me-1"></i> Terminé</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">Aucun devis enregistré pour cette période.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {# 4️⃣ ONGLET : STATUT DU MATERIEL LE PLUS DEMANDÉ #}
                     <div class="tab-pane fade" id="stats-pane" role="tabpanel">
                         <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-danger me-2"></i>Analyse de la Consommation</h5>
                         <p class="text-muted">Classement des articles les plus sollicités par l'ensemble des départements de l'imprimerie.</p>
@@ -197,7 +287,6 @@
                                             </tr>
                                         </thead>
                                         <tbody class="small">
-                                            {# Regroupement et affichage basé sur le tableau des demandes transmis #}
                                             {% set counts = {} %}
                                             {% for d in demandes %}
                                                 {% set counts = counts|merge({ (d.materiel): (counts[d.materiel]|default(0) + 1) }) %}

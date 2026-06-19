@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouveau Devis - Dispromalt</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                
+                <div class="mb-4">
+                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Retour au tableau de bord
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm" style="border-top: 4px solid #ffc107 !important;">
+                    <div class="card-header bg-white py-3">
+                        <h4 class="card-title m-0 fw-bold text-dark">
+                            <i class="fas fa-file-invoice-dollar text-warning me-2"></i>Rédaction d'un nouveau Devis
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted small mb-4">
+                            Remplissez les champs ci-dessous. Une fois validé, vous accéderez à l'aperçu avant de l'envoyer définitivement à la comptabilité.
+                        </p>
+
+                        {{ form_start(form) }}
+                            
+                            <!-- Nouveau champ : En-tête -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-secondary">Objet / En-tête du devis</label>
+                                {{ form_widget(form.entete, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Devis de travaux d\'impression - Service Marketing'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.entete) }}</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-secondary">Description des travaux ou matériel</label>
+                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Détaillez précisément votre besoin...'}}) }}
+                                <div class="text-danger small">{{ form_errors(form.description) }}</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-secondary">Montant estimatif global ($)</label>
+                                <div class="input-group">
+                                    {{ form_widget(form.montant, {'attr': {'class': 'form-control', 'placeholder': '0.00'}}) }}
+                                    <span class="input-group-text bg-light text-muted">$</span>
+                                </div>
+                                <div class="text-danger small">{{ form_errors(form.montant) }}</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2 shadow-sm">
+                                <i class="fas fa-eye me-1"></i> Générer l'aperçu
+                            </button>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
