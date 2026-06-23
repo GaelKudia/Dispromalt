@@ -21,6 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted; // Import indispensable
 
 class DashboardController extends AbstractController
 {
@@ -32,7 +33,6 @@ class DashboardController extends AbstractController
         EntityManagerInterface $em
     ): Response {
         
-        // 1. UTILISATEUR CONNECTÉ
         $currentUser = $this->getUser();
         if (!$currentUser) {
             return $this->redirectToRoute('app_login');
@@ -41,16 +41,11 @@ class DashboardController extends AbstractController
         $userName = $currentUser->getUserIdentifier(); 
         $userDept = 'Impression'; 
 
-        // Initialisation par défaut des vues de formulaires à null
         $formStockView = null;
         $formDemandeView = null;
         $formBonView = null;
         $formVisiteView = null;
 
-        // =========================================================================
-        // 📦 2. TRAITEMENT DES FORMULAIRES SELON LES PRIVILÈGES
-        // =========================================================================
-        
         // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
         if ($this->isGranted('ROLE_STOCK')) {
             $formStock = $this->createForm(StockType::class);
@@ -88,7 +83,6 @@ class DashboardController extends AbstractController
         // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
         if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA')) {
             
-            // Demande de matériel
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
@@ -112,7 +106,7 @@ class DashboardController extends AbstractController
                 $demande->setDepartement($userDept); 
                 $demande->setStatut('En attente'); 
 
-                $siteDeLAgent = $currentUser->getLocalisation(); 
+                $siteDeLAgent = method_exists($currentUser, 'getLocalisation') ? $currentUser->getLocalisation() : null; 
 
                 if (!empty($siteDeLAgent)) {
                     $demande->setLocalisation($siteDeLAgent);
@@ -134,7 +128,6 @@ class DashboardController extends AbstractController
             }
             $formDemandeView = $formDemande->createView();
 
-            // Bon de Sortie
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
@@ -171,9 +164,7 @@ class DashboardController extends AbstractController
             }
         }  
         
-        // =========================================================================
-        // 🔍 3. RÉCUPÉRATION DES DONNÉES ET FILTRES TEMPORELS SYNCHRONISÉS
-        // =========================================================================
+        // INTERROGATION BASE DE DONNÉES
         $demandes = [];
         $bonsSortie = [];
         $visites = [];
@@ -181,7 +172,6 @@ class DashboardController extends AbstractController
         $articles = []; 
         $devisListe = [];
         
-        // Variables de cumul séparées par devise pour éviter les totaux erronés
         $totalDevisUSD = 0;
         $totalDevisCDF = 0;
 
@@ -196,8 +186,6 @@ class DashboardController extends AbstractController
                 $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'A_L_ACCUEIL'], ['id' => 'DESC']);
             }
         } else {
-            
-            // Suivi Journalier des Demandes (Jour J)
             if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
                 $demandes = $demandeRepository->createQueryBuilder('d')
                     ->where('d.createdAt BETWEEN :debut AND :fin')
@@ -218,7 +206,6 @@ class DashboardController extends AbstractController
                     ->getResult();
             }
 
-            // 📑 LOGIQUE DU RAPPORT GÉNÉRAL HISTORIQUE
             if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') || $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
                 $articles = $em->getRepository(Article::class)->findAll();
                 $siteParam = $request->query->get('localisation'); 
@@ -245,7 +232,6 @@ class DashboardController extends AbstractController
                                           ->getResult();
             }
 
-            // 📑 LOGIQUE DU RAPPORT DES DEVIS (Correction des totaux synchronisés)
             if (class_exists('App\Entity\Devis')) {
                 $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d');
 
@@ -266,13 +252,12 @@ class DashboardController extends AbstractController
                         if ($d->getDevise() === 'CDF') {
                             $totalDevisCDF += $d->getMontant();
                         } else {
-                            $totalDevisUSD += $d->getMontant(); // Par défaut ou USD
+                            $totalDevisUSD += $d->getMontant();
                         }
                     }
                 }
             }
 
-            // Suivi du Registre des Bons de Sortie
             if ($this->isGranted('ROLE_COORDON')) {
                 $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
             } elseif ($this->isGranted('ROLE_GUERITE')) {
@@ -285,25 +270,18 @@ class DashboardController extends AbstractController
             }
         }
 
-        // Fix des dates par défaut si vides pour Twig
         if (!$dateDebutFiltre || !$dateFinFiltre) {
             $dateDebutFiltre = $debutAujourdhui->format('Y-m-d');
             $dateFinFiltre = $finAujourdhui->format('Y-m-d');
         }
 
-        // =========================================================================
-        // 📊 4. COMPTEURS STATISTIQUES
-        // =========================================================================
         $stats = [
             'demandes_attente' => count($demandeRepository->findBy(['statut' => 'En attente'])),
             'bons_a_valider' => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
             'bons_guerite' => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
         ];
 
-        // =========================================================================
-        // 🚀 5. COUCHE RENDU TWIG SÉCURISÉE SANS CONFLITS
-        // =========================================================================
-        $roleLabel = $currentUser->getRoles()[0]; 
+        $roleLabel = !empty($currentUser->getRoles()) ? $currentUser->getRoles()[0] : 'ROLE_USER'; 
 
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
@@ -356,7 +334,6 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // VUE PAR DÉFAUT : USER / MEMBRE OPERATIONNEL
         return $this->render('dashboard/membre.html.twig', [
             'demandes' => $demandes,
             'bonsSortie' => $bonsSortie,
@@ -376,7 +353,7 @@ class DashboardController extends AbstractController
     }
 
     // =========================================================================
-    // 📄 WORKFLOW DES DEVIS (Saisie -> Aperçu -> Envoi Compta)
+    // 📄 WORKFLOW DES DEVIS
     // =========================================================================
 
     #[Route('/dashboard/devis/nouveau', name: 'app_devis_nouveau')]
@@ -389,7 +366,6 @@ class DashboardController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entete = $form->has('entete') ? $form->get('entete')->getData() : '';
             
-            // Correction 1 : On ajoute bien la clé 'devise' dans le tableau de Session
             $request->getSession()->set('devis_brouillon', [
                 'entete' => $entete ?: (method_exists($devis, 'getEntete') ? $devis->getEntete() : 'Nouveau Devis'),
                 'description' => $devis->getDescription(),
@@ -424,8 +400,6 @@ class DashboardController extends AbstractController
             $devis->setStatut('EN_ATTENTE');
             $devis->setCreatedAt(new \DateTime());
             $devis->setCreatedBy($this->getUser()->getUserIdentifier());
-
-            // Correction 2 : Récupération sécurisée depuis la Session sans passer par $form
             $devis->setDevise($sessionData['devise'] ?? 'USD');
 
             $em->persist($devis);
@@ -441,7 +415,9 @@ class DashboardController extends AbstractController
         ]);
     }
 
+    // Sécurisé : Seule la compta peut valider un devis
     #[Route('/dashboard/compta/devis/valider/{id}', name: 'app_devis_compta_valider', methods: ['POST'])]
+    #[IsGranted('ROLE_COMPTA')]
     public function validerDevisCompta(Devis $devis, EntityManagerInterface $em): Response
     {
         $devis->setStatut('VALIDE');
@@ -452,10 +428,12 @@ class DashboardController extends AbstractController
     }
 
     // =========================================================================
-    // 🎛️ ACTIONS DE VALIDATIONS DES DEMANDES CLASSIQUES
+    // 🎛️ ACTIONS DE VALIDATIONS SÉCURISÉES
     // =========================================================================
 
+    // Sécurisé : Seule la compta accorde le budget
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
+    #[IsGranted('ROLE_COMPTA')]
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
     {
         $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
@@ -473,21 +451,25 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // Sécurisé : Seuls les gestionnaires de stock livrent le matériel
     #[Route('/dashboard/livrer/{id}', name: 'app_demande_livrer', methods: ['POST'])]
+    #[IsGranted('ROLE_STOCK')]
     public function livrer(Demande $demande, EntityManagerInterface $em): Response
     {
         if ($demande->getStatut() !== 'Validé Compta') {
-            $this->addFlash('danger', '❌ Action interdite.');
+            $this->addFlash('danger', '❌ Action interdite. La demande doit d\'abord être validée par la comptabilité.');
             return $this->redirectToRoute('app_dashboard');
         }
 
         $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
         if ($article) {
+            // Re-vérification de sécurité pour éviter les conflits d'accès concurrents
+            $em->refresh($article);
             $quantiteDemandee = $demande->getQuantite() ?? 1; 
             $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee; 
 
             if ($nouvelleQuantite < 0) {
-                $this->addFlash('danger', '❌ Stock insuffisant.');
+                $this->addFlash('danger', '❌ Stock insuffisant au moment de la validation finale.');
                 return $this->redirectToRoute('app_dashboard');
             }
             
@@ -499,7 +481,9 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // Sécurisé : Seul le coordinateur signe les bons
     #[Route('/dashboard/bon/valider/{id}', name: 'app_bon_valider', methods: ['POST'])]
+    #[IsGranted('ROLE_COORDON')]
     public function validerBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
     {
         $bonSortie->setStatut('Validé Coordon');
@@ -508,9 +492,14 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // Sécurisé : La guérite ou l'accueil gèrent les départs
     #[Route('/dashboard/visite/cloturer/{id}', name: 'app_visite_cloturer', methods: ['POST'])]
     public function cloturerVisite(Visite $visite, EntityManagerInterface $em): Response
     {
+        if (!$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_ACCUEIL') && !$this->isGranted('ROLE_RECEPTION')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
         $visite->setStatut('TERMINE'); 
         $em->flush();
         $this->addFlash('success', '🚪 Le départ du visiteur ' . $visite->getNomVisiteur() . ' a bien été signalé.');
@@ -518,12 +507,16 @@ class DashboardController extends AbstractController
     }
 
     // =========================================================================
-    // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL
+    // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL (Sécurisées pour les rôles administratifs)
     // =========================================================================
 
     #[Route('/dashboard/rapport/pdf', name: 'app_rapport_pdf', methods: ['GET'])]
     public function exportPdf(Request $request, DemandeRepository $demandeRepository): Response
     {
+        if (!$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $dateDebut = $request->query->get('date_debut');
         $dateFin = $request->query->get('date_fin');
 
@@ -558,6 +551,10 @@ class DashboardController extends AbstractController
     #[Route('/dashboard/rapport/excel', name: 'app_rapport_excel', methods: ['GET'])]
     public function exportExcel(Request $request, DemandeRepository $demandeRepository): Response
     {
+        if (!$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
+            throw $this->createAccessDeniedException();
+        }
+
         $dateDebut = $request->query->get('date_debut');
         $dateFin = $request->query->get('date_fin');
 
