@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdminController extends AbstractController
 {
@@ -34,6 +35,14 @@ class AdminController extends AbstractController
         $allBons = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
         $articles = $em->getRepository(Article::class)->findAll();
+
+        // Filtrage spécifique pour la sélection des agents comptables (ex: ayant le rôle de base)
+        $listeComptables = [];
+        foreach ($allUsers as $u) {
+            if (in_array('ROLE_COMPTA', $u->getRoles()) && !in_array('ROLE_CHEF_COMPTA', $u->getRoles())) {
+                $listeComptables[] = $u;
+            }
+        }
 
         // Logique du Rapport Général Historique
         $debutAujourdhui = new \DateTime('today 00:00:00');
@@ -67,7 +76,6 @@ class AdminController extends AbstractController
             $hashedPassword = $hasher->hashPassword($newUser, $newUser->getPassword());
             $newUser->setPassword($hashedPassword);
 
-            // Par défaut lors de la création d'un compte, on s'assure qu'il est actif
             if (method_exists($newUser, 'setActif')) {
                 $newUser->setActif(true);
             }
@@ -89,7 +97,9 @@ class AdminController extends AbstractController
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
-            'users' => $allUsers,
+            'users' => $allUsers, // Utilisé pour 'tousLesUtilisateurs' dans ta page
+            'tousLesUtilisateurs' => $allUsers, 
+            'listeComptables' => $listeComptables,
             'articles' => $articles,
             'rapportGlobal' => $rapportGlobal,
             'date_debut' => $dateDebutParam,
@@ -98,13 +108,55 @@ class AdminController extends AbstractController
         ]);
     }
 
-    // 🔄 1. PASSER UN COMPTE DE ACTIF À INACTIF ET INVERSEMENT
+    #[Route('/admin/assigner-chef-compta', name: 'app_admin_assigner_chef_compta', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function assignerChefCompta(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $userId = $request->request->get('user_id');
+        $user = $userRepository->find($userId);
+
+        if (!$user) {
+            $this->addFlash('danger', 'Utilisateur introuvable.');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        $roles = $user->getRoles();
+        if (!in_array('ROLE_CHEF_COMPTA', $roles)) {
+            $roles[] = 'ROLE_CHEF_COMPTA';
+            $user->setRoles($roles);
+            
+            $em->flush();
+            $this->addFlash('success', sprintf('L\'utilisateur %s a bien été promu Chef Comptable.', $user->getEmail()));
+        } else {
+            $this->addFlash('info', 'Cet utilisateur possède déjà ce rôle.');
+        }
+
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+    #[Route('/admin/destituer-chef-compta/{id}', name: 'app_admin_destituer_chef_compta', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function destituerChefCompta(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($id);
+
+        if ($user) {
+            $roles = $user->getRoles();
+            $roles = array_diff($roles, ['ROLE_CHEF_COMPTA']);
+            $user->setRoles(array_values($roles));
+            
+            $em->flush();
+            $this->addFlash('success', sprintf('Le rôle de Chef Comptable a été retiré à %s.', $user->getEmail()));
+        }
+
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
     #[Route('/admin/user/{id}/toggle', name: 'app_admin_user_toggle', methods: ['POST'])]
     public function toggleUserStatus(User $user, EntityManagerInterface $em): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        // Empêcher l'admin de s'auto-désactiver
         if ($user === $this->getUser()) {
             $this->addFlash('danger', '🛑 Action impossible : Vous ne pouvez pas désactiver votre propre compte administrateur.');
             return $this->redirectToRoute('app_admin_dashboard');
@@ -117,13 +169,12 @@ class AdminController extends AbstractController
             $statut = $user->isActif() ? 'réactivé ✅' : 'désactivé et rendu inactif ❌';
             $this->addFlash('success', 'Le compte de ' . $user->getEmail() . ' a été ' . $statut);
         } else {
-            $this->addFlash('danger', 'Le champ "actif" n\'existe pas encore sur votre entité User (pensez à faire votre migration).');
+            $this->addFlash('danger', 'Le champ "actif" n\'existe pas encore sur votre entité User.');
         }
 
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
-    // ✏️ 2. TRAITEMENT DE LA MODIFICATION RAPIDE D'UN COMPTE EXISTANT
     #[Route('/admin/user/{id}/modifier', name: 'app_admin_user_edit', methods: ['GET', 'POST'])]
     public function editUser(Request $request, User $user, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): Response
     {
@@ -142,7 +193,6 @@ class AdminController extends AbstractController
                 $user->setRoles([$role]);
             }
 
-            // Si un nouveau mot de passe est saisi, on le met à jour
             if (!empty($plainPassword)) {
                 $user->setPassword($hasher->hashPassword($user, $plainPassword));
             }
@@ -157,7 +207,6 @@ class AdminController extends AbstractController
         ]);
     }
 
-    // 🗑️ 3. SUPPRESSION DÉFINITIVE D'UN COMPTE
     #[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
     {

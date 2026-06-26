@@ -21,7 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted; // Import indispensable
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
@@ -248,7 +248,7 @@ class DashboardController extends AbstractController
                 $devisListe = $qbDevis->orderBy('d.id', 'DESC')->getQuery()->getResult();
 
                 foreach ($devisListe as $d) {
-                    if ($d->getStatut() === 'VALIDE') {
+                    if ($d->getStatut() === Devis::STATUT_DECAISSE) {
                         if ($d->getDevise() === 'CDF') {
                             $totalDevisCDF += $d->getMontant();
                         } else {
@@ -334,6 +334,19 @@ class DashboardController extends AbstractController
             ]);
         }
 
+        if ($this->isGranted('ROLE_DG')) {
+            return $this->render('dashboard/membre.html.twig', [ 
+                'demandes' => $demandes,
+                'rapportGlobal' => $rapportGlobal, 
+                'articles' => $articles,
+                'devisListe' => $devisListe, 
+                'userRole' => $roleLabel,
+                'stats' => $stats,
+                'date_debut' => $dateDebutFiltre,
+                'date_fin' => $dateFinFiltre
+            ]);
+        }
+
         return $this->render('dashboard/membre.html.twig', [
             'demandes' => $demandes,
             'bonsSortie' => $bonsSortie,
@@ -357,7 +370,7 @@ class DashboardController extends AbstractController
     // =========================================================================
 
     #[Route('/dashboard/devis/nouveau', name: 'app_devis_nouveau')]
-    public function nouveauDevis(Request $request, EntityManagerInterface $em): Response
+    public function nouveauDevis(Request $request): Response
     {
         $devis = new Devis();
         $form = $this->createForm(DevisType::class, $devis);
@@ -397,7 +410,9 @@ class DashboardController extends AbstractController
             
             $devis->setDescription($sessionData['description']);
             $devis->setMontant($sessionData['montant']);
-            $devis->setStatut('EN_ATTENTE');
+            $devis->setStatut(Devis::STATUT_ATTENTE_CHEF);
+            $devis->setMontantInitial((string)$sessionData['montant']);
+            
             $devis->setCreatedAt(new \DateTime());
             $devis->setCreatedBy($this->getUser()->getUserIdentifier());
             $devis->setDevise($sessionData['devise'] ?? 'USD');
@@ -406,7 +421,7 @@ class DashboardController extends AbstractController
             $em->flush();
 
             $request->getSession()->remove('devis_brouillon');
-            $this->addFlash('success', '🚀 Votre devis a été rédigé et envoyé à la comptabilité !');
+            $this->addFlash('success', '🚀 Votre devis a été envoyé au circuit de validation financière !');
             return $this->redirectToRoute('app_dashboard');
         }
 
@@ -415,23 +430,69 @@ class DashboardController extends AbstractController
         ]);
     }
 
-    // Sécurisé : Seule la compta peut valider un devis
-    #[Route('/dashboard/compta/devis/valider/{id}', name: 'app_devis_compta_valider', methods: ['POST'])]
+    #[Route('/dashboard/compta/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
-    public function validerDevisCompta(Devis $devis, EntityManagerInterface $em): Response
+    public function validerChefCompta(Devis $devis, EntityManagerInterface $em): Response
     {
-        $devis->setStatut('VALIDE');
+        if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF) {
+            $this->addFlash('danger', 'Ce devis n\'est pas en attente de validation du Chef Comptable.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
         $em->flush();
         
-        $this->addFlash('success', '✅ Le devis a été validé et le montant ajouté aux dépenses cumulées.');
+        $this->addFlash('success', '✅ Validé par le Chef Comptable ! Envoyé au Directeur pour révision.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    #[Route('/dashboard/compta/devis/valider-directeur/{id}', name: 'app_devis_valider_directeur', methods: ['POST'])]
+    public function validerEtModifierDirecteur(Devis $devis, Request $request, EntityManagerInterface $em): Response
+    {
+        if (!$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_DG')) {
+            throw $this->createAccessDeniedException('Vous n’avez pas les droits requis pour valider ce devis.');
+        }
+
+        if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DIR) {
+            $this->addFlash('danger', 'Ce devis n\'est pas en attente de la Direction.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+        
+        $nouveauMontant = $request->request->get('nouveau_montant');
+        if ($nouveauMontant && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+            $devis->setMontant((float)$nouveauMontant);
+        } else {
+            $this->addFlash('danger', 'Veuillez saisir un montant d\'ajustement valide.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $devis->setStatut(Devis::STATUT_ATTENTE_CAISSE);
+        $em->flush();
+
+        $this->addFlash('success', '⚖️ Prix ajusté et validé par la Direction. Transmis à la Caisse.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    #[Route('/dashboard/compta/devis/decaisser/{id}', name: 'app_devis_decaisser', methods: ['POST'])]
+    #[IsGranted('ROLE_COMPTA')]
+    public function decaisserFonds(Devis $devis, EntityManagerInterface $em): Response
+    {
+        if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CAISSE) {
+            $this->addFlash('danger', 'Les fonds ne peuvent pas être décaissés pour ce devis.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $devis->setStatut(Devis::STATUT_DECAISSE);
+        $em->flush();
+
+        $this->addFlash('success', '💵 Fonds décaissés ! Statut mis à jour : Argent envoyé.');
         return $this->redirectToRoute('app_dashboard');
     }
 
     // =========================================================================
-    // 🎛️ ACTIONS DE VALIDATIONS SÉCURISÉES
+    // 🎛️ ACTIONS DE VALIDATIONS DES DEMANDES DE STOCK
     // =========================================================================
 
-    // Sécurisé : Seule la compta accorde le budget
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
@@ -451,7 +512,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Sécurisé : Seuls les gestionnaires de stock livrent le matériel
     #[Route('/dashboard/livrer/{id}', name: 'app_demande_livrer', methods: ['POST'])]
     #[IsGranted('ROLE_STOCK')]
     public function livrer(Demande $demande, EntityManagerInterface $em): Response
@@ -463,7 +523,6 @@ class DashboardController extends AbstractController
 
         $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
         if ($article) {
-            // Re-vérification de sécurité pour éviter les conflits d'accès concurrents
             $em->refresh($article);
             $quantiteDemandee = $demande->getQuantite() ?? 1; 
             $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee; 
@@ -481,7 +540,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Sécurisé : Seul le coordinateur signe les bons
     #[Route('/dashboard/bon/valider/{id}', name: 'app_bon_valider', methods: ['POST'])]
     #[IsGranted('ROLE_COORDON')]
     public function validerBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
@@ -492,7 +550,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Sécurisé : La guérite ou l'accueil gèrent les départs
     #[Route('/dashboard/visite/cloturer/{id}', name: 'app_visite_cloturer', methods: ['POST'])]
     public function cloturerVisite(Visite $visite, EntityManagerInterface $em): Response
     {
@@ -507,7 +564,7 @@ class DashboardController extends AbstractController
     }
 
     // =========================================================================
-    // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL (Sécurisées pour les rôles administratifs)
+    // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL
     // =========================================================================
 
     #[Route('/dashboard/rapport/pdf', name: 'app_rapport_pdf', methods: ['GET'])]
@@ -520,18 +577,22 @@ class DashboardController extends AbstractController
         $dateDebut = $request->query->get('date_debut');
         $dateFin = $request->query->get('date_fin');
 
-        $qb = $demandeRepository->createQueryBuilder('d');
-        if ($dateDebut && $dateFin) {
-            $qb->where('d.createdAt BETWEEN :start AND :end')
-               ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
-               ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+        if (!$dateDebut || !$dateFin) {
+            $dateDebut = (new \DateTime('today'))->format('Y-m-d');
+            $dateFin = (new \DateTime('today'))->format('Y-m-d');
         }
+
+        $qb = $demandeRepository->createQueryBuilder('d');
+        $qb->where('d.createdAt BETWEEN :start AND :end')
+           ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+           ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+
         $donnees = $qb->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
 
         $html = $this->renderView('dashboard/rapport_pdf.html.twig', [
-            'donnees' => $donnees,
-            'date_debut' => $dateDebut,
-            'date_fin' => $dateFin
+            'rapportGlobal' => $donnees,  
+            'date_debut'    => $dateDebut,
+            'date_fin'      => $dateFin
         ]);
 
         $options = new \Dompdf\Options();
@@ -558,32 +619,36 @@ class DashboardController extends AbstractController
         $dateDebut = $request->query->get('date_debut');
         $dateFin = $request->query->get('date_fin');
 
-        $qb = $demandeRepository->createQueryBuilder('d');
-        if ($dateDebut && $dateFin) {
-            $qb->where('d.createdAt BETWEEN :start AND :end')
-               ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
-               ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+        if (!$dateDebut || !$dateFin) {
+            $dateDebut = (new \DateTime('today'))->format('Y-m-d');
+            $dateFin = (new \DateTime('today'))->format('Y-m-d');
         }
+
+        $qb = $demandeRepository->createQueryBuilder('d');
+        $qb->where('d.createdAt BETWEEN :start AND :end')
+           ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+           ->setParameter('end', new \DateTime($dateFin . ' 23:59:59'));
+
         $donnees = $qb->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $sheet->setCellValue('A1', 'Code');
+        $sheet->setCellValue('A1', 'Date / Heure');
         $sheet->setCellValue('B1', 'Département');
         $sheet->setCellValue('C1', 'Localisation');
-        $sheet->setCellValue('D1', 'Matériel');
+        $sheet->setCellValue('D1', 'Matériel / Article');
         $sheet->setCellValue('E1', 'Quantité');
         $sheet->setCellValue('F1', 'Statut');
 
         $ligne = 2;
-        foreach ($donnees as $d) {
-            $sheet->setCellValue('A' . $ligne, '#' . $d->getId());
-            $sheet->setCellValue('B' . $ligne, $d->getDepartement());
-            $sheet->setCellValue('C' . $ligne, strtoupper($d->getLocalisation()));
-            $sheet->setCellValue('D' . $ligne, $d->getMateriel());
-            $sheet->setCellValue('E' . $ligne, $d->getQuantite());
-            $sheet->setCellValue('F' . $ligne, $d->getStatut());
+        foreach ($donnees as $rg) {
+            $sheet->setCellValue('A' . $ligne, $rg->getCreatedAt() ? $rg->getCreatedAt()->format('d/m/Y H:i') : '');
+            $sheet->setCellValue('B' . $ligne, $rg->getDepartement());
+            $sheet->setCellValue('C' . $ligne, $rg->getLocalisation());
+            $sheet->setCellValue('D' . $ligne, $rg->getMateriel());
+            $sheet->setCellValue('E' . $ligne, $rg->getQuantite());
+            $sheet->setCellValue('F' . $ligne, $rg->getStatut());
             $ligne++;
         }
 

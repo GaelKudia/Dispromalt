@@ -7,10 +7,20 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
-        .card-counter:hover { transform: translateY(-3px); }
+        .card-counter { border: none; border-radius: 10px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .card-counter:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important; }
         .nav-tabs .nav-link.active { border-bottom: 3px solid #198754 !important; font-weight: bold; color: #198754 !important; }
-        .nav-tabs .nav-link { color: #6c757d; }
+        .nav-tabs .nav-link { color: #6c757d; transition: all 0.2s; }
+        .nav-tabs .nav-link:hover { background-color: rgba(25, 135, 84, 0.04); color: #198754; }
+        
+        tr.fade-in-row {
+            opacity: 0;
+            transform: translateY(8px);
+            animation: fadeInRow 0.35s ease forwards;
+        }
+        @keyframes fadeInRow {
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="bg-light text-dark">
@@ -42,8 +52,8 @@
         {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
-                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4" role="alert" style="transition: opacity 0.5s ease;">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-circle' : 'fa-check-circle' }} me-2"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
@@ -56,7 +66,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase small fw-bold">Demandes logistiques en attente d'engagement</h6>
-                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }} demandes</h3>
+                            <h3 class="fw-bold m-0 text-warning js-counter" data-target="{{ stats.demandes_attente }}">0 demandes</h3>
                         </div>
                         <i class="fas fa-file-invoice-dollar fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
                     </div>
@@ -80,7 +90,7 @@
                     </li>
                     <li class="nav-item">
                         <button class="nav-link py-3 px-4 fw-bold border-0" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
-                            <i class="fas fa-file-invoice-dollar me-2 text-warning"></i>Rapport de Dépenses (Devis)
+                            <i class="fas fa-file-invoice-dollar me-2 text-warning"></i>Workflow Financier (Devis)
                         </button>
                     </li>
                     <li class="nav-item">
@@ -90,7 +100,6 @@
                     </li>
                 </ul>
 
-                {# Actions d'exports placées intelligemment en haut à droite des onglets #}
                 <div class="d-flex gap-2 me-2">
                     <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm fw-bold">
                         <i class="fas fa-file-pdf me-1"></i> Exporter PDF
@@ -166,7 +175,7 @@
                         </div>
                     </div>
 
-                    {# 2️⃣ ONGLET : RESERVATION DE VISITE (FORMULAIRE) #}
+                    {# 2️⃣ ONGLET : RESERVATION DE VISITE #}
                     <div class="tab-pane fade" id="visite-pane" role="tabpanel">
                         <div class="d-flex justify-content-center align-items-center py-2">
                             <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 550px; border-radius: 12px;">
@@ -187,29 +196,31 @@
                                     {{ form_end(formVisite) }}
                                 {% else %}
                                     <div class="alert alert-danger text-center m-0">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite (VisiteType) n'est pas chargé par le contrôleur.
+                                        <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n'est pas chargé.
                                     </div>
                                 {% endif %}
                             </div>
                         </div>
                     </div>
 
-                    {# 3️⃣ ONGLET : RAPPORT DES DEVIS INTEGRÉ ICI #}
-                    {# 3️⃣ ONGLET : RAPPORT DES DEVIS INTEGRÉ AVEC FILTRE #}
+                    {# 3️⃣ ONGLET : CIRCUIT DE VALIDATION DES DEVIS (MIS À JOUR) #}
                     <div class="tab-pane fade" id="devis-pane" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Analyse financière des Devis reçus</h5>
+                            <div>
+                                <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Circuit d'Approbation Hiérarchique</h5>
+                                <small class="text-muted">Interface unique partagée selon les autorisations spécifiques de vos rôles</small>
+                            </div>
                             <div class="d-flex gap-2">
-    <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-        <i class="fas fa-dollar-sign me-1"></i> {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
-    </span>
-    <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-        <i class="fas fa-money-bill-wave me-1"></i> {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
-    </span>
-</div>
+                                <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                    <i class="fas fa-dollar-sign me-1"></i> Total décaissé : {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
+                                </span>
+                                <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
+                                </span>
+                            </div>
                         </div>
                         
-                        {# 🔍 Barre de filtrage par date pour les devis #}
+                        {# Barre de filtrage temporelle #}
                         <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
                             <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
                                 <div class="col-md-4 col-sm-6">
@@ -224,7 +235,7 @@
                                     <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
                                         <i class="fas fa-filter me-1"></i> Filtrer la période
                                     </button>
-                                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold" title="Réinitialiser">
+                                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
                                         <i class="fas fa-sync-alt"></i>
                                     </a>
                                 </div>
@@ -235,47 +246,93 @@
                             <table class="table table-hover align-middle m-0">
                                 <thead class="table-light small text-uppercase fw-bold text-secondary">
                                     <tr>
-                                        <th>Utilisateur</th>
-                                        <th>Demande / Description</th>
-                                        <th>Montant Estimé</th>
-                                        <th>Date d'envoi</th>
-                                        <th class="text-center">Statut</th>
-                                        <th class="text-center">Actions</th>
+                                        <th>Émetteur</th>
+                                        <th>Libellé / Détail</th>
+                                        <th>Montant Actuel</th>
+                                        <th>Date de dépôt</th>
+                                        <th class="text-center">Niveau de validation</th>
+                                        <th class="text-center">Action Requise</th>
                                     </tr>
                                 </thead>
                                 <tbody class="small">
                                     {% for devis in devisListe %}
                                         <tr>
                                             <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
-                                            <td style="max-width: 300px;" class="text-wrap">
-    {% if devis.entete is defined and devis.entete %}
-        <strong class="text-dark d-block mb-1">{{ devis.entete }}</strong>
-    {% endif %}
-    <span class="text-muted small">{{ devis.description|nl2br }}</span>
-</td>
+                                            <td style="max-width: 280px;" class="text-wrap">
+                                                {% if devis.entete is defined and devis.entete %}
+                                                    <strong class="text-dark d-block mb-1">{{ devis.entete }}</strong>
+                                                {% endif %}
+                                                <span class="text-muted small">{{ devis.description|nl2br }}</span>
+                                            </td>
                                             <td class="fw-bold text-dark">
-    {% if devis.devise == 'CDF' %}
-        {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary fw-bold small">FC</span>
-    {% else %}
-        {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success fw-bold">$</span>
-    {% endif %}
-</td>
-                                            <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
-                                            <td class="text-center">
-                                                {% if devis.statut == 'EN_ATTENTE' %}
-                                                    <span class="badge bg-info text-white px-2.5 py-1.5">En attente</span>
-                                                {% elseif devis.statut == 'VALIDE' %}
-                                                    <span class="badge bg-success text-white px-2.5 py-1.5">Validé</span>
+                                                {% if devis.devise == 'CDF' %}
+                                                    {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary fw-bold small">FC</span>
+                                                {% else %}
+                                                    {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success fw-bold">$</span>
+                                                {% endif %}
+                                                {% if devis.montantInitial is defined and devis.montantInitial and devis.montantInitial != devis.montant %}
+                                                    <br><small class="text-decoration-line-through text-muted fw-normal" style="font-size: 0.75rem;">Initial: {{ devis.montantInitial }} {{ devis.devise }}</small>
                                                 {% endif %}
                                             </td>
+                                            <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
                                             <td class="text-center">
-                                                {% if devis.statut == 'EN_ATTENTE' %}
-                                                    <form method="POST" action="{{ path('app_devis_compta_valider', {'id': devis.id}) }}" onsubmit="return confirm('Confirmer la validation financière de ce devis ?');" class="d-inline">
-                                                        <button class="btn btn-sm btn-success fw-bold px-3"><i class="fas fa-check me-1"></i> Valider</button>
-                                                    </form>
+                                                {# Les différents statuts avec leurs badges dynamiques #}
+                                                {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+                                                    <span class="badge bg-warning text-dark px-2.5 py-1.5 border border-warning border-opacity-50"><i class="fas fa-user-shield me-1"></i> Visé par Chef Compta</span>
+                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
+                                                    <span class="badge bg-info text-white px-2.5 py-1.5 border border-info border-opacity-50"><i class="fas fa-gavel me-1"></i> Attente Direction</span>
+                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                    <span class="badge bg-primary text-white px-2.5 py-1.5 border border-primary border-opacity-50"><i class="fas fa-money-check-alt me-1"></i> Prêt au décaissement</span>
+                                                {% elseif devis.statut == 'DECAISSE' %}
+                                                    <span class="badge bg-success text-white px-2.5 py-1.5"><i class="fas fa-check-double me-1"></i> Archivé / Décaissé</span>
                                                 {% else %}
-                                                    <span class="text-muted small fw-bold"><i class="fas fa-lock me-1"></i> Terminé</span>
+                                                    <span class="badge bg-light text-dark border">{{ devis.statut }}</span>
                                                 {% endif %}
+                                            </td>
+                                            <td class="text-center" style="min-width: 180px;">
+                                                
+                                                {# 1️⃣ SÉCURITÉ CHEF COMPTABLE #}
+                                                {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+                                                    {% if is_granted('ROLE_CHEF_COMPTA') %}
+                                                        <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');" class="d-inline">
+                                                            <button class="btn btn-xs btn-warning fw-bold px-2.5 py-1 shadow-sm text-dark btn-sm">
+                                                                <i class="fas fa-forward me-1"></i> Transmettre au Dir.
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <span class="text-muted small italic"><i class="fas fa-hourglass-start me-1"></i> Attente Visa Supérieur</span>
+                                                    {% endif %}
+
+                                                {# 2️⃣ SÉCURITÉ DIRECTEUR (Ajustement + Validation intégrés) #}
+                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
+                                                    {% if is_granted('ROLE_DIRECTEUR') %}
+                                                        <form method="POST" action="{{ path('app_devis_valider_directeur', {'id': devis.id}) }}" class="p-1 border rounded bg-white shadow-sm">
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="number" step="0.01" name="nouveau_montant" class="form-control fw-bold text-primary" value="{{ devis.montant }}" required style="max-width: 90px;" placeholder="Montant">
+                                                                <span class="input-group-text bg-light small fw-bold px-1" style="font-size: 0.75rem;">{{ devis.devise }}</span>
+                                                                <button type="submit" class="btn btn-primary btn-sm fw-bold px-2" title="Ajuster et Valider définitivement">
+                                                                    <i class="fas fa-check"></i> Fixer
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    {% else %}
+                                                        <span class="text-muted small"><i class="fas fa-user-clock me-1"></i> Arbitrage Direction</span>
+                                                    {% endif %}
+
+                                                {# 3️⃣ TOUT COMPTABLE PEUT DÉCAISSER #}
+                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                    {# N'importe qui connecté ici possède au moins ROLE_COMPTA #}
+                                                    <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds de la caisse ?');" class="d-inline">
+                                                        <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                                                            <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
+                                                        </button>
+                                                    </form>
+
+                                                {# 4️⃣ ARCHIVAGE #}
+                                                {% else %}
+                                                    <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
+                                                {% endif %}
+
                                             </td>
                                         </tr>
                                     {% else %}
@@ -288,7 +345,7 @@
                         </div>
                     </div>
 
-                    {# 4️⃣ ONGLET : STATUT DU MATERIEL LE PLUS DEMANDÉ #}
+                    {# 4️⃣ ONGLET : ANALYSE DE LA CONSOMMATION #}
                     <div class="tab-pane fade" id="stats-pane" role="tabpanel">
                         <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-danger me-2"></i>Analyse de la Consommation</h5>
                         <p class="text-muted">Classement des articles les plus sollicités par l'ensemble des départements de l'imprimerie.</p>
@@ -347,5 +404,71 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
+            // 1. Animation du compteur numérique
+            const counterElement = document.querySelector('.js-counter');
+            if (counterElement) {
+                const targetValue = parseInt(counterElement.getAttribute('data-target')) || 0;
+                let currentValue = 0;
+                const duration = 1000;
+                const stepTime = Math.max(Math.floor(duration / (targetValue || 1)), 20);
+                
+                if(targetValue > 0) {
+                    const timer = setInterval(() => {
+                        currentValue += Math.ceil(targetValue / 30);
+                        if (currentValue >= targetValue) {
+                            currentValue = targetValue;
+                            clearInterval(timer);
+                        }
+                        counterElement.textContent = currentValue + (targetValue > 1 ? " demandes" : " demande");
+                    }, stepTime);
+                }
+            }
+
+            // 2. Cascade d'apparition des lignes de tableau
+            function animateTableRows(paneId) {
+                const rows = document.querySelectorAll(`${paneId} table tbody tr`);
+                rows.forEach((row, index) => {
+                    row.classList.remove('fade-in-row');
+                    void row.offsetWidth; 
+                    row.classList.add('fade-in-row');
+                    row.style.animationDelay = `${index * 0.04}s`;
+                });
+            }
+            
+            animateTableRows('#budget-pane');
+
+            const tabButtons = document.querySelectorAll('#comptaTab button');
+            tabButtons.forEach(button => {
+                button.addEventListener('shown.bs.tab', function(e) {
+                    const targetPane = e.target.getAttribute('data-bs-target');
+                    animateTableRows(targetPane);
+                });
+            });
+
+            // 3. Persistance de l'onglet actif après filtrage
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('date_debut') || urlParams.has('date_fin')) {
+                const devisTab = document.querySelector('#devis-tab');
+                if (devisTab) {
+                    bootstrap.Tab.getOrCreateInstance(devisTab).show();
+                }
+            }
+
+            // 4. Auto-dismiss des alertes flash
+            const alerts = document.querySelectorAll('.alert-dismissible');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>

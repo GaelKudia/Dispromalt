@@ -8,6 +8,19 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DevisRepository::class)]
 class Devis
 {
+  // Définition des étapes de notre Workflow
+    public const STATUT_ATTENTE_CHEF = 'ATTENTE_CHEF_COMPTA';
+    public const STATUT_ATTENTE_DIR  = 'ATTENTE_DIRECTEUR';
+    public const STATUT_ATTENTE_CAISSE = 'ATTENTE_CAISSE';
+    public const STATUT_DECAISSE     = 'ARGENT_ENVOYE';
+    public const STATUT_REJETE       = 'REJETE';
+    
+    // ... (le reste de tes propriétés existantes comme id, description, montant, etc.)
+
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $montantInitial = null;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -119,6 +132,18 @@ class Devis
     public function setDevise(string $devise): static
     {
         $this->devise = $devise;
+
+        return $this;
+    }
+
+    public function getMontantInitial(): ?string
+    {
+        return $this->montantInitial;
+    }
+
+    public function setMontantInitial(?string $montantInitial): self
+    {
+        $this->montantInitial = $montantInitial;
 
         return $this;
     }

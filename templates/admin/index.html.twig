@@ -45,6 +45,7 @@
             </div>
         </div>
 
+        {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-start border-{{ label == 'danger' ? 'danger' : 'success' }} border-4" role="alert">
@@ -95,6 +96,8 @@
             
             <div class="col-xl-5 col-lg-5">
                 <div class="sticky-form">
+                    
+                    {# Formulaire de création de compte existant #}
                     <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #6f42c1 !important;">
                         <div class="card-header bg-white py-3">
                             <h5 class="card-title m-0 fw-bold text-dark">
@@ -108,8 +111,9 @@
                                     {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'agent.nom@imprimerie.com'}}) }}
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">Département d'affectation</label>
+                                    <label class="form-label small fw-bold text-secondary">Département d'affectation / Rôle</label>
                                     {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
+                                    <small class="text-muted" style="font-size: 11px;">Note : Si votre formulaire FormType n'inclut pas directement le rôle Chef Comptable, vous pouvez le promouvoir à l'aide de l'outil ci-dessous.</small>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-secondary">Localisation géographique</label>
@@ -126,6 +130,34 @@
                         </div>
                     </div>
 
+                    {# 🆕 NOUVEAU BLOC : ATTRIBUTION RAPIDE DU RÔLE CHEF COMPTABLE #}
+                    <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="m-0 fw-bold text-dark">
+                                <i class="fas fa-user-shield text-warning me-2"></i>Nommer un Chef Comptable
+                            </h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <form method="POST" action="{{ path('app_admin_assigner_chef_compta') }}">
+                                <div class="input-group input-group-sm">
+                                    <select name="user_id" class="form-select form-select-sm" required>
+                                        <option value="" disabled selected>Sélectionner un agent...</option>
+                                        {% for u in listeComptables|default(users) %}
+                                            {# Éviter de lister ceux qui le sont déjà ou les admins #}
+                                            {% if 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                                                <option value="{{ u.id }}">{{ u.email }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                                        <i class="fas fa-check me-1"></i> Promouvoir
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {# Registre & Contrôle des Comptes #}
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-white py-3">
                             <h6 class="m-0 fw-bold text-dark"><i class="fas fa-users-cog me-2 text-muted"></i>Registre & Contrôle des Comptes ({{ users|length }})</h6>
@@ -137,27 +169,42 @@
                                         <div style="max-width: 60%;">
                                             <span class="d-block fw-bold text-dark text-truncate" title="{{ u.email }}">{{ u.email }}</span>
                                             
-                                            {# Modification ici : Personnalisation des badges selon le rôle de l'agent #}
-                                            {% if u.roles[0] is defined %}
+                                            {# Rôles et Badges mis à jour #}
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
                                                 {% if 'ROLE_ADMIN' in u.roles %}
-                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle mt-1" style="font-size: 10px;">ADMINISTRATEUR</span>
-                                                {% elseif 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
-                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle mt-1" style="font-size: 10px;"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
-                                                {% elseif 'ROLE_GUERITE' in u.roles %}
-                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle mt-1" style="font-size: 10px;"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
-                                                {% else %}
-                                                    <span class="badge bg-light text-secondary border font-monospace mt-1" style="font-size: 10px;">{{ u.roles[0] }}</span>
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 10px;">ADMINISTRATEUR</span>
                                                 {% endif %}
-                                            {% else %}
-                                                <span class="badge bg-light text-secondary border font-monospace mt-1" style="font-size: 10px;">ROLE_USER</span>
-                                            {% endif %}
+                                                
+                                                {# 🆕 Badge dédié pour le Chef Comptable #}
+                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                    <span class="badge bg-warning text-dark border border-warning fw-bold" style="font-size: 10px;">
+                                                        <i class="fas fa-star me-1"></i>CHEF COMPTABLE
+                                                    </span>
+                                                {% elseif 'ROLE_COMPTA' in u.roles %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size: 10px;">COMPTABLE</span>
+                                                {% endif %}
+
+                                                {% if 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size: 10px;"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
+                                                {% elseif 'ROLE_GUERITE' in u.roles %}
+                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size: 10px;"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
+                                                {% endif %}
+                                                
+                                                {# Afficher le rôle brut si aucun des critères précédents n'est matché #}
+                                                {% if 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles %}
+                                                    <span class="badge bg-light text-secondary border font-monospace" style="font-size: 10px;">{{ u.roles[0]|default('ROLE_USER') }}</span>
+                                                {% endif %}
+                                            </div>
                                             
-                                            {% if u.localisation is defined and u.localisation %}
-                                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle mt-1" style="font-size: 10px;"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle mt-1" style="font-size: 10px;"><i class="fas fa-building me-1"></i>DIRECTION</span>
-                                            {% endif %}
+                                            <div class="mt-1">
+                                                {% if u.localisation is defined and u.localisation %}
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" style="font-size: 10px;"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle" style="font-size: 10px;"><i class="fas fa-building me-1"></i>DIRECTION</span>
+                                                {% endif %}
+                                            </div>
                                         </div>
+                                        
                                         <div class="text-end">
                                             <div class="mb-2">
                                                 {% if u.isActif is defined %}
@@ -172,6 +219,15 @@
                                             </div>
 
                                             <div class="btn-group btn-group-sm" role="group">
+                                                {# Bouton de destitution si l'utilisateur est Chef Comptable #}
+                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-dark" title="Retirer le visa de Chef Comptable">
+                                                            <i class="fas fa-user-slash text-danger"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+
                                                 <a href="{{ path('app_admin_user_edit', {'id': u.id}) }}" class="btn btn-light border btn-sm text-primary" title="Modifier le compte">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -198,9 +254,9 @@
                 </div>
             </div>
 
+            {# Bloc de droite : Onglets Demandes & Bons #}
             <div class="col-xl-7 col-lg-7">
                 <div class="card border-0 shadow-sm h-100">
-                    
                     <div class="card-header bg-white p-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="panelTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -243,7 +299,8 @@
                                             <tr>
                                                 <th>Code</th>
                                                 <th>Département</th>
-                                                <th>Localisation</th> <th>Matériel Demandé</th>
+                                                <th>Localisation</th> 
+                                                <th>Matériel Demandé</th>
                                                 <th>Quantité</th>
                                                 <th>État</th>
                                                 <th class="text-center">Actions / Contrôle</th>
@@ -254,7 +311,6 @@
                                                 <tr>
                                                     <td class="fw-bold text-secondary">#{{ d.id }}</td>
                                                     <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
-                                                    
                                                     <td>
                                                         {% if d.localisation == 'sedwe' %}
                                                             <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1 fw-bold">SEDWE</span>
@@ -264,7 +320,6 @@
                                                             <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">DIRECTION</span>
                                                         {% endif %}
                                                     </td>
-                                                    
                                                     <td class="fw-semibold text-dark">{{ d.materiel }}</td>
                                                     <td><span class="badge bg-light text-dark border px-2 py-1">{{ d.quantite }}</span></td>
                                                     <td>

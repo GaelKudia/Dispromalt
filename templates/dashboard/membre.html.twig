@@ -2,15 +2,27 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Espace Membre & Validation - Imprimerie</title>
+    <title>Espace Direction Générale & Supervision - Imprimerie</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link class="jsbin" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
-        .card-counter:hover { transform: translateY(-3px); }
-        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; }
+        :root {
+            --dg-primary: #1e293b;
+            --dg-accent: #dc2626;
+        }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        .card-counter { border: none; border-radius: 12px; transition: all 0.25s ease; }
+        .card-counter:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+        .nav-tabs .nav-link { border: none; color: #64748b; transition: all 0.2s; position: relative; }
+        .nav-tabs .nav-link.active { color: var(--dg-primary) !important; font-weight: 700; background: none; }
+        .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 1.5rem; right: 1.5rem; height: 3.5px; background: #0d6efd; border-radius: 3px; }
+        .nav-tabs .nav-link#workflow-tab.active::after { background: var(--dg-accent); }
+        .nav-tabs .nav-link#stock-tab.active::after { background: #ffc107; }
+        .table-modern thead { background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        .table-modern th { font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #475569; padding: 1rem 0.75rem; }
+        .table-modern td { padding: 1rem 0.75rem; vertical-align: middle; }
+        .action-input-group { max-width: 130px; }
     </style>
 </head>
 <body class="bg-light text-dark">
@@ -21,10 +33,10 @@
                 Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
             </a>
             <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-user text-info me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+                <div class="bg-warning bg-opacity-10 text-warning px-3 py-1.5 rounded-pill me-3 small border border-warning fw-bold">
+                    <i class="fas fa-crown me-2"></i>Rôle actif : {% if userRole == 'ROLE_DG' %}DIRECTION GÉNÉRALE{% else %}{{ userRole }}{% endif %}
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 shadow-sm">
                     <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
                 </a>
             </div>
@@ -33,35 +45,44 @@
 
     <div class="container-fluid py-4 px-4">
         
-        <div class="mb-4 pb-3 border-bottom">
-            <h1 class="fw-bold text-dark">Espace de Gestion des Flux</h1>
-            <p class="text-muted m-0">
-                {% if userRole == 'ROLE_DG' %}
-                    Consultez l'état d'inventaire en temps réel et l'historique complet des mouvements logistiques de l'entreprise.
-                {% else %}
-                    Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques selon vos privilèges de service.
-                {% endif %}
-            </p>
+        <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="fw-bold text-dark m-0 tracking-tight">Espace de Gestion des Flux</h1>
+                <p class="text-muted m-0 fs-6">
+                    {% if userRole == 'ROLE_DG' %}
+                        Supervision en temps réel des budgets, de la validation des devis, de l'inventaire dépôt et de la logistique.
+                    {% else %}
+                        Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques selon vos privilèges de service.
+                    {% endif %}
+                </p>
+            </div>
+            {% if userRole == 'ROLE_DG' %}
+                <span class="badge bg-dark px-3 py-2 border border-secondary font-monospace rounded-3"><i class="fas fa-eye text-info me-2"></i>Mode Audit Direction</span>
+            {% endif %}
         </div>
 
+        {# Flash Messages #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
                     <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
+        {# Cartes de statistiques supérieures #}
         <div class="row g-3 mb-4">
             <div class="col-md-4">
                 <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Demandes en attente</h6>
-                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }}</h3>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-1">Demandes en attente</h6>
+                            <h3 class="fw-bold m-0 text-warning fs-2">{{ stats.demandes_attente|default(0) }}</h3>
                         </div>
-                        <i class="fas fa-clock fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
+                            <i class="fas fa-clock fa-xl"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,10 +90,12 @@
                 <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons à signer (Coordon)</h6>
-                            <h3 class="fw-bold m-0 text-primary">{{ stats.bons_a_valider }}</h3>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-1">Bons à signer (Coordon)</h6>
+                            <h3 class="fw-bold m-0 text-primary fs-2">{{ stats.bons_a_valider|default(0) }}</h3>
                         </div>
-                        <i class="fas fa-pen-nib fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary">
+                            <i class="fas fa-pen-nib fa-xl"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,10 +103,12 @@
                 <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons validés Guérite</h6>
-                            <h3 class="fw-bold m-0 text-success">{{ stats.bons_guerite }}</h3>
+                            <h6 class="text-muted text-uppercase small fw-bold mb-1">Bons validés Guérite</h6>
+                            <h3 class="fw-bold m-0 text-success fs-2">{{ stats.bons_guerite|default(0) }}</h3>
                         </div>
-                        <i class="fas fa-shield-alt fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                            <i class="fas fa-shield-alt fa-xl"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -91,57 +116,70 @@
 
         <div class="row g-4">
             
-            {# COLONNE DE GAUCHE : FORMULAIRES DE SAISIE OPÉRATIONNELLE #}
+            {# COLONNE DE GAUCHE : MASQUÉE ENTIÈREMENT POUR LE DG #}
             {% if userRole != 'ROLE_COORDON' and userRole != 'ROLE_STOCK' and userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') %}
             <div class="col-xl-4 col-lg-5">
-                
                 <!-- Formulaire Demande Matériel -->
-                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #0d6efd !important;">
+                <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #0d6efd !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold"><i class="fas fa-box-open text-primary me-2"></i>Demander du Matériel</h5>
                     </div>
                     <div class="card-body">
                         {{ form_start(formDemande) }}
                             {{ form_widget(formDemande) }}
-                            <button type="submit" class="btn btn-primary w-100 fw-bold mt-3">Envoyer la Demande</button>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold mt-3 shadow-sm">Envoyer la Demande</button>
                         {{ form_end(formDemande) }}
                     </div>
                 </div>
 
-                <!-- Formulaire Nouveau Devis (Récemment ajouté à la place du tableau pour l'utilisateur) -->
-                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #ffc107 !important;">
+                <!-- Formulaire Devis -->
+                <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold text-dark"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Soumettre un Devis</h5>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted small">Saisissez les informations financières liées à votre commande avant de générer l'aperçu et le transmettre.</p>
-                        <a href="{{ path('app_devis_nouveau') }}" class="btn btn-warning w-100 fw-bold text-dark">
-                            <i class="fas fa-plus-circle me-1"></i> Rédiger & Prévisualiser Devis
+                        <p class="text-muted small">Saisissez les informations financières liées à votre commande avant de générer l'aperçu.</p>
+                        <a href="{{ path('app_devis_nouveau') }}" class="btn btn-warning w-100 fw-bold text-dark shadow-sm">
+                            <i class="fas fa-plus-circle me-1"></i> Rédiger Devis
                         </a>
                     </div>
                 </div>
 
                 <!-- Formulaire Bon de Sortie -->
-                <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #198754 !important;">
+                <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #198754 !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold"><i class="fas fa-file-invoice text-success me-2"></i>Créer un Bon de Sortie</h5>
                     </div>
                     <div class="card-body">
                         {{ form_start(formBon) }}
                             {{ form_widget(formBon) }}
-                            <button type="submit" class="btn btn-success w-100 fw-bold mt-3">Émettre le Bon</button>
+                            <button type="submit" class="btn btn-success w-100 fw-bold mt-3 shadow-sm">Émettre le Bon</button>
                         {{ form_end(formBon) }}
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            {# COLONNE DE DROITE : VISIONNEUSES ET RAPPORTS DE TRACABILITÉ #}
+            {# COLONNE DE DROITE : CAPTURE TOUTE LA LARGEUR (COL-12) POUR LE DG #}
             <div class="{% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_STOCK' or userRole == 'ROLE_GUERITE' or userRole == 'ROLE_DG' %}col-12{% else %}col-xl-8 col-lg-7{% endif %}">
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
                     <div class="card-header bg-white p-0 border-bottom">
                         <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="memberTab" role="tablist">
                             
+                            {# ONGLET WORKFLOW FINANCIER : UNIQUE ET PRIORITAIRE POUR LE DG #}
+                            {% if userRole == 'ROLE_DG' %}
+                            <li class="nav-item">
+                                <button class="nav-link active py-3 px-4 fw-bold border-0 text-danger" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow-pane" type="button" role="tab">
+                                    <i class="fas fa-file-signature me-2"></i>Arbitrages Financiers & Devis
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <button class="nav-link py-3 px-4 fw-bold border-0 text-warning" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stock-pane" type="button" role="tab">
+                                    <i class="fas fa-warehouse me-2"></i>Stocks de l'Imprimerie
+                                </button>
+                            </li>
+                            {% endif %}
+
                             {% if userRole != 'ROLE_DG' %}
                             <li class="nav-item">
                                 <button class="nav-link active py-3 px-4 fw-bold border-0 text-primary" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
@@ -150,35 +188,182 @@
                             </li>
                             {% endif %}
                             
-                            {# ONGLET HISTORIQUE ACCESSIBLE AU COORDONNATEUR ET AU DG #}
                             {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
                             <li class="nav-item">
-                                <button class="nav-link {% if userRole == 'ROLE_DG' %}active{% endif %} py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
-                                    <i class="fas fa-file-invoice me-2"></i>Rapport Général Hist.
-                                </button>
-                            </li>
-                            {% endif %}
-
-                            {# ONGLET SITUATION DU STOCK EN DIRECT EXCLUSIF AU DG #}
-                            {% if userRole == 'ROLE_DG' %}
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0 text-warning" id="stock-tab" data-bs-toggle="tab" data-bs-target="#stock-pane" type="button" role="tab">
-                                    <i class="fas fa-warehouse me-2"></i>Situation des Stocks Réels
+                                <button class="nav-link {% if userRole != 'ROLE_DG' %}active{% endif %} py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                                    <i class="fas fa-history me-2"></i>Registre des Mouvements
                                 </button>
                             </li>
                             {% endif %}
                         </ul>
                     </div>
                     
-                    <div class="card-body p-3">
+                    <div class="card-body p-4">
                         <div class="tab-content">
                             
+                            {# WORKFLOW FINANCIER DESIGN MODERNISÉ (EXCLUSIF DG) #}
+                            {% if userRole == 'ROLE_DG' %}
+                            <div class="tab-pane fade show active" id="workflow-pane" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div>
+                                        <h5 class="fw-bold text-dark m-0"><i class="fas fa-wallet text-danger me-2"></i>Dossiers Budgétaires & Arbitrages</h5>
+                                        <small class="text-muted">Les dossiers en attente apparaissent en premier. Une fois validés, ils descendent en bas de liste.</small>
+                                    </div>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-1.5 rounded-pill fw-bold">Arbitrage DG</span>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-modern align-middle border rounded m-0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Date Saisie</th>
+                                                <th>Émetteur</th>
+                                                <th>Objet du dossier</th>
+                                                <th class="text-end">Montant Initial</th>
+                                                <th class="text-end">Ajustement & Validation Direction</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% set hasDevis = false %}
+
+                                            {# 1️⃣ PREMIÈRE BOUCLE : Les devis EN ATTENTE de la Direction (En haut) #}
+                                            {% for devis in devisListe %}
+                                                {% if devis.statut == constant('App\\Entity\\Devis::STATUT_ATTENTE_DIR') %}
+                                                    {% set hasDevis = true %}
+                                                    <tr class="table-light fw-semibold" style="border-left: 4px solid #dc2626;">
+                                                        <td class="fw-bold text-secondary">#{{ devis.id }}</td>
+                                                        <td class="text-muted">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                                        <td><span class="badge bg-white text-dark border px-2 py-1">{{ devis.createdBy }}</span></td>
+                                                        <td>
+                                                            <div class="text-dark fw-bold">{{ devis.description }}</div>
+                                                            <div class="text-danger small mt-0.5"><i class="fas fa-exclamation-circle me-1"></i>À arbitrer</div>
+                                                        </td>
+                                                        <td class="text-end font-monospace text-muted">
+                                                            {{ devis.montantInitial|default(devis.montant)|number_format(2, ',', ' ') }} <span class="small text-secondary">{{ devis.devise }}</span>
+                                                        </td>
+                                                        <td class="pe-3">
+                                                            <form action="{{ path('app_devis_valider_directeur', {'id': devis.id}) }}" method="POST" class="d-flex align-items-center justify-content-end gap-2">
+                                                                <div class="input-group input-group-sm action-input-group shadow-sm">
+                                                                    <input type="number" name="nouveau_montant" step="0.01" class="form-control font-monospace text-end fw-bold text-danger border-end-0" value="{{ devis.montant }}" required>
+                                                                    <span class="input-group-text bg-white text-muted small border-start-0 font-monospace fw-bold" style="font-size:0.75rem;">{{ devis.devise }}</span>
+                                                                </div>
+                                                                <div class="btn-group btn-group-sm shadow-sm">
+                                                                    <button type="submit" class="btn btn-success fw-bold px-3">
+                                                                        <i class="fas fa-check me-1"></i> Valider
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-outline-danger" onclick="if(confirm('Rejeter ce devis ?')) { window.location.href='#'; }">
+                                                                        <i class="fas fa-ban"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {# 2️⃣ DEUXIÈME BOUCLE : Les devis DEJA TRAITÉS (En bas - RATURE ENLEVÉE) #}
+                                            {% for devis in devisListe %}
+                                                {% if devis.statut != constant('App\\Entity\\Devis::STATUT_ATTENTE_DIR') %}
+                                                    {% set hasDevis = true %}
+                                                    <tr class="bg-white opacity-75 table-hover" style="border-left: 4px solid #cbd5e1; background-color: #f8fafc !important;">
+                                                        <td class="text-muted">#{{ devis.id }}</td>
+                                                        <td class="text-muted">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                                        <td><span class="badge bg-light text-muted border px-2 py-1">{{ devis.createdBy }}</span></td>
+                                                        <td>
+                                                            <!-- Corrigé ici : Simple style text-muted à la place de la rature -->
+                                                            <div class="text-muted fw-normal">{{ devis.description }}</div>
+                                                            <div class="mt-1">
+                                                                {% if devis.statut == constant('App\\Entity\\Devis::STATUT_DECAISSE') %}
+                                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-0.5"><i class="fas fa-check-double me-1"></i>Fonds décaissés (Terminé)</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-0.5"><i class="fas fa-arrow-right me-1"></i>Transmis à la Caisse ({{ devis.statut }})</span>
+                                                                {% endif %}
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-end font-monospace text-muted">
+                                                            {{ devis.montantInitial|default(devis.montant)|number_format(2, ',', ' ') }} <span class="small">{{ devis.devise }}</span>
+                                                        </td>
+                                                        <td class="text-end pe-4">
+                                                            <span class="fw-bold text-success font-monospace fs-6">{{ devis.montant|number_format(2, ',', ' ') }} {{ devis.devise }}</span>
+                                                            <i class="fas fa-lock text-muted ms-2" title="Dossier validé et verrouillé au niveau Direction"></i>
+                                                        </td>
+                                                    </tr>
+                                                {% endif %}
+                                            {% endfor %}
+
+                                            {% if not hasDevis %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="fas fa-folder-open fa-2x mb-2 text-black-50 d-block"></i>
+                                                        Aucun document financier enregistré dans le système.
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# SITUATION DES STOCKS #}
+                            {% if userRole == 'ROLE_DG' %}
+                            <div class="tab-pane fade" id="stock-pane" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div>
+                                        <h5 class="fw-bold text-dark m-0"><i class="fas fa-cubes text-warning me-2"></i>Situation Globale de l'Inventaire Dépôt</h5>
+                                        <small class="text-muted">Suivi des consommables pour la chaîne de production d'imprimerie</small>
+                                    </div>
+                                    <span class="text-muted small border rounded px-3 py-1.5 bg-light fw-semibold"><i class="fas fa-sync fa-spin text-primary me-2"></i>Flux Temps Réel</span>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-modern align-middle border m-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Nom de l'Article / Marchandise</th>
+                                                <th class="text-center">Quantité Réelle Restante</th>
+                                                <th class="text-center">Seuil d'Alerte</th>
+                                                <th class="text-center">État Logistique</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for art in articles %}
+                                                <tr>
+                                                    <td class="fw-bold text-dark py-3"><i class="fas fa-pallet text-secondary me-2"></i>{{ art.nom }}</td>
+                                                    <td class="text-center fw-bold text-primary fs-6 font-monospace">
+                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
+                                                            {% set paquets_dg = (art.quantite / 25)|round(0, 'floor') %}
+                                                            {% set reste_dg = art.quantite % 25 %}
+                                                            <span class="text-dark">{{ paquets_dg }} pqt(s)</span> {% if reste_dg > 0 %}<span class="badge bg-secondary text-white ms-1">{{ reste_dg }} u</span>{% endif %}
+                                                            <br><small class="text-muted fw-normal font-sans" style="font-size:0.75rem;">(Soit {{ art.quantite }} unités totales)</small>
+                                                        {% else %}
+                                                            {{ art.quantite }}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-center text-muted font-monospace fw-semibold">{{ art.seuilAlerte|default(5) }} u</td>
+                                                    <td class="text-center">
+                                                        {% if art.quantite <= art.seuilAlerte|default(5) %}
+                                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-1.5 rounded-pill"><i class="fas fa-exclamation-triangle me-1"></i> Réapprovisionnement Urgent</span>
+                                                        {% else %}
+                                                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-1.5 rounded-pill"><i class="fas fa-check-circle me-1"></i> Stock Confortable</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="4" class="text-center py-4 text-muted">Aucun article enregistré au dépôt central.</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {# SUIVI DES DEMANDES (MASQUÉ POUR LE DG) #}
                             {% if userRole != 'ROLE_DG' %}
-                            {# 1️⃣ ONGLET : SUIVI DES DEMANDES #}
                             <div class="tab-pane fade show active" id="dem-pane" role="tabpanel">
                                 <div class="table-responsive">
-                                    <table class="table table-hover align-middle m-0">
-                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                    <table class="table table-hover table-modern align-middle m-0 border rounded">
+                                        <thead>
                                             <tr>
                                                 <th>ID</th>
                                                 <th>Département</th>
@@ -194,17 +379,13 @@
                                                 <tr>
                                                     <td class="fw-bold">#{{ d.id }}</td>
                                                     <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
-                                                    
-                                                    <td class="fw-bold text-dark">
+                                                    <td>
                                                         <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
-                                                            <i class="fas fa-building me-1 text-muted"></i>
-                                                            {{ d.localisation|default('Direction')|upper }}
+                                                            <i class="fas fa-building me-1 text-muted"></i>{{ d.localisation|default('Direction')|upper }}
                                                         </span>
                                                     </td>
-
                                                     <td class="fw-semibold text-dark">{{ d.materiel }}</td>
-                                                    
-                                                    <td class="text-center fw-bold text-primary">
+                                                    <td class="text-center fw-bold text-primary font-monospace">
                                                         {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
                                                             {% set p_dem = (d.quantite / 25)|round(0, 'floor') %}
                                                             {% set r_dem = d.quantite % 25 %}
@@ -213,13 +394,15 @@
                                                             {{ d.quantite|default('1') }}
                                                         {% endif %}
                                                     </td>
-
-                                                    <td><span class="badge rounded-pill px-2.5 py-1 bg-warning text-dark">{{ d.statut }}</span></td>
-                                                    
+                                                    <td>
+                                                        <span class="badge px-2.5 py-1.5 {% if 'attente' in d.statut|lower %}bg-warning text-dark{% else %}bg-light text-dark border{% endif %}">
+                                                            {{ d.statut }}
+                                                        </span>
+                                                    </td>
                                                     {% if userRole == 'ROLE_STOCK' %}
                                                     <td class="text-center">
                                                         <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
-                                                            <button class="btn btn-sm btn-outline-success fw-bold"><i class="fas fa-truck me-1"></i> Livrer le matériel</button>
+                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm"><i class="fas fa-truck me-1"></i> Livrer</button>
                                                         </form>
                                                     </td>
                                                     {% endif %}
@@ -233,55 +416,48 @@
                             </div>
                             {% endif %}
 
-                            {# 2️⃣ CONTENU DE L'ONGLET RAPPORT GÉNÉRAL HISTORIQUE (Pour les encadrants) #}
+                            {# RAPPORT GÉNÉRAL HISTORIQUE #}
                             {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
-                            <div class="tab-pane fade {% if userRole == 'ROLE_DG' %}show active{% endif %}" id="report-pane" role="tabpanel">
-                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
+                            <div class="tab-pane fade" id="report-pane" role="tabpanel">
+                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-info me-2"></i>Registre de Sortie & Traçabilité Logistique</h5>
                                 
-                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
+                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4 align-items-end">
                                     <div class="col-md-4">
-                                        <label class="form-label small fw-bold text-secondary">Du (Date Début) :</label>
-                                        <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                                        <label class="form-label small fw-bold text-secondary">Du :</label>
+                                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label small fw-bold text-secondary">Au (Date Fin) :</label>
-                                        <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+                                        <label class="form-label small fw-bold text-secondary">Au :</label>
+                                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
                                     </div>
-                                    <div class="col-md-4 d-flex align-items-end">
-                                        <button type="submit" class="btn btn-info text-white fw-bold w-100 py-2 shadow-sm">
-                                            <i class="fas fa-filter me-2"></i> Filtrer l'historique
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn btn-primary text-white fw-bold btn-sm w-100 py-2 shadow-sm">
+                                            <i class="fas fa-filter me-2"></i> Filtrer les Mouvements
                                         </button>
                                     </div>
                                 </form>
 
                                 <div class="table-responsive">
-                                    <table class="table table-hover table-striped align-middle m-0 border">
-                                        <thead class="table-dark small text-uppercase">
+                                    <table class="table table-hover table-modern align-middle m-0 border rounded">
+                                        <thead>
                                             <tr>
-                                                <th>Date de Demande</th>
+                                                <th>Date de Saisie</th>
                                                 <th>Département</th>
-                                                <th>Localisation Origine</th>
-                                                <th>Consommable / Article</th>
-                                                <th class="text-center">Quantité Distribuée</th>
-                                                <th>Destination (Site / Commune)</th>
-                                                <th class="text-center">État Logistique</th>
+                                                <th>Origine</th>
+                                                <th>Article Distribué</th>
+                                                <th class="text-center">Quantité</th>
+                                                <th>Destination Finale</th>
+                                                <th class="text-center">État Flux</th>
                                             </tr>
                                         </thead>
                                         <tbody class="small">
                                             {% for rg in rapportGlobal %}
                                                 <tr>
-                                                    <td class="fw-semibold text-muted">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                                                    <td class="fw-semibold text-muted font-monospace">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
                                                     <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
-                                                    
-                                                    <td class="fw-bold text-dark">
-                                                        <span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">
-                                                            <i class="fas fa-building me-1 text-muted"></i>
-                                                            {{ rg.localisation|default('Direction')|upper }}
-                                                        </span>
-                                                    </td>
-
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">{{ rg.localisation|default('Direction')|upper }}</span></td>
                                                     <td class="fw-bold text-dark">{{ rg.materiel }}</td>
-                                                    <td class="text-center fw-bold">
+                                                    <td class="text-center fw-bold font-monospace">
                                                         {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
                                                             {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
                                                             {% set r_rep = rg.quantite % 25 %}
@@ -290,71 +466,17 @@
                                                             {{ rg.quantite }}
                                                         {% endif %}
                                                     </td>
-                                                    <td class="fw-bold"><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
+                                                    <td class="fw-bold text-secondary"><i class="fas fa-map-marked-alt text-primary me-1 text-opacity-50"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
                                                     <td class="text-center">
                                                         {% if rg.statut == 'Livré par le Stock' %}
-                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Livré & Sorti</span>
+                                                            <span class="badge bg-success bg-opacity-10 text-success border border-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Sortie Confirmée</span>
                                                         {% else %}
-                                                            <span class="badge bg-secondary px-2.5 py-1.5">{{ rg.statut }}</span>
+                                                            <span class="badge bg-light text-dark border px-2.5 py-1.5">{{ rg.statut }}</span>
                                                         {% endif %}
                                                     </td>
                                                 </tr>
                                             {% else %}
-                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucune archive trouvée pour cette sélection de dates.</td></tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {# 3️⃣ BLOC EXCLUSIF DU DG : SITUATION DE L'INVENTAIRE #}
-                            {% if userRole == 'ROLE_DG' %}
-                            <div class="tab-pane fade" id="stock-pane" role="tabpanel">
-                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-cubes text-warning me-2"></i>Situation Globale du Stock Dépôt</h5>
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped align-middle border m-0">
-                                        <thead class="table-warning small text-uppercase fw-bold text-dark">
-                                            <tr>
-                                                <th>Nom de l'Article / Marchandise</th>
-                                                <th class="text-center">Quantité Réelle Restante</th>
-                                                <th class="text-center">Seuil d'Alerte Configuré</th>
-                                                <th class="text-center">État Critique</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for art in articles %}
-                                                <tr>
-                                                    <td class="fw-bold text-dark">{{ art.nom }}</td>
-                                                    
-                                                    <td class="text-center fw-bold fs-6 text-primary">
-                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
-                                                            {% set paquets_dg = (art.quantite / 25)|round(0, 'floor') %}
-                                                            {% set reste_dg = art.quantite % 25 %}
-                                                            <span>{{ paquets_dg }} pqt(s) {% if reste_dg > 0 %}et {{ reste_dg }} u{% endif %}</span>
-                                                            <br><small class="text-muted fw-normal">({{ art.quantite }} unités totales)</small>
-                                                        {% else %}
-                                                            {{ art.quantite }}
-                                                        {% endif %}
-                                                    </td>
-
-                                                    <td class="text-center text-muted fw-bold">
-                                                        {% if art.nom|lower == 'gilet' or art.nom|lower == 'gilets' %}
-                                                            {{ art.seuilAlerte|default(5) }} u
-                                                        {% else %}
-                                                            {{ art.seuilAlerte|default(5) }}
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-center">
-                                                        {% if art.quantite <= art.seuilAlerte|default(5) %}
-                                                            <span class="badge bg-danger px-2.5 py-1.5"><i class="fas fa-exclamation-triangle me-1"></i> Approvisionnement Requis</span>
-                                                        {% else %}
-                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check-circle me-1"></i> Stock Correct</span>
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% else %}
-                                                <tr><td colspan="4" class="text-center py-4 text-muted">Aucun article enregistré au dépôt central.</td></tr>
+                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucun historique trouvé pour cette plage de dates.</td></tr>
                                             {% endfor %}
                                         </tbody>
                                     </table>
@@ -366,9 +488,9 @@
                     </div>
                 </div>
 
-                {# FORMULAIRE DE VISITE BAS DE PAGE (Sauf pour le DG) #}
+                {# FORMULAIRE DE VISITE BAS DE PAGE (MASQUÉ POUR LE DG) #}
                 {% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
-                <div class="card border-0 shadow-sm mt-4" style="border-top: 4px solid #ffc107 !important;">
+                <div class="card border-0 shadow-sm mt-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
                     </div>
@@ -377,18 +499,18 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label small fw-bold">Nom du Visiteur</label>
-                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
+                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control'}}) }}
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label small fw-bold">Département Visité</label>
-                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Impression'}}) }}
+                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control'}}) }}
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label small fw-bold">Motif de la visite</label>
-                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Maintenance'}}) }}
+                                    <label class="form-label small fw-bold">Motif</label>
+                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control'}}) }}
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2">Enregistrer la Visite</button>
+                            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2 shadow-sm">Enregistrer la Visite</button>
                         {{ form_end(formVisite) }}
                     </div>
                 </div>
@@ -397,7 +519,7 @@
             </div>
         </div>
     </div>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
