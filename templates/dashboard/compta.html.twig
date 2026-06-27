@@ -203,147 +203,164 @@
                         </div>
                     </div>
 
-                    {# 3️⃣ ONGLET : CIRCUIT DE VALIDATION DES DEVIS (MIS À JOUR) #}
-                    <div class="tab-pane fade" id="devis-pane" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-                            <div>
-                                <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Circuit d'Approbation Hiérarchique</h5>
-                                <small class="text-muted">Interface unique partagée selon les autorisations spécifiques de vos rôles</small>
+                        {# 3️⃣ ONGLET : CIRCUIT DE VALIDATION DES DEVIS (MIS À JOUR) #}
+                        <div class="tab-pane fade" id="devis-pane" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                                <div>
+                                    <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Circuit d'Approbation Hiérarchique</h5>
+                                    <small class="text-muted">Interface unique partagée selon les autorisations spécifiques de vos rôles</small>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                        <i class="fas fa-dollar-sign me-1"></i> Total décaissé : {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
+                                    </span>
+                                    <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                        <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
+                                    </span>
+                                </div>
                             </div>
-                            <div class="d-flex gap-2">
-                                <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-                                    <i class="fas fa-dollar-sign me-1"></i> Total décaissé : {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
-                                </span>
-                                <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-                                    <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
-                                </span>
+                            
+                            {# Barre de filtrage temporelle #}
+                            <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
+                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
+                                    <div class="col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de début</label>
+                                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                                    </div>
+                                    <div class="col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de fin</label>
+                                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                                    </div>
+                                    <div class="col-md-4 col-12 d-flex gap-2">
+                                        <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
+                                            <i class="fas fa-filter me-1"></i> Filtrer la période
+                                        </button>
+                                        <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </a>
+                                    </div>
+                                </form>
                             </div>
-                        </div>
-                        
-                        {# Barre de filtrage temporelle #}
-                        <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
-                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
-                                <div class="col-md-4 col-sm-6">
-                                    <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de début</label>
-                                    <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
-                                </div>
-                                <div class="col-md-4 col-sm-6">
-                                    <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de fin</label>
-                                    <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
-                                </div>
-                                <div class="col-md-4 col-12 d-flex gap-2">
-                                    <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
-                                        <i class="fas fa-filter me-1"></i> Filtrer la période
-                                    </button>
-                                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle m-0">
-                                <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                    <tr>
-                                        <th>Émetteur</th>
-                                        <th>Libellé / Détail</th>
-                                        <th>Montant Actuel</th>
-                                        <th>Date de dépôt</th>
-                                        <th class="text-center">Niveau de validation</th>
-                                        <th class="text-center">Action Requise</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="small">
-                                    {% for devis in devisListe %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle m-0">
+                                    <thead class="table-light small text-uppercase fw-bold text-secondary">
                                         <tr>
-                                            <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
-                                            <td style="max-width: 280px;" class="text-wrap">
-                                                {% if devis.entete is defined and devis.entete %}
-                                                    <strong class="text-dark d-block mb-1">{{ devis.entete }}</strong>
-                                                {% endif %}
-                                                <span class="text-muted small">{{ devis.description|nl2br }}</span>
-                                            </td>
-                                            <td class="fw-bold text-dark">
-                                                {% if devis.devise == 'CDF' %}
-                                                    {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary fw-bold small">FC</span>
-                                                {% else %}
-                                                    {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success fw-bold">$</span>
-                                                {% endif %}
-                                                {% if devis.montantInitial is defined and devis.montantInitial and devis.montantInitial != devis.montant %}
-                                                    <br><small class="text-decoration-line-through text-muted fw-normal" style="font-size: 0.75rem;">Initial: {{ devis.montantInitial }} {{ devis.devise }}</small>
-                                                {% endif %}
-                                            </td>
-                                            <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
-                                            <td class="text-center">
-                                                {# Les différents statuts avec leurs badges dynamiques #}
-                                                {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
-                                                    <span class="badge bg-warning text-dark px-2.5 py-1.5 border border-warning border-opacity-50"><i class="fas fa-user-shield me-1"></i> Visé par Chef Compta</span>
-                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
-                                                    <span class="badge bg-info text-white px-2.5 py-1.5 border border-info border-opacity-50"><i class="fas fa-gavel me-1"></i> Attente Direction</span>
-                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                    <span class="badge bg-primary text-white px-2.5 py-1.5 border border-primary border-opacity-50"><i class="fas fa-money-check-alt me-1"></i> Prêt au décaissement</span>
-                                                {% elseif devis.statut == 'DECAISSE' %}
-                                                    <span class="badge bg-success text-white px-2.5 py-1.5"><i class="fas fa-check-double me-1"></i> Archivé / Décaissé</span>
-                                                {% else %}
-                                                    <span class="badge bg-light text-dark border">{{ devis.statut }}</span>
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-center" style="min-width: 180px;">
-                                                
-                                                {# 1️⃣ SÉCURITÉ CHEF COMPTABLE #}
-                                                {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
-                                                    {% if is_granted('ROLE_CHEF_COMPTA') %}
-                                                        <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');" class="d-inline">
-                                                            <button class="btn btn-xs btn-warning fw-bold px-2.5 py-1 shadow-sm text-dark btn-sm">
-                                                                <i class="fas fa-forward me-1"></i> Transmettre au Dir.
+                                            <th>Émetteur</th>
+                                            <th>Libellé / Détail</th>
+                                            <th>Montant Actuel</th>
+                                            <th>Date de dépôt</th>
+                                            <th class="text-center">Niveau de validation</th>
+                                            <th class="text-center">Action Requise</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="small">
+                                        {% for devis in devisListe %}
+                                            <tr>
+                                                <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
+                                                <td style="max-width: 280px;" class="text-wrap">
+                                                    {% if devis.entete is defined and devis.entete %}
+                                                        <strong class="text-dark d-block mb-1">{{ devis.entete }}</strong>
+                                                    {% endif %}
+                                                    <span class="text-muted small">{{ devis.description|nl2br }}</span>
+                                                </td>
+                                                <td class="fw-bold text-dark">
+                                                    {% if devis.devise == 'CDF' %}
+                                                        {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary fw-bold small">FC</span>
+                                                    {% else %}
+                                                        {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success fw-bold">$</span>
+                                                    {% endif %}
+                                                    {% if devis.montantInitial is defined and devis.montantInitial and devis.montantInitial != devis.montant %}
+                                                        <br><small class="text-decoration-line-through text-muted fw-normal" style="font-size: 0.75rem;">Initial: {{ devis.montantInitial }} {{ devis.devise }}</small>
+                                                    {% endif %}
+                                                </td>
+                                                <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
+    <td class="text-center">
+        {# ... tes conditions de statut ... #}
+        {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+            <span class="badge bg-warning text-dark px-2.5 py-1.5 border border-warning border-opacity-50"><i class="fas fa-user-shield me-1"></i> Visé par Chef Compta</span>
+        {% elseif devis.statut == 'ATTENTE_DIR' %}
+            <span class="badge bg-info text-white px-2.5 py-1.5 border border-info border-opacity-50"><i class="fas fa-gavel me-1"></i> Attente Direction</span>
+        {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+            <span class="badge bg-primary text-white px-2.5 py-1.5 border border-primary border-opacity-50"><i class="fas fa-money-check-alt me-1"></i> Prêt au décaissement</span>
+        {% elseif devis.statut == 'DECAISSE' %}
+            <span class="badge bg-success text-white px-2.5 py-1.5"><i class="fas fa-check-double me-1"></i> Archivé / Décaissé</span>
+        {% elseif devis.statut == 'ATTENTE_TRAITEMENT' %}
+            <span class="badge bg-secondary text-white px-2.5 py-1.5"><i class="fas fa-hand-pointer me-1"></i> En attente d'orientation</span>
+        {% else %}
+            <span class="badge bg-light text-dark border">{{ devis.statut }}</span>
+        {% endif %}
+    </td>
+    <td class="text-center" style="min-width: 200px;">
+        
+        {# 0️⃣ NOUVELLE LOGIQUE : AIGUILLAGE DU COMPTABLE #}
+        {% if devis.statut == 'ATTENTE_TRAITEMENT' and is_granted('ROLE_COMPTA') %}
+            <form method="POST" action="{{ path('app_devis_aiguiller', {'id': devis.id}) }}" class="p-2 border rounded bg-light shadow-sm">
+                <select name="choix_procédure" class="form-select form-select-sm mb-2" required>
+                    <option value="" disabled selected>Choisir le flux...</option>
+                    <option value="circuit_complet">1. Circuit complet (Visas)</option>
+                    <option value="bon_caisse">2. Bon de demande (Caisse)</option>
+                    <option value="decaisser_direct">3. Décaissement direct</option>
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">
+                    <i class="fas fa-play-circle me-1"></i> Démarrer
+                </button>
+            </form>
+
+        {# 1️⃣ SÉCURITÉ CHEF COMPTABLE #}
+        {% elseif devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+            {# ... reste de ton code ... #}
+                                                        {% if is_granted('ROLE_CHEF_COMPTA') %}
+                                                            <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');" class="d-inline">
+                                                                <button class="btn btn-xs btn-warning fw-bold px-2.5 py-1 shadow-sm text-dark btn-sm">
+                                                                    <i class="fas fa-forward me-1"></i> Transmettre au Dir.
+                                                                </button>
+                                                            </form>
+                                                        {% else %}
+                                                            <span class="text-muted small italic"><i class="fas fa-hourglass-start me-1"></i> Attente Visa Supérieur</span>
+                                                        {% endif %}
+
+                                                    {# 2️⃣ SÉCURITÉ DIRECTEUR (Ajustement + Validation intégrés) #}
+                                                    {% elseif devis.statut == 'ATTENTE_DIR' %}
+                                                        {% if is_granted('ROLE_DIRECTEUR') %}
+                                                            <form method="POST" action="{{ path('app_devis_valider_directeur', {'id': devis.id}) }}" class="p-1 border rounded bg-white shadow-sm">
+                                                                <div class="input-group input-group-sm">
+                                                                    <input type="number" step="0.01" name="nouveau_montant" class="form-control fw-bold text-primary" value="{{ devis.montant }}" required style="max-width: 90px;" placeholder="Montant">
+                                                                    <span class="input-group-text bg-light small fw-bold px-1" style="font-size: 0.75rem;">{{ devis.devise }}</span>
+                                                                    <button type="submit" class="btn btn-primary btn-sm fw-bold px-2" title="Ajuster et Valider définitivement">
+                                                                        <i class="fas fa-check"></i> Fixer
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        {% else %}
+                                                            <span class="text-muted small"><i class="fas fa-user-clock me-1"></i> Arbitrage Direction</span>
+                                                        {% endif %}
+
+                                                    {# 3️⃣ TOUT COMPTABLE PEUT DÉCAISSER #}
+                                                    {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                        {# N'importe qui connecté ici possède au moins ROLE_COMPTA #}
+                                                        <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds de la caisse ?');" class="d-inline">
+                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                                                                <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
                                                             </button>
                                                         </form>
+
+                                                    {# 4️⃣ ARCHIVAGE #}
                                                     {% else %}
-                                                        <span class="text-muted small italic"><i class="fas fa-hourglass-start me-1"></i> Attente Visa Supérieur</span>
+                                                        <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
                                                     {% endif %}
 
-                                                {# 2️⃣ SÉCURITÉ DIRECTEUR (Ajustement + Validation intégrés) #}
-                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
-                                                    {% if is_granted('ROLE_DIRECTEUR') %}
-                                                        <form method="POST" action="{{ path('app_devis_valider_directeur', {'id': devis.id}) }}" class="p-1 border rounded bg-white shadow-sm">
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" step="0.01" name="nouveau_montant" class="form-control fw-bold text-primary" value="{{ devis.montant }}" required style="max-width: 90px;" placeholder="Montant">
-                                                                <span class="input-group-text bg-light small fw-bold px-1" style="font-size: 0.75rem;">{{ devis.devise }}</span>
-                                                                <button type="submit" class="btn btn-primary btn-sm fw-bold px-2" title="Ajuster et Valider définitivement">
-                                                                    <i class="fas fa-check"></i> Fixer
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    {% else %}
-                                                        <span class="text-muted small"><i class="fas fa-user-clock me-1"></i> Arbitrage Direction</span>
-                                                    {% endif %}
-
-                                                {# 3️⃣ TOUT COMPTABLE PEUT DÉCAISSER #}
-                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                    {# N'importe qui connecté ici possède au moins ROLE_COMPTA #}
-                                                    <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds de la caisse ?');" class="d-inline">
-                                                        <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
-                                                            <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
-                                                        </button>
-                                                    </form>
-
-                                                {# 4️⃣ ARCHIVAGE #}
-                                                {% else %}
-                                                    <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
-                                                {% endif %}
-
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="6" class="text-center text-muted py-4">Aucun devis enregistré pour cette période.</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-4">Aucun devis enregistré pour cette période.</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
                     {# 4️⃣ ONGLET : ANALYSE DE LA CONSOMMATION #}
                     <div class="tab-pane fade" id="stats-pane" role="tabpanel">
@@ -404,12 +421,12 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
+    {% verbatim %}
         document.addEventListener("DOMContentLoaded", function() {
             
             // 1. Animation du compteur numérique
-            const counterElement = document.querySelector('.js-counter');
+            //const counterElement = document.querySelector('.js-counter');
             if (counterElement) {
                 const targetValue = parseInt(counterElement.getAttribute('data-target')) || 0;
                 let currentValue = 0;
@@ -469,6 +486,7 @@
                 }, 5000);
             });
         });
-    </script>
+    {% endverbatim %}
+</script>
 </body>
 </html>

@@ -30,9 +30,8 @@
                             Remplissez les champs ci-dessous. Une fois validé, vous accéderez à l'aperçu avant de l'envoyer définitivement à la comptabilité.
                         </p>
 
-                        {{ form_start(form) }}
+                        {{ form_start(form, {'action': path('app_devis_nouveau'), 'method': 'POST'}) }}
                             
-                            <!-- Nouveau champ : En-tête -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-secondary">Objet / En-tête du devis</label>
                                 {{ form_widget(form.entete, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Devis de travaux d\'impression - Service Marketing'}}) }}
@@ -46,15 +45,14 @@
                             </div>
 
                             <div class="mb-4">
-    <label class="form-label fw-bold small text-secondary">Montant estimatif global et Devise</label>
-    <div class="input-group">
-        {{ form_widget(form.montant, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'style': 'flex: 2;'}}) }}
-        
-        {{ form_widget(form.devise, {'attr': {'class': 'form-select', 'style': 'max-width: 110px;'}}) }}
-    </div>
-    <div class="text-danger small">{{ form_errors(form.montant) }}</div>
-    <div class="text-danger small">{{ form_errors(form.devise) }}</div>
-</div>
+                                <label class="form-label fw-bold small text-secondary">Montant estimatif global et Devise</label>
+                                <div class="input-group">
+                                    {{ form_widget(form.montant, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'style': 'flex: 2;'}}) }}
+                                    {{ form_widget(form.devise, {'attr': {'class': 'form-select', 'style': 'max-width: 110px;'}}) }}
+                                </div>
+                                <div class="text-danger small">{{ form_errors(form.montant) }}</div>
+                                <div class="text-danger small">{{ form_errors(form.devise) }}</div>
+                            </div>
 
                             <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2 shadow-sm">
                                 <i class="fas fa-eye me-1"></i> Générer l'aperçu
