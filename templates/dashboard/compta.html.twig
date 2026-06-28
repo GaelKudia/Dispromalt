@@ -337,19 +337,17 @@
                                                         {% endif %}
 
                                                     {# 3️⃣ TOUT COMPTABLE PEUT DÉCAISSER #}
-                                                    {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                        {# N'importe qui connecté ici possède au moins ROLE_COMPTA #}
-                                                        <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds de la caisse ?');" class="d-inline">
-                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
-                                                                <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
-                                                            </button>
-                                                        </form>
-
-                                                    {# 4️⃣ ARCHIVAGE #}
-                                                    {% else %}
-                                                        <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
-                                                    {% endif %}
-
+                                                    {# 3️⃣ SECTION CAISSE #}
+{% elseif devis.statut == 'ATTENTE_CAISSE' %}
+    {% if is_granted('ROLE_CAISSIER') %}
+        <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie de fonds de la caisse ?');" class="d-inline">
+            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                <i class="fas fa-cash-register me-1"></i> Décaisser
+            </button>
+        </form>
+    {% else %}
+        <span class="text-muted small italic">En attente de passage en caisse</span>
+    {% endif %}
                                                 </td>
                                             </tr>
                                         {% else %}

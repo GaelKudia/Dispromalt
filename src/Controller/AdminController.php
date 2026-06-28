@@ -189,8 +189,13 @@ class AdminController extends AbstractController
                 $user->setEmail($email);
             }
 
+            // CORRECTION ICI : Gestion propre du rôle
             if (!empty($role)) {
-                $user->setRoles([$role]);
+                $roles = $user->getRoles();
+                if (!in_array($role, $roles)) {
+                    $roles[] = $role;
+                    $user->setRoles($roles);
+                }
             }
 
             if (!empty($plainPassword)) {
@@ -206,7 +211,6 @@ class AdminController extends AbstractController
             'user' => $user
         ]);
     }
-
     #[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
     {
@@ -225,4 +229,33 @@ class AdminController extends AbstractController
 
         return $this->redirectToRoute('app_admin_dashboard');
     }
+
+    #[Route('/admin/assigner-caissier', name: 'app_admin_assigner_caissier', methods: ['POST'])]
+#[IsGranted('ROLE_ADMIN')]
+public function assignerCaissier(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+{
+    $user = $userRepository->find($request->request->get('user_id'));
+    if ($user && !in_array('ROLE_CAISSIER', $user->getRoles())) {
+        $roles = $user->getRoles();
+        $roles[] = 'ROLE_CAISSIER';
+        $user->setRoles($roles);
+        $em->flush();
+        $this->addFlash('success', 'Utilisateur promu Caissier.');
+    }
+    return $this->redirectToRoute('app_admin_dashboard');
+}
+
+#[Route('/admin/destituer-caissier/{id}', name: 'app_admin_destituer_caissier', methods: ['POST'])]
+#[IsGranted('ROLE_ADMIN')]
+public function destituerCaissier(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
+{
+    $user = $userRepository->find($id);
+    if ($user) {
+        $roles = array_diff($user->getRoles(), ['ROLE_CAISSIER']);
+        $user->setRoles(array_values($roles));
+        $em->flush();
+        $this->addFlash('success', 'Rôle Caissier retiré.');
+    }
+    return $this->redirectToRoute('app_admin_dashboard');
+}
 }

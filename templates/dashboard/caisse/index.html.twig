@@ -1,0 +1,26 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Libellé</th>
+            <th>Montant</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for devis in devis_a_payer %}
+        <tr>
+            <td>{{ devis.createdAt|date('d/m/Y') }}</td>
+            <td>{{ devis.entete }}</td>
+            <td class="fw-bold">{{ devis.montant|number_format(2) }} {{ devis.devise }}</td>
+            <td>
+                <form action="{{ path('app_caisse_valider', {'id': devis.id}) }}" method="POST">
+                    <button class="btn btn-success" onclick="return confirm('Confirmer la sortie de caisse ?')">
+                        <i class="fas fa-check"></i> Décaisser
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

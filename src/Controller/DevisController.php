@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+
 class DevisController extends AbstractController
 {
 
@@ -172,9 +173,21 @@ public function aiguillerDevis(Devis $devis, Request $request, EntityManagerInte
     $em->flush();
     $this->addFlash('success', '✅ Procédure lancée avec succès.');
     return $this->redirectToRoute('app_dashboard');
+   
+}
 
-
+#[Route('/devis/valider-caisse/{id}', name: 'app_devis_decaisser', methods: ['POST'])]
+#[IsGranted('ROLE_CAISSIER')]
+public function validerCaisse(Devis $devis, EntityManagerInterface $em): Response
+{
+    // On passe le statut à 'DECAISSE'
+    $devis->setStatut('DECAISSE');
+    $devis->setDateDecaissement(new \DateTime()); // Optionnel : pour avoir une trace
     
+    $em->flush();
+
+    $this->addFlash('success', 'Décaissement effectué avec succès.');
+    return $this->redirectToRoute('app_dashboard');
 }
 
 

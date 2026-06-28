@@ -2,6 +2,8 @@ security:
     # 👑 HIÉRARCHIE DES RÔLES
     # 👑 HIÉRARCHIE DES RÔLES
     role_hierarchy:
+        ROLE_CAISSIER:       ROLE_USER
+        ROLE_CHEF_COMPTA:    [ROLE_USER, ROLE_CAISSIER]
         ROLE_COORDON:     ROLE_USER
         ROLE_STOCK:       ROLE_USER
         ROLE_COMPTA:      ROLE_USER
