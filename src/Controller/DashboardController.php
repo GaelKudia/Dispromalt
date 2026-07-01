@@ -25,7 +25,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
-    #[Route('/dashboard', name: 'app_dashboard')]
+        #[Route('/dashboard', name: 'app_dashboard')]
+
     public function index(
         Request $request, 
         DemandeRepository $demandeRepository, 
@@ -33,6 +34,7 @@ class DashboardController extends AbstractController
         EntityManagerInterface $em
     ): Response {
         
+        // 1. UTILISATEUR CONNECTÉ
         $currentUser = $this->getUser();
         if (!$currentUser) {
             return $this->redirectToRoute('app_login');
@@ -41,11 +43,23 @@ class DashboardController extends AbstractController
         $userName = $currentUser->getUserIdentifier(); 
         $userDept = 'Impression'; 
 
+        // Initialisation par défaut des vues de formulaires à null
         $formStockView = null;
         $formDemandeView = null;
         $formBonView = null;
         $formVisiteView = null;
 
+        // 1. CALCULER LES STATS D'ABORD (Avant tout rendu)
+    $stats = [
+        'demandes_attente' => count($demandeRepository->findBy(['statut' => 'En attente'])),
+        'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
+        'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
+    ];
+
+        // =========================================================================
+        // 📦 2. TRAITEMENT DES FORMULAIRES SELON LES PRIVILÈGES
+        // =========================================================================
+        
         // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
         if ($this->isGranted('ROLE_STOCK')) {
             $formStock = $this->createForm(StockType::class);
@@ -81,8 +95,9 @@ class DashboardController extends AbstractController
         }
 
         // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
-        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA')) {
+        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE')) {
             
+            // Demande de matériel
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
@@ -105,20 +120,6 @@ class DashboardController extends AbstractController
 
                 $demande->setDepartement($userDept); 
                 $demande->setStatut('En attente'); 
-
-                $siteDeLAgent = method_exists($currentUser, 'getLocalisation') ? $currentUser->getLocalisation() : null; 
-
-                if (!empty($siteDeLAgent)) {
-                    $demande->setLocalisation($siteDeLAgent);
-                    if (!$demande->getDestination()) {
-                        $demande->setDestination($siteDeLAgent);
-                    }
-                } else {
-                    $demande->setLocalisation('Direction');
-                    if (!$demande->getDestination()) {
-                        $demande->setDestination('Direction / Siège');
-                    }
-                }
                 
                 $em->persist($demande);
                 $em->flush();
@@ -128,6 +129,7 @@ class DashboardController extends AbstractController
             }
             $formDemandeView = $formDemande->createView();
 
+            // Bon de Sortie
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
@@ -162,6 +164,7 @@ class DashboardController extends AbstractController
                 }
                 $formVisiteView = $formVisite->createView();
             }
+            
         }  
         
         // INTERROGATION BASE DE DONNÉES
@@ -249,12 +252,13 @@ class DashboardController extends AbstractController
 
                 foreach ($devisListe as $d) {
                     if ($d->getStatut() === Devis::STATUT_DECAISSE) {
+                    if ($d->getStatut() === Devis::STATUT_DECAISSE) {
                         if ($d->getDevise() === 'CDF') {
                             $totalDevisCDF += $d->getMontant();
                         } else {
                             $totalDevisUSD += $d->getMontant();
                         }
-                    }
+                    }}
                 }
             }
 

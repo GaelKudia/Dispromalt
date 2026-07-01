@@ -66,7 +66,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase small fw-bold">Demandes logistiques en attente d'engagement</h6>
-                            <h3 class="fw-bold m-0 text-warning js-counter" data-target="{{ stats.demandes_attente }}">0 demandes</h3>
+                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }} demandes</h3>
                         </div>
                         <i class="fas fa-file-invoice-dollar fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
                     </div>
@@ -142,7 +142,7 @@
                                                 {% if d.statut == 'En attente' %}
                                                     <span class="badge bg-warning text-dark px-2.5 py-1.5"><i class="fas fa-clock me-1"></i> En attente</span>
                                                 {% elseif d.statut == 'Validé Compta' %}
-                                                    <span class="badge bg-primary text-white px-2.5 py-1.5"><i class="fas fa-thumbs-up me-1"></i> Budget Accordé</span>
+                                                    <span class="badge bg-primary text-white px-2.5 py-1.5"><i class="fas fa-thumbs-up me-1"></i> Accordé</span>
                                                 {% elseif d.statut == 'Livré par le Stock' %}
                                                     <span class="badge bg-info text-white px-2.5 py-1.5"><i class="fas fa-truck me-1"></i> Livré (Attente confirmation)</span>
                                                 {% elseif d.statut == 'Reçu / Clôturé' %}
@@ -155,11 +155,11 @@
                                                 {% if d.statut == 'En attente' %}
                                                     <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
                                                         <button class="btn btn-sm btn-success fw-bold px-3">
-                                                            <i class="fas fa-dollar-sign me-1"></i> Accorder Budget
+                                                            <i class="fas fa-dollar-sign me-1"></i> Accorder 
                                                         </button>
                                                     </form>
                                                 {% elseif d.statut == 'Validé Compta' %}
-                                                    <span class="text-success fw-bold small"><i class="fas fa-check me-1"></i> Budget Validé</span>
+                                                    <span class="text-success fw-bold small"><i class="fas fa-check me-1"></i> Validé</span>
                                                 {% else %}
                                                     <span class="text-muted small"><i class="fas fa-lock me-1"></i> Traité</span>
                                                 {% endif %}
@@ -211,13 +211,13 @@
                                     <small class="text-muted">Interface unique partagée selon les autorisations spécifiques de vos rôles</small>
                                 </div>
                                 <div class="d-flex gap-2">
-                                    <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-                                        <i class="fas fa-dollar-sign me-1"></i> Total décaissé : {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
-                                    </span>
-                                    <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
-                                        <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
-                                    </span>
-                                </div>
+                                <span class="badge bg-success text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                    <i class="fas fa-dollar-sign me-1"></i> Total décaissé : {{ totalDevisUSD|number_format(2, ',', ' ') }} USD
+                                </span>
+                                <span class="badge bg-primary text-white fw-bold fs-6 py-2 px-3 rounded-pill">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
+                                </span>
+                            </div>
                             </div>
                             
                             {# Barre de filtrage temporelle #}
@@ -337,26 +337,29 @@
                                                         {% endif %}
 
                                                     {# 3️⃣ TOUT COMPTABLE PEUT DÉCAISSER #}
-                                                    {# 3️⃣ SECTION CAISSE #}
-{% elseif devis.statut == 'ATTENTE_CAISSE' %}
-    {% if is_granted('ROLE_CAISSIER') %}
-        <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie de fonds de la caisse ?');" class="d-inline">
-            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
-                <i class="fas fa-cash-register me-1"></i> Décaisser
-            </button>
-        </form>
-    {% else %}
-        <span class="text-muted small italic">En attente de passage en caisse</span>
-    {% endif %}
-                                                </td>
-                                            </tr>
-                                        {% else %}
-                                            <tr>
-                                                <td colspan="6" class="text-center text-muted py-4">Aucun devis enregistré pour cette période.</td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
+                                            {# 3️⃣ SECTION CAISSE #}
+ {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                    {# N'importe qui connecté ici possède au moins ROLE_COMPTA #}
+                                                    <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds de la caisse ?');" class="d-inline">
+                                                        <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                                                            <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
+                                                        </button>
+                                                    </form>
+
+                                                {# 4️⃣ ARCHIVAGE #}
+                                                {% else %}
+                                                    <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
+                                                {% endif %}
+
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">Aucun devis enregistré pour cette période.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
                             </div>
                         </div>
 

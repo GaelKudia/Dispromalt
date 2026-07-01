@@ -12,7 +12,7 @@ class Devis
     public const STATUT_ATTENTE_CHEF = 'ATTENTE_CHEF_COMPTA';
     public const STATUT_ATTENTE_DIR  = 'ATTENTE_DIRECTEUR';
     public const STATUT_ATTENTE_CAISSE = 'ATTENTE_CAISSE';
-    public const STATUT_DECAISSE     = 'ARGENT_ENVOYE';
+    public const STATUT_DECAISSE     = 'DECAISSE';
     public const STATUT_REJETE       = 'REJETE';
     
     // ... (le reste de tes propriétés existantes comme id, description, montant, etc.)
@@ -46,6 +46,9 @@ class Devis
 
     #[ORM\Column(length: 3)]
     private ?string $devise = null;
+
+    #[ORM\Column]
+    private ?\DateTime $dateDecaissement = null;
 
     public function getId(): ?int
     {
@@ -144,6 +147,18 @@ class Devis
     public function setMontantInitial(?string $montantInitial): self
     {
         $this->montantInitial = $montantInitial;
+
+        return $this;
+    }
+
+    public function getDateDecaissement(): ?\DateTime
+    {
+        return $this->dateDecaissement;
+    }
+
+    public function setDateDecaissement(\DateTime $dateDecaissement): static
+    {
+        $this->dateDecaissement = $dateDecaissement;
 
         return $this;
     }

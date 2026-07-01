@@ -69,9 +69,19 @@
             <div class="row justify-content-end mt-4">
                 <div class="col-md-5">
                     <div class="p-3 bg-dark text-white rounded shadow-sm text-end">
-                        <h6 class="text-uppercase small text-muted m-0 fw-bold">Montant Global Estimé</h6>
-                        <h3 class="fw-bold m-0 text-warning">{{ devis.montant|number_format(2, ',', ' ') }} $</h3>
-                    </div>
+    <h6 class="text-uppercase small text-muted m-0 fw-bold">Montant Global Estimé</h6>
+    <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : 
+    
+    {# On affiche le montant et on teste la devise pour le symbole #}
+    <h3 class="fw-bold m-0 text-warning">
+        {{ devis.montant|number_format(2, ',', ' ') }} 
+        {% if devis.devise == 'CDF' %}
+            FC
+        {% else %}
+            $
+        {% endif %}
+    </h3>
+</div>
                 </div>
             </div>
 
