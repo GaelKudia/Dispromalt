@@ -449,6 +449,21 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
+    #[Route('/dashboard/visite/valider-guerite/{id}', name: 'app_visite_valider_guerite', methods: ['POST'])]
+    public function validerGuerite(Visite $visite, EntityManagerInterface $em): Response
+    {
+        // Vérification des droits (ajuste selon tes besoins)
+        if (!$this->isGranted('ROLE_GUERITE')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
+        $visite->setStatut('VALIDE'); // Ou le statut que tu souhaites appliquer
+        $em->flush();
+
+        $this->addFlash('success', '✅ La visite a été validée à la guérite.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
     // =========================================================================
     // 🖨️ ROUTES POUR LES EXPORTS PDF ET EXCEL
     // =========================================================================

@@ -440,25 +440,32 @@
                                             </tr>
                                         </thead>
                                         <tbody class="small">
-                                            {# Dans membre.html.twig #}
-{% for bon in bonsSortie %}
-    <tr>
-        <td>...</td>
-        <td>
-            {# Le DG voit la ligne, mais le bouton de validation n'apparaît que pour le Coordonnateur #}
-            {% if is_granted('ROLE_COORDON') %}
-                <button type="submit">Valider</button>
-            {% else %}
-                <span class="text-muted">Consultation seule</span>
-            {% endif %}
-        </td>
-    </tr>
-{% endfor %}
+                                            {% for b in bonsSortie %}
+                                                <tr>
+                                                    <td class="fw-bold">#{{ b.id }}</td>
+                                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
+                                                    <td><span class="badge rounded-pill px-2.5 py-1 bg-primary text-white">{{ b.statut }}</span></td>
+                                                    
+                                                    {% if userRole == 'ROLE_COORDON' %}
+                                                    <td class="text-center">
+                                                        <form action="{{ path('app_bon_valider', {'id': b.id}) }}" method="POST" class="d-inline">
+                                                            <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
+                                                                <i class="fas fa-pen-fancy me-1"></i> Signer le Bon
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                    {% endif %}
+                                                </tr>
+                                            {% else %}
+                                                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun bon de sortie en traitement.</td></tr>
+                                            {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
                             {% endif %}
+
 
                             {# RAPPORT GÉNÉRAL HISTORIQUE #}
                             {% if is_granted('ROLE_COORDON') or is_granted('ROLE_DG') %}
