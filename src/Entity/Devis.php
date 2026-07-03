@@ -47,8 +47,8 @@ class Devis
     #[ORM\Column(length: 3)]
     private ?string $devise = null;
 
-    #[ORM\Column]
-    private ?\DateTime $dateDecaissement = null;
+  #[ORM\Column(type: 'datetime', nullable: true)] // Ajoute nullable: true
+private ?\DateTime $dateDecaissement = null;
 
     public function getId(): ?int
     {
@@ -162,4 +162,5 @@ class Devis
 
         return $this;
     }
+    
 }

@@ -236,31 +236,33 @@ class DashboardController extends AbstractController
             }
 
             if (class_exists('App\Entity\Devis')) {
-                $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d');
+    $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d');
 
-                if ($dateDebutFiltre && $dateFinFiltre) {
-                    $qbDevis->where('d.createdAt BETWEEN :start AND :end')
-                            ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                            ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'));
-                } else {
-                    $qbDevis->where('d.createdAt BETWEEN :debut AND :fin')
-                            ->setParameter('debut', $debutAujourdhui)
-                            ->setParameter('fin', $finAujourdhui);
-                }
+    // Gestion des filtres de date
+    if ($dateDebutFiltre && $dateFinFiltre) {
+        $qbDevis->where('d.createdAt BETWEEN :start AND :end')
+                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'));
+    } else {
+        $qbDevis->where('d.createdAt BETWEEN :debut AND :fin')
+                ->setParameter('debut', $debutAujourdhui)
+                ->setParameter('fin', $finAujourdhui);
+    }
 
-                $devisListe = $qbDevis->orderBy('d.id', 'DESC')->getQuery()->getResult();
+    $devisListe = $qbDevis->orderBy('d.id', 'DESC')->getQuery()->getResult();
 
-                foreach ($devisListe as $d) {
-                    if ($d->getStatut() === Devis::STATUT_DECAISSE) {
-                    if ($d->getStatut() === Devis::STATUT_DECAISSE) {
-                        if ($d->getDevise() === 'CDF') {
-                            $totalDevisCDF += $d->getMontant();
-                        } else {
-                            $totalDevisUSD += $d->getMontant();
-                        }
-                    }}
-                }
+    // Calcul des totaux
+    foreach ($devisListe as $d) {
+        // Condition simplifiée (une seule fois)
+        if ($d->getStatut() === Devis::STATUT_DECAISSE) {
+            if ($d->getDevise() === 'CDF') {
+                $totalDevisCDF += $d->getMontant();
+            } else {
+                $totalDevisUSD += $d->getMontant();
             }
+        }
+    }
+}
 
             if ($this->isGranted('ROLE_COORDON')) {
                 $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);

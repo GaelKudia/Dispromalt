@@ -175,21 +175,22 @@ public function aiguillerDevis(Devis $devis, Request $request, EntityManagerInte
     return $this->redirectToRoute('app_dashboard');
    
 }
-
-#[Route('/devis/valider-caisse/{id}', name: 'app_devis_decaisser', methods: ['POST'])]
-#[IsGranted('ROLE_CAISSIER')]
+#[Route('/devis/valider-caisse/{id}', name: 'app_devis_valider_caisse', methods: ['POST'])]
 public function validerCaisse(Devis $devis, EntityManagerInterface $em): Response
 {
-    // On passe le statut à 'DECAISSE'
-    $devis->setStatut('DECAISSE');
-    $devis->setDateDecaissement(new \DateTime()); // Optionnel : pour avoir une trace
+    // On vérifie les droits manuellement ici
+    if (!$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER')) {
+        throw $this->createAccessDeniedException('Vous n’avez pas les droits requis.');
+    }
+
+    $devis->setStatut(Devis::STATUT_DECAISSE);
+    $devis->setDateDecaissement(new \DateTime());
     
     $em->flush();
 
     $this->addFlash('success', 'Décaissement effectué avec succès.');
     return $this->redirectToRoute('app_dashboard');
 }
-
 
 
 
