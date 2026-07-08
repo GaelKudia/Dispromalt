@@ -47,21 +47,42 @@ use App\Entity\Demande;
                 'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
             ];
 
-            // --- 2. CONDITION CAISSIER ---
-                                        if ($this->isGranted('ROLE_CAISSIER')) {
-                                $devisAPayer = $em->getRepository(Devis::class)->findBy(['statut' => 'Validé Compta']);
-                                
-                                return $this->render('dashboard/caisse/index.html.twig', [
-                                    'devisListe'    => $devisAPayer, // On envoie les devis ici
-                                    'totalDevisUSD' => 0, // Tu peux calculer ces totaux si besoin, ou mettre 0
-                                    'totalDevisCDF' => 0,
-                                    'date_debut'    => (new \DateTime('today'))->format('Y-m-d'),
-                                    'date_fin'      => (new \DateTime('today'))->format('Y-m-d'),
-                                    'userRole'      => 'ROLE_CAISSIER',
-                                    'stats'         => $stats,
-                                ]);
-                            }
+                       // 1. CALCULS PRÉALABLES (Pour TOUS les rôles)
+    $dateDebutFiltre = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
+    $dateFinFiltre = $request->query->get('date_fin', (new \DateTime('today'))->format('Y-m-d'));
+    
+    // Récupération des données pour le Caissier ET le Compta
+    $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->where('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+        ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+        ->orderBy('d.id', 'DESC');
+    
+    $devisListe = $qbDevis->getQuery()->getResult();
+    
+    $totalDevisUSD = 0; $totalDevisCDF = 0;
+    foreach ($devisListe as $d) {
+    // On additionne si c'est prêt à être payé (Validé Compta) OU déjà payé (Decaissé)
+    if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé'])) {
+        if ($d->getDevise() === 'CDF') {
+            $totalDevisCDF += $d->getMontant();
+        } else {
+            $totalDevisUSD += $d->getMontant();
+        }
+    }
+}
 
+    // 2. RENDU SELON LE RÔLE (À la toute fin, sans return au milieu)
+    if ($this->isGranted('ROLE_CAISSIER')) {
+        return $this->render('dashboard/caisse/index.html.twig', [
+            'devisListe'    => $devisListe,
+            'totalDevisUSD' => $totalDevisUSD,
+            'totalDevisCDF' => $totalDevisCDF,
+            'date_debut'    => $dateDebutFiltre,
+            'date_fin'      => $dateFinFiltre,
+            'stats'         => $stats // (Assure-toi que $stats est calculé avant)
+        ]);
+    }
             $userName = $currentUser->getUserIdentifier(); 
             $userDept = 'Impression'; 
 
@@ -413,21 +434,25 @@ use App\Entity\Demande;
         // =========================================================================
 
 
-        #[Route('/dashboard/caissier/valider-decaissement/{id}', name: 'app_caissier_valider_decaissement', methods: ['POST'])]
-        #[IsGranted('ROLE_CAISSIER')]
-        public function validerDecaissement(Demande $demande, EntityManagerInterface $em): Response
-        {
-            if ($demande->getStatut() !== 'Validé Compta') {
-                $this->addFlash('danger', '❌ Action impossible.');
-                return $this->redirectToRoute('app_dashboard');
-            }
+                    #[Route('/dashboard/caissier/valider-decaissement/{id}', name: 'app_caissier_valider_decaissement', methods: ['POST'])]
+#[IsGranted('ROLE_CAISSIER')]
+public function validerDecaissement(Devis $devis, EntityManagerInterface $em): Response // CHANGÉ ICI
+{
+    // On nettoie les espaces avant de comparer
+    $statutActuel = trim($devis->getStatut());
 
-            $demande->setStatut('Decaissé');
-            $em->flush();
-            
-            $this->addFlash('success', '✅ Décaissement validé avec succès.');
-            return $this->redirectToRoute('app_dashboard'); 
-        }
+    // Vérifiez ici le statut réel de vos devis (ex: 'Validé Compta')
+    if ($statutActuel !== 'Validé Compta' && $statutActuel !== 'EN_ATTENTE_BON_SORTIE') {
+        $this->addFlash('danger', '❌ Action impossible. Statut détecté : ' . $statutActuel);
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $devis->setStatut('Decaissé'); // On passe le devis en "Decaissé"
+    $em->flush();
+    
+    $this->addFlash('success', '✅ Décaissement validé avec succès.');
+    return $this->redirectToRoute('app_dashboard'); 
+}
         #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
         #[IsGranted('ROLE_COMPTA')]
         public function validerCompta(Demande $demande, EntityManagerInterface $em): Response

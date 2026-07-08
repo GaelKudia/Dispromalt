@@ -45,26 +45,39 @@
                         </tr>
                     </thead>
                     <tbody class="small">
-                        {% for devis in devisListe %}
-                            <tr>
-                                <td>{{ devis.createdBy }}</td>
-                                <td>{{ devis.entete }}</td>
-                                <td>{{ devis.montant|number_format(2) }} {{ devis.devise }}</td>
-                                <td>{{ devis.createdAt|date('d/m/Y') }}</td>
-                                <td class="text-center">
-                                    {% if devis.statut == 'Validé Compta' %}
-                                        <form action="{{ path('app_caissier_valider_decaissement', {'id': devis.id}) }}" method="POST">
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Valider</button>
-                                        </form>
-                                    {% else %}
-                                        <span class="badge bg-info">{{ devis.statut }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr><td colspan="5" class="text-center">Aucun décaissement en attente.</td></tr>
-                        {% endfor %}
-                    </tbody>
+    {% for devis in devisListe %}
+        <tr>
+            <td>{{ devis.createdBy }}</td>
+            <td>{{ devis.entete }}</td>
+            <td>{{ devis.montant|number_format(2) }} {{ devis.devise }}</td>
+            <td>{{ devis.createdAt|date('d/m/Y') }}</td>
+            
+            <td class="text-center">
+    {% if devis.statut == 'EN_ATTENTE_BON_SORTIE' or devis.statut == 'Validé Compta' %}
+        {# J'ai corrigé la balise form ici #}
+        <form action="{{ path('app_caissier_valider_decaissement', {'id': devis.id}) }}" 
+              method="POST" 
+              onsubmit="return confirm('⚠️ Confirmer le paiement ?');">
+            <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
+                <i class="fas fa-check me-1"></i> Payer
+            </button>
+        </form>
+    {% elseif devis.statut == 'Decaissé' %}
+        <span class="badge bg-success shadow-sm">
+            <i class="fas fa-check-double me-1"></i> Décaissé
+        </span>
+    {% else %}
+        <span class="badge bg-secondary">{{ devis.statut }}</span>
+    {% endif %}
+</td>
+        </tr>
+    {% else %}
+        {# Ce bloc s'affiche si la liste est vide #}
+        <tr>
+            <td colspan="5" class="text-center">Aucun décaissement en attente.</td>
+        </tr>
+    {% endfor %}
+</tbody>
                 </table>
             </div>
         </div>
