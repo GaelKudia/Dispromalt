@@ -130,6 +130,32 @@
                         </div>
                     </div>
 
+                    <div class="card border-0 shadow-sm mb-4 border-start border-info border-4">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">
+            <i class="fas fa-cash-register text-info me-2"></i>Nommer un Caissier
+        </h6>
+    </div>
+    <div class="card-body py-3">
+        <form method="POST" action="{{ path('app_admin_assigner_caissier') }}">
+            <div class="input-group input-group-sm">
+                <select name="user_id" class="form-select form-select-sm" required>
+                    <option value="" disabled selected>Sélectionner un agent...</option>
+                    {% for u in users %}
+                        {# Liste ceux qui ne sont pas déjà caissier #}
+                        {% if 'ROLE_CAISSIER' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                            <option value="{{ u.id }}">{{ u.email }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-info btn-sm fw-bold text-white">
+                    <i class="fas fa-check me-1"></i> Nommer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
                     {# 🆕 NOUVEAU BLOC : ATTRIBUTION RAPIDE DU RÔLE CHEF COMPTABLE #}
                     <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
                         <div class="card-header bg-white py-3">
@@ -204,6 +230,13 @@
                                                 {% endif %}
                                             </div>
                                         </div>
+
+                                                {# 🆕 Badge pour le Caissier #}
+        {% if 'ROLE_CAISSIER' in u.roles %}
+            <span class="badge bg-info text-white border border-info fw-bold" style="font-size: 10px;">
+                <i class="fas fa-cash-register me-1"></i>CAISSIER
+            </span>
+        {% endif %}
                                         
                                         <div class="text-end">
                                             <div class="mb-2">

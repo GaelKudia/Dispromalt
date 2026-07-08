@@ -48,5 +48,17 @@ public function decaisser(Devis $devis, EntityManagerInterface $em): Response
     
     $this->addFlash('success', 'Fonds décaissés avec succès.');
     return $this->redirectToRoute('app_caisse_index');
+
+    if ($this->isGranted('ROLE_USER') && $this->isGranted('ROLE_CAISSIER')) {
+    $devisAPayer = $em->getRepository(Devis::class)->findBy(['statut' => 'Validé Compta']);
+    
+    return $this->render('dashboard/caisse/index.html.twig', [
+        'devis_a_payer' => $devisAPayer,
+        'userRole' => 'ROLE_CAISSIER',
+        'stats' => $stats,
+    ]);
 }
+}
+
+
 }
