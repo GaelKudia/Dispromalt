@@ -22,6 +22,10 @@ class Article
     #[ORM\Column]
     private ?int $seuilAlerte = null;
 
+    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Category $category = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -59,6 +63,18 @@ class Article
     public function setSeuilAlerte(int $seuilAlerte): static
     {
         $this->seuilAlerte = $seuilAlerte;
+
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): static
+    {
+        $this->category = $category;
 
         return $this;
     }

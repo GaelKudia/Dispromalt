@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h1>Rapport de Stock Central</h1>
+
+{% for category in categories %}
+    <h2 class="mt-4">{{ category.nom }}</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Quantité en Stock</th>
+                <th>Seuil d'alerte</th>
+                <th>État</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in category.articles %}
+            <tr>
+                <td>{{ article.nom }}</td>
+                <td>{{ article.quantite }}</td>
+                <td>{{ article.seuilAlerte }}</td>
+                <td>
+                    {% if article.quantite <= article.seuilAlerte %}
+                        <span class="badge bg-danger">Critique</span>
+                    {% else %}
+                        <span class="badge bg-success">OK</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+{% endblock %}

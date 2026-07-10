@@ -133,4 +133,13 @@ class Demande
 
         return $this;
     }
+
+    // Dans ton Demande.php
+#[ORM\ManyToOne(targetEntity: Article::class)]
+private ?Article $article = null;
+
+#[ORM\ManyToOne(targetEntity: User::class)]
+private ?User $demandeur = null; // C'est ici que tu récupères automatiquement le site
+
+
 }

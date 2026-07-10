@@ -4,101 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Dispromalt{% endblock %}</title>
-        
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <style>
         body { overflow-x: hidden; font-family: 'Source Sans Pro', sans-serif; background-color: #f4f6f9; }
-        
-        /* 🔵 Page de connexion sur fond bleu ciel */
         .login-page { background-color: #e3f2fd !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-
-        /* Sidebar latérale gauche */
         .sidebar { width: 250px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #343a40; color: #c2c7d0; z-index: 1000; transition: all 0.3s ease-in-out; }
         .sidebar .brand-link { padding: 15px; font-size: 1.25rem; background-color: #22252a; color: #fff; text-decoration: none; display: block; border-bottom: 1px solid #4b545c; }
         .sidebar .nav-link { color: #c2c7d0; padding: 10px 15px; display: block; text-decoration: none; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; border-left: 3px solid #0d6efd; }
-        
-        /* Contenu principal à droite */
         .main-wrapper { margin-left: 250px; min-height: 100vh; transition: all 0.3s ease-in-out; }
-        
-        /* Navbar supérieure */
         .top-navbar { background-color: #fff; border-bottom: 1px solid #dee2e6; padding: 10px 20px; }
         .content-body { padding: 20px; }
-        
         .sidebar.collapsed { left: -250px; }
         .main-wrapper.expanded { margin-left: 0; }
     </style>
     {% block stylesheets %}{% endblock %}
 
-	 <!-- Liaison absolue avec le fichier manifest -->
     <link rel="manifest" href="https://yumbatechology.net/manifest.json">
     <meta name="theme-color" content="#317EFB">
-    <!-- Icône pour iOS/Apple avec URL complète -->
     <link rel="apple-touch-icon" href="https://yumbatechology.net/assets/images/icons/192.png">
 </head>
 <body class="{% if app.request.attributes.get('_route') == 'app_login' %}login-page{% endif %}">
 
-    {# 🚪 STRUCTURE 1 : SI ON EST SUR LE LOGIN (Affichage direct et centré) #}
     {% if app.request.attributes.get('_route') == 'app_login' %}
-        
         {% block body %}{% endblock %}
-
-    {# 📊 STRUCTURE 2 : POUR TOUT LE RESTE DU DASHBOARD (Sidebar + Topbar) #}
     {% else %}
-        
         <div class="sidebar">
             <a href="{{ path('app_dashboard') }}" class="brand-link text-center fw-bold">
                 <i class="fas fa-print text-primary me-2"></i>Dispro<span class="text-primary">malt</span>
             </a>
             <div class="p-3">
-                <small class="text-uppercase text-muted fw-bold d-block mb-2" style="font-size: 0.75rem;">Menu Principal</small>
                 <nav class="nav flex-column">
-                    <a class="nav-link active mb-1 rounded" href="{{ path('app_dashboard') }}">
-                        <i class="fa-solid fa-gauge-high me-2"></i> Dashboard
-                    </a>
-                    <a class="nav-link mb-1 rounded" href="#"><i class="fa-solid fa-calendar-days me-2"></i> Prévenir un RDV</a>
-                    {% if is_granted('ROLE_USER') %}
-                        <a class="nav-link mb-1 rounded" href="#"><i class="fa-solid fa-box-open me-2"></i> Demander du Matériel</a>
-                    {% endif %}
-                    {% if is_granted('ROLE_STOCK') or is_granted('ROLE_COMPTA') %}
-                        <a class="nav-link mb-1 rounded" href="#"><i class="fa-solid fa-boxes-stacked me-2"></i> Gestion des Stocks</a>
-                    {% endif %}
-                    {% if is_granted('ROLE_RECEPTION') or is_granted('ROLE_COORDON') %}
-                        <a class="nav-link mb-1 rounded" href="#"><i class="fa-solid fa-file-signature me-2"></i> Bons de Sortie</a>
-                    {% endif %}
-                    {% if is_granted('ROLE_GUERITE') %}
-                        <a class="nav-link mb-1 rounded" href="#"><i class="fa-solid fa-shield-halved me-2"></i> Contrôle Guérite</a>
-                    {% endif %}
+                    <a class="nav-link active mb-1 rounded" href="{{ path('app_dashboard') }}"><i class="fa-solid fa-gauge-high me-2"></i> Dashboard</a>
+                    <a class="nav-link mb-1 rounded" href="{{ path('app_category_index') }}"><i class="fa-solid fa-layer-group me-2"></i> Catégories</a>
                 </nav>
             </div>
         </div>
 
         <div class="main-wrapper">
             <div class="top-navbar d-flex justify-content-between align-items-center shadow-sm">
-                <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-link text-dark p-0" id="toggleSidebar">
-                        <i class="fa-solid fa-bars fs-5"></i>
-                    </button>
-                    <span class="text-muted fw-medium">Espace Gestion de Flux</span>
-                </div>
-                
-                <div class="d-flex align-items-center gap-3">
-                    {% if app.user %}
-                        <span class="fw-semibold text-dark"><i class="fa-solid fa-user me-1 text-secondary"></i> {{ app.user.userIdentifier }}</span>
-                        <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm rounded-pill px-3">Sign out</a>
-                    {% endif %}
-                </div>
+                <button class="btn btn-link text-dark" id="toggleSidebar"><i class="fa-solid fa-bars"></i></button>
+                {% if app.user %}
+                    <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">Sign out</a>
+                {% endif %}
             </div>
 
             <div class="content-body">
-                {# 🔧 L'unique et seul appel du bloc body toléré par Twig #}
+                {# Permet d'afficher soit main_content soit body #}
                 {% block main_content %}{% endblock %}
+                
             </div>
         </div>
-
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -112,16 +71,6 @@
             });
         }
     </script>
-
-	<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => console.log('Service Worker enregistré avec succès !', reg))
-                .catch(err => console.warn('Échec de l\'enregistrement du Service Worker', err));
-        });
-    }
-</script>
     {% block javascripts %}{% endblock %}
 </body>
 </html>
