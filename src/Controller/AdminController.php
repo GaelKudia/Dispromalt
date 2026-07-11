@@ -4,9 +4,18 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Article;
+
+use App\Entity\Category; // <--- OBLIGATOIRE
+use App\Entity\Demande;  // <--- OBLIGATOIRE si tu l'utilises
+use App\Entity\BonSortie; // <--- OBLIGATOIRE si tu l'utilises
+
 use App\Form\UserType;
+use App\Form\CategoryType; // <--- OBLIGATOIRE
+
 use App\Repository\DemandeRepository;
 use App\Repository\BonSortieRepository;
+use App\Repository\CategoryRepository;
+
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -94,10 +103,24 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
+        // 3. Gestion du formulaire de catégorie
+    $category = new Category();
+    $formCategory = $this->createForm(CategoryType::class, $category);
+    $formCategory->handleRequest($request);
+
+    if ($formCategory->isSubmitted() && $formCategory->isValid()) {
+        $em->persist($category);
+        $em->flush();
+        $this->addFlash('success', 'Catégorie ajoutée !');
+        return $this->redirectToRoute('app_admin_dashboard');
+
+        
+    }
+
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
-            'users' => $allUsers, // Utilisé pour 'tousLesUtilisateurs' dans ta page
+            'users' => $allUsers,
             'tousLesUtilisateurs' => $allUsers, 
             'listeComptables' => $listeComptables,
             'articles' => $articles,
@@ -105,8 +128,12 @@ class AdminController extends AbstractController
             'date_debut' => $dateDebutParam,
             'date_fin' => $dateFinParam,
             'form' => $form->createView(),
+            'formCategory' => $formCategory->createView(), // Ajoute bien celui-ci !
+            'categories' => $em->getRepository(Category::class)->findAll(), // Ajoute bien celui-ci !
         ]);
-    }
+    } // Fin de la fonction index
+ // Fin de la clas
+     
 
     #[Route('/admin/assigner-chef-compta', name: 'app_admin_assigner_chef_compta', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
@@ -259,3 +286,4 @@ public function destituerCaissier(int $id, UserRepository $userRepository, Entit
     return $this->redirectToRoute('app_admin_dashboard');
 }
 }
+

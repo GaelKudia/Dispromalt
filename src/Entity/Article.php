@@ -26,6 +26,9 @@ class Article
     #[ORM\JoinColumn(nullable: true)]
     private ?Category $category = null;
 
+    #[ORM\ManyToOne]
+    private ?SubCategory $subCategory = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -75,6 +78,18 @@ class Article
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    public function getSubCategory(): ?SubCategory
+    {
+        return $this->subCategory;
+    }
+
+    public function setSubCategory(?SubCategory $subCategory): static
+    {
+        $this->subCategory = $subCategory;
 
         return $this;
     }

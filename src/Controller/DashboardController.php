@@ -7,7 +7,9 @@ use App\Entity\Demande;
     use App\Entity\Article;
     use App\Entity\Visite; 
     use App\Entity\Devis; 
+    use App\Entity\Category;
 
+    use App\Form\CategoryType;
     use App\Form\DemandeType;
     use App\Form\BonSortieType;
     use App\Form\VisiteType;
@@ -16,6 +18,8 @@ use App\Entity\Demande;
 
     use App\Repository\DemandeRepository;
     use App\Repository\BonSortieRepository;
+    use App\Repository\CategoryRepository;
+    use App\Repository\UserRepository;
     use Doctrine\ORM\EntityManagerInterface;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
     use Symfony\Component\HttpFoundation\Request;
@@ -29,11 +33,16 @@ use App\Entity\Demande;
 
         public function index(
             Request $request, 
+            CategoryRepository $categoryRepository,
             DemandeRepository $demandeRepository, 
+            UserRepository $userRepository,
             BonSortieRepository $bonSortieRepository,
             EntityManagerInterface $em
         ): Response {
             
+        $form = null; // Ajoute cette ligne au début
+    $formCategory = $this->createForm(CategoryType::class, new Category());
+    // ...
             // 1. UTILISATEUR CONNECTÉ
             $currentUser = $this->getUser();
             if (!$currentUser) {
@@ -98,8 +107,36 @@ use App\Entity\Demande;
             'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
             'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
         ];
+
+            
             if ($this->isGranted('ROLE_ADMIN')) {
                 return $this->redirectToRoute('app_admin_dashboard');
+                
+
+                $category = new Category();
+    $formCategory = $this->createForm(CategoryType::class, $category);
+    $user = new \App\Entity\User();
+    $form = $this->createForm(\App\Form\UserType::class, $user);
+
+    $formCategory->handleRequest($request);
+
+    if ($formCategory->isSubmitted() && $formCategory->isValid()) {
+        $em->persist($category);
+        $em->flush();
+        $this->addFlash('success', 'Catégorie ajoutée avec succès !');
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+        return $this->render('admin/index.html.twig', [
+        'formCategory' => $formCategory->createView(),
+        'categories'   => $categoryRepository->findAll(),
+        'demandes'     => $demandeRepository->findAll(),
+        'bons'         => $bonSortieRepository->findAll(),
+        'users'        => $userRepository->findAll(),
+        'form'         => $form ? $form->createView() : null,
+        // tes autres variables (demandes, bons, users, etc.)
+    ]);
+
             }
 
             
