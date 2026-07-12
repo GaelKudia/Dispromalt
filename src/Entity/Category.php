@@ -30,10 +30,17 @@ class Category
     #[ORM\OneToMany(targetEntity: SubCategory::class, mappedBy: 'category')]
     private Collection $subCategories;
 
+    /**
+     * @var Collection<int, Machine>
+     */
+    #[ORM\OneToMany(targetEntity: Machine::class, mappedBy: 'category')]
+    private Collection $machines;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->subCategories = new ArrayCollection();
+        $this->machines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -107,6 +114,36 @@ class Category
             // set the owning side to null (unless already changed)
             if ($subCategory->getCategory() === $this) {
                 $subCategory->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Machine>
+     */
+    public function getMachines(): Collection
+    {
+        return $this->machines;
+    }
+
+    public function addMachine(Machine $machine): static
+    {
+        if (!$this->machines->contains($machine)) {
+            $this->machines->add($machine);
+            $machine->setCategory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMachine(Machine $machine): static
+    {
+        if ($this->machines->removeElement($machine)) {
+            // set the owning side to null (unless already changed)
+            if ($machine->getCategory() === $this) {
+                $machine->setCategory(null);
             }
         }
 

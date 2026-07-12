@@ -7,9 +7,8 @@ use App\Entity\Demande;
     use App\Entity\Article;
     use App\Entity\Visite; 
     use App\Entity\Devis; 
-    use App\Entity\Category;
+    use App\Entity\Machine; // Indispensable pour manipuler les machines
 
-    use App\Form\CategoryType;
     use App\Form\DemandeType;
     use App\Form\BonSortieType;
     use App\Form\VisiteType;
@@ -18,8 +17,6 @@ use App\Entity\Demande;
 
     use App\Repository\DemandeRepository;
     use App\Repository\BonSortieRepository;
-    use App\Repository\CategoryRepository;
-    use App\Repository\UserRepository;
     use Doctrine\ORM\EntityManagerInterface;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
     use Symfony\Component\HttpFoundation\Request;
@@ -33,16 +30,11 @@ use App\Entity\Demande;
 
         public function index(
             Request $request, 
-            CategoryRepository $categoryRepository,
             DemandeRepository $demandeRepository, 
-            UserRepository $userRepository,
             BonSortieRepository $bonSortieRepository,
             EntityManagerInterface $em
         ): Response {
             
-        $form = null; // Ajoute cette ligne au début
-    $formCategory = $this->createForm(CategoryType::class, new Category());
-    // ...
             // 1. UTILISATEUR CONNECTÉ
             $currentUser = $this->getUser();
             if (!$currentUser) {
@@ -107,36 +99,8 @@ use App\Entity\Demande;
             'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
             'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
         ];
-
-            
             if ($this->isGranted('ROLE_ADMIN')) {
                 return $this->redirectToRoute('app_admin_dashboard');
-                
-
-                $category = new Category();
-    $formCategory = $this->createForm(CategoryType::class, $category);
-    $user = new \App\Entity\User();
-    $form = $this->createForm(\App\Form\UserType::class, $user);
-
-    $formCategory->handleRequest($request);
-
-    if ($formCategory->isSubmitted() && $formCategory->isValid()) {
-        $em->persist($category);
-        $em->flush();
-        $this->addFlash('success', 'Catégorie ajoutée avec succès !');
-        return $this->redirectToRoute('app_admin_dashboard');
-    }
-
-        return $this->render('admin/index.html.twig', [
-        'formCategory' => $formCategory->createView(),
-        'categories'   => $categoryRepository->findAll(),
-        'demandes'     => $demandeRepository->findAll(),
-        'bons'         => $bonSortieRepository->findAll(),
-        'users'        => $userRepository->findAll(),
-        'form'         => $form ? $form->createView() : null,
-        // tes autres variables (demandes, bons, users, etc.)
-    ]);
-
             }
 
             
@@ -146,38 +110,22 @@ use App\Entity\Demande;
             // =========================================================================
             
             // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
-            if ($this->isGranted('ROLE_STOCK')) {
-                $formStock = $this->createForm(StockType::class);
-                $formStock->handleRequest($request);
+            // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
+            // 2. Dans ta section A :
+if ($this->isGranted('ROLE_STOCK')) {
+    $article = new Article(); // On instancie bien un Article
+    $formStock = $this->createForm(StockType::class, $article);
+    $formStock->handleRequest($request);
 
-                if ($formStock->isSubmitted() && $formStock->isValid()) {
-                    $data = $formStock->getData();
-                    
-                    $seuilAlerte = (int)$request->request->get('seuil_alerte', 5);
-                    $nomArticle = $data['article'];
-                    $quantiteAjoutee = (int)$data['quantite'];
-
-                    $articleRepository = $em->getRepository(Article::class);
-                    $article = $articleRepository->findOneBy(['nom' => $nomArticle]);
-
-                    if (!$article) {
-                        $article = new Article();
-                        $article->setNom($nomArticle);
-                        $article->setQuantite($quantiteAjoutee);
-                    } else {
-                        $article->setQuantite($article->getQuantite() + $quantiteAjoutee);
-                    }
-
-                    $article->setSeuilAlerte($seuilAlerte);
-
-                    $em->persist($article);
-                    $em->flush();
-                    
-                    $this->addFlash('success', '📥 L\'article "' . $nomArticle . '" a bien été enregistré ! Stock total : ' . $article->getQuantite());
-                    return $this->redirectToRoute('app_dashboard');
-                }
-                $formStockView = $formStock->createView();
-            }
+    if ($formStock->isSubmitted() && $formStock->isValid()) {
+        $em->persist($article);
+        $em->flush();
+        
+        $this->addFlash('success', '📥 L\'article a bien été enregistré !');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formStockView = $formStock->createView();
+}
 
             // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
             if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE')) {

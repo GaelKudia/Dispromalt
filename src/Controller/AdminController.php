@@ -9,6 +9,10 @@ use App\Entity\Category; // <--- OBLIGATOIRE
 use App\Entity\Demande;  // <--- OBLIGATOIRE si tu l'utilises
 use App\Entity\BonSortie; // <--- OBLIGATOIRE si tu l'utilises
 
+use App\Entity\SubCategory; // <-- Ajoute ceci
+use App\Form\SubCategoryType; // <-- Ajoute ceci
+use App\Repository\SubCategoryRepository;
+
 use App\Form\UserType;
 use App\Form\CategoryType; // <--- OBLIGATOIRE
 
@@ -108,6 +112,8 @@ class AdminController extends AbstractController
     $formCategory = $this->createForm(CategoryType::class, $category);
     $formCategory->handleRequest($request);
 
+
+    
     if ($formCategory->isSubmitted() && $formCategory->isValid()) {
         $em->persist($category);
         $em->flush();
@@ -116,6 +122,18 @@ class AdminController extends AbstractController
 
         
     }
+
+    // 🆕 AJOUT : Gestion du formulaire de SOUS-CATÉGORIE
+$subCategory = new \App\Entity\SubCategory(); // Assure-toi d'avoir le bon namespace
+$formSubCategory = $this->createForm(\App\Form\SubCategoryType::class, $subCategory);
+$formSubCategory->handleRequest($request);
+
+if ($formSubCategory->isSubmitted() && $formSubCategory->isValid()) {
+    $em->persist($subCategory);
+    $em->flush();
+    $this->addFlash('success', 'Sous-catégorie ajoutée !');
+    return $this->redirectToRoute('app_admin_dashboard');
+}
 
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
@@ -130,6 +148,9 @@ class AdminController extends AbstractController
             'form' => $form->createView(),
             'formCategory' => $formCategory->createView(), // Ajoute bien celui-ci !
             'categories' => $em->getRepository(Category::class)->findAll(), // Ajoute bien celui-ci !
+
+            'formSubCategory' => $formSubCategory->createView(),
+    'subCategories' => $em->getRepository(\App\Entity\SubCategory::class)->findAll(),
         ]);
     } // Fin de la fonction index
  // Fin de la clas

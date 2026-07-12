@@ -398,6 +398,29 @@
     </div>
 </div>
 
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">
+            <i class="fas fa-layer-group text-secondary me-2"></i>Ajouter une Sous-Catégorie
+        </h6>
+    </div>
+    <div class="card-body">
+        {{ form_start(formSubCategory) }}
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    {{ form_row(formSubCategory.category, {'label': 'Catégorie parente', 'attr': {'class': 'form-select'}}) }}
+                </div>
+                <div class="col-md-5">
+                    {{ form_row(formSubCategory.nom, {'label': 'Nom sous-catégorie', 'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+                </div>
+            </div>
+        {{ form_end(formSubCategory) }}
+    </div>
+</div>
+
 {# Optionnel : Affichage de la liste des catégories en dessous #}
 <div class="card">
     <div class="card-header">
@@ -411,6 +434,36 @@
                 <li class="list-group-item text-muted">Aucune catégorie enregistrée.</li>
             {% endfor %}
         </ul>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">Liste des Sous-Catégories</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover m-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Sous-Catégorie</th>
+                    <th>Catégorie Parent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subCategories %}
+                    <tr>
+                        <td class="fw-bold">{{ sub.nom }}</td>
+                        <td>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
+                                {{ sub.category.nom }}
+                            </span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="2" class="text-center text-muted">Aucune sous-catégorie.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 

@@ -29,6 +29,9 @@ class Article
     #[ORM\ManyToOne]
     private ?SubCategory $subCategory = null;
 
+    #[ORM\ManyToOne]
+    private ?Machine $machine = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -90,6 +93,18 @@ class Article
     public function setSubCategory(?SubCategory $subCategory): static
     {
         $this->subCategory = $subCategory;
+
+        return $this;
+    }
+
+    public function getMachine(): ?Machine
+    {
+        return $this->machine;
+    }
+
+    public function setMachine(?Machine $machine): static
+    {
+        $this->machine = $machine;
 
         return $this;
     }
