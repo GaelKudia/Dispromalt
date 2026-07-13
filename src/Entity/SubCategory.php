@@ -48,4 +48,40 @@ class SubCategory
 
         return $this;
     }
+
+    #[ORM\OneToMany(mappedBy: 'subCategory', targetEntity: Machine::class)]
+private Collection $machines;
+
+public function __construct()
+{
+    $this->machines = new ArrayCollection();
+}
+
+/**
+ * @return Collection<int, Machine>
+ */
+public function getMachines(): Collection
+{
+    return $this->machines;
+}
+
+public function addMachine(Machine $machine): static
+{
+    if (!$this->machines->contains($machine)) {
+        $this->machines->add($machine);
+        $machine->setSubCategory($this);
+    }
+    return $this;
+}
+
+public function removeMachine(Machine $machine): static
+{
+    if ($this->machines->removeElement($machine)) {
+        // set the owning side to null (unless already changed)
+        if ($machine->getSubCategory() === $this) {
+            $machine->setSubCategory(null);
+        }
+    }
+    return $this;
+}
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Entity;
+use App\Entity\SubCategory;
 
 use App\Repository\MachineRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -45,6 +46,24 @@ class Machine
     public function setCategory(?category $category): static
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+        #[ORM\ManyToOne(inversedBy: 'machines')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?SubCategory $subCategory = null;
+
+    // ... et ajoute les getters et setters :
+
+    public function getSubCategory(): ?SubCategory
+    {
+        return $this->subCategory;
+    }
+
+    public function setSubCategory(?SubCategory $subCategory): static
+    {
+        $this->subCategory = $subCategory;
 
         return $this;
     }

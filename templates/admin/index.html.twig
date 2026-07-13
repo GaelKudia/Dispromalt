@@ -420,6 +420,49 @@
         {{ form_end(formSubCategory) }}
     </div>
 </div>
+{# formulaire d'ajout de machine #}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Ajouter une nouvelle Machine</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(formMachine) }}
+            {{ form_row(formMachine.nom, {'label': 'Nom de la machine'}) }}
+            {{ form_row(formMachine.subCategory, {'label': 'Lier à une sous-catégorie'}) }}
+            
+            <button type="submit" class="btn btn-success">Ajouter la machine</button>
+        {{ form_end(formMachine) }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Liste des Machines</h5>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Sous-catégorie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for machine in machines %}
+                    <tr>
+                        <td>{{ machine.nom }}</td>
+                        <td>{{ machine.subCategory.nom }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2">Aucune machine enregistrée.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
 {# Optionnel : Affichage de la liste des catégories en dessous #}
 <div class="card">
