@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\category;
 use App\Entity\Machine;
+use App\Entity\SubCategory;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -22,7 +23,8 @@ public function buildForm(FormBuilderInterface $builder, array $options): void
             'class' => SubCategory::class,       // Assure-toi que c'est la bonne classe
             'choice_label' => 'nom',             // Affiche le nom au lieu de l'ID
             'label' => 'Sous-catégorie associée',
-            'placeholder' => 'Choisir une sous-catégorie...'
+            'placeholder' => 'Choisir une sous-catégorie...',
+            'required' => true,
         ]);
 }
 

@@ -455,26 +455,72 @@
             }
         });
     </script>
-
+    {# Script Graphique #}
     <script>
-const categorySelect = document.querySelector('#stock_category'); // Vérifie l'ID dans ton HTML
-categorySelect.addEventListener('change', function() {
-    const form = this.closest('form');
-    const data = new FormData(form);
-    
-    fetch(form.action, {
-        method: form.method,
-        body: data,
-    })
-    .then(response => response.text())
-    .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        // Remplace le champ sous-catégorie par le nouveau contenu
-        document.querySelector('#stock_subCategory').innerHTML = doc.querySelector('#stock_subCategory').innerHTML;
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [{% for art in articles %}"{{ art.nom }}",{% endfor %}],
+                    datasets: [{
+                        label: 'Quantité disponible (unités)',
+                        data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
+                        backgroundColor: [
+                            {% for art in articles %}
+                                {% if art.quantite <= 0 %} '#dc3545'
+                                {% elseif art.quantite <= art.seuilAlerte %} '#ffc107'
+                                {% else %} '#0d6efd'
+                                {% endif %},
+                            {% endfor %}
+                        ],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('date_debut')) {
+                const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
+                reportTab.show();
+            }
+        });
+    </script>
+<script>
+    // On écoute sur le document entier, pas juste sur le select
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'stock_category') {
+            console.log("Changement détecté via délégation !");
+            
+            const form = e.target.closest('form');
+            const data = new FormData(form);
+            
+            fetch(form.action, {
+                method: form.getAttribute('method'),
+                body: data
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newSelect = doc.querySelector('#stock_subCategory');
+                const currentSelect = document.querySelector('#stock_subCategory');
+                
+                if (newSelect) {
+                    currentSelect.innerHTML = newSelect.innerHTML;
+                    console.log("Mise à jour réussie !");
+                }
+            })
+            .catch(error => console.error('Erreur:', error));
+        }
     });
-});
 </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -24,24 +24,24 @@ class StockType extends AbstractType
                 'mapped' => false, // On gère manuellement
             ]);
 
-        // Fonction pour ajouter le champ sous-catégorie
+            $builder->add('subCategory', EntityType::class, [
+    'class' => SubCategory::class,
+    'choice_label' => 'nom', // Le nom de la sous-catégorie
+    'group_by' => 'category.nom', // C'est ici que la magie opère !
+    'placeholder' => 'Choisir une sous-catégorie',
+    'required' => true,
+]);
         $formModifier = function (FormInterface $form, Category $category = null) {
-            $subCategories = null === $category ? [] : $category->getSubCategories();
+    // AU LIEU DE FILTRER, on affiche TOUT pour tester
+    $subCategories = \App\Entity\SubCategory::class; // Tu peux aussi utiliser $em->getRepository(...)->findAll() si besoin
 
-            $form->add('subCategory', EntityType::class, [
-                'class' => SubCategory::class,
-                'choices' => $subCategories,
-                'choice_label' => 'nom',
-                'placeholder' => 'Choisir une sous-catégorie',
-                'required' => true,
-            ]);
-        };
-
-        // Écouteur quand le formulaire est créé
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($formModifier) {
-            $data = $event->getData();
-            $formModifier($event->getForm(), $data ? $data->getCategory() : null);
-        });
+    $form->add('subCategory', EntityType::class, [
+        'class' => \App\Entity\SubCategory::class,
+        'choice_label' => 'nom',
+        'placeholder' => 'Choisir une sous-catégorie',
+        'required' => true,
+    ]);
+};
 
         // Écouteur quand l'utilisateur change la catégorie
         $builder->get('category')->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event) use ($formModifier) {
@@ -52,6 +52,8 @@ class StockType extends AbstractType
         // Ajoute les autres champs (Nom, Quantité, Seuil, Machine)
         $builder->add('nom')->add('quantite')->add('seuilAlerte')->add('machine');
     }
+
+   
 
     public function configureOptions(OptionsResolver $resolver): void
     {

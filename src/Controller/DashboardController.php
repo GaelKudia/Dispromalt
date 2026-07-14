@@ -14,6 +14,8 @@ use App\Entity\Demande;
     use App\Form\VisiteType;
     use App\Form\StockType;
     use App\Form\DevisType;
+    use App\Form\MachineType;
+
 
     use App\Repository\DemandeRepository;
     use App\Repository\BonSortieRepository;
@@ -124,6 +126,7 @@ if ($this->isGranted('ROLE_STOCK')) {
         $this->addFlash('success', '📥 L\'article a bien été enregistré !');
         return $this->redirectToRoute('app_dashboard');
     }
+    
     $formStockView = $formStock->createView();
 }
 
@@ -373,6 +376,7 @@ if ($this->isGranted('ROLE_STOCK')) {
                     'formStock' => $formStockView,
                     'articles' => $articles,
                     'date_debut' => $dateDebutFiltre,
+                    'formStock' => $formStock ? $formStock->createView() : null,
                     'date_fin' => $dateFinFiltre
                 ]);
             }

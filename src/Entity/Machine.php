@@ -50,13 +50,10 @@ class Machine
         return $this;
     }
 
-        #[ORM\ManyToOne(inversedBy: 'machines')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?SubCategory $subCategory = null;
 
     // ... et ajoute les getters et setters :
 
-    public function getSubCategory(): ?SubCategory
+  /*  public function getSubCategory(): ?SubCategory
     {
         return $this->subCategory;
     }
@@ -67,4 +64,37 @@ class Machine
 
         return $this;
     }
+    */
+        // Dans src/Entity/Machine.php
+
+// ...
+
+    #[ORM\ManyToOne(inversedBy: 'machines')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?SubCategory $subCategory = null;
+
+    // Décommente cette méthode ci-dessous pour que Symfony puisse lire la valeur
+    public function getSubCategory(): ?SubCategory
+    {
+        return $this->subCategory;
+    }
+
+    // Garde celle-ci (que tu avais déjà modifiée avec la logique automatique)
+    public function setSubCategory(?SubCategory $subCategory): static
+    {
+        $this->subCategory = $subCategory;
+
+        if ($subCategory !== null) {
+            $this->setCategory($subCategory->getCategory());
+        }
+
+        return $this;
+    }
+
+    public function __toString(): string
+{
+    // Cela indique à Symfony d'utiliser le nom de la machine 
+    // quand il a besoin de convertir l'objet en texte.
+    return $this->getNom() ?? 'Machine sans nom';
+}
 }
