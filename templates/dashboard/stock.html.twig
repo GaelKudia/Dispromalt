@@ -171,11 +171,29 @@
                     <label class="form-label small fw-bold text-secondary">Machine associée (si encre)</label>
                     {{ form_widget(formStock.machine, {'attr': {'class': 'form-select py-2'}}) }}
                 </div>
+                <div id="attributs-container" 
+     data-prototype="{{ form_widget(formStock.attributs.vars.prototype)|e('html_attr') }}">
+    
+    {% for attribut in formStock.attributs %}
+        <div class="attr-row border p-2 mb-2">
+            {{ form_row(attribut.dimension) }}
+            {{ form_row(attribut.grammage) }}
+            {{ form_row(attribut.couleur) }}
+            {{ form_row(attribut.longueur) }}
+            {{ form_row(attribut.kilogramme) }}
+        </div>
+    {% endfor %}
+</div>
 
-                <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
-                    <i class="fas fa-save me-2"></i>Enregistrer dans le stock
-                </button>
-            {{ form_end(formStock) }}
+<button type="button" class="btn btn-secondary btn-sm mb-3" id="add-attribut">
+    <i class="fas fa-plus"></i> Ajouter une ligne d'attribut
+</button>
+
+<button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+    <i class="fas fa-save me-2"></i> Enregistrer dans le stock
+</button>
+
+{{ form_end(formStock) }}
         </div>
     </div>
 </div>{# ONGLET 2 : TABLEAU INVENTAIRE GLOBAL #}
@@ -491,36 +509,60 @@
             }
         });
     </script>
-<script>
-    // On écoute sur le document entier, pas juste sur le select
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.id === 'stock_category') {
-            console.log("Changement détecté via délégation !");
-            
-            const form = e.target.closest('form');
-            const data = new FormData(form);
-            
-            fetch(form.action, {
-                method: form.getAttribute('method'),
-                body: data
-            })
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newSelect = doc.querySelector('#stock_subCategory');
-                const currentSelect = document.querySelector('#stock_subCategory');
-                
-                if (newSelect) {
-                    currentSelect.innerHTML = newSelect.innerHTML;
-                    console.log("Mise à jour réussie !");
-                }
-            })
-            .catch(error => console.error('Erreur:', error));
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Logique pour le choix de la sous-catégorie
+    const subCategorySelect = document.querySelector('.sub-category-select');
+    const container = document.getElementById('attributs-container');
+
+    const toggleCollection = () => {
+        if (!subCategorySelect || !container) return;
+        
+        const selectedText = subCategorySelect.options[subCategorySelect.selectedIndex].text.toLowerCase();
+        
+        if (selectedText === 'media') {
+            container.style.display = 'block';
+            // Optionnel : ajouter une ligne automatiquement si le container est vide
+            if (container.querySelectorAll('.attr-row').length === 0) {
+                ajouterLigne();
+            }
+        } else {
+            container.style.display = 'none';
         }
-    });
+    };
+
+    if (subCategorySelect) {
+        subCategorySelect.addEventListener('change', toggleCollection);
+        toggleCollection(); // Appel initial au chargement
+    }
+
+    // 2. Logique pour le bouton "Ajouter une ligne"
+    const btnAjouter = document.getElementById('add-attribut');
+    
+    const ajouterLigne = () => {
+        if (!container) return;
+
+        let index = container.dataset.index ? parseInt(container.dataset.index) : container.querySelectorAll('.attr-row').length;
+        let prototype = container.dataset.prototype;
+        
+        if (!prototype) return;
+
+        // Remplace __name__ par l'index
+        let newForm = prototype.replace(/__name__/g, index);
+        
+        let newDiv = document.createElement('div');
+        newDiv.classList.add('attr-row', 'border', 'p-2', 'mb-2');
+        newDiv.innerHTML = newForm;
+        
+        container.appendChild(newDiv);
+        
+        // Incrémente l'index
+        container.dataset.index = index + 1;
+    };
+
+    btnAjouter?.addEventListener('click', ajouterLigne);
+});
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>    
 </html>
