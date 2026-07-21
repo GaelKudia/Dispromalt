@@ -40,4 +40,19 @@ class ArticleAttributRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    // Dans ton Repository ou Contrôleur (Ex: ArticleAttributRepository)
+public function findAllWithDetails(?Category $category = null)
+{
+    $qb = $this->createQueryBuilder('aa')
+        ->join('aa.article', 'a')
+        ->leftJoin('a.category', 'c');
+
+    if ($category) {
+        $qb->where('c = :category')
+           ->setParameter('category', $category);
+    }
+
+    return $qb->getQuery()->getResult();
+}
 }

@@ -19,12 +19,15 @@ use App\Entity\Demande;
 
     use App\Repository\DemandeRepository;
     use App\Repository\BonSortieRepository;
+    use App\Repository\CategoryRepository;
+use App\Repository\ArticleAttributRepository;
     use Doctrine\ORM\EntityManagerInterface;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
     use Symfony\Component\HttpFoundation\Request;
     use Symfony\Component\HttpFoundation\Response;
     use Symfony\Component\Routing\Annotation\Route;
     use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 
     class DashboardController extends AbstractController
     {
@@ -34,6 +37,8 @@ use App\Entity\Demande;
             Request $request, 
             DemandeRepository $demandeRepository, 
             BonSortieRepository $bonSortieRepository,
+            CategoryRepository $categoryRepo, 
+    ArticleAttributRepository $attributRepo,
             EntityManagerInterface $em
         ): Response {
             
@@ -115,7 +120,7 @@ use App\Entity\Demande;
             // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
             // 2. Dans ta section A :
 if ($this->isGranted('ROLE_STOCK')) {
-    $article = new Article(); // On instancie bien un Article
+    $article = new Article();
     $formStock = $this->createForm(StockType::class, $article);
     $formStock->handleRequest($request);
 
@@ -127,7 +132,23 @@ if ($this->isGranted('ROLE_STOCK')) {
         return $this->redirectToRoute('app_dashboard');
     }
     
-    $formStockView = $formStock->createView();
+    // 1. Gestion du filtre par catégorie pour l'inventaire
+    $categoryId = $request->query->get('category');
+    $selectedCategory = null;
+    if ($categoryId) {
+        $selectedCategory = $categoryRepo->find($categoryId);
+    }
+
+    // 2. Récupération des données pour l'affichage de l'inventaire
+    $attributs = $attributRepo->findAllWithDetails($selectedCategory);
+    $categories = $categoryRepo->findAll();
+
+    // 3. Rendu de la vue en passant toutes les variables nécessaires
+    return $this->render('dashboard/stock.html.twig', [
+        'formStock' => $formStock->createView(),
+        'attributs' => $attributs,
+        'categories' => $categories,
+    ]);
 }
 
             // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
@@ -376,6 +397,8 @@ if ($this->isGranted('ROLE_STOCK')) {
                     'formStock' => $formStockView,
                     'articles' => $articles,
                     'date_debut' => $dateDebutFiltre,
+                    'attributs' => $attributs,
+                    'categories' => $categories,
                     'formStock' => $formStock ? $formStock->createView() : null,
                     'date_fin' => $dateFinFiltre
                 ]);

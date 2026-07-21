@@ -13,11 +13,20 @@ class ArticleAttribut
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $dimension = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $grammage = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $couleur = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $longueur = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $kilogramme = null;
 
     // Correspond au 'attributs' dans l'entité Article
     #[ORM\ManyToOne(inversedBy: 'attributs')]
@@ -34,7 +43,7 @@ class ArticleAttribut
         return $this->dimension;
     }
 
-    public function setDimension(string $dimension): static
+    public function setDimension(?string $dimension): static
     {
         $this->dimension = $dimension;
         return $this;
@@ -45,9 +54,42 @@ class ArticleAttribut
         return $this->grammage;
     }
 
-    public function setGrammage(string $grammage): static
+    public function setGrammage(?string $grammage): static
     {
         $this->grammage = $grammage;
+        return $this;
+    }
+
+    public function getCouleur(): ?string
+    {
+        return $this->couleur;
+    }
+
+    public function setCouleur(?string $couleur): static
+    {
+        $this->couleur = $couleur;
+        return $this;
+    }
+
+    public function getLongueur(): ?string
+    {
+        return $this->longueur;
+    }
+
+    public function setLongueur(?string $longueur): static
+    {
+        $this->longueur = $longueur;
+        return $this;
+    }
+
+    public function getKilogramme(): ?string
+    {
+        return $this->kilogramme;
+    }
+
+    public function setKilogramme(?string $kilogramme): static
+    {
+        $this->kilogramme = $kilogramme;
         return $this;
     }
 
@@ -61,15 +103,4 @@ class ArticleAttribut
         $this->article = $article;
         return $this;
     }
-
-    #[ORM\Column(length: 255, nullable: true)]
-private ?string $couleur = null;
-
-#[ORM\Column(length: 255, nullable: true)]
-private ?string $longueur = null;
-
-#[ORM\Column(length: 255, nullable: true)]
-private ?string $kilogramme = null;
-
-
 }
