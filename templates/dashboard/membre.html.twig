@@ -540,34 +540,34 @@
                 </div>
 
                 {# FORMULAIRE DE VISITE BAS DE PAGE (MASQUÉ POUR LE DG) #}
-                {% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
-                <div class="card border-0 shadow-sm mt-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
-                    </div>
-                    <div class="card-body">
-                        {{ form_start(formVisite) }}
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label small fw-bold">Nom du Visiteur</label>
-                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label small fw-bold">Département Visité</label>
-                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label small fw-bold">Motif</label>
-                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control'}}) }}
-                                </div>
-                            </div>
-                            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2 shadow-sm">Enregistrer la Visite</button>
-                        {{ form_end(formVisite) }}
-                    </div>
+{# FORMULAIRE DE VISITE BAS DE PAGE (MASQUÉ POUR LE DG) #}
+{% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
+<div class="card border-0 shadow-sm mt-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(formVisite) }}
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Nom du Visiteur</label>
+                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control'}}) }}
                 </div>
-                {% endif %}
-
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Département Visité</label>
+                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label small fw-bold">Motif</label>
+                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control'}}) }}
+                </div>
             </div>
+            {# N'ajoute PAS form_rest(formVisite) ici ! #}
+            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2 shadow-sm">Enregistrer la Visite</button>
+        {{ form_end(formVisite) }}
+    </div>
+</div>
+{% endif %}            </div>
         </div>
     </div>
     <script>

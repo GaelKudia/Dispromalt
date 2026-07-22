@@ -9,88 +9,259 @@
     <style>
         @media print {
             .no-print { display: none !important; }
-            .card { border: none !important; shadow: none !important; }
+            .card { border: none !important; box-shadow: none !important; }
+            .bg-soft-dark { background: #f8f9fa !important; color: #212529 !important; }
+            .text-warning { color: #212529 !important; }
+        }
+        body {
+            background: #f0f2f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .devis-card {
+            max-width: 900px;
+            margin: 0 auto;
+            border: none;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 20px rgba(0, 0, 0, 0.02);
+            overflow: hidden;
+        }
+        .devis-header {
+            background: linear-gradient(135deg, #0a0c10 0%, #1a1e26 100%);
+            padding: 2rem 2.5rem;
+            color: white;
+        }
+        .devis-header .brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+        }
+        .devis-header .brand span { color: #4dabf7; }
+        .devis-header .sub {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+        .devis-meta {
+            background: #f8fafc;
+            padding: 1.2rem 2.5rem;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.5rem;
+        }
+        .devis-meta .meta-item {
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .devis-meta .meta-item strong {
+            color: #212529;
+            font-weight: 600;
+        }
+        .devis-body {
+            padding: 2.5rem;
+        }
+        .status-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.35rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            border: 1px solid #dee2e6;
+        }
+        .devis-description {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 1.8rem 2rem;
+            border: 1px solid #e9ecef;
+            min-height: 120px;
+            white-space: pre-line;
+            color: #212529;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .total-box {
+            background: linear-gradient(135deg, #212529 0%, #2c3034 100%);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .total-box .label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+        .total-box .amount {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffd43b;
+            letter-spacing: -0.5px;
+        }
+        .total-box .amount small {
+            font-size: 1rem;
+            font-weight: 400;
+            opacity: 0.6;
+            margin-left: 0.25rem;
+        }
+        .btn-group-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .btn-group-actions .btn {
+            border-radius: 50px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .btn-group-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+        }
+        .devis-footer {
+            background: #f8fafc;
+            padding: 1.2rem 2.5rem;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #868e96;
+        }
+        .devis-footer p { margin: 0; }
+        @media (max-width: 576px) {
+            .devis-header { padding: 1.5rem; }
+            .devis-body { padding: 1.5rem; }
+            .devis-meta { padding: 1rem 1.5rem; flex-direction: column; }
+            .total-box { flex-direction: column; align-items: stretch; text-align: center; }
+            .total-box .amount { font-size: 1.8rem; }
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
     <div class="container py-5">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4 no-print">
-            <a href="{{ path('app_devis_nouveau') }}" class="btn btn-outline-secondary fw-semibold">
-                <i class="fas fa-edit me-1"></i> Modifier le brouillon
+
+        {# --- Boutons d'action (hors impression) --- #}
+        <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-2">
+            <a href="{{ path('app_devis_nouveau') }}" class="btn btn-outline-secondary fw-semibold rounded-pill px-4">
+                <i class="fas fa-edit me-1"></i> Modifier
             </a>
-            
-            <div class="d-flex gap-2">
-                <button onclick="window.print();" class="btn btn-danger fw-bold">
-                    <i class="fas fa-file-pdf me-1"></i> Version PDF / Imprimer
+            <div class="btn-group-actions">
+                <button onclick="window.print();" class="btn btn-danger rounded-pill px-4">
+                    <i class="fas fa-file-pdf me-1"></i> PDF / Imprimer
                 </button>
-                
                 <form method="POST" action="{{ path('app_devis_apercu') }}" class="d-inline">
-                    <button type="submit" class="btn btn-success fw-bold">
-                        <i class="fas fa-paper-plane me-1"></i> Confirmer & Envoyer à la Compta
+                    <button type="submit" class="btn btn-success rounded-pill px-4">
+                        <i class="fas fa-paper-plane me-1"></i> Confirmer & Envoyer
                     </button>
                 </form>
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm p-5 bg-white mx-auto" style="max-width: 800px; border-top: 6px solid #212529 !important;">
-            
-            <div class="row border-bottom pb-4 mb-4 align-items-center">
-                <div class="col-6">
-                    <h4 class="fw-bold m-0">DISPRO<span class="text-primary">MALT</span></h4>
-                    <p class="text-muted small m-0">Service Impression / Logistique</p>
+        {# --- Carte principale du devis --- #}
+        <div class="devis-card">
+
+            {# En-tête : logo + infos utilisateur #}
+            <div class="devis-header d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <div class="brand">DISPRO<span>MALT</span></div>
+                    <div class="sub">Service Impression &middot; Logistique</div>
                 </div>
-                <div class="col-6 text-end">
-                    <h5 class="fw-bold text-dark m-0">Devis de : <span class="text-secondary">{{ app.user.userIdentifier }}</span></h5>
-                    <p class="text-muted small m-0">Date : <strong>{{ "now"|date("d/m/Y") }}</strong></p>
-                </div>
-            </div>
-
-            <div class="text-center my-4">
-                <h3 class="fw-bold text-uppercase tracking-wide">Fiche de Devis Estimatif</h3>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-1.5 small">Statut : BROUILLON / AVANT-PROJET</span>
-            </div>
-
-
-
-<div class="text-center my-4">
-    <h3 class="fw-bold text-uppercase tracking-wide"{{ devis.entete ?? 'Nouveau Devis' }}</h3>
-    <span class="badge bg-secondary bg-opacity-10 text-secondary border px-3 py-1.5 small">Statut : BROUILLON</span>
-</div>
-            <div class="my-4">
-                <h6 class="fw-bold text-secondary text-uppercase small border-bottom pb-2 mb-3">Détails de la demande</h6>
-                <div class="p-4 bg-light rounded border text-dark style-textarea-content" style="white-space: pre-line; min-height: 150px;">
-                    {{ devis.description }}
+                <div class="text-end">
+                    <div class="fw-bold fs-6" style="color: #fff;">
+                        {{ app.user.userIdentifier }}
+                    </div>
+                    <div style="font-size:0.8rem; opacity:0.6;">
+                        {{ "now"|date("d/m/Y") }}
+                    </div>
                 </div>
             </div>
 
-            <div class="row justify-content-end mt-4">
-                <div class="col-md-5">
-                    <div class="p-3 bg-dark text-white rounded shadow-sm text-end">
-    <h6 class="text-uppercase small text-muted m-0 fw-bold">Montant Global Estimé</h6>
-    <i class="fas fa-money-bill-wave me-1"></i> Total décaissé : 
-    
-    {# On affiche le montant et on teste la devise pour le symbole #}
-    <h3 class="fw-bold m-0 text-warning">
-        {{ devis.montant|number_format(2, ',', ' ') }} 
-        {% if devis.devise == 'CDF' %}
-            FC
-        {% else %}
-            $
-        {% endif %}
-    </h3>
-</div>
-                </div>
+            {# Ligne méta : statut, référence, etc. #}
+            <div class="devis-meta">
+                <span class="meta-item">
+                    <i class="fas fa-tag text-muted me-1"></i> Réf. : <strong>#{{ devis.id ?? 'BROUILLON' }}</strong>
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-clock text-muted me-1"></i> Statut : 
+                    <span class="status-badge">
+                        <i class="fas fa-pen-fancy me-1"></i> Brouillon
+                    </span>
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-user text-muted me-1"></i> Initiateur : <strong>{{ app.user.userIdentifier }}</strong>
+                </span>
             </div>
 
-            <div class="mt-5 pt-4 border-top text-center text-muted small">
-                <p class="m-0">Document généré électroniquement depuis l'Espace Opérationnel Dispromalt.</p>
-                <p class="small text-muted">Ce document fait office de proposition interne avant validation budgétaire.</p>
+            {# Corps du devis #}
+            <div class="devis-body">
+
+                {# Titre principal #}
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold text-uppercase tracking-wide" style="letter-spacing: 1px; color: #1a1e26;">
+                        {{ devis.entete ?? 'Proposition de Devis' }}
+                    </h2>
+                    <div class="d-flex justify-content-center gap-3 mt-1">
+                        <span class="status-badge" style="background: #fff3cd; color: #856404; border-color: #ffc107;">
+                            <i class="fas fa-hourglass-half me-1"></i> En attente de validation
+                        </span>
+                    </div>
+                </div>
+
+                {# Description / Détails de la demande #}
+                <div class="mb-4">
+                    <h6 class="fw-bold text-secondary text-uppercase small" style="letter-spacing: 0.5px; border-bottom: 1px solid #dee2e6; padding-bottom: 0.5rem;">
+                        <i class="fas fa-align-left me-1"></i> Détails de la demande
+                    </h6>
+                    <div class="devis-description">
+                        {{ devis.description }}
+                    </div>
+                </div>
+
+                {# Total #}
+                <div class="total-box">
+                    <div>
+                        <div class="label"><i class="fas fa-coins me-1"></i> Montant global estimé</div>
+                        <span style="font-size:0.85rem; opacity:0.6;">(TTC)</span>
+                    </div>
+                    <div class="amount">
+                        {{ devis.montant|number_format(2, ',', ' ') }}
+                        <small>
+                            {% if devis.devise == 'CDF' %}
+                                FC
+                            {% else %}
+                                USD
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+
+            </div>
+
+            {# Pied de page #}
+            <div class="devis-footer">
+                <p>
+                    <i class="fas fa-lock me-1" style="opacity:0.5;"></i> 
+                    Document généré électroniquement depuis l’Espace Opérationnel Dispromalt.
+                </p>
+                <p style="opacity:0.6; font-size:0.75rem;">
+                    Ce devis est une proposition interne avant validation budgétaire.
+                </p>
             </div>
 
         </div>
+
     </div>
 
 </body>

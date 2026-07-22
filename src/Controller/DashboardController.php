@@ -103,17 +103,23 @@ class DashboardController extends AbstractController
         // ============================================================
         // 7. FORMULAIRE VISITE POUR LA GUERITE
         // ============================================================
-        // ============================================================
-// 7. FORMULAIRE VISITE POUR LA GUERITE
+
+
+
+// ============================================================
+// FORMULAIRE DE RÉSERVATION DE VISITE SELON LE RÔLE
 // ============================================================
 if ($this->isGranted('ROLE_GUERITE')) {
+    // Guérite : formulaire complet + statut A_L_ACCUEIL + date d'arrivée
     $visiteGuerite = new Visite();
-    $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite);
+    $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, [
+        'with_extra_fields' => true,
+    ]);
     $formVisiteGuerite->handleRequest($request);
 
     if ($formVisiteGuerite->isSubmitted() && $formVisiteGuerite->isValid()) {
         $visiteGuerite->setStatut('A_L_ACCUEIL');
-        $visiteGuerite->setDateArrivee(new \DateTime()); // Ajoute la date
+        $visiteGuerite->setDateArrivee(new \DateTime());
         $em->persist($visiteGuerite);
         $em->flush();
 
@@ -122,6 +128,43 @@ if ($this->isGranted('ROLE_GUERITE')) {
     }
     $formVisiteGueriteView = $formVisiteGuerite->createView();
 }
+elseif ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
+    // Accueil / Réception : formulaire complet (téléphone, email, pièce)
+    $visite = new Visite();
+    $formVisite = $this->createForm(VisiteType::class, $visite, [
+        'with_extra_fields' => true,
+    ]);
+    $formVisite->handleRequest($request);
+
+    if ($formVisite->isSubmitted() && $formVisite->isValid()) {
+        $visite->setStatut('RESERVE');
+        $em->persist($visite);
+        $em->flush();
+
+        $this->addFlash('success', '🗓️ La visite a été réservée avec succès !');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formVisiteView = $formVisite->createView();
+}
+elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
+    // Membres (non DG, non Admin) : formulaire simple (sans champs supplémentaires)
+    $visite = new Visite();
+    $formVisite = $this->createForm(VisiteType::class, $visite, [
+        'with_extra_fields' => false, // valeur par défaut, on peut aussi omettre
+    ]);
+    $formVisite->handleRequest($request);
+
+    if ($formVisite->isSubmitted() && $formVisite->isValid()) {
+        $visite->setStatut('RESERVE');
+        $em->persist($visite);
+        $em->flush();
+
+        $this->addFlash('success', '🗓️ La visite a été réservée avec succès !');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formVisiteView = $formVisite->createView();
+}
+// Les DG et Admin n'ont pas de formulaire de visite
 
         // ============================================================
         // 8. FORMULAIRE STOCK (MAGASINIER)
@@ -193,25 +236,7 @@ if ($this->isGranted('ROLE_GUERITE')) {
             $formBonView = $formBon->createView();
         }
 
-        // ============================================================
-        // 10. FORMULAIRE VISITE (MEMBRE)
-        // ============================================================
-        if (!$this->isGranted('ROLE_GUERITE') && !($this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN'))) {
-            $visite = new Visite();
-            $formVisite = $this->createForm(VisiteType::class, $visite);
-            $formVisite->handleRequest($request);
-
-            if ($formVisite->isSubmitted() && $formVisite->isValid()) {
-                $visite->setStatut('RESERVE');
-                $em->persist($visite);
-                $em->flush();
-
-                $this->addFlash('success', '🗓️ La visite a été réservée avec succès !');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formVisiteView = $formVisite->createView();
-        }
-
+      
         // ============================================================
         // 11. INTERROGATION BASE DE DONNÉES
         // ============================================================
