@@ -58,3 +58,6 @@ class VisiteType extends AbstractType
         ]);
     }
 }
+
+
+//test-pratique //
