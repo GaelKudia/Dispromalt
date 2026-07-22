@@ -5,6 +5,8 @@ namespace App\Form;
 use App\Entity\Visite;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -14,24 +16,39 @@ class VisiteType extends AbstractType
     {
         $builder
             ->add('nomVisiteur', TextType::class, [
-                'attr' => ['class' => 'form-control']
+                'label' => 'Nom du visiteur',
+                'attr' => ['placeholder' => 'Nom complet']
             ])
             ->add('departement', TextType::class, [
-                'label' => 'Département à visiter',
-                'attr' => ['class' => 'form-control']
+                'label' => 'Département visité',
+                'attr' => ['placeholder' => 'Ex: Production, Compta...']
             ])
             ->add('motif', TextType::class, [
                 'label' => 'Motif de la visite',
-                'attr' => ['class' => 'form-control']
+                'attr' => ['placeholder' => 'Raison de la visite']
             ])
-        ;
+            ->add('telephone', TelType::class, [
+                'label' => 'Téléphone',
+                'required' => false,
+                'attr' => ['placeholder' => 'Numéro de téléphone']
+            ])
+            ->add('email', EmailType::class, [
+                'label' => 'Email',
+                'required' => false,
+                'attr' => ['placeholder' => 'email@example.com']
+            ])
+            ->add('pieceIdentite', TextType::class, [
+                'label' => 'Pièce d\'identité',
+                'required' => false,
+                'attr' => ['placeholder' => 'CIN, Passeport...']
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            // RE-LIÉ : On associe enfin le formulaire à la vraie entité Visite
-            'data_class' => Visite::class, 
+            'data_class' => Visite::class,
+            'csrf_protection' => true,
         ]);
     }
 }

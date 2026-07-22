@@ -25,6 +25,28 @@ class Visite
     #[ORM\Column(length: 50)]
     private ?string $statut = null;
 
+    // ============================================================
+    // NOUVEAU CHAMP : DATE D'ARRIVÉE
+    // ============================================================
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dateArrivee = null;
+
+    // ============================================================
+    // CHAMPS OPTIONNELS (pour compléter le formulaire)
+    // ============================================================
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $pieceIdentite = null;
+
+    // ============================================================
+    // GETTERS ET SETTERS
+    // ============================================================
+
     public function getId(): ?int
     {
         return $this->id;
@@ -38,7 +60,6 @@ class Visite
     public function setNomVisiteur(string $nomVisiteur): static
     {
         $this->nomVisiteur = $nomVisiteur;
-
         return $this;
     }
 
@@ -50,7 +71,6 @@ class Visite
     public function setDepartement(string $departement): static
     {
         $this->departement = $departement;
-
         return $this;
     }
 
@@ -62,7 +82,6 @@ class Visite
     public function setMotif(string $motif): static
     {
         $this->motif = $motif;
-
         return $this;
     }
 
@@ -74,7 +93,62 @@ class Visite
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+        return $this;
+    }
 
+    // ============================================================
+    // GETTERS ET SETTERS POUR dateArrivee
+    // ============================================================
+    public function getDateArrivee(): ?\DateTimeInterface
+    {
+        return $this->dateArrivee;
+    }
+
+    public function setDateArrivee(?\DateTimeInterface $dateArrivee): static
+    {
+        $this->dateArrivee = $dateArrivee;
+        return $this;
+    }
+
+    // ============================================================
+    // GETTERS ET SETTERS POUR telephone
+    // ============================================================
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+        return $this;
+    }
+
+    // ============================================================
+    // GETTERS ET SETTERS POUR email
+    // ============================================================
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+        return $this;
+    }
+
+    // ============================================================
+    // GETTERS ET SETTERS POUR pieceIdentite
+    // ============================================================
+    public function getPieceIdentite(): ?string
+    {
+        return $this->pieceIdentite;
+    }
+
+    public function setPieceIdentite(?string $pieceIdentite): static
+    {
+        $this->pieceIdentite = $pieceIdentite;
         return $this;
     }
 }
