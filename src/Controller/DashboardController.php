@@ -21,6 +21,8 @@ use App\Entity\Demande;
     use App\Repository\BonSortieRepository;
     use App\Repository\CategoryRepository;
 use App\Repository\ArticleAttributRepository;
+use App\Repository\SubCategoryRepository;
+
     use Doctrine\ORM\EntityManagerInterface;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
     use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +39,7 @@ use App\Repository\ArticleAttributRepository;
             Request $request, 
             DemandeRepository $demandeRepository, 
             BonSortieRepository $bonSortieRepository,
+            SubCategoryRepository $subCategoryRepo,
             CategoryRepository $categoryRepo, 
     ArticleAttributRepository $attributRepo,
             EntityManagerInterface $em
@@ -119,37 +122,45 @@ use App\Repository\ArticleAttributRepository;
             // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
             // A. FORMULAIRE DU STOCK (MAGASINIER EXCLUSIVEMENT)
             // 2. Dans ta section A :
-if ($this->isGranted('ROLE_STOCK')) {
-    $article = new Article();
-    $formStock = $this->createForm(StockType::class, $article);
-    $formStock->handleRequest($request);
+    if ($this->isGranted('ROLE_STOCK')) {
+        $article = new Article();
+        $formStock = $this->createForm(StockType::class, $article);
+        $formStock->handleRequest($request);
 
-    if ($formStock->isSubmitted() && $formStock->isValid()) {
-        $em->persist($article);
-        $em->flush();
+        if ($formStock->isSubmitted() && $formStock->isValid()) {
+            $em->persist($article);
+            $em->flush();
+            
+            $this->addFlash('success', '📥 L\'article a bien été enregistré !');
+            return $this->redirectToRoute('app_dashboard');
+        }
         
-        $this->addFlash('success', '📥 L\'article a bien été enregistré !');
-        return $this->redirectToRoute('app_dashboard');
-    }
-    
-    // 1. Gestion du filtre par catégorie pour l'inventaire
-    $categoryId = $request->query->get('category');
-    $selectedCategory = null;
-    if ($categoryId) {
-        $selectedCategory = $categoryRepo->find($categoryId);
-    }
+        // 1. Gestion du filtre par catégorie pour l'inventaire
+        $categoryId = $request->query->get('category');
+        $subCategoryId = $request->query->get('subCategory');
+        $selectedCategory = null;
+        $selectedSubCategory = null;
+        $subCategories = [];
+        if ($categoryId) {
+            $selectedCategory = $categoryRepo->find($categoryId);
+            // Récupérer les sous-catégories liées à cette catégorie pour alimenter le 2e select
+            $subCategories = $subCategoryRepo->findBy(['category' => $selectedCategory]);
+        }
 
-    // 2. Récupération des données pour l'affichage de l'inventaire
-    $attributs = $attributRepo->findAllWithDetails($selectedCategory);
-    $categories = $categoryRepo->findAll();
+        if ($subCategoryId) {
+            $selectedSubCategory = $subCategoryRepo->find($subCategoryId);
+        }
 
-    // 3. Rendu de la vue en passant toutes les variables nécessaires
-    return $this->render('dashboard/stock.html.twig', [
-        'formStock' => $formStock->createView(),
-        'attributs' => $attributs,
-        'categories' => $categories,
-    ]);
-}
+        // 2. Récupération des données pour l'affichage de l'inventaire
+        $attributs = $attributRepo->findAllWithDetails($selectedCategory, $selectedSubCategory);
+        $categories = $categoryRepo->findAll();
+        // 3. Rendu de la vue en passant toutes les variables nécessaires
+       /* return $this->render('dashboard/stock.html.twig', [
+            'formStock' => $formStock->createView(),
+            'attributs' => $attributs,
+            'categories' => $categories,
+        ]);*/
+    }
 
             // B & C. FORMULAIRES DE DEMANDE ET DE BON (UNIQUEMENT COMPTES OPÉRATIONNELS)
             if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE')) {
@@ -388,22 +399,21 @@ if ($this->isGranted('ROLE_STOCK')) {
                 ]);
             }
 
-            if ($this->isGranted('ROLE_STOCK')) {
-                return $this->render('dashboard/stock.html.twig', [
-                    'demandes' => $demandes,         
-                    'rapportGlobal' => $rapportGlobal, 
-                    'userRole' => $roleLabel,
-                    'stats' => $stats,
-                    'formStock' => $formStockView,
-                    'articles' => $articles,
-                    'date_debut' => $dateDebutFiltre,
-                    'attributs' => $attributs,
-                    'categories' => $categories,
-                    'formStock' => $formStock ? $formStock->createView() : null,
-                    'date_fin' => $dateFinFiltre
-                ]);
-            }
-
+               return $this->render('dashboard/stock.html.twig', [
+        'demandes'         => $demandes,         
+        'rapportGlobal'    => $rapportGlobal, 
+        'userRole'         => $roleLabel,
+        'stats'            => $stats,
+        'articles'         => $articles,
+        'attributs'        => $attributs,
+        'categories'       => $categories,
+        'subCategories'    => $subCategories,    // <-- Corrigé (la guillemet était manquante)
+        'selectedCategory' => $selectedCategory,
+        'selectedSubCategory' => $selectedSubCategory,
+        'formStock'        => $formStock ? $formStock->createView() : null,
+        'date_debut'       => $dateDebutFiltre,
+        'date_fin'         => $dateFinFiltre
+    ]);
             if ($this->isGranted('ROLE_DG')) {
                 return $this->render('dashboard/membre.html.twig', [ 
                     'demandes' => $demandes,

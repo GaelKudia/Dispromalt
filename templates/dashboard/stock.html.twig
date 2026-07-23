@@ -2,616 +2,621 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Espace Magasinier - Gestion du Stock</title>
+    <title>Espace Magasinier · Gestion du Stock</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .card-counter { border: none; border-radius: 10px; transition: transform 0.2s; }
-        .card-counter:hover { transform: translateY(-3px); }
-        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; color: #0d6efd !important; }
-        .nav-tabs .nav-link { color: #6c757d; }
+        * { transition: all 0.2s ease; }
+        body { background: #f4f7fc; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .navbar { background: #0b1a2f !important; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .navbar-brand span.text-primary { color: #4b9eff !important; }
+        .bg-opacity-20 { background: rgba(255,255,255,0.05); }
+        .badge-role { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+
+        .stat-card { background: #fff; border-radius: 20px; padding: 1.5rem 1.2rem; box-shadow: 0 8px 18px rgba(0,20,40,0.04); border-left: 5px solid; transition: 0.15s; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(0,20,40,0.07); }
+        .stat-card .icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; }
+
+        .nav-tabs .nav-link { border: none; color: #5a6d7e; font-weight: 600; padding: 0.9rem 1.6rem; background: transparent; border-radius: 30px 30px 0 0; }
+        .nav-tabs .nav-link i { margin-right: 8px; }
+        .nav-tabs .nav-link.active { background: #ffffff; color: #0b1a2f !important; border-bottom: 3px solid #4b9eff; box-shadow: 0 -4px 12px rgba(0,0,0,0.02); }
+        .card-tabs { border-radius: 24px; overflow: hidden; border: none; box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
+        .tab-pane { padding: 1.8rem 0.2rem; }
+
+        .form-container { max-width: 620px; margin: 0 auto; }
+        .card-form { border-radius: 28px; background: #ffffff; padding: 2rem 2rem; box-shadow: 0 6px 18px rgba(0,0,0,0.02); }
+
+        .table thead th { background: #f0f4fa; color: #1f2a3f; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e1e9f2; }
+        .table tbody tr { border-bottom: 1px solid #edf2f8; }
+        .table tbody tr:last-child { border-bottom: 0; }
+
+        .btn-outline-primary { border-color: #d0ddee; color: #1f3a5f; }
+        .btn-outline-primary:hover { background: #eef4fd; border-color: #4b9eff; }
+
+        .alert-critique { border-radius: 18px; background: #fff7f0; border-left: 6px solid #f97316; }
+        .alert-ok { border-radius: 18px; background: #ecfdf3; border-left: 6px solid #0b9b5e; }
+
+        @media (max-width: 768px) {
+            .nav-tabs .nav-link { padding: 0.7rem 0.9rem; font-size: 0.85rem; }
+        }
     </style>
 </head>
-<body class="bg-light text-dark">
+<body>
 
-    {# Navbar #}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+    {# ========== NAVBAR ========== #}
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold fs-4" href="#">
-                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-white-50">| Espace Opérationnel</span>
             </a>
             <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-warehouse text-warning me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+                <div class="badge-role px-3 py-1.5 rounded-pill me-3 small">
+                    <i class="fas fa-warehouse text-warning me-2"></i>Rôle : <strong>{{ userRole }}</strong>
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-4 shadow-sm">
                     <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
                 </a>
             </div>
         </div>
     </nav>
 
+    {# ========== MAIN ========== #}
     <div class="container-fluid py-4 px-4">
         
-        <div class="mb-4 pb-3 border-bottom">
-            <h1 class="fw-bold text-dark">Espace de Gestion des Stocks (Dépôt)</h1>
+        {# HEADER #}
+        <div class="mb-4 pb-2">
+            <h1 class="fw-bold text-dark" style="font-size: 1.9rem;">📦 Gestion des Stocks (Dépôt)</h1>
             <p class="text-muted m-0">Ajustez l'inventaire, fixez les couplages de colis (ex: Gilets par 25) et extrayez les rapports par commune.</p>
         </div>
 
-        {# Flash Messages #}
+        {# FLASH #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <div class="alert alert-ok alert-dismissible fade show shadow-sm mb-4" role="alert">
                     <i class="fas fa-check-circle me-2"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        {# Compteurs #}
-        <div class="row g-3 mb-4">
+        {# ========== STATS ========== #}
+        <div class="row g-4 mb-4">
             <div class="col-md-4">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
+                <div class="stat-card border-warning">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase small fw-bold">Demandes en attente</h6>
                             <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }}</h3>
                         </div>
-                        <i class="fas fa-clock fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fa-2x"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
+                <div class="stat-card border-primary">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase small fw-bold">Bons à signer (Coordon)</h6>
                             <h3 class="fw-bold m-0 text-primary">{{ stats.bons_a_valider }}</h3>
                         </div>
-                        <i class="fas fa-pen-nib fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-pen-nib fa-2x"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
+                <div class="stat-card border-success">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase small fw-bold">Bons validés Guérite</h6>
                             <h3 class="fw-bold m-0 text-success">{{ stats.bons_guerite }}</h3>
                         </div>
-                        <i class="fas fa-shield-alt fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
+                        <div class="icon bg-success bg-opacity-10 text-success"><i class="fas fa-shield-alt fa-2x"></i></div>
                     </div>
                 </div>
             </div>
         </div>
 
-
-
-        {# Navigation des 5 Onglets #}
+        {# ========== TABS ========== #}
         <div class="row g-4">
             <div class="col-12">
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white p-0 border-bottom">
-                        <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="stockTab" role="tablist">
-                            <li class="nav-item">
-                                <button class="nav-link active py-3 px-4 fw-bold border-0" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button" role="tab">
-                                    <i class="fas fa-plus-circle me-2 text-primary"></i>Entrée des Données & Seuils
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button" role="tab">
-                                    <i class="fas fa-list text-success me-2"></i>Inventaire Global
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
-                                    <i class="fas fa-calendar-day me-2 text-warning"></i>Suivi Journalier (Matin)
-                                </button>
-                            </li>
-
-
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
-                                    <i class="fas fa-file-invoice me-2 text-info"></i>Rapport Général Hist.
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link py-3 px-4 fw-bold border-0" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert-pane" type="button" role="tab">
-                                    <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Alertes Critiques
-                                </button>
-                            </li>
+                <div class="card-tabs">
+                    <div class="card-header bg-white p-0 border-0">
+                        <ul class="nav nav-tabs m-0 border-bottom-0 px-2 pt-2" id="stockTab" role="tablist">
+                            <li class="nav-item"><button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button"><i class="fas fa-plus-circle text-primary"></i>Entrée & Seuils</button></li>
+                            <li class="nav-item"><button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button"><i class="fas fa-list text-success"></i>Inventaire</button></li>
+                            <li class="nav-item"><button class="nav-link" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button"><i class="fas fa-calendar-day text-warning"></i>Suivi (Matin)</button></li>
+                            <li class="nav-item"><button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button"><i class="fas fa-file-invoice text-info"></i>Rapport Hist.</button></li>
+                            <li class="nav-item"><button class="nav-link" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert-pane" type="button"><i class="fas fa-exclamation-triangle text-danger"></i>Alertes</button></li>
                         </ul>
                     </div>
 
-    <div class="card-body tab-content" id="stockTabContent">
-                    
-                   {# ONGLET 1 : FORMULAIRE CENTRÉ #}
-{# ONGLET 1 : FORMULAIRE DYNAMIQUE #}
-<div class="tab-pane fade show active" id="input-pane" role="tabpanel">
-    <div class="d-flex justify-content-center align-items-center py-4">
-        <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 600px; border-radius: 12px;">
-            <div class="text-center mb-4">
-                <i class="fas fa-magic text-primary fa-2x mb-2"></i>
-                <h5 class="fw-bold text-dark m-0">Réceptionner du matériel</h5>
-                <p class="text-muted small">Sélectionnez la catégorie pour charger les détails</p>
-            </div>
-            
-            {{ form_start(formStock, {'attr': {'id': 'stock-form'}}) }}
-                {# Catégorie #}
-                <div class="mb-3">
-                    {{ form_label(formStock.category, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                    {{ form_widget(formStock.category, {'attr': {'class': 'form-select py-2'}}) }}
-                </div>
+                    <div class="card-body tab-content bg-white rounded-bottom-4" id="stockTabContent">
 
-                {# Sous-Catégorie (sera mis à jour dynamiquement) #}
-                <div class="mb-3">
-                    {{ form_label(formStock.subCategory, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                    {{ form_widget(formStock.subCategory, {'attr': {'class': 'form-select py-2'}}) }}
-                </div>
-
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold">Nom article</label>
-                        {{ form_widget(formStock.nom, {'attr': {'class': 'form-control py-2'}}) }}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold">Qté</label>
-                        {{ form_widget(formStock.quantite, {'attr': {'class': 'form-control py-2'}}) }}
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-danger">Seuil</label>
-                        {{ form_widget(formStock.seuilAlerte, {'attr': {'class': 'form-control py-2'}}) }}
-                    </div>
-                </div>
-
-                {# Machine associée #}
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-secondary">Machine associée (si encre)</label>
-                    {{ form_widget(formStock.machine, {'attr': {'class': 'form-select py-2'}}) }}
-                </div>
-          <div id="attributs-container" 
-     data-prototype="{{ form_widget(formStock.attributs.vars.prototype)|e('html_attr') }}">
-    
-    {% for attribut in formStock.attributs %}
-        <div class="attr-row border p-3 mb-3 bg-light rounded shadow-sm">
-            <div class="row">
-                <div class="col-md-4">{{ form_row(attribut.dimension) }}</div>
-                <div class="col-md-4">{{ form_row(attribut.grammage) }}</div>
-                <div class="col-md-4">{{ form_row(attribut.couleur) }}</div>
-            </div>
-            <div class="row mt-2">
-                <div class="col-md-6">{{ form_row(attribut.longueur) }}</div>
-                <div class="col-md-6">{{ form_row(attribut.kilogramme) }}</div>
-            </div>
-        </div>
-    {% endfor %}
-</div>
-
-<button type="button" class="btn btn-secondary btn-sm mb-3" id="add-attribut">
-    <i class="fas fa-plus"></i> Ajouter une ligne d'attribut
-</button>
-
-<button type="submit" class="btn btn-primary w-100 fw-bold py-2">
-    <i class="fas fa-save me-2"></i> Enregistrer dans le stock
-</button>
-
-{{ form_end(formStock) }}
-        </div>
-    </div>
-</div>{# ONGLET 2 : TABLEAU INVENTAIRE GLOBAL #}
-<div class="tab-pane fade" id="list-pane" role="tabpanel">
-    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-warehouse text-success me-2"></i>État Actuel</h5>
-    <div class="table-responsive">
-
-    {# Ajout d'un formulaire de filtre par catégorie #}
-<form method="GET" class="mb-3">
-    <select name="category" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
-        < toutes les catégories >
-        {% for cat in categories %}
-            <option value="{{ cat.id }}" {% if app.request.get('category') == cat.id %}selected{% endif %}>
-                {{ cat.nom }}
-            </option>
-        {% endfor %}
-    </select>
-</form>
-
-<table class="table">
-    <thead>
-        <tr>
-            <th>ARTICLE / SPÉCIFICATION</th>
-            <th>MACHINE</th>
-            <th>QUANTITÉ</th>
-            <th>STATUT</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for attr in attributs %}
-        <tr>
-            <td>
-                {# Affiche par exemple : POLYESTHER - Rouge (1,52 x 50m) #}
-                <strong>{{ attr.article.nom }}</strong> 
-                {% if attr.couleur %}- {{ attr.couleur }} {% endif %}
-                {% if attr.dimension %}({{ attr.dimension }}){% endif %}
-            </td>
-            <td>{{ attr.article.machine ? attr.article.machine.nom : 'Aucune' }}</td>
-            {# Note: Si tu gères la quantité par attribut, ou la quantité globale de l'article #}
-            <td>{{ attr.article.quantite }}</td> 
-            <td>
-                {% if attr.article.quantite <= attr.article.seuilAlerte %}
-                    <span class="badge bg-warning">Stock Bas</span>
-                {% else %}
-                    <span class="badge bg-success">Correct</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-        <table class="table table-hover align-middle border m-0">
-            <thead class="table-dark small text-uppercase">
-                <tr>
-                    <th>Article</th>
-                    <th>Machine</th>
-                    <th class="text-center">Quantité</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody class="small">
-                {% for art in articles %}
-                    <tr>
-                        <td class="fw-semibold text-dark">{{ art.nom }}</td>
-                        <td>
-                            {% if art.machine %}
-                                <span class="badge bg-info text-dark">{{ art.machine.nom }}</span>
-                            {% else %}
-                                <span class="text-muted italic">Aucune</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center fw-bold">{{ art.quantite }}</td>
-                        <td class="text-center">
-                            {% if art.quantite <= art.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-      {# ONGLET 3 : SUIVI DES DEMANDES (MATIN) #}
-                            <div class="tab-pane fade" id="dem-pane" role="tabpanel">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="fw-bold text-warning m-0"><i class="fas fa-calendar-check me-2"></i>Flux de matériel de ce matin</h5>
-                                    <span class="badge bg-dark px-3 py-2">Date du jour : {{ "now"|date("d/m/Y") }}</span>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle m-0 border">
-                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                            <tr>
-                                                <th>Heure</th>
-                                                <th>Département</th>
-                                                <th>Site Origine</th>
-                                                <th>Matériel Demandé</th>
-                                                <th class="text-center">Quantité</th>
-                                                <th>Destination (Commune)</th>
-                                                <th>Statut</th>
-                                                <th class="text-center">Action Stock</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for d in demandes %}
-                                                <tr>
-                                                    <td class="fw-bold text-muted">{{ d.createdAt|date('H:i') }}</td>
-                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
-                                                    
-                                                    {# 🌍 AFFICHAGE DYNAMIQUE DE L'ORIGINE DE LA DEMANDE #}
-                                                    <td class="fw-bold text-dark">
-                                                        <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">
-                                                            <i class="fas fa-building me-1 text-muted"></i>
-                                                            {{ d.localisation|default('Direction')|upper }}
-                                                        </span>
-                                                    </td>
-
-                                                    <td class="fw-semibold text-dark">{{ d.materiel }}</td>
-                                                    <td class="text-center fw-bold text-primary">
-                                                        {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
-                                                            {% set p_dem = (d.quantite / 25)|round(0, 'floor') %}
-                                                            {% set r_dem = d.quantite % 25 %}
-                                                            <span>{{ p_dem }} pqt(s) {% if r_dem > 0 %}{{ r_dem }} u{% endif %}</span>
-                                                            <br><small class="text-muted" style="font-size:11px;">({{ d.quantite }} unités)</small>
-                                                        {% else %}
-                                                            {{ d.quantite|default('1') }}
-                                                        {% endif %}
-                                                    </td>
-                                                    
-                                                    <td class="fw-bold text-dark"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ d.destination|default('Non spécifiée')|upper }}</td>
-                                                    <td>
-                                                        {% if d.statut == 'En attente' %}
-                                                            <span class="badge rounded-pill bg-warning text-dark px-2.5 py-1">En attente compta</span>
-                                                        {% elseif d.statut == 'Validé Compta' %}
-                                                            <span class="badge rounded-pill bg-primary text-white px-2.5 py-1">Budget Accordé</span>
-                                                        {% elseif d.statut == 'Livré par le Stock' %}
-                                                            <span class="badge rounded-pill bg-success text-white px-2.5 py-1">Livré</span>
-                                                        {% else %}
-                                                            <span class="badge rounded-pill bg-secondary text-white px-2.5 py-1">{{ d.statut }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="text-center">
-                                                        {% if d.statut == 'Validé Compta' %}
-                                                            <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
-                                                                <button class="btn btn-sm btn-success fw-bold shadow-sm"><i class="fas fa-truck me-1"></i> Livrer le matériel</button>
-                                                            </form>
-                                                        {% elseif d.statut == 'En attente' %}
-                                                            <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-lock me-1"></i> Attente Compta</button>
-                                                        {% else %}
-                                                            <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-check me-1"></i> Traité</button>
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% else %}
-                                                <tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-folder-open me-2"></i>Aucune demande logistique enregistrée ce matin.</td></tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            {# 📑 ONGLET 4 : RAPPORT GÉNÉRAL HISTORIQUE #}
-                            <div class="tab-pane fade" id="report-pane" role="tabpanel">
-                            <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm">
-    <i class="fas fa-file-pdf"></i> Exporter PDF
-</a>
-
-<a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm">
-    <i class="fas fa-file-excel"></i> Exporter Excel
-</a>
-                                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général des Sorties</h5>
-                                
-                                {# FORMULAIRE DE RECHERCHE FILTRE #}
-                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold text-secondary">Du (Date Début) :</label>
-                                        <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                        {# ===== ONGLET 1 : FORMULAIRE ===== #}
+                                                {# ===== ONGLET 1 : FORMULAIRE D'ENTRÉE (VERSION CORRIGÉE) ===== #}
+                        <div class="tab-pane fade show active" id="input-pane" role="tabpanel">
+                            <div class="form-container py-3">
+                                <div class="card-form">
+                                    <div class="text-center mb-4">
+                                        <i class="fas fa-magic text-primary fa-2x mb-2"></i>
+                                        <h5 class="fw-bold text-dark m-0">Réceptionner du matériel</h5>
+                                        <p class="text-muted small">Sélectionnez la catégorie puis la sous-catégorie pour charger les détails</p>
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold text-secondary">Au (Date Fin) :</label>
-                                        <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
-                                    </div>
-                                    <div class="col-md-4 d-flex align-items-end">
-                                        <button type="submit" class="btn btn-info text-white fw-bold w-100 py-2 shadow-sm">
-                                            <i class="fas fa-filter me-2"></i> Filtrer l'historique
-                                        </button>
-                                    </div>
-                                </form>
-
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-striped align-middle m-0 border">
-                                        <thead class="table-dark small text-uppercase">
-                                            <tr>
-                                                <th>Date de Demande</th>
-                                                <th>Département</th>
-                                                <th>Localisation Origine</th> 
-                                                <th>Consommable / Article</th>
-                                                <th class="text-center">Quantité Distribuée</th>
-                                                <th>Destination (Site / Commune)</th>
-                                                <th class="text-center">État Logistique</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for rg in rapportGlobal %}
-                                                <tr>
-                                                    <td class="fw-semibold text-muted">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
-                                                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
-                                                    
-                                                    {# 🌍 RESOLUTION DU PROBLÈME : AFFICHAGE 100% DYNAMIQUE DE LA LOCALISATION SANS EN-DUR #}
-                                                    <td class="fw-bold text-dark">
-                                                        <span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">
-                                                            <i class="fas fa-building me-1 text-muted"></i>
-                                                            {{ rg.localisation|default('Direction')|upper }}
-                                                        </span>
-                                                    </td>
-
-                                                    <td class="fw-bold text-dark">{{ rg.materiel }}</td>
-                                                    <td class="text-center fw-bold">
-                                                        {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
-                                                            {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
-                                                            {% set r_rep = rg.quantite % 25 %}
-                                                            <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
-                                                        {% else %}
-                                                            {{ rg.quantite }}
-                                                        {% endif %}
-                                                    </td>
-                                                    
-                                                    {# 🌍 RESOLUTION DU PROBLÈME : AFFICHAGE 100% DYNAMIQUE DE LA DESTINATION #}
-                                                    <td class="fw-bold"><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
-                                                    
-                                                    <td class="text-center">
-                                                        {% if rg.statut == 'Livré par le Stock' %}
-                                                            <span class="badge bg-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Livré & Sorti</span>
-                                                        {% else %}
-                                                            <span class="badge bg-secondary px-2.5 py-1.5">{{ rg.statut }}</span>
-                                                        {% endif %}
-                                                    </td>
-                                                </tr>
-                                            {% else %}
-                                                <tr><td colspan="7" class="text-center py-4 text-muted">Aucune archive trouvée pour cette sélection de dates.</td></tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            {# ONGLET 5 : ALERTES & GRAPHIQUE #}
-                            <div class="tab-pane fade" id="alert-pane" role="tabpanel">
-                                <div class="row g-4">
-                                    <div class="col-lg-6">
-                                        <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-bell text-danger me-2"></i>Niveaux de stock critiques</h5>
-                                        {% set has_alert = false %}
-                                        {% for art in articles %}
-                                            {% if art.quantite <= art.seuilAlerte %}
-                                                {% set has_alert = true %}
-                                                <div class="alert {% if art.quantite == 0 %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center shadow-sm mb-3" role="alert">
-                                                    <i class="fas fa-exclamation-circle fs-4 me-3"></i>
-                                                    <div>
-                                                        <strong>{{ art.nom }} :</strong> Stock critique à {{ art.quantite }} unités (Seuil d'alerte configuré à {{ art.seuilAlerte }}).
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                        {% endfor %}
-                                        {% if not has_alert %}
-                                            <div class="alert alert-success d-flex align-items-center shadow-sm" role="alert">
-                                                <i class="fas fa-check-circle fs-4 me-3"></i>
-                                                <div>Tout est sous contrôle ! Aucun article sous le seuil critique.</div>
+                                    
+                                    {{ form_start(formStock, {'attr': {'id': 'stock-form'}}) }}
+                                        
+                                        {# Ligne 1 : Catégorie et Sous-catégorie côte à côte #}
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                {{ form_label(formStock.category, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
+                                                {{ form_widget(formStock.category, {'attr': {'class': 'form-select py-2'}}) }}
                                             </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="card border p-3 bg-white shadow-sm">
-                                            <h6 class="fw-bold text-dark mb-3 text-center"><i class="fas fa-chart-bar text-primary me-2"></i>Visualisation Graphique (Unités globales)</h6>
-                                            <div style="position: relative; height:220px; width:100%">
-                                                <canvas id="stockChart"></canvas>
+                                            <div class="col-md-6">
+                                                {{ form_label(formStock.subCategory, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
+                                                {{ form_widget(formStock.subCategory, {'attr': {'class': 'form-select py-2 sub-category-select'}}) }}
                                             </div>
                                         </div>
+
+                                        {# Ligne 2 : Nom, Quantité, Seuil #}
+                                        <div class="row g-3 mb-3">
+                                            <div class="col-md-6">
+                                                {{ form_label(formStock.nom, 'Nom article', {'label_attr': {'class': 'form-label small fw-bold'}}) }}
+                                                {{ form_widget(formStock.nom, {'attr': {'class': 'form-control py-2'}}) }}
+                                            </div>
+                                            <div class="col-md-3">
+                                                {{ form_label(formStock.quantite, 'Quantité', {'label_attr': {'class': 'form-label small fw-bold'}}) }}
+                                                {{ form_widget(formStock.quantite, {'attr': {'class': 'form-control py-2'}}) }}
+                                            </div>
+                                            <div class="col-md-3">
+                                                {{ form_label(formStock.seuilAlerte, 'Seuil d\'alerte', {'label_attr': {'class': 'form-label small fw-bold text-danger'}}) }}
+                                                {{ form_widget(formStock.seuilAlerte, {'attr': {'class': 'form-control py-2'}}) }}
+                                            </div>
+                                        </div>
+
+                                        {# Ligne 3 : Machine (visible seulement pour les encres) #}
+                                        <div class="mb-4" id="machine-container">
+                                            {{ form_label(formStock.machine, 'Machine associée (pour encre/solvant)', {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
+                                            {{ form_widget(formStock.machine, {'attr': {'class': 'form-select py-2'}}) }}
+                                        </div>
+
+                                        {# ===== SECTION ATTRIBUTS (CACHÉE PAR DÉFAUT) ===== #}
+                                                                {# ===== SECTION ATTRIBUTS - DESIGN MODERNISÉ ===== #}
+                        <div id="attributs-wrapper" style="display: none;">
+                            <div class="card border-0 bg-light-subtle rounded-4 p-3 mb-3" style="background: #f8faff;">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-0">
+                                            <i class="fas fa-sliders-h text-primary me-2"></i>Caractéristiques techniques
+                                        </h6>
+                                        <small class="text-muted">Renseignez les détails spécifiques à cet article</small>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="add-attribut">
+                                        <i class="fas fa-plus-circle me-1"></i> Ajouter
+                                    </button>
+                                </div>
+                                
+                                <div id="attributs-container" data-prototype="{{ form_widget(formStock.attributs.vars.prototype)|e('html_attr') }}">
+                                    {# Les attributs existants seront rendus ici #}
+                                    {% if formStock.attributs|length > 0 %}
+                                        {% for attribut in formStock.attributs %}
+                                            <div class="attr-row card border-0 shadow-sm p-3 mb-2 rounded-3" style="background: #ffffff;">
+                                                <div class="row g-2 align-items-end">
+                                                    <div class="col-md-2">
+                                                        {{ form_label(attribut.dimension, 'Dimension', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
+                                                        {{ form_widget(attribut.dimension, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 120x80'}}) }}
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        {{ form_label(attribut.grammage, 'Grammage', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
+                                                        {{ form_widget(attribut.grammage, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 180g'}}) }}
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        {{ form_label(attribut.couleur, 'Couleur', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
+                                                        {{ form_widget(attribut.couleur, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: Rouge'}}) }}
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        {{ form_label(attribut.longueur, 'Longueur', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
+                                                        {{ form_widget(attribut.longueur, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 150m'}}) }}
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        {{ form_label(attribut.kilogramme, 'Poids (kg)', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
+                                                        {{ form_widget(attribut.kilogramme, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 2.5'}}) }}
+                                                    </div>
+                                                    <div class="col-md-1">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-0 remove-attribut" style="width: 32px; height: 32px; line-height: 1;" title="Supprimer cette ligne">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                                                {# BOUTON POUR AFFICHER LA SECTION ATTRIBUTS #}
+                        <div class="text-center mb-3">
+                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" id="show-attributs-btn">
+                                <i class="fas fa-cog me-2"></i> Ajouter des caractéristiques techniques
+                            </button>
+                            <small class="d-block text-muted mt-1">(Optionnel - pour les articles avec des spécificités)</small>
+                        </div>
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill shadow-sm mt-2">
+                                            <i class="fas fa-save me-2"></i> Enregistrer dans le stock
+                                        </button>
+                                    {{ form_end(formStock) }}
+                                </div>
+                            </div>
+                        </div>{# ===== ONGLET 2 : INVENTAIRE ===== #}
+                        <div class="tab-pane fade" id="list-pane" role="tabpanel">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                                <h5 class="fw-bold text-secondary m-0"><i class="fas fa-warehouse text-success me-2"></i>État Actuel</h5>
+                                <div>
+                                    <button class="btn btn-outline-primary btn-sm me-1" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exporter</button>
+                                </div>
+                            </div>
+                            <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
+                                <select name="category" class="form-select w-auto" onchange="this.form.submit()">
+                                    <option value="">Toutes catégories</option>
+                                    {% for cat in categories %}
+                                        <option value="{{ cat.id }}" {% if app.request.get('category') == cat.id %}selected{% endif %}>{{ cat.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if subCategories is not empty %}
+                                    <select name="subCategory" class="form-select w-auto" onchange="this.form.submit()">
+                                        <option value="">Toutes sous-cat.</option>
+                                        {% for subCat in subCategories %}
+                                            <option value="{{ subCat.id }}" {% if app.request.get('subCategory') == subCat.id %}selected{% endif %}>{{ subCat.nom }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
+                            </form>
+                            {% set activeSubCatName = selectedSubCategory ? selectedSubCategory.nom|lower : '' %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Article</th><th>Couleur</th>
+                                            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                                <th>Litrage</th><th>Grammage</th><th>Machine</th>
+                                            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                                <th>Laize</th><th>Longueur</th><th>Grammage</th>
+                                            {% else %}
+                                                <th>Grammage</th><th>Longueur</th><th>Dimensions</th><th>Machine</th>
+                                            {% endif %}
+                                            <th>Qté</th><th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for attr in attributs %}
+                                        <tr>
+                                            <td><strong>{{ attr.article.nom }}</strong></td>
+                                            <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                                            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+                                            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                                <td>{{ attr.dimension ?: '-' }}</td>
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                            {% else %}
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.dimension ?: '-' }}</td>
+                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+                                            {% endif %}
+                                            <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
+                                            <td>{% if attr.article.quantite <= attr.article.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="10" class="text-center text-muted py-4">Aucun article trouvé.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {# ===== ONGLET 3 : SUIVI MATIN ===== #}
+                        <div class="tab-pane fade" id="dem-pane" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold text-warning m-0"><i class="fas fa-calendar-check me-2"></i>Flux de matériel (matin)</h5>
+                                <span class="badge bg-dark px-3 py-2">{{ "now"|date("d/m/Y") }}</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle border">
+                                    <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                        <tr><th>Heure</th><th>Département</th><th>Origine</th><th>Matériel</th><th class="text-center">Quantité</th><th>Destination</th><th>Statut</th><th class="text-center">Action</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d in demandes %}
+                                        <tr>
+                                            <td class="fw-bold text-muted">{{ d.createdAt|date('H:i') }}</td>
+                                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ d.departement }}</span></td>
+                                            <td><span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1"><i class="fas fa-building me-1"></i>{{ d.localisation|default('Direction')|upper }}</span></td>
+                                            <td class="fw-semibold">{{ d.materiel }}</td>
+                                            <td class="text-center fw-bold text-primary">
+                                                {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
+                                                    {% set p_dem = (d.quantite / 25)|round(0, 'floor') %}
+                                                    {% set r_dem = d.quantite % 25 %}
+                                                    <span>{{ p_dem }} pqt(s) {% if r_dem > 0 %}{{ r_dem }} u{% endif %}</span>
+                                                    <br><small class="text-muted" style="font-size:11px;">({{ d.quantite }} u)</small>
+                                                {% else %}
+                                                    {{ d.quantite|default('1') }}
+                                                {% endif %}
+                                            </td>
+                                            <td><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ d.destination|default('Non spécifiée')|upper }}</td>
+                                            <td>
+                                                {% if d.statut == 'En attente' %}<span class="badge rounded-pill bg-warning text-dark">En attente compta</span>
+                                                {% elseif d.statut == 'Validé Compta' %}<span class="badge rounded-pill bg-primary text-white">Budget Accordé</span>
+                                                {% elseif d.statut == 'Livré par le Stock' %}<span class="badge rounded-pill bg-success text-white">Livré</span>
+                                                {% else %}<span class="badge rounded-pill bg-secondary">{{ d.statut }}</span>{% endif %}
+                                            </td>
+                                            <td class="text-center">
+                                                {% if d.statut == 'Validé Compta' %}
+                                                    <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
+                                                        <button class="btn btn-sm btn-success fw-bold shadow-sm"><i class="fas fa-truck me-1"></i> Livrer</button>
+                                                    </form>
+                                                {% elseif d.statut == 'En attente' %}
+                                                    <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-lock me-1"></i> Attente</button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-check me-1"></i> Traité</button>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-folder-open me-2"></i>Aucune demande ce matin.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {# ===== ONGLET 4 : RAPPORT HISTORIQUE ===== #}
+                        <div class="tab-pane fade" id="report-pane" role="tabpanel">
+                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+                                <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général</h5>
+                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
+                                <div class="col-md-4"><label class="form-label small fw-bold">Du</label><input type="date" name="date_debut" class="form-control" value="{{ date_debut }}"></div>
+                                <div class="col-md-4"><label class="form-label small fw-bold">Au</label><input type="date" name="date_fin" class="form-control" value="{{ date_fin }}"></div>
+                                <div class="col-md-4 d-flex align-items-end"><button type="submit" class="btn btn-info text-white fw-bold w-100"><i class="fas fa-filter me-2"></i>Filtrer</button></div>
+                            </form>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-striped align-middle border">
+                                    <thead class="table-dark small text-uppercase">
+                                        <tr><th>Date</th><th>Département</th><th>Origine</th><th>Article</th><th class="text-center">Qté</th><th>Destination</th><th class="text-center">État</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for rg in rapportGlobal %}
+                                        <tr>
+                                            <td>{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
+                                            <td><span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1"><i class="fas fa-building me-1"></i>{{ rg.localisation|default('Direction')|upper }}</span></td>
+                                            <td>{{ rg.materiel }}</td>
+                                            <td class="text-center fw-bold">
+                                                {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
+                                                    {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
+                                                    {% set r_rep = rg.quantite % 25 %}
+                                                    <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
+                                                {% else %}
+                                                    {{ rg.quantite }}
+                                                {% endif %}
+                                            </td>
+                                            <td><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
+                                            <td class="text-center">{% if rg.statut == 'Livré par le Stock' %}<span class="badge bg-success"><i class="fas fa-check me-1"></i> Livré</span>{% else %}<span class="badge bg-secondary">{{ rg.statut }}</span>{% endif %}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr><td colspan="7" class="text-center py-4 text-muted">Aucune archive pour cette période.</td></tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        {# ===== ONGLET 5 : ALERTES ===== #}
+                        <div class="tab-pane fade" id="alert-pane" role="tabpanel">
+                            <div class="row g-4">
+                                <div class="col-lg-6">
+                                    <h5 class="fw-bold text-secondary mb-3"><i class="fas fa-bell text-danger me-2"></i>Niveaux critiques</h5>
+                                    {% set has_alert = false %}
+                                    {% for art in articles %}
+                                        {% if art.quantite <= art.seuilAlerte %}
+                                            {% set has_alert = true %}
+                                            <div class="alert {% if art.quantite == 0 %}alert-danger{% else %}alert-warning{% endif %} d-flex align-items-center shadow-sm mb-3" role="alert">
+                                                <i class="fas fa-exclamation-circle fs-4 me-3"></i>
+                                                <div><strong>{{ art.nom }}</strong> : stock à {{ art.quantite }} u (seuil {{ art.seuilAlerte }})</div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not has_alert %}
+                                        <div class="alert alert-ok d-flex align-items-center shadow-sm"><i class="fas fa-check-circle fs-4 me-3"></i><div>Tout est sous contrôle !</div></div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="card border p-3 bg-white shadow-sm">
+                                        <h6 class="fw-bold text-dark mb-3 text-center"><i class="fas fa-chart-bar text-primary me-2"></i>Graphique (unités)</h6>
+                                        <div style="position:relative; height:220px;"><canvas id="stockChart"></canvas></div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                    </div>
-                </div>
+
+                    </div> {# fin tab-content #}
+                </div> {# fin card-tabs #}
             </div>
         </div>
-    </div>
-    </div>
-    {# Fin card-body tab-content #}
+    </div> {# fin container #}
 
-    {# Script Graphique #}
+    {# ========== SCRIPTS ========== #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('stockChart').getContext('2d');
-            new Chart(ctx, {
+    document.addEventListener('DOMContentLoaded', function() {
+        // ============================================================
+        // 1. GRAPHIQUE CHART.JS
+        // ============================================================
+        const ctx = document.getElementById('stockChart');
+        if (ctx) {
+            new Chart(ctx.getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: [{% for art in articles %}"{{ art.nom }}",{% endfor %}],
                     datasets: [{
-                        label: 'Quantité disponible (unités)',
+                        label: 'Quantité (unités)',
                         data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
                         backgroundColor: [
                             {% for art in articles %}
-                                {% if art.quantite <= 0 %} '#dc3545'
-                                {% elseif art.quantite <= art.seuilAlerte %} '#ffc107'
-                                {% else %} '#0d6efd'
-                                {% endif %},
+                                {% if art.quantite <= 0 %}'#dc3545'
+                                {% elseif art.quantite <= art.seuilAlerte %}'#ffc107'
+                                {% else %}'#0d6efd'{% endif %},
                             {% endfor %}
                         ],
-                        borderRadius: 5
+                        borderRadius: 6
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    scales: { y: { beginAtZero: true } } 
                 }
             });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('date_debut')) {
-                const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
-                reportTab.show();
-            }
-        });
-    </script>
-    {# Script Graphique #}
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const ctx = document.getElementById('stockChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: [{% for art in articles %}"{{ art.nom }}",{% endfor %}],
-                    datasets: [{
-                        label: 'Quantité disponible (unités)',
-                        data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
-                        backgroundColor: [
-                            {% for art in articles %}
-                                {% if art.quantite <= 0 %} '#dc3545'
-                                {% elseif art.quantite <= art.seuilAlerte %} '#ffc107'
-                                {% else %} '#0d6efd'
-                                {% endif %},
-                            {% endfor %}
-                        ],
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true } }
-                }
-            });
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('date_debut')) {
-                const reportTab = new bootstrap.Tab(document.querySelector('#report-tab'));
-                reportTab.show();
-            }
-        });
-    </script>
-    <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Logique pour le choix de la sous-catégorie
-    const subCategorySelect = document.querySelector('.sub-category-select');
-    const container = document.getElementById('attributs-container');
-
-    const toggleCollection = () => {
-        if (!subCategorySelect || !container) return;
-        
-        const selectedText = subCategorySelect.options[subCategorySelect.selectedIndex].text.toLowerCase();
-        
-        if (selectedText === 'media') {
-            container.style.display = 'block';
-            // Optionnel : ajouter une ligne automatiquement si le container est vide
-            if (container.querySelectorAll('.attr-row').length === 0) {
-                ajouterLigne();
-            }
-        } else {
-            container.style.display = 'none';
         }
-    };
 
-    if (subCategorySelect) {
-        subCategorySelect.addEventListener('change', toggleCollection);
-        toggleCollection(); // Appel initial au chargement
-    }
+        // ============================================================
+        // 2. AUTO-SWITCH VERS L'ONGLET RAPPORT SI FILTRE DATE PRÉSENT
+        // ============================================================
+        if (new URLSearchParams(window.location.search).has('date_debut')) {
+            const reportTab = document.querySelector('#report-tab');
+            if (reportTab) {
+                new bootstrap.Tab(reportTab).show();
+            }
+        }
 
-    // 2. Logique pour le bouton "Ajouter une ligne"
-    const btnAjouter = document.getElementById('add-attribut');
-    
-    const ajouterLigne = () => {
-        if (!container) return;
+        // ============================================================
+        // 3. GESTION DES ATTRIBUTS DYNAMIQUES (VERSION MODERNISÉE)
+        // ============================================================
+        const subSelect = document.querySelector('.sub-category-select');
+        const attributsWrapper = document.getElementById('attributs-wrapper');
+        const container = document.getElementById('attributs-container');
+        const addBtn = document.getElementById('add-attribut');
+        const showBtn = document.getElementById('show-attributs-btn');
+        const machineContainer = document.getElementById('machine-container');
 
-        let index = container.dataset.index ? parseInt(container.dataset.index) : container.querySelectorAll('.attr-row').length;
-        let prototype = container.dataset.prototype;
-        
-        if (!prototype) return;
+        // 3.1 Afficher/masquer la section attributs sur clic du bouton
+        if (showBtn) {
+            showBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (attributsWrapper.style.display === 'none') {
+                    attributsWrapper.style.display = 'block';
+                    showBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i> Masquer les caractéristiques';
+                    showBtn.classList.remove('btn-outline-secondary');
+                    showBtn.classList.add('btn-outline-primary');
+                } else {
+                    attributsWrapper.style.display = 'none';
+                    showBtn.innerHTML = '<i class="fas fa-cog me-2"></i> Ajouter des caractéristiques techniques';
+                    showBtn.classList.remove('btn-outline-primary');
+                    showBtn.classList.add('btn-outline-secondary');
+                }
+            });
+        }
 
-        // Remplace __name__ par l'index
-        let newForm = prototype.replace(/__name__/g, index);
-        
-        let newDiv = document.createElement('div');
-        newDiv.classList.add('attr-row', 'border', 'p-2', 'mb-2');
-        newDiv.innerHTML = newForm;
-        
-        container.appendChild(newDiv);
-        
-        // Incrémente l'index
-        container.dataset.index = index + 1;
-    };
+        // 3.2 Afficher/masquer la machine selon la sous-catégorie
+        function toggleMachine() {
+            if (!subSelect) return;
+            const selectedOption = subSelect.options[subSelect.selectedIndex];
+            const selectedText = selectedOption ? selectedOption.text.toLowerCase() : '';
+            const isEncre = selectedText.includes('encre') || selectedText.includes('solvant');
+            if (machineContainer) {
+                machineContainer.style.display = isEncre ? 'block' : 'none';
+            }
+        }
 
-    btnAjouter?.addEventListener('click', ajouterLigne);
-});
+        // 3.3 Ajouter une ligne d'attribut
+        function ajouterLigneAttribut() {
+            if (!container) return;
+            
+            let idx = parseInt(container.dataset.index) || container.querySelectorAll('.attr-row').length;
+            let proto = container.dataset.prototype;
+            
+            if (!proto) {
+                console.warn('Prototype non trouvé');
+                return;
+            }
+            
+            let html = proto.replace(/__name__/g, idx);
+            let div = document.createElement('div');
+            div.className = 'attr-row card border-0 shadow-sm p-3 mb-2 rounded-3';
+            div.style.background = '#ffffff';
+            div.innerHTML = html;
+            
+            // Ajouter le bouton de suppression
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-outline-danger btn-sm rounded-circle p-0 remove-attribut';
+            removeBtn.style.width = '32px';
+            removeBtn.style.height = '32px';
+            removeBtn.style.lineHeight = '1';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.title = 'Supprimer cette ligne';
+            removeBtn.onclick = function(e) {
+                e.preventDefault();
+                if (container.querySelectorAll('.attr-row').length > 1) {
+                    div.remove();
+                } else {
+                    alert('Vous devez conserver au moins une ligne de caractéristiques.');
+                }
+            };
+            
+            // Ajouter le bouton dans la dernière colonne
+            const lastCol = div.querySelector('.row:last-child .col-md-1');
+            if (lastCol) {
+                lastCol.innerHTML = '';
+                lastCol.className = 'col-md-1 d-flex align-items-end justify-content-end';
+                lastCol.appendChild(removeBtn);
+            }
+            
+            container.appendChild(div);
+            container.dataset.index = idx + 1;
+        }
+
+        // 3.4 Événements
+        if (subSelect) {
+            subSelect.addEventListener('change', toggleMachine);
+            setTimeout(toggleMachine, 100);
+        }
+
+        if (addBtn) {
+            addBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                ajouterLigneAttribut();
+            });
+        }
+
+        // 3.5 Suppression des lignes existantes via boutons
+        document.querySelectorAll('.remove-attribut').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const row = this.closest('.attr-row');
+                if (row && container.querySelectorAll('.attr-row').length > 1) {
+                    row.remove();
+                } else {
+                    alert('Vous devez conserver au moins une ligne de caractéristiques.');
+                }
+            });
+        });
+
+        // ============================================================
+        // 4. FONCTION D'EXPORT EXCEL
+        // ============================================================
+        window.exportToExcel = function() {
+            alert('Export Excel simulé – connectez votre logique backend.');
+        };
+
+    }); // Fin DOMContentLoaded
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>    
+</body>
 </html>

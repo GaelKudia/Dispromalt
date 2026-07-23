@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\ArticleAttribut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Category;
+use App\Entity\SubCategory;
 
 /**
  * @extends ServiceEntityRepository<ArticleAttribut>
@@ -42,15 +44,21 @@ class ArticleAttributRepository extends ServiceEntityRepository
     //    }
 
     // Dans ton Repository ou Contrôleur (Ex: ArticleAttributRepository)
-public function findAllWithDetails(?Category $category = null)
+public function findAllWithDetails(?Category $category = null, ?SubCategory $subCategory = null)
 {
     $qb = $this->createQueryBuilder('aa')
         ->join('aa.article', 'a')
-        ->leftJoin('a.category', 'c');
+        ->leftJoin('a.category', 'c')
+        ->leftJoin('a.subCategory', 'sc');
 
     if ($category) {
-        $qb->where('c = :category')
+        $qb->andWhere('c = :category')
            ->setParameter('category', $category);
+    }
+
+    if ($subCategory) {
+        $qb->andWhere('sc = :subCategory')
+           ->setParameter('subCategory', $subCategory);
     }
 
     return $qb->getQuery()->getResult();
