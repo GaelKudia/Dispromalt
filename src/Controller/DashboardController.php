@@ -15,9 +15,11 @@ use App\Form\VisiteType;
 use App\Form\StockType;
 use App\Form\DevisType;
 use App\Form\MachineType;
-
 use App\Repository\DemandeRepository;
 use App\Repository\BonSortieRepository;
+use App\Repository\CategoryRepository;
+use App\Repository\ArticleAttributRepository;
+use App\Repository\SubCategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,30 +27,34 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-class DashboardController extends AbstractController
-{
-    #[Route('/dashboard', name: 'app_dashboard')]
-    public function index(
-        Request $request,
-        DemandeRepository $demandeRepository,
-        BonSortieRepository $bonSortieRepository,
-        EntityManagerInterface $em
-    ): Response {
-        // 1. UTILISATEUR CONNECTÉ
-        $currentUser = $this->getUser();
-        if (!$currentUser) {
-            return $this->redirectToRoute('app_login');
-        }
 
-        $userDept = 'Impression';
-        $roleLabel = !empty($currentUser->getRoles()) ? $currentUser->getRoles()[0] : 'ROLE_USER';
+    class DashboardController extends AbstractController
+    {
+            #[Route('/dashboard', name: 'app_dashboard')]
 
-        // 2. STATS
-        $stats = [
-            'demandes_attente' => count($demandeRepository->findBy(['statut' => 'En attente'])),
-            'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
-            'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
-        ];
+        public function index(
+            Request $request, 
+            DemandeRepository $demandeRepository, 
+            BonSortieRepository $bonSortieRepository,
+            SubCategoryRepository $subCategoryRepo,
+            CategoryRepository $categoryRepo, 
+            ArticleAttributRepository $attributRepo,
+            EntityManagerInterface $em
+            
+        ): Response {
+            
+            // 1. UTILISATEUR CONNECTÉ
+            $currentUser = $this->getUser();
+            if (!$currentUser) {
+                return $this->redirectToRoute('app_login');
+            }
+            
+            // --- 1. CALCUL DES STATS (On le fait en tout premier) ---
+            $stats = [
+                'demandes_attente' => count($demandeRepository->findBy(['statut' => 'En attente'])),
+                'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
+                'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
+            ];
 
         // 3. FILTRES DATES
         $dateDebutFiltre = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
@@ -75,26 +81,26 @@ class DashboardController extends AbstractController
             }
         }
 
-        // 5. RENDU CAISSIER
-        if ($this->isGranted('ROLE_CAISSIER')) {
-            return $this->render('dashboard/caisse/index.html.twig', [
-                'devisListe'    => $devisListe,
-                'totalDevisUSD' => $totalDevisUSD,
-                'totalDevisCDF' => $totalDevisCDF,
-                'date_debut'    => $dateDebutFiltre,
-                'date_fin'      => $dateFinFiltre,
-                'stats'         => $stats
-            ]);
-        }
-
+    // 2. RENDU SELON LE RÔLE (À la toute fin, sans return au milieu)
+    if ($this->isGranted('ROLE_CAISSIER')) {
+        return $this->render('dashboard/caisse/index.html.twig', [
+            'devisListe'    => $devisListe,
+            'totalDevisUSD' => $totalDevisUSD,
+            'totalDevisCDF' => $totalDevisCDF,
+            'date_debut'    => $dateDebutFiltre,
+            'date_fin'      => $dateFinFiltre,
+            'stats'         => $stats // (Assure-toi que $stats est calculé avant)
+        ]);
+    }
+            $userName = $currentUser->getUserIdentifier(); 
+            $userDept = 'Impression'; 
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // ============================================================
-        // 6. INITIALISATION DES VUES DE FORMULAIRES
-        // ============================================================
-        $formStockView = null;
+
+            // Initialisation par défaut des vues de formulaires à null
+            $formStockView = null;
         $formDemandeView = null;
         $formBonView = null;
         $formVisiteView = null;
@@ -180,18 +186,7 @@ elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
                 $this->addFlash('success', '📥 L\'article a bien été enregistré !');
                 return $this->redirectToRoute('app_dashboard');
             }
-            $formStockView = $formStock->createView();
-        }
-
-        // ============================================================
-        // 9. FORMULAIRES DEMANDE ET BON (MEMBRE)
-        // ============================================================
-        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE')) {
-            // Demande de matériel
-            $demande = new Demande();
-            $formDemande = $this->createForm(DemandeType::class, $demande);
-            $formDemande->handleRequest($request);
-
+        
             if ($formDemande->isSubmitted() && $formDemande->isValid()) {
                 $nomMaterielSaisi = strtolower($demande->getMateriel());
                 if (str_contains($nomMaterielSaisi, 'gilet') && !$demande->getDestination()) {
@@ -427,8 +422,7 @@ if ($this->isGranted('ROLE_GUERITE')) {
             ]);
         }
 
-        // RENDU STOCK
-        if ($this->isGranted('ROLE_STOCK')) {
+            if ($this->isGranted('ROLE_STOCK')) {
             return $this->render('dashboard/stock.html.twig', [
                 'demandes' => $demandes,
                 'rapportGlobal' => $rapportGlobal,
@@ -454,6 +448,7 @@ if ($this->isGranted('ROLE_GUERITE')) {
                 'date_fin' => $dateFinFiltre
             ]);
         }
+
 
         // RENDU PAR DÉFAUT (MEMBRE)
         return $this->render('dashboard/membre.html.twig', [
