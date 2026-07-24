@@ -616,6 +616,40 @@
             alert('Export Excel simulé – connectez votre logique backend.');
         };
 
+        // ============================================================
+// 1. GRAPHIQUE CHART.JS
+// ============================================================
+const canvas = document.getElementById('stockChart');
+if (canvas) {
+    // On vérifie qu'il y a des labels (données non vides)
+    const labels = [{% for art in articles %}"{{ art.nom }}",{% endfor %}];
+    if (labels.length > 0) {
+        new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Quantité (unités)',
+                    data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
+                    backgroundColor: [
+                        {% for art in articles %}
+                            {% if art.quantite <= 0 %}'#dc3545'
+                            {% elseif art.quantite <= art.seuilAlerte %}'#ffc107'
+                            {% else %}'#0d6efd'{% endif %},
+                        {% endfor %}
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                scales: { y: { beginAtZero: true } } 
+            }
+        });
+    }
+}
+
     }); // Fin DOMContentLoaded
 </script>
 </body>
