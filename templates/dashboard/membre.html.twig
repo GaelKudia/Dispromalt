@@ -30,7 +30,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
         <div class="container-fluid px-4">
             <a class="navbar-brand fw-bold fs-4" href="#">
-                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+                <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
             </a>
             <div class="d-flex align-items-center">
                 <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
@@ -43,22 +43,20 @@
         </div>
     </nav>
 
-   
-
     <div class="container-fluid py-4 px-4">
         
         <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <h1 class="fw-bold text-dark m-0 tracking-tight">Espace de Gestion des Flux</h1>
                 <p class="text-muted m-0 fs-6">
-    {% if is_granted('ROLE_DG') %}
-        Supervision en temps réel des budgets, de la validation des devis, de l'inventaire dépôt et de la logistique.
-    {% else %}
-        Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques selon vos privilèges de service.
-    {% endif %}
-</p>
+                    {% if is_granted('ROLE_DG') %}
+                        Supervision en temps réel des budgets, de la validation des devis, de l'inventaire dépôt et de la logistique.
+                    {% else %}
+                        Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques selon vos privilèges de service.
+                    {% endif %}
+                </p>
             </div>
-            {% if userRole == 'ROLE_DG' %}
+            {% if is_granted('ROLE_DG') %}
                 <span class="badge bg-dark px-3 py-2 border border-secondary font-monospace rounded-3"><i class="fas fa-eye text-info me-2"></i>Mode Audit Direction</span>
             {% endif %}
         </div>
@@ -118,26 +116,64 @@
 
         <div class="row g-4">
             
-            {# COLONNE DE GAUCHE : MASQUÉE ENTIÈREMENT POUR LE DG #}
-            {% if userRole != 'ROLE_COORDON' and userRole != 'ROLE_STOCK' and userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') %}
+            {# ============================================
+               COLONNE DE GAUCHE – FORMULAIRES (masqué pour DG, Coordon, Stock, Guérite)
+            ============================================= #}
+            {% if not is_granted('ROLE_COORDON') and not is_granted('ROLE_STOCK') and not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') %}
             <div class="col-xl-4 col-lg-5">
-                <!-- Formulaire Demande Matériel -->
-                <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #0d6efd !important;">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="card-title m-0 fw-bold"><i class="fas fa-box-open text-primary me-2"></i>Demander du Matériel</h5>
-                    </div>
-                    <div class="card-body">
-                        {{ form_start(formDemande) }}
-                            {{ form_widget(formDemande) }}
-                            <button type="submit" class="btn btn-primary w-100 fw-bold mt-3 shadow-sm">Envoyer la Demande</button>
-                        {{ form_end(formDemande) }}
-                    </div>
+
+                {# Formulaire Demande de Matériel #}
+                {# Formulaire Demande de Matériel #}
+<div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #0d6efd !important;">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title m-0 fw-bold"><i class="fas fa-box-open text-primary me-2"></i>Demander du Matériel</h5>
+    </div>
+    <div class="card-body">
+        {% if formDemande is defined and formDemande is not null %}
+            {{ form_start(formDemande) }}
+                {# 1. Sélection de l'article #}
+                <div class="mb-3">
+                    {{ form_label(formDemande.article) }}
+                    {{ form_widget(formDemande.article, {'attr': {'class': 'form-select', 'id': 'demande_article'}}) }}
                 </div>
 
-                <!-- Formulaire Devis -->
+                {# 2. Sélection de l'attribut (variante) – sera rempli dynamiquement #}
+                <div class="mb-3" id="attribut-wrapper">
+                    {{ form_label(formDemande.attribut) }}
+                    {{ form_widget(formDemande.attribut, {'attr': {'class': 'form-select', 'id': 'demande_attribut', 'disabled': 'disabled'}}) }}
+                </div>
+
+                {# 3. Quantité #}
+                <div class="mb-3">
+                    {{ form_label(formDemande.quantite) }}
+                    {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
+                </div>
+
+                {# 4. Destination (pour les gilets) – si présent #}
+                {% if formDemande.destination is defined %}
+                    <div class="mb-3">
+                        {{ form_label(formDemande.destination) }}
+                        {{ form_widget(formDemande.destination, {'attr': {'class': 'form-control'}}) }}
+                    </div>
+                {% endif %}
+
+                {# 5. Autres champs éventuels #}
+                {# On peut utiliser form_rest pour les champs cachés #}
+                {{ form_rest(formDemande) }}
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold mt-3 shadow-sm">Envoyer la Demande</button>
+            {{ form_end(formDemande) }}
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i> Vous n’avez pas les droits pour faire une demande de matériel.
+            </div>
+        {% endif %}
+    </div>
+</div>
+                {# Formulaire Devis #}
                 <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
                     <div class="card-header bg-white py-3">
-                        <h5 class="card-title m-0 fw-bold text-dark"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Soumettre un Devis</h5>
+                        <h5 class="card-title m-0 fw-bold"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Soumettre un Devis</h5>
                     </div>
                     <div class="card-body">
                         <p class="text-muted small">Saisissez les informations financières liées à votre commande avant de générer l'aperçu.</p>
@@ -147,29 +183,38 @@
                     </div>
                 </div>
 
-                <!-- Formulaire Bon de Sortie -->
+                {# Formulaire Bon de Sortie #}
                 <div class="card border-0 shadow-sm mb-4 rounded-3" style="border-top: 4px solid #198754 !important;">
                     <div class="card-header bg-white py-3">
                         <h5 class="card-title m-0 fw-bold"><i class="fas fa-file-invoice text-success me-2"></i>Créer un Bon de Sortie</h5>
                     </div>
                     <div class="card-body">
-                        {{ form_start(formBon) }}
-                            {{ form_widget(formBon) }}
-                            <button type="submit" class="btn btn-success w-100 fw-bold mt-3 shadow-sm">Émettre le Bon</button>
-                        {{ form_end(formBon) }}
+                        {% if formBon is defined and formBon is not null %}
+                            {{ form_start(formBon) }}
+                                {{ form_widget(formBon) }}
+                                <button type="submit" class="btn btn-success w-100 fw-bold mt-3 shadow-sm">Émettre le Bon</button>
+                            {{ form_end(formBon) }}
+                        {% else %}
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i> Vous n’avez pas les droits pour créer un bon de sortie.
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
+
             </div>
             {% endif %}
 
-            {# COLONNE DE DROITE : CAPTURE TOUTE LA LARGEUR (COL-12) POUR LE DG #}
-            <div class="{% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_STOCK' or userRole == 'ROLE_GUERITE' or userRole == 'ROLE_DG' %}col-12{% else %}col-xl-8 col-lg-7{% endif %}">
+            {# ============================================
+               COLONNE DE DROITE (onglets)
+            ============================================= #}
+            <div class="{% if is_granted('ROLE_COORDON') or is_granted('ROLE_STOCK') or is_granted('ROLE_GUERITE') or is_granted('ROLE_DG') %}col-12{% else %}col-xl-8 col-lg-7{% endif %}">
                 <div class="card border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
                     <div class="card-header bg-white p-0 border-bottom">
                         <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="memberTab" role="tablist">
                             
                             {# ONGLET WORKFLOW FINANCIER : UNIQUE ET PRIORITAIRE POUR LE DG #}
-                            {% if userRole == 'ROLE_DG' %}
+                            {% if is_granted('ROLE_DG') %}
                             <li class="nav-item">
                                 <button class="nav-link active py-3 px-4 fw-bold border-0 text-danger" id="workflow-tab" data-bs-toggle="tab" data-bs-target="#workflow-pane" type="button" role="tab">
                                     <i class="fas fa-file-signature me-2"></i>Arbitrages Financiers & Devis
@@ -182,7 +227,8 @@
                             </li>
                             {% endif %}
 
-                             {% if userRole != 'ROLE_DG' %}
+                            {# ONGLETS POUR LES AUTRES RÔLES (non DG) #}
+                            {% if not is_granted('ROLE_DG') %}
                             <li class="nav-item">
                                 <button class="nav-link active py-3 px-4 fw-bold border-0 text-primary" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button" role="tab">
                                     <i class="fas fa-boxes me-2"></i>Suivi des Demandes
@@ -195,13 +241,10 @@
                             </li>
                             {% endif %}
 
-
-                            
-                            
                             {# ONGLET HISTORIQUE ACCESSIBLE AU COORDONNATEUR ET AU DG #}
-                            {% if userRole == 'ROLE_COORDON' or userRole == 'ROLE_DG' %}
+                            {% if is_granted('ROLE_COORDON') or is_granted('ROLE_DG') %}
                             <li class="nav-item">
-                                <button class="nav-link {% if userRole == 'ROLE_DG' %}active{% endif %} py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                                <button class="nav-link {% if is_granted('ROLE_DG') %}active{% endif %} py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
                                     <i class="fas fa-file-invoice me-2"></i>Rapport Général Hist.
                                 </button>
                             </li>
@@ -213,8 +256,8 @@
                     <div class="card-body p-4">
                         <div class="tab-content">
                             
-                            {# WORKFLOW FINANCIER DESIGN MODERNISÉ (EXCLUSIF DG) #}
-                            {% if userRole == 'ROLE_DG' %}
+                            {# WORKFLOW FINANCIER (EXCLUSIF DG) #}
+                            {% if is_granted('ROLE_DG') %}
                             <div class="tab-pane fade show active" id="workflow-pane" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <div>
@@ -274,7 +317,7 @@
                                                 {% endif %}
                                             {% endfor %}
 
-                                            {# 2️⃣ DEUXIÈME BOUCLE : Les devis DEJA TRAITÉS (En bas - RATURE ENLEVÉE) #}
+                                            {# 2️⃣ DEUXIÈME BOUCLE : Les devis DEJA TRAITÉS (En bas) #}
                                             {% for devis in devisListe %}
                                                 {% if devis.statut != constant('App\\Entity\\Devis::STATUT_ATTENTE_DIR') %}
                                                     {% set hasDevis = true %}
@@ -283,7 +326,6 @@
                                                         <td class="text-muted">{{ devis.createdAt|date('d/m/Y') }}</td>
                                                         <td><span class="badge bg-light text-muted border px-2 py-1">{{ devis.createdBy }}</span></td>
                                                         <td>
-                                                            <!-- Corrigé ici : Simple style text-muted à la place de la rature -->
                                                             <div class="text-muted fw-normal">{{ devis.description }}</div>
                                                             <div class="mt-1">
                                                                 {% if devis.statut == constant('App\\Entity\\Devis::STATUT_DECAISSE') %}
@@ -318,8 +360,8 @@
                             </div>
                             {% endif %}
 
-                            {# SITUATION DES STOCKS #}
-                            {% if userRole == 'ROLE_DG' %}
+                            {# SITUATION DES STOCKS (EXCLUSIF DG) #}
+                            {% if is_granted('ROLE_DG') %}
                             <div class="tab-pane fade" id="stock-pane" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-4">
                                     <div>
@@ -371,7 +413,7 @@
                             {% endif %}
 
                             {# SUIVI DES DEMANDES (MASQUÉ POUR LE DG) #}
-                            {% if userRole != 'ROLE_DG' %}
+                            {% if not is_granted('ROLE_DG') %}
                             <div class="tab-pane fade show active" id="dem-pane" role="tabpanel">
                                 <div class="table-responsive">
                                     <table class="table table-hover table-modern align-middle m-0 border rounded">
@@ -383,7 +425,7 @@
                                                 <th>Matériel</th>
                                                 <th class="text-center">Quantité</th>
                                                 <th>Statut</th>
-                                                {% if userRole == 'ROLE_STOCK' %}<th class="text-center">Action Stock</th>{% endif %}
+                                                {% if is_granted('ROLE_STOCK') %}<th class="text-center">Action Stock</th>{% endif %}
                                             </tr>
                                         </thead>
                                         <tbody class="small">
@@ -411,7 +453,7 @@
                                                             {{ d.statut }}
                                                         </span>
                                                     </td>
-                                                    {% if userRole == 'ROLE_STOCK' %}
+                                                    {% if is_granted('ROLE_STOCK') %}
                                                     <td class="text-center">
                                                         <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
                                                             <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm"><i class="fas fa-truck me-1"></i> Livrer</button>
@@ -436,7 +478,7 @@
                                                 <th>Employé</th>
                                                 <th>Département</th>
                                                 <th>État du Bon</th>
-                                                {% if userRole == 'ROLE_COORDON' %}<th class="text-center">Signature Coordon</th>{% endif %}
+                                                {% if is_granted('ROLE_COORDON') %}<th class="text-center">Signature Coordon</th>{% endif %}
                                             </tr>
                                         </thead>
                                         <tbody class="small">
@@ -446,8 +488,7 @@
                                                     <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
                                                     <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
                                                     <td><span class="badge rounded-pill px-2.5 py-1 bg-primary text-white">{{ b.statut }}</span></td>
-                                                    
-                                                    {% if userRole == 'ROLE_COORDON' %}
+                                                    {% if is_granted('ROLE_COORDON') %}
                                                     <td class="text-center">
                                                         <form action="{{ path('app_bon_valider', {'id': b.id}) }}" method="POST" class="d-inline">
                                                             <button class="btn btn-sm btn-success fw-bold px-3 shadow-sm">
@@ -465,7 +506,6 @@
                                 </div>
                             </div>
                             {% endif %}
-
 
                             {# RAPPORT GÉNÉRAL HISTORIQUE #}
                             {% if is_granted('ROLE_COORDON') or is_granted('ROLE_DG') %}
@@ -539,37 +579,40 @@
                     </div>
                 </div>
 
-                {# FORMULAIRE DE VISITE BAS DE PAGE (MASQUÉ POUR LE DG) #}
-{# FORMULAIRE DE VISITE BAS DE PAGE (MASQUÉ POUR LE DG) #}
-{% if userRole != 'ROLE_DG' and not is_granted('ROLE_GUERITE') and formVisite is not null %}
-<div class="card border-0 shadow-sm mt-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
-    <div class="card-header bg-white py-3">
-        <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
-    </div>
-    <div class="card-body">
-        {{ form_start(formVisite) }}
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold">Nom du Visiteur</label>
-                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control'}}) }}
+                {# ============================================
+                   FORMULAIRE DE VISITE BAS DE PAGE (masqué pour DG et Guérite)
+                ============================================= #}
+                {% if not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') and formVisite is defined and formVisite is not null %}
+                <div class="card border-0 shadow-sm mt-4 rounded-3" style="border-top: 4px solid #ffc107 !important;">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="card-title m-0 fw-bold text-warning"><i class="fas fa-calendar-alt me-2"></i>Réserver une Visite</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(formVisite) }}
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Nom du Visiteur</label>
+                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Département Visité</label>
+                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label small fw-bold">Motif</label>
+                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2 shadow-sm">Enregistrer la Visite</button>
+                        {{ form_end(formVisite) }}
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold">Département Visité</label>
-                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label small fw-bold">Motif</label>
-                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control'}}) }}
-                </div>
-            </div>
-            {# N'ajoute PAS form_rest(formVisite) ici ! #}
-            <button type="submit" class="btn btn-warning fw-bold px-4 text-dark mt-2 shadow-sm">Enregistrer la Visite</button>
-        {{ form_end(formVisite) }}
-    </div>
-</div>
-{% endif %}            </div>
-        </div>
-    </div>
+                {% endif %}
+
+            </div> {# fin colonne droite #}
+        </div> {# fin row #}
+    </div> {# fin container #}
+
     <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Maintien automatique de l'onglet rapport actif chez le coordon/DG après filtrage par date
@@ -612,8 +655,112 @@
         }
     });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // ... (votre code existant)
+
+    // ============================================================
+    // Chargement dynamique des attributs selon l'article sélectionné
+    // ============================================================
+    const articleSelect = document.getElementById('demande_article');
+    const attributSelect = document.getElementById('demande_attribut');
+
+    if (articleSelect && attributSelect) {
+        // Fonction pour charger les attributs
+        function loadAttributs(articleId) {
+            if (!articleId) {
+                attributSelect.innerHTML = '<option value="">Sélectionnez d\'abord un article</option>';
+                attributSelect.disabled = true;
+                return;
+            }
+
+            fetch('/api/get-attributs/' + articleId)
+                .then(response => {
+                    if (!response.ok) throw new Error('Erreur réseau');
+                    return response.json();
+                })
+                .then(data => {
+                    attributSelect.innerHTML = '<option value="">Choisissez une variante</option>';
+                    if (data.length === 0) {
+                        attributSelect.innerHTML = '<option value="">Aucune variante disponible</option>';
+                        attributSelect.disabled = true;
+                    } else {
+                        data.forEach(attr => {
+                            const option = document.createElement('option');
+                            option.value = attr.id;
+                            option.textContent = attr.valeur;
+                            attributSelect.appendChild(option);
+                        });
+                        attributSelect.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des attributs :', error);
+                    attributSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                    attributSelect.disabled = true;
+                });
+        }
+
+        // Écouteur sur le changement d'article
+        articleSelect.addEventListener('change', function() {
+            loadAttributs(this.value);
+        });
+
+        // Si un article est déjà présélectionné (après validation avec erreur)
+        if (articleSelect.value) {
+            loadAttributs(articleSelect.value);
+        }
+    }
+});
+</script>
+
+<script
+const articleSelect = document.getElementById('demande_article');
+const attributSelect = document.getElementById('demande_attribut');
+
+if (articleSelect && attributSelect) {
+    function loadAttributs(articleId) {
+        if (!articleId) {
+            attributSelect.innerHTML = '<option value="">Sélectionnez d\'abord un article</option>';
+            attributSelect.disabled = true;
+            return;
+        }
+
+        fetch('/api/get-attributs/' + articleId)
+            .then(response => response.json())
+            .then(data => {
+                attributSelect.innerHTML = '<option value="">Choisissez une variante</option>';
+                if (data.length === 0) {
+                    attributSelect.innerHTML = '<option value="">Aucune variante disponible</option>';
+                    attributSelect.disabled = true;
+                } else {
+                    data.forEach(attr => {
+                        const option = document.createElement('option');
+                        option.value = attr.id;
+                        option.textContent = attr.valeur;
+                        attributSelect.appendChild(option);
+                    });
+                    attributSelect.disabled = false;
+                }
+            })
+            .catch(() => {
+                attributSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                attributSelect.disabled = true;
+            });
+    }
+
+    articleSelect.addEventListener('change', function() {
+        loadAttributs(this.value);
+    });
+
+    // Si un article est présélectionné (après validation)
+    if (articleSelect.value) {
+        loadAttributs(articleSelect.value);
+    }
+}
+</script>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

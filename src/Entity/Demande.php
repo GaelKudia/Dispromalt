@@ -141,5 +141,18 @@ private ?Article $article = null;
 #[ORM\ManyToOne(targetEntity: User::class)]
 private ?User $demandeur = null; // C'est ici que tu récupères automatiquement le site
 
+#[ORM\ManyToOne(targetEntity: ArticleAttribut::class)]
+private ?ArticleAttribut $attribut = null;
+
+// N'oublie pas les getters et setters associés :
+public function getAttribut(): ?ArticleAttribut { return $this->attribut; }
+public function setAttribut(?ArticleAttribut $attribut): self { 
+    $this->attribut = $attribut; 
+    // Si tu as un champ 'materiel' textuel dans Demande, tu peux aussi le remplir automatiquement ici :
+    if ($attribut && $attribut->getArticle()) {
+        $this->materiel = $attribut->getArticle()->getNom();
+    }
+    return $this; 
+}
 
 }
