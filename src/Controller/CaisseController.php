@@ -15,6 +15,8 @@ use App\Form\StockType;
 use App\Form\DevisType;
 
 use App\Repository\DemandeRepository;
+use App\Repository\DevisRepository;
+
 use App\Repository\BonSortieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,7 +34,7 @@ class CaisseController extends AbstractController
 public function index(DevisRepository $devisRepository): Response
 {
     // On ne récupère que les devis ayant le statut 'ATTENTE_CAISSE'
-    return $this->render('caisse/index.html.twig', [
+    return $this->render('dashboard/caisse/index.html.twig', [
         'devis_a_payer' => $devisRepository->findBy(['statut' => 'ATTENTE_CAISSE']),
     ]);
 }
@@ -49,16 +51,41 @@ public function decaisser(Devis $devis, EntityManagerInterface $em): Response
     $this->addFlash('success', 'Fonds décaissés avec succès.');
     return $this->redirectToRoute('app_caisse_index');
 
-    if ($this->isGranted('ROLE_USER') && $this->isGranted('ROLE_CAISSIER')) {
-    $devisAPayer = $em->getRepository(Devis::class)->findBy(['statut' => 'Validé Compta']);
     
-    return $this->render('dashboard/caisse/index.html.twig', [
-        'devis_a_payer' => $devisAPayer,
-        'userRole' => 'ROLE_CAISSIER',
-        'stats' => $stats,
+}
+
+// Dans src/Controller/CaisseController.php
+#[Route('/caisse/visite/nouvelle', name: 'app_caisse_nouvelle_visite')]
+public function nouvelleVisite(Request $request, EntityManagerInterface $em): Response
+{
+    $visite = new Visite();
+    $visite->setStatut('En attente');
+    $visite->setDateArrivee(new \DateTime());
+
+    // 🚀 C'EST ICI QU'ON CACHE LES CHAMPS POUR LE CAISSIER
+    $form = $this->createForm(VisiteType::class, $visite, [
+        'with_extra_fields' => false, 
     ]);
-}
-}
+    
+    $form->handleRequest($request);
 
+    if ($form->isSubmitted() && $form->isValid()) {
+        
+        // Si un responsable a été sélectionné pour la délégation
+        if ($visite->getResponsableDelegue()) {
+            $visite->setStatut('Délégué');
+        }
 
+        $em->persist($visite);
+        $em->flush();
+
+        $this->addFlash('success', 'Visite enregistrée et déléguée avec succès.');
+        return $this->redirectToRoute('app_caisse_index');
+    }
+
+ return $this->render('dashboard/caisse/nouvelle_visite.html.twig', [
+        'formVisite' => $form->createView(),
+    ]);
+
+}
 }

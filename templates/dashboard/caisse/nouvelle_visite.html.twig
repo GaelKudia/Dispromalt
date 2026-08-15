@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enregistrer une Visite & Délégation - Dispromalt{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid py-4">
+    <!-- En-tête de la page -->
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-address-book text-primary me-2"></i>Gestion des Visites
+                </h1>
+                <p class="text-muted mb-0">Enregistrez un visiteur et déléguez si besoin au DG ou au Coordonnateur.</p>
+            </div>
+            <div>
+                <a href="{{ path('app_caisse_index') }}" class="btn btn-outline-secondary shadow-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Retour à la caisse
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carte du Formulaire -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h5 class="card-title mb-0 fw-semibold">
+                        <i class="fa-solid fa-user-plus me-2"></i> Formulaire de Réservation & Visite
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {{ form_start(formVisite, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <div class="row g-3">
+                        <!-- Nom du visiteur -->
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Nom du visiteur</label>
+                            {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.nomVisiteur) }}
+                        </div>
+
+                        <!-- Département visité -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Département visité</label>
+                            {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.departement) }}
+                        </div>
+
+                        <!-- Motif -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Motif de la visite</label>
+                            {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.motif) }}
+                        </div>
+
+                        <!-- Téléphone (Affiché uniquement si activé) -->
+                        {% if formVisite.telephone is defined %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Téléphone</label>
+                            {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.telephone) }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Email (Affiché uniquement si activé) -->
+                        {% if formVisite.email is defined %}
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Email</label>
+                            {{ form_widget(formVisite.email, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.email) }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Pièce d'identité (Affiché uniquement si activé) -->
+                        {% if formVisite.pieceIdentite is defined %}
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Pièce d'identité</label>
+                            {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(formVisite.pieceIdentite) }}
+                        </div>
+                        {% endif %}
+                        <!-- 🚀 Section spéciale : Délégation -->
+                        <div class="col-12 mt-4">
+                            <div class="p-3 bg-light border border-info rounded-3">
+                                <label class="form-label fw-bold text-dark mb-1">
+                                    <i class="fa-solid fa-share-nodes text-info me-1"></i> Déléguer cette visite (Optionnel)
+                                </label>
+                                <p class="text-muted small mb-2">Si cette visite est destinée à la direction ou au secrétariat principal, sélectionnez le responsable ci-dessous :</p>
+                                {{ form_widget(formVisite.responsableDelegue, {'attr': {'class': 'form-select rounded-3'}}) }}
+                                {{ form_errors(formVisite.responsableDelegue) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bouton de soumission -->
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ path('app_caisse_index') }}" class="btn btn-light px-4 rounded-3">Annuler</a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 shadow-sm">
+                            <i class="fa-solid fa-check me-1"></i> Enregistrer la visite
+                        </button>
+                    </div>
+
+                    {{ form_end(formVisite) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

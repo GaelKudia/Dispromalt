@@ -3,6 +3,9 @@
 namespace App\Form;
 
 use App\Entity\Visite;
+use App\Entity\User;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
@@ -14,7 +17,6 @@ class VisiteType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        // Champs de base (toujours présents)
         $builder
             ->add('nomVisiteur', TextType::class, [
                 'label' => 'Nom du visiteur',
@@ -27,6 +29,22 @@ class VisiteType extends AbstractType
             ->add('motif', TextType::class, [
                 'label' => 'Motif de la visite',
                 'attr' => ['placeholder' => 'Raison de la visite']
+            ])
+            // 🚀 AJOUT DU CHAMP DE DÉLÉGATION
+            ->add('responsableDelegue', EntityType::class, [
+                'class' => User::class,
+                'query_builder' => function (EntityRepository $er) {
+                    // On filtre pour ne proposer que les rôles concernés (DG, Coordonnateur, etc.)
+                    return $er->createQueryBuilder('u')
+                        ->where('u.roles LIKE :dg OR u.roles LIKE :coordon')
+                        ->setParameter('dg', '%ROLE_DG%')
+                        ->setParameter('coordon', '%ROLE_COORDON%');
+                },
+                'choice_label' => 'email', // Ou un autre champ identifiant si tu as un nom/prénom
+                'label' => 'Déléguer la visite à un responsable (DG, Coordon...)',
+                'required' => false,
+                'placeholder' => 'Sélectionner un responsable (Optionnel)',
+                'attr' => ['class' => 'form-select']
             ]);
 
         // Champs supplémentaires (si l'option est activée)
@@ -54,10 +72,7 @@ class VisiteType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Visite::class,
-            'with_extra_fields' => false, // valeur par défaut : champs simples
+            'with_extra_fields' => true, // Mis à true pour afficher tous les détails par défaut
         ]);
     }
 }
-
-
-//test-pratique //

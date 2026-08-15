@@ -38,8 +38,20 @@
             </a>
             <div class="p-3">
                 <nav class="nav flex-column">
-                    <a class="nav-link active mb-1 rounded" href="{{ path('app_dashboard') }}"><i class="fa-solid fa-gauge-high me-2"></i> Dashboard</a>
-                    <a class="nav-link mb-1 rounded" href="{{ path('app_category_index') }}"><i class="fa-solid fa-layer-group me-2"></i> Catégories</a>
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded" href="{{ path('app_dashboard') }}">
+                        <i class="fa-solid fa-gauge-high me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_category_index' %}active{% endif %} mb-1 rounded" href="{{ path('app_category_index') }}">
+                        <i class="fa-solid fa-layer-group me-2"></i> Catégories
+                    </a>
+                    
+                    <!-- 🚀 NOUVEAU : Liens Caisse & Gestion des Visites -->
+                    <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_caisse' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_index') }}">
+                        <i class="fa-solid fa-cash-register me-2"></i> Espace Caisse
+                    </a>
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_nouvelle_visite' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_nouvelle_visite') }}">
+                        <i class="fa-solid fa-address-book me-2"></i> Enregistrer Visite
+                    </a>
                 </nav>
             </div>
         </div>
@@ -55,7 +67,6 @@
             <div class="content-body">
                 {# Permet d'afficher soit main_content soit body #}
                 {% block main_content %}{% endblock %}
-                
             </div>
         </div>
     {% endif %}

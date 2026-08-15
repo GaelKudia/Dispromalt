@@ -151,4 +151,21 @@ class Visite
         $this->pieceIdentite = $pieceIdentite;
         return $this;
     }
+
+    // Ajoute cette propriété en haut avec les autres champs :
+#[ORM\ManyToOne(targetEntity: User::class)]
+#[ORM\JoinColumn(nullable: true)]
+private ?User $responsableDelegue = null;
+
+// Ajoute ensuite le Getter et le Setter correspondants :
+public function getResponsableDelegue(): ?User
+{
+    return $this->responsableDelegue;
+}
+
+public function setResponsableDelegue(?User $responsableDelegue): static
+{
+    $this->responsableDelegue = $responsableDelegue;
+    return $this;
+}
 }

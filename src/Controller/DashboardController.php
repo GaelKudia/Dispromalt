@@ -15,11 +15,13 @@ use App\Form\VisiteType;
 use App\Form\StockType;
 use App\Form\DevisType;
 use App\Form\MachineType;
+use App\Repository\DevisRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\BonSortieRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ArticleAttributRepository;
 use App\Repository\SubCategoryRepository;
+use App\Repository\VisiteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -163,7 +165,6 @@ class DashboardController extends AbstractController
 
         // 2. FORMULAIRES POUR LE RÔLE STOCK
         if ($this->isGranted('ROLE_STOCK')) {
-            // Formulaire d'ajout d'article
             $article = new Article();
             $formStock = $this->createForm(StockType::class, $article);
             $formStock->handleRequest($request);
@@ -175,7 +176,6 @@ class DashboardController extends AbstractController
             }
             $formStockView = $formStock->createView();
 
-            // Bon de sortie (pour le stock)
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
@@ -193,7 +193,6 @@ class DashboardController extends AbstractController
         }
 
         // 3. FORMULAIRES POUR LES UTILISATEURS SIMPLES (MEMBRES)
-        // Exclure tous les rôles qui ont leur propre vue ou qui ne doivent pas accéder à ce formulaire
         if (!$this->isGranted('ROLE_COORDON') &&
             !$this->isGranted('ROLE_STOCK') &&
             !$this->isGranted('ROLE_DG') &&
@@ -202,13 +201,11 @@ class DashboardController extends AbstractController
             !$this->isGranted('ROLE_CAISSIER') &&
             !$this->isGranted('ROLE_ADMIN')) {
 
-            // --- Demande de matériel ---
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
 
             if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-                // Récupération du nom saisi et de l'attribut choisi
                 $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                 /** @var ArticleAttribut|null $attribut */
                 $attribut = $formDemande->get('attribut')->getData();
@@ -219,21 +216,16 @@ class DashboardController extends AbstractController
                 }
 
                 $quantiteDemandee = $demande->getQuantite() ?? 1;
-
-                // Recherche de l'article en base par son nom
                 $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
 
-                // Si un attribut est sélectionné et qu'il a une quantité
                 if ($attribut && method_exists($attribut, 'getQuantite')) {
                     if ($attribut->getQuantite() < $quantiteDemandee) {
                         $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
                         return $this->redirectToRoute('app_dashboard');
                     }
-                    // Décrémenter le stock de l'attribut
                     $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
                     $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
                 } else {
-                    // Pas d'attribut : on vérifie le stock global de l'article
                     if ($article) {
                         if ($article->getQuantite() < $quantiteDemandee) {
                             $this->addFlash('danger', 'Stock insuffisant pour cet article.');
@@ -241,13 +233,11 @@ class DashboardController extends AbstractController
                         }
                         $article->setQuantite($article->getQuantite() - $quantiteDemandee);
                     } else {
-                        // Si l'article n'existe pas, on pourrait créer une alerte ou l'ignorer
                         $this->addFlash('warning', 'Article introuvable en stock. La demande sera enregistrée sans contrôle de stock.');
                     }
                     $demande->setMateriel($nomMaterielSaisi);
                 }
 
-                // Vérification de la destination pour les gilets
                 if (str_contains(strtolower($nomMaterielSaisi), 'gilet') && empty($demande->getDestination())) {
                     $this->addFlash('danger', 'La commune de destination est obligatoire pour les gilets.');
                     return $this->redirectToRoute('app_dashboard');
@@ -263,7 +253,6 @@ class DashboardController extends AbstractController
             }
             $formDemandeView = $formDemande->createView();
 
-            // --- Bon de sortie ---
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
@@ -367,7 +356,7 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // --- AUTRES RÔLES (STOCK, COORDON, DG, COMPTA) pour les données ---
+        // --- AUTRES RÔLES ---
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.createdAt BETWEEN :debut AND :fin')
@@ -388,7 +377,6 @@ class DashboardController extends AbstractController
                 ->getResult();
         }
 
-        // Récupération des attributs/catégories pour les rôles concernés
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
             $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
             $categoryId = $request->query->get('category');
@@ -423,7 +411,6 @@ class DashboardController extends AbstractController
             $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
 
-        // Bons de sortie
         if ($this->isGranted('ROLE_COORDON')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
         } elseif ($this->isGranted('ROLE_GUERITE')) {
@@ -432,8 +419,6 @@ class DashboardController extends AbstractController
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
         }
-
-        // ------------------  RENDU SELON LE RÔLE  ------------------
 
         // COMPTA
         if ($this->isGranted('ROLE_COMPTA')) {
@@ -570,7 +555,6 @@ class DashboardController extends AbstractController
         $quantiteDemandee = $demande->getQuantite() ?? 1;
 
         if (!$article || $article->getQuantite() < $quantiteDemandee) {
-            $stockActuel = $article ? $article->getQuantite() : 0;
             $this->addFlash('danger', '🛑 Impossible de valider le budget. Le matériel "' . $demande->getMateriel() . '" n\'est pas assez en stock au dépôt.');
             return $this->redirectToRoute('app_dashboard');
         }
@@ -619,59 +603,59 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-
     // ============================================================
-// ROUTE POUR LA SORTIE EFFECTIVE (GUERITE)
-// ============================================================
-#[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
-#[IsGranted('ROLE_GUERITE')]
-public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
-{
-    // Vérifier que le bon est dans un état où la sortie est possible (Validé Coordon)
-    if ($bonSortie->getStatut() !== 'Validé Coordon') {
-        $this->addFlash('danger', 'Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
+    // ROUTE POUR LA SORTIE EFFECTIVE (GUERITE)
+    // ============================================================
+    #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
+    #[IsGranted('ROLE_GUERITE')]
+    public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
+    {
+        if ($bonSortie->getStatut() !== 'Validé Coordon') {
+            $this->addFlash('danger', 'Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $bonSortie->setStatut('Sortie effective');
+        $em->flush();
+
+        $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Changer le statut en "Sortie effective" (ou "Sortie guérite")
-    $bonSortie->setStatut('Sortie effective');
-    $em->flush();
-
-    $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
-    return $this->redirectToRoute('app_dashboard');
-}
-
+    // ============================================================
+    // RECHERCHE API ARTICLE
+    // ============================================================
     #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
-public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
-{
-    $nom = $request->query->get('nom');
-    if (empty($nom)) {
-        return new JsonResponse(['error' => 'Nom requis'], 400);
-    }
+    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $nom = $request->query->get('nom');
+        if (empty($nom)) {
+            return new JsonResponse(['error' => 'Nom requis'], 400);
+        }
 
-    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nom]);
-    if (!$article) {
-        return new JsonResponse(['found' => false]);
-    }
+        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nom]);
+        if (!$article) {
+            return new JsonResponse(['found' => false]);
+        }
 
-    $attributs = [];
-    foreach ($article->getAttributs() as $attr) {
-        $details = [];
-        if ($attr->getCouleur()) $details[] = 'Couleur: ' . $attr->getCouleur();
-        if ($attr->getGrammage()) $details[] = 'Grammage: ' . $attr->getGrammage();
-        if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
-        if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
-        $label = implode(' - ', $details) ?: 'Standard';
-        $attributs[] = [
-            'id' => $attr->getId(),
-            'valeur' => $label
-        ];
-    }
+        $attributs = [];
+        foreach ($article->getAttributs() as $attr) {
+            $details = [];
+            if ($attr->getCouleur()) $details[] = 'Couleur: ' . $attr->getCouleur();
+            if ($attr->getGrammage()) $details[] = 'Grammage: ' . $attr->getGrammage();
+            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
+            if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
+            $label = implode(' - ', $details) ?: 'Standard';
+            $attributs[] = [
+                'id' => $attr->getId(),
+                'valeur' => $label
+            ];
+        }
 
-    return new JsonResponse([
-        'found' => true,
-        'article_id' => $article->getId(),
-        'attributs' => $attributs
-    ]);
-}
+        return new JsonResponse([
+            'found' => true,
+            'article_id' => $article->getId(),
+            'attributs' => $attributs
+        ]);
+    }
 }
