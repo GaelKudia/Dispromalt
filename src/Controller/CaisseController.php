@@ -16,7 +16,6 @@ use App\Form\DevisType;
 
 use App\Repository\DemandeRepository;
 use App\Repository\DevisRepository;
-
 use App\Repository\BonSortieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,65 +26,75 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class CaisseController extends AbstractController
 {
+    #[Route('/caisse', name: 'app_caisse_index')]
+    public function index(DevisRepository $devisRepository, Request $request): Response
+    {
+        // Récupération des filtres de dates (optionnel)
+        $dateDebutFiltre = $request->query->get('date_debut', date('Y-m-d'));
+        $dateFinFiltre = $request->query->get('date_fin', date('Y-m-d'));
 
-// src/Controller/CaisseController.php
-
-#[Route('/caisse', name: 'app_caisse_index')]
-public function index(DevisRepository $devisRepository): Response
-{
-    // On ne récupère que les devis ayant le statut 'ATTENTE_CAISSE'
-    return $this->render('dashboard/caisse/index.html.twig', [
-        'devis_a_payer' => $devisRepository->findBy(['statut' => 'ATTENTE_CAISSE']),
-    ]);
-}
-
-#[Route('/caisse/decaisser/{id}', name: 'app_caisse_valider')]
-public function decaisser(Devis $devis, EntityManagerInterface $em): Response
-{
-    $devis->setStatut('DECAISSE');
-    $devis->setDateDecaissement(new \DateTime());
-    // Ici, tu peux aussi enregistrer un historique ou une ligne de sortie de caisse
-    
-    $em->flush();
-    
-    $this->addFlash('success', 'Fonds décaissés avec succès.');
-    return $this->redirectToRoute('app_caisse_index');
-
-    
-}
-
-// Dans src/Controller/CaisseController.php
-#[Route('/caisse/visite/nouvelle', name: 'app_caisse_nouvelle_visite')]
-public function nouvelleVisite(Request $request, EntityManagerInterface $em): Response
-{
-    $visite = new Visite();
-    $visite->setStatut('En attente');
-    $visite->setDateArrivee(new \DateTime());
-
-    // 🚀 C'EST ICI QU'ON CACHE LES CHAMPS POUR LE CAISSIER
-    $form = $this->createForm(VisiteType::class, $visite, [
-        'with_extra_fields' => false, 
-    ]);
-    
-    $form->handleRequest($request);
-
-    if ($form->isSubmitted() && $form->isValid()) {
+        // On peut filtrer par date ou récupérer la liste complète / en attente
+        $devisListe = $devisRepository->findAll(); 
         
-        // Si un responsable a été sélectionné pour la délégation
-        if ($visite->getResponsableDelegue()) {
-            $visite->setStatut('Délégué');
+        $totalDevisUSD = 0;
+        $totalDevisCDF = 0;
+        foreach ($devisListe as $d) {
+            // Optionnel : ne comptabiliser que ceux validés ou en attente selon ta logique
+            if ($d->getDevise() === 'CDF') {
+                $totalDevisCDF += $d->getMontant();
+            } else {
+                $totalDevisUSD += $d->getMontant();
+            }
         }
 
-        $em->persist($visite);
-        $em->flush();
+        return $this->render('dashboard/caisse/index.html.twig', [
+            'devisListe'    => $devisListe,
+            'totalDevisUSD' => $totalDevisUSD,
+            'totalDevisCDF' => $totalDevisCDF,
+            'date_debut'    => $dateDebutFiltre,
+            'date_fin'      => $dateFinFiltre,
+        ]);
+    }
 
-        $this->addFlash('success', 'Visite enregistrée et déléguée avec succès.');
+    #[Route('/caisse/decaisser/{id}', name: 'app_caisse_valider')]
+    public function decaisser(Devis $devis, EntityManagerInterface $em): Response
+    {
+        $devis->setStatut('DECAISSE');
+        $devis->setDateDecaissement(new \DateTime());
+        
+        $em->flush();
+        
+        $this->addFlash('success', 'Fonds décaissés avec succès.');
         return $this->redirectToRoute('app_caisse_index');
     }
 
- return $this->render('dashboard/caisse/nouvelle_visite.html.twig', [
-        'formVisite' => $form->createView(),
-    ]);
+    #[Route('/caisse/visite/nouvelle', name: 'app_caisse_nouvelle_visite')]
+    public function nouvelleVisite(Request $request, EntityManagerInterface $em): Response
+    {
+        $visite = new Visite();
+        $visite->setStatut('En attente');
+        $visite->setDateArrivee(new \DateTime());
 
-}
+        $form = $this->createForm(VisiteType::class, $visite, [
+            'with_extra_fields' => false, 
+        ]);
+        
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($visite->getResponsableDelegue()) {
+                $visite->setStatut('Délégué');
+            }
+
+            $em->persist($visite);
+            $em->flush();
+
+            $this->addFlash('success', 'Visite enregistrée et déléguée avec succès.');
+            return $this->redirectToRoute('app_caisse_index');
+        }
+
+        return $this->render('dashboard/caisse/nouvelle_visite.html.twig', [
+            'formVisite' => $form->createView(),
+        ]);
+    }
 }

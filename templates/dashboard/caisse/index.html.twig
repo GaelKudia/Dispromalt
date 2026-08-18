@@ -77,7 +77,7 @@
             <td class="text-center">
     {% if devis.statut == 'EN_ATTENTE_BON_SORTIE' or devis.statut == 'Validé Compta' %}
         {# J'ai corrigé la balise form ici #}
-        <form action="{{ path('app_caissier_valider_decaissement', {'id': devis.id}) }}" 
+        <form action="{{ path('app_caisse_valider', {'id': devis.id}) }}" 
               method="POST" 
               onsubmit="return confirm('⚠️ Confirmer le paiement ?');">
             <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
