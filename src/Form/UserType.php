@@ -36,6 +36,17 @@ class UserType extends AbstractType
             ->add('password', PasswordType::class, [
                 'attr' => ['class' => 'form-control', 'placeholder' => 'Mot de passe temporaire']
             ])
+            ->add('service', EntityType::class, [
+    'class' => Service::class,
+    'choice_label' => 'nom',
+    'label' => 'Service d\'appartenance',
+    'placeholder' => 'Sélectionner un service',
+    'required' => false,
+])
+->add('isChefService', CheckboxType::class, [
+    'label' => 'Cet utilisateur est-il Chef de Service ?',
+    'required' => false,
+])
         ->add('localisation', ChoiceType::class, [
     'choices'  => [
         'Agent de la Direction (Par défaut)' => null,
