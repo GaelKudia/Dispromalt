@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Espace Caissier{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid p-4">
+
+    {# Affichage des messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark"><i class="fas fa-cash-register me-2"></i>Espace Caissier</h3>
+        <span class="text-muted"><i class="fas fa-user me-1"></i> {{ app.user.userIdentifier }}</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="m-0 text-primary fw-bold"><i class="fas fa-wallet me-2"></i>Ordres de décaissement (Circuit 2)</h5>
+        </div>
+        
+        <div class="card-body">
+            {# Totaux #}
+            <div class="d-flex gap-2 mb-4">
+                <span class="badge bg-success py-2 px-3 rounded-pill">Total USD : {{ totalDevisUSD|number_format(2, ',', ' ') }} $</span>
+                <span class="badge bg-primary py-2 px-3 rounded-pill">Total FC : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC</span>
+            </div>
+
+            <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
+                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
+                                    <div class="col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de début</label>
+                                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                                    </div>
+                                    <div class="col-md-4 col-sm-6">
+                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de fin</label>
+                                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                                    </div>
+                                    <div class="col-md-4 col-12 d-flex gap-2">
+                                        <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
+                                            <i class="fas fa-filter me-1"></i> Filtrer la période
+                                        </button>
+                                        <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </a>
+                                    </div>
+                                </form>
+                            </div>
+
+
+            {# Table #}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle m-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th>Émetteur</th>
+                            <th>Libellé</th>
+                            <th>Montant</th>
+                            <th>Date</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+    {% for devis in devisListe %}
+        <tr>
+            <td>{{ devis.createdBy }}</td>
+            <td>{{ devis.entete }}</td>
+            <td>{{ devis.montant|number_format(2) }} {{ devis.devise }}</td>
+            <td>{{ devis.createdAt|date('d/m/Y') }}</td>
+            
+            <td class="text-center">
+    {% if devis.statut == 'EN_ATTENTE_BON_SORTIE' or devis.statut == 'Validé Compta' %}
+        {# J'ai corrigé la balise form ici #}
+        <form action="{{ path('app_caisse_valider', {'id': devis.id}) }}" 
+              method="POST" 
+              onsubmit="return confirm('⚠️ Confirmer le paiement ?');">
+            <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
+                <i class="fas fa-check me-1"></i> Payer
+            </button>
+        </form>
+    {% elseif devis.statut == 'Decaissé' %}
+        <span class="badge bg-success shadow-sm">
+            <i class="fas fa-check-double me-1"></i> Décaissé
+        </span>
+    {% else %}
+        <span class="badge bg-secondary">{{ devis.statut }}</span>
+    {% endif %}
+</td>
+        </tr>
+    {% else %}
+        {# Ce bloc s'affiche si la liste est vide #}
+        <tr>
+            <td colspan="5" class="text-center">Aucun décaissement en attente.</td>
+        </tr>
+    {% endfor %}
+</tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

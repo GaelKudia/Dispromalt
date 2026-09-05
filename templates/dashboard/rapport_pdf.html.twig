@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport de Flux financier et matériel</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; font-size: 11px; color: #333; }
+        h1 { text-align: center; color: #1e293b; font-size: 18px; margin-bottom: 5px; }
+        .periode { text-align: center; font-style: italic; margin-bottom: 25px; color: #64748b; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; vertical-align: middle; }
+        th { background-color: #f8fafc; font-weight: bold; color: #475569; text-transform: uppercase; font-size: 10px; }
+        .text-end { text-align: right; }
+        .font-mono { font-family: 'Courier New', monospace; font-weight: bold; }
+    </style>
+</head>
+<body>
+dedd
+    <h1>Rapport Général des Flux & Registre Logistique</h1>
+    <div class="periode">Période du {{ date_debut }} au {{ date_fin }}</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date / Heure</th>
+                <th>Département</th>
+                <th>Origine</th>
+                <th>Article / Matériel</th>
+                <th class="text-end">Quantité</th>
+                <th>Destination Finale</th>
+                <th>État Flux</th>
+            </tr>
+        </thead>
+        <tbody>
+            {# 🔍 CORRECTION : Utilisation de rapportGlobal à la place de donnees #}
+            {% for rg in rapportGlobal %}
+                <tr>
+                    <td>{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                    <td>{{ rg.departement }}</td>
+                    <td>{{ rg.localisation|default('Direction')|upper }}</td>
+                    <td><strong>{{ rg.materiel }}</strong></td>
+                    <td class="text-end font-mono">
+                        {# Gestion du formatage des paquets de gilets si applicable #}
+                        {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
+                            {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
+                            {% set r_rep = rg.quantite % 25 %}
+                            {{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}
+                        {% else %}
+                            {{ rg.quantite }}
+                        {% endif %}
+                    </td>
+                    <td>{{ rg.destination|default('Dépôt central')|upper }}</td>
+                    <td>{{ rg.statut }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">
+                        Aucun mouvement ou flux enregistré sur cette période.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

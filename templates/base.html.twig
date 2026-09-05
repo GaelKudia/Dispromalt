@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dispromalt{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        body { overflow-x: hidden; font-family: 'Source Sans Pro', sans-serif; background-color: #f4f6f9; }
+        .login-page { background-color: #e3f2fd !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .sidebar { width: 250px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #343a40; color: #c2c7d0; z-index: 1000; transition: all 0.3s ease-in-out; }
+        .sidebar .brand-link { padding: 15px; font-size: 1.25rem; background-color: #22252a; color: #fff; text-decoration: none; display: block; border-bottom: 1px solid #4b545c; }
+        .sidebar .nav-link { color: #c2c7d0; padding: 10px 15px; display: block; text-decoration: none; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; border-left: 3px solid #0d6efd; }
+        .main-wrapper { margin-left: 250px; min-height: 100vh; transition: all 0.3s ease-in-out; }
+        .top-navbar { background-color: #fff; border-bottom: 1px solid #dee2e6; padding: 10px 20px; }
+        .content-body { padding: 20px; }
+        .sidebar.collapsed { left: -250px; }
+        .main-wrapper.expanded { margin-left: 0; }
+    </style>
+    {% block stylesheets %}{% endblock %}
+
+    <link rel="manifest" href="https://yumbatechology.net/manifest.json">
+    <meta name="theme-color" content="#317EFB">
+    <link rel="apple-touch-icon" href="https://yumbatechology.net/assets/images/icons/192.png">
+</head>
+<body class="{% if app.request.attributes.get('_route') == 'app_login' %}login-page{% endif %}">
+
+    {% if app.request.attributes.get('_route') == 'app_login' %}
+        {% block body %}{% endblock %}
+    {% else %}
+        <div class="sidebar">
+            <a href="{{ path('app_dashboard') }}" class="brand-link text-center fw-bold">
+                <i class="fas fa-print text-primary me-2"></i>Dispro<span class="text-primary">malt</span>
+            </a>
+            <div class="p-3">
+                <nav class="nav flex-column">
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded" href="{{ path('app_dashboard') }}">
+                        <i class="fa-solid fa-gauge-high me-2"></i> Dashboard
+                    </a>
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_category_index' %}active{% endif %} mb-1 rounded" href="{{ path('app_category_index') }}">
+                        <i class="fa-solid fa-layer-group me-2"></i> Catégories
+                    </a>
+                    
+                    <!-- 🚀 NOUVEAU : Liens Caisse & Gestion des Visites -->
+                    <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_caisse' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_index') }}">
+                        <i class="fa-solid fa-cash-register me-2"></i> Espace Caisse
+                    </a>
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_nouvelle_visite' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_nouvelle_visite') }}">
+                        <i class="fa-solid fa-address-book me-2"></i> Enregistrer Visite
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="top-navbar d-flex justify-content-between align-items-center shadow-sm">
+                <button class="btn btn-link text-dark" id="toggleSidebar"><i class="fa-solid fa-bars"></i></button>
+                {% if app.user %}
+                    <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">Sign out</a>
+                {% endif %}
+            </div>
+
+            <div class="content-body">
+                {# Permet d'afficher soit main_content soit body #}
+                {% block main_content %}{% endblock %}
+            </div>
+        </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const toggleBtn = document.getElementById('toggleSidebar');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector('.sidebar').classList.toggle('collapsed');
+                document.querySelector('.main-wrapper').classList.toggle('expanded');
+            });
+        }
+    </script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

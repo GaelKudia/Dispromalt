@@ -1,0 +1,23 @@
+name: Deploiement Automatique FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Recuperer le code
+      uses: actions/checkout@v3
+
+    - name: Synchroniser les fichiers avec cPanel (FTP)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.CPANEL_HOST }}
+        username: ${{ secrets.CPANEL_USERNAME }}
+        password: ${{ secrets.CPANEL_KEY }}
+        port: 21
+        local-dir: ./
+        server-dir: /home/yumbatec/gestion_imprimerie/

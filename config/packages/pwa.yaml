@@ -1,0 +1,3 @@
+pwa:
+    image_processor: 'pwa.image_processor.gd'
+    asset_compiler: false

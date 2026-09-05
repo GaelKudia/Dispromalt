@@ -1,0 +1,2 @@
+[12-Jun-2026 14:34:25 UTC] PHP Parse error:  syntax error, unexpected end of file in Command line code on line 1
+[12-Jun-2026 14:36:39 UTC] 2026-06-12T14:36:39+00:00 [critical] Uncaught Error: Class "Symfony\Bundle\DebugBundle\DebugBundle" not found

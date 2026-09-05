@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Panneau de Contrôle Général - Administration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link class="jsbin" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        .card-counter { shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; border-radius: 10px; transition: transform 0.2s; }
+        .card-counter:hover { transform: translateY(-3px); }
+        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; }
+        .sticky-form { position: sticky; top: 20px; }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+               Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Gérant Imprimerie</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-user-shield text-warning me-2"></i><strong>Super-Administrateur</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4 px-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <div>
+                <h1 class="fw-bold text-dark m-0">Tableau de Bord Général</h1>
+                <p class="text-muted m-0">Supervision des flux de l'imprimerie et gestion globale des identifiants des agents.</p>
+            </div>
+            <div class="text-end text-muted small font-monospace">
+                <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+            </div>
+        </div>
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-start border-{{ label == 'danger' ? 'danger' : 'success' }} border-4" role="alert">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle text-danger' : 'fa-check-circle text-success' }} me-2 fs-5"></i> 
+                    <strong>{{ label == 'danger' ? 'Erreur :' : 'Succès :' }}</strong> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-4 col-xl-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Demandes Totales</h6>
+                            <h3 class="fw-bold m-0 text-primary">{{ demandes|length }}</h3>
+                        </div>
+                        <i class="fas fa-box fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Bons de Sortie</h6>
+                            <h3 class="fw-bold m-0 text-success">{{ bons|length }}</h3>
+                        </div>
+                        <i class="fas fa-file-signature fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-xl-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-purple border-4" style="border-left-color: #6f42c1 !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Agents Enregistrés</h6>
+                            <h3 class="fw-bold m-0" style="color: #6f42c1;">{{ users|length }}</h3>
+                        </div>
+                        <i class="fas fa-users fa-2x text-purple bg-purple bg-opacity-10 p-3 rounded-circle" style="color: #6f42c1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            
+            <div class="col-xl-5 col-lg-5">
+                <div class="sticky-form">
+                    
+                    {# Formulaire de création de compte existant #}
+                    <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #6f42c1 !important;">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="card-title m-0 fw-bold text-dark">
+                                <i class="fas fa-user-plus me-2" style="color: #6f42c1;"></i>Créer un Compte Agent
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {{ form_start(form) }}
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">Adresse Email de connexion</label>
+                                    {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'agent.nom@imprimerie.com'}}) }}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">Département d'affectation / Rôle</label>
+                                    {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
+                                    <small class="text-muted" style="font-size: 11px;">Note : Si votre formulaire FormType n'inclut pas directement le rôle Chef Comptable, vous pouvez le promouvoir à l'aide de l'outil ci-dessous.</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">Localisation géographique</label>
+                                    {{ form_widget(form.localisation, {'attr': {'class': 'form-select'}}) }}
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label small fw-bold text-secondary">Mot de passe provisoire</label>
+                                    {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Mot de passe'}}) }}
+                                </div>
+                                <button type="submit" class="btn w-100 fw-bold text-white shadow-sm" style="background-color: #6f42c1;">
+                                    <i class="fas fa-check-shield me-2"></i>Générer et Activer l'Accès
+                                </button>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mb-4 border-start border-info border-4">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">
+            <i class="fas fa-cash-register text-info me-2"></i>Nommer un Caissier
+        </h6>
+    </div>
+    <div class="card-body py-3">
+        <form method="POST" action="{{ path('app_admin_assigner_caissier') }}">
+            <div class="input-group input-group-sm">
+                <select name="user_id" class="form-select form-select-sm" required>
+                    <option value="" disabled selected>Sélectionner un agent...</option>
+                    {% for u in users %}
+                        {# Liste ceux qui ne sont pas déjà caissier #}
+                        {% if 'ROLE_CAISSIER' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                            <option value="{{ u.id }}">{{ u.email }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-info btn-sm fw-bold text-white">
+                    <i class="fas fa-check me-1"></i> Nommer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+                    {# 🆕 NOUVEAU BLOC : ATTRIBUTION RAPIDE DU RÔLE CHEF COMPTABLE #}
+                    <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="m-0 fw-bold text-dark">
+                                <i class="fas fa-user-shield text-warning me-2"></i>Nommer un Chef Comptable
+                            </h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <form method="POST" action="{{ path('app_admin_assigner_chef_compta') }}">
+                                <div class="input-group input-group-sm">
+                                    <select name="user_id" class="form-select form-select-sm" required>
+                                        <option value="" disabled selected>Sélectionner un agent...</option>
+                                        {% for u in listeComptables|default(users) %}
+                                            {# Éviter de lister ceux qui le sont déjà ou les admins #}
+                                            {% if 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                                                <option value="{{ u.id }}">{{ u.email }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
+                                        <i class="fas fa-check me-1"></i> Promouvoir
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {# Registre & Contrôle des Comptes #}
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white py-3">
+                            <h6 class="m-0 fw-bold text-dark"><i class="fas fa-users-cog me-2 text-muted"></i>Registre & Contrôle des Comptes ({{ users|length }})</h6>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                            <div class="list-group list-group-flush">
+                                {% for u in users %}
+                                    <div class="list-group-item p-3 d-flex justify-content-between align-items-center small">
+                                        <div style="max-width: 60%;">
+                                            <span class="d-block fw-bold text-dark text-truncate" title="{{ u.email }}">{{ u.email }}</span>
+                                            
+                                            {# Rôles et Badges mis à jour #}
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                {% if 'ROLE_ADMIN' in u.roles %}
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 10px;">ADMINISTRATEUR</span>
+                                                {% endif %}
+                                                
+                                                {# 🆕 Badge dédié pour le Chef Comptable #}
+                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                    <span class="badge bg-warning text-dark border border-warning fw-bold" style="font-size: 10px;">
+                                                        <i class="fas fa-star me-1"></i>CHEF COMPTABLE
+                                                    </span>
+                                                {% elseif 'ROLE_COMPTA' in u.roles %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size: 10px;">COMPTABLE</span>
+                                                {% endif %}
+
+                                                {% if 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size: 10px;"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
+                                                {% elseif 'ROLE_GUERITE' in u.roles %}
+                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size: 10px;"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
+                                                {% endif %}
+                                                
+                                                {# Afficher le rôle brut si aucun des critères précédents n'est matché #}
+                                                {% if 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles %}
+                                                    <span class="badge bg-light text-secondary border font-monospace" style="font-size: 10px;">{{ u.roles[0]|default('ROLE_USER') }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="mt-1">
+                                                {% if u.localisation is defined and u.localisation %}
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" style="font-size: 10px;"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle" style="font-size: 10px;"><i class="fas fa-building me-1"></i>DIRECTION</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                                {# 🆕 Badge pour le Caissier #}
+        {% if 'ROLE_CAISSIER' in u.roles %}
+            <span class="badge bg-info text-white border border-info fw-bold" style="font-size: 10px;">
+                <i class="fas fa-cash-register me-1"></i>CAISSIER
+            </span>
+        {% endif %}
+                                        
+                                        <div class="text-end">
+                                            <div class="mb-2">
+                                                {% if u.isActif is defined %}
+                                                    {% if u.isActif %}
+                                                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2">Actif</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2">Inactif</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2">Actif</span>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                {# Bouton de destitution si l'utilisateur est Chef Comptable #}
+                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-dark" title="Retirer le visa de Chef Comptable">
+                                                            <i class="fas fa-user-slash text-danger"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+
+                                                <a href="{{ path('app_admin_user_edit', {'id': u.id}) }}" class="btn btn-light border btn-sm text-primary" title="Modifier le compte">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+
+                                                <form action="{{ path('app_admin_user_toggle', {'id': u.id}) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-light border btn-sm {{ u.isActif|default(true) ? 'text-warning' : 'text-success' }}" title="{{ u.isActif|default(true) ? 'Rendre inactif' : 'Réactiver' }}">
+                                                        <i class="fas {{ u.isActif|default(true) ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                                    </button>
+                                                </form>
+
+                                                <form action="{{ path('app_admin_user_delete', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('⚠️ Attention : Voulez-vous supprimer définitivement l\'accès de {{ u.email }} ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                                                    <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer définitivement">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Bloc de droite : Onglets Demandes & Bons #}
+            <div class="col-xl-7 col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white p-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="panelTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active py-2 px-3 fw-bold border-0 text-primary" id="demandes-tab" data-bs-toggle="tab" data-bs-target="#demandes-pane" type="button" role="tab">
+                                    <i class="fas fa-boxes me-2"></i>Suivi des Demandes de Matériel
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link py-2 px-3 fw-bold border-0 text-success" id="bons-tab" data-bs-toggle="tab" data-bs-target="#bons-pane" type="button" role="tab">
+                                    <i class="fas fa-id-badge me-2"></i>Registre des Bons de Sortie
+                                </button>
+                            </li>
+                        </ul>
+
+                        <form method="get" class="d-flex align-items-center gap-2 me-2">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small fw-bold text-muted text-nowrap" style="font-size: 11px;">Du :</span>
+                                <input type="date" name="date_debut" class="form-control form-control-sm py-0.5" style="font-size: 12px; width: 125px;" value="{{ date_debut }}">
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small fw-bold text-muted text-nowrap" style="font-size: 11px;">Au :</span>
+                                <input type="date" name="date_fin" class="form-control form-control-sm py-0.5" style="font-size: 12px; width: 125px;" value="{{ date_fin }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm px-2 py-0.5" style="font-size: 12px;" title="Filtrer">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary btn-sm px-2 py-0.5" style="font-size: 12px;" title="Réinitialiser">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                        </form>
+                    </div>
+
+                    <div class="card-body p-3">
+                        <div class="tab-content" id="panelTabContent">
+                            
+                            <div class="tab-pane fade show active" id="demandes-pane" role="tabpanel" aria-labelledby="demandes-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle m-0">
+                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Département</th>
+                                                <th>Localisation</th> 
+                                                <th>Matériel Demandé</th>
+                                                <th>Quantité</th>
+                                                <th>État</th>
+                                                <th class="text-center">Actions / Contrôle</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for d in demandes %}
+                                                <tr>
+                                                    <td class="fw-bold text-secondary">#{{ d.id }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
+                                                    <td>
+                                                        {% if d.localisation == 'sedwe' %}
+                                                            <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1 fw-bold">SEDWE</span>
+                                                        {% elseif d.localisation == 'bonagere' %}
+                                                            <span class="badge bg-info bg-opacity-10 text-info border px-2 py-1 fw-bold">BONAGÈRE</span>
+                                                        {% else %}
+                                                            <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">DIRECTION</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="fw-semibold text-dark">{{ d.materiel }}</td>
+                                                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ d.quantite }}</span></td>
+                                                    <td>
+                                                        <span class="badge rounded-pill px-2.5 py-1 {% if d.statut == 'En attente' %}bg-warning text-dark{% elseif 'Livré' in d.statut %}bg-info text-white{% else %}bg-success{% endif %}">
+                                                            {{ d.statut }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                                            <button class="btn btn-light border text-primary" title="Voir les détails"><i class="fas fa-eye"></i></button>
+                                                            <button class="btn btn-light border text-success" title="Valider la demande"><i class="fas fa-check"></i></button>
+                                                            <button class="btn btn-light border text-danger" title="Refuser la demande"><i class="fas fa-times"></i></button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="7" class="text-center py-5 text-muted">
+                                                        <i class="fas fa-folder-open d-block fs-3 mb-2"></i> Aucune demande de matériel enregistrée.
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        <div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Ajouter une nouvelle catégorie</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(formCategory) }}
+            <div class="row align-items-end">
+                <div class="col-md-10">
+                    {{ form_row(formCategory.nom, {'label': 'Nom de la catégorie', 'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+                </div>
+            </div>
+        {{ form_end(formCategory) }}
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">
+            <i class="fas fa-layer-group text-secondary me-2"></i>Ajouter une Sous-Catégorie
+        </h6>
+    </div>
+    <div class="card-body">
+        {{ form_start(formSubCategory) }}
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    {{ form_row(formSubCategory.category, {'label': 'Catégorie parente', 'attr': {'class': 'form-select'}}) }}
+                </div>
+                <div class="col-md-5">
+                    {{ form_row(formSubCategory.nom, {'label': 'Nom sous-catégorie', 'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Ajouter</button>
+                </div>
+            </div>
+        {{ form_end(formSubCategory) }}
+    </div>
+</div>
+{# formulaire d'ajout de machine #}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5>Ajouter une nouvelle Machine</h5>
+    </div>
+    <div class="card-body">
+        {{ form_start(formMachine) }}
+            {{ form_row(formMachine.nom, {'label': 'Nom de la machine'}) }}
+            {{ form_row(formMachine.subCategory, {'label': 'Lier à une sous-catégorie'}) }}
+            
+            <button type="submit" class="btn btn-success">Ajouter la machine</button>
+        {{ form_end(formMachine) }}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5>Liste des Machines</h5>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Sous-catégorie</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for machine in machines %}
+                    <tr>
+                        <td>{{ machine.nom }}</td>
+                        <td>{{ machine.subCategory.nom }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2">Aucune machine enregistrée.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+{# Optionnel : Affichage de la liste des catégories en dessous #}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Liste des catégories</h5>
+    </div>
+    <div class="card-body">
+        <ul class="list-group">
+            {% for category in categories %}
+                <li class="list-group-item">{{ category.nom }}</li>
+            {% else %}
+                <li class="list-group-item text-muted">Aucune catégorie enregistrée.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h6 class="m-0 fw-bold text-dark">Liste des Sous-Catégories</h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover m-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Sous-Catégorie</th>
+                    <th>Catégorie Parent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sub in subCategories %}
+                    <tr>
+                        <td class="fw-bold">{{ sub.nom }}</td>
+                        <td>
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
+                                {{ sub.category.nom }}
+                            </span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="2" class="text-center text-muted">Aucune sous-catégorie.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+                            <div class="tab-pane fade" id="bons-pane" role="tabpanel" aria-labelledby="bons-tab">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle m-0">
+                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                            <tr>
+                                                <th>Code</th>
+                                                <th>Nom de l'Agent</th>
+                                                <th>Département</th>
+                                                <th>Référence du Bon</th>
+                                                <th>État Sécurité</th>
+                                                <th class="text-center">Actions / Contrôle</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="small">
+                                            {% for b in bons %}
+                                                <tr>
+                                                    <td class="fw-bold text-secondary">#{{ b.id }}</td>
+                                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
+                                                    <td><span class="text-muted">Bon d'autorisation n°{{ b.id }}</span></td>
+                                                    <td>
+                                                        <span class="badge rounded-pill px-2.5 py-1 {% if b.statut == 'Créé' %}bg-warning text-dark{% elseif b.statut == 'Validé Coordon' %}bg-primary{% else %}bg-success{% endif %}">
+                                                            {{ b.statut }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
+                                                            <button class="btn btn-light border text-primary" title="Imprimer le bon"><i class="fas fa-print"></i></button>
+                                                            <button class="btn btn-light border text-success" title="Autoriser le passage"><i class="fas fa-shield-check"></i></button>
+                                                            <button class="btn btn-light border text-danger" title="Bloquer le passage"><i class="fas fa-ban"></i></button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center py-5 text-muted">
+                                                        <i class="fas fa-users-slash d-block fs-3 mb-2"></i> Aucun bon de sortie en circulation.
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

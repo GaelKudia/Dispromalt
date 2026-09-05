@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - Dispromalt{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            
+            {# Carte de connexion principale #}
+            <div class="card border-0 shadow-lg p-4 bg-white mt-5" style="border-radius: 16px;">
+                
+                {# Header de la carte : Logo et Identité #}
+                <div class="text-center mb-4">
+                    <div class="d-flex align-items-center justify-content-center mb-2">
+                        
+                        <h2 class="fw-bold m-0 text-dark" style="letter-spacing: -0.5px;">
+                            Dispro<span class="text-primary">malt</span>
+                        </h2>
+                    </div>
+                    <p class="text-muted small m-0">Espace de Connexion Opérationnel</p>
+                </div>
+
+                {# Gestion des erreurs de sécurité Symfony #}
+                {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show small shadow-sm mb-3" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i> {{ error.messageKey|trans(error.messageData, 'security') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+	                {% endif %}
+
+                {# Formulaire de connexion #}
+                <form method="post">
+                    
+                    <div class="mb-3">
+                        <label for="inputEmail" class="form-label small fw-bold text-secondary">Adresse Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fas fa-envelope"></i></span>
+                            <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control py-2 border-start-0 bg-light" placeholder="nom@entreprise.com" autocomplete="email" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inputPassword" class="form-label small fw-bold text-secondary">Mot de Passe</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" id="inputPassword" class="form-control py-2 border-start-0 bg-light" placeholder="••••••••" autocomplete="current-password" required>
+                        </div>
+                    </div>
+
+                    {# Token CSRF de sécurité obligatoire #}
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    {# Option Se souvenir de moi (activé dans ton security.yaml) #}
+                    <div class="form-check mb-4 small d-flex justify-content-between align-items-center">
+                        <div>
+                            <input class="form-check-input" type="checkbox" name="_remember_me" id="_remember_me" checked>
+                            <label class="form-check-input-label text-muted" for="_remember_me">Se souvenir de moi</label>
+                        </div>
+                        <a href="#" class="text-decoration-none small text-primary">Mot de passe oublié ?</a>
+                    </div>
+
+                    {# Bouton de Soumission Principal Bleu #}
+                    <button class="btn btn-primary w-100 fw-bold py-2 shadow-sm" type="submit">
+                        Se Connecter <i class="fas fa-sign-in-alt ms-2"></i>
+                    </button>
+                </form>
+
+                <hr class="text-muted my-4 opacity-25">
+
+                {# Footer Interne #}
+                <div class="text-center small text-muted">
+                    <p class="m-0">&copy; {{ 'now'|date('Y') }} Dispromalt - Tous Droits Réservés</p>
+                    <small>Besoin d'aide ? <a href="#" class="text-primary text-decoration-none">Contactez-nous</a></small>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
