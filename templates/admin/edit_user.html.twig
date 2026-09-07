@@ -8,8 +8,15 @@
 </head>
 <body class="bg-light">
     <div class="container py-5" style="max-width: 600px;">
-        <div class="card border-0 shadow-sm mt-5">
-            <div class="card-header bg-dark text-white py-3">
+        <!-- Bouton Retour en haut -->
+        <div class="mb-3">
+            <a href="{{ path('app_admin_dashboard') }}" class="text-decoration-none text-secondary fw-bold">
+                <i class="fas fa-arrow-left me-1"></i> Retour au tableau de bord
+            </a>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="m-0 fw-bold"><i class="fas fa-user-edit me-2 text-primary"></i>Modifier l'utilisateur</h5>
             </div>
             <div class="card-body p-4">
@@ -21,16 +28,30 @@
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Rôle Assigné :</label>
-                        <select name="role" class="form-select">
-                            <option value="ROLE_USER" {% if user.roles[0] == 'ROLE_USER' %}selected{% endif %}>Opérationnel (ROLE_USER)</option>
-                            <option value="ROLE_STOCK" {% if user.roles[0] == 'ROLE_STOCK' %}selected{% endif %}>Magasinier (ROLE_STOCK)</option>
-                            <option value="ROLE_COORDON" {% if user.roles[0] == 'ROLE_COORDON' %}selected{% endif %}>Coordonnateur (ROLE_COORDON)</option>
-                            <option value="ROLE_COMPTA" {% if user.roles[0] == 'ROLE_COMPTA' %}selected{% endif %}>Comptabilité (ROLE_COMPTA)</option>
-                            <option value="ROLE_RECEPTION" {% if user.roles[0] == 'ROLE_RECEPTION' %}selected{% endif %}>Réception (ROLE_RECEPTION)</option>
-                            <option value="ROLE_GUERITE" {% if user.roles[0] == 'ROLE_GUERITE' %}selected{% endif %}>Agent Guérite (ROLE_GUERITE)</option>
-                            <option value="ROLE_DG" {% if user.roles[0] == 'ROLE_DG' %}selected{% endif %}>Directeur Général (ROLE_DG)</option>
-                            <option value="ROLE_ADMIN" {% if user.roles[0] == 'ROLE_ADMIN' %}selected{% endif %}>Administrateur (ROLE_ADMIN)</option>
+                        <select name="role" class="form-select" id="roleSelect">
+                            <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>Opérationnel (ROLE_USER)</option>
+                            <option value="ROLE_STOCK" {% if 'ROLE_STOCK' in user.roles %}selected{% endif %}>Magasinier (ROLE_STOCK)</option>
+                            <option value="ROLE_COORDON" {% if 'ROLE_COORDON' in user.roles %}selected{% endif %}>Coordonnateur (ROLE_COORDON)</option>
+                            <option value="ROLE_COMPTA" {% if 'ROLE_COMPTA' in user.roles %}selected{% endif %}>Comptabilité (ROLE_COMPTA)</option>
+                            <option value="ROLE_RECEPTION" {% if 'ROLE_RECEPTION' in user.roles %}selected{% endif %}>Réception (ROLE_RECEPTION)</option>
+                            <option value="ROLE_GUERITE" {% if 'ROLE_GUERITE' in user.roles %}selected{% endif %}>Agent Guérite (ROLE_GUERITE)</option>
+                            <option value="ROLE_DG" {% if 'ROLE_DG' in user.roles %}selected{% endif %}>Directeur Général (ROLE_DG)</option>
+                            <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Administrateur (ROLE_ADMIN)</option>
                         </select>
+                    </div>
+
+                    <!-- Bloc d'attachement au service (affiché uniquement si ROLE_USER) -->
+                    <div class="mb-3" id="serviceBlock" style="display: {% if 'ROLE_USER' in user.roles %}block{% else %}none{% endif %};">
+                        <label class="form-label small fw-bold text-secondary">Service de rattachement :</label>
+                        <select name="service_id" class="form-select">
+                            <option value="">-- Sélectionner un service --</option>
+                            {% for service in services %}
+                                <option value="{{ service.id }}" {% if user.service and user.service.id == service.id %}selected{% endif %}>
+                                    {{ service.nom }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text text-muted">Obligatoire ou recommandé pour un utilisateur opérationnel.</div>
                     </div>
 
                     <div class="mb-4">
@@ -47,5 +68,23 @@
             </div>
         </div>
     </div>
+
+    <!-- Script JavaScript pour afficher/masquer le champ service dynamiquement -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleSelect = document.getElementById('roleSelect');
+            const serviceBlock = document.getElementById('serviceBlock');
+
+            function toggleServiceBlock() {
+                if (roleSelect.value === 'ROLE_USER') {
+                    serviceBlock.style.display = 'block';
+                } else {
+                    serviceBlock.style.display = 'none';
+                }
+            }
+
+            roleSelect.addEventListener('change', toggleServiceBlock);
+        });
+    </script>
 </body>
 </html>

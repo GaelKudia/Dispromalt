@@ -9,6 +9,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class DevisType extends AbstractType
@@ -28,9 +29,8 @@ class DevisType extends AbstractType
                 'label' => 'Montant estimé',
                 'attr' => ['placeholder' => '0.00']
             ])
-            ->add('dateLimite', DateType::class, [
+     ->add('dateLimite', DateType::class, [
     'widget' => 'single_text',
-    'label' => 'Délai / Date limite d\'exécution',
     'required' => false,
 ])
             ->add('devise', ChoiceType::class, [

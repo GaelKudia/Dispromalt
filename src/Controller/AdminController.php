@@ -4,26 +4,26 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Article;
-
-use App\Entity\Category; // <--- OBLIGATOIRE
-use App\Entity\Demande;  // <--- OBLIGATOIRE si tu l'utilises
-use App\Entity\BonSortie; // <--- OBLIGATOIRE si tu l'utilises
+use App\Entity\Category;
+use App\Entity\Demande;
+use App\Entity\BonSortie;
 use App\Entity\Machine;
-
-use App\Entity\SubCategory; // <-- Ajoute ceci
-use App\Form\SubCategoryType; // <-- Ajoute ceci
-use App\Repository\SubCategoryRepository;
+use App\Entity\SubCategory;
+use App\Entity\Service;
 
 use App\Form\UserType;
-use App\Form\CategoryType; // <--- OBLIGATOIRE
+use App\Form\CategoryType;
 use App\Form\MachineType;
-
+use App\Form\SubCategoryType;
+use App\Form\ServiceType;
 
 use App\Repository\DemandeRepository;
 use App\Repository\BonSortieRepository;
 use App\Repository\CategoryRepository;
-
+use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
+use App\Repository\SubCategoryRepository;
+
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,19 +40,33 @@ class AdminController extends AbstractController
         DemandeRepository $demandeRepository,
         BonSortieRepository $bonSortieRepository,
         UserRepository $userRepository,
+        ServiceRepository $serviceRepository, // 👈 AJOUTÉ ICI pour corriger l'erreur de variable indéfinie
         EntityManagerInterface $em,
         UserPasswordHasherInterface $hasher
     ): Response {
         // Sécurité globale sur la page d'administration
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         
+        // Gestion du formulaire de création de Service
+        $service = new Service();
+        $formService = $this->createForm(ServiceType::class, $service);
+        $formService->handleRequest($request);
+
+        if ($formService->isSubmitted() && $formService->isValid()) {
+            $em->persist($service); // 👈 Corrigé de $entityManager à $em
+            $em->flush();
+
+            $this->addFlash('success', 'Le service a été créé avec succès.');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
         // Récupérations des données d'origine pour l'admin
         $allDemandes = $demandeRepository->findBy([], ['id' => 'DESC']);
         $allBons = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
         $articles = $em->getRepository(Article::class)->findAll();
 
-        // Filtrage spécifique pour la sélection des agents comptables (ex: ayant le rôle de base)
+        // Filtrage spécifique pour la sélection des agents comptables
         $listeComptables = [];
         foreach ($allUsers as $u) {
             if (in_array('ROLE_COMPTA', $u->getRoles()) && !in_array('ROLE_CHEF_COMPTA', $u->getRoles())) {
@@ -89,20 +103,22 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $hashedPassword = $hasher->hashPassword($newUser, $newUser->getPassword());
-            $newUser->setPassword($hashedPassword);
+            $plainPassword = $form->get('password')->getData();
+            //$plainPassword = $newUser->getPassword();
+
+            // Vérifier si un mot de passe a été fourni
+            if (!empty($plainPassword)) {
+                $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
+                $newUser->setPassword($hashedPassword);
+            } else {
+                // Optionnel : Définir un mot de passe temporaire par défaut si vide
+                $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
+                $newUser->setPassword($hashedPassword);
+            }
 
             if (method_exists($newUser, 'setActif')) {
                 $newUser->setActif(true);
             }
-
-            $chosenRoles = $form->get('roles')->getData();
-            if (!empty($chosenRoles)) {
-                $newUser->setRoles(is_array($chosenRoles) ? $chosenRoles : [$chosenRoles]);
-            } else {
-                $newUser->setRoles(['ROLE_USER']);
-            }
-
             $em->persist($newUser);
             $em->flush();
 
@@ -110,50 +126,48 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // 3. Gestion du formulaire de catégorie
-    $category = new Category();
-    $formCategory = $this->createForm(CategoryType::class, $category);
-    $formCategory->handleRequest($request);
+        // Gestion du formulaire de catégorie
+        $category = new Category();
+        $formCategory = $this->createForm(CategoryType::class, $category);
+        $formCategory->handleRequest($request);
 
+        if ($formCategory->isSubmitted() && $formCategory->isValid()) {
+            $em->persist($category);
+            $em->flush();
+            $this->addFlash('success', 'Catégorie ajoutée !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
 
-    
-    if ($formCategory->isSubmitted() && $formCategory->isValid()) {
-        $em->persist($category);
-        $em->flush();
-        $this->addFlash('success', 'Catégorie ajoutée !');
-        return $this->redirectToRoute('app_admin_dashboard');
+        // Gestion du formulaire de SOUS-CATÉGORIE
+        $subCategory = new SubCategory();
+        $formSubCategory = $this->createForm(SubCategoryType::class, $subCategory);
+        $formSubCategory->handleRequest($request);
 
-        
-    }
+        if ($formSubCategory->isSubmitted() && $formSubCategory->isValid()) {
+            $em->persist($subCategory);
+            $em->flush();
+            $this->addFlash('success', 'Sous-catégorie ajoutée !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
 
-    // 🆕 AJOUT : Gestion du formulaire de SOUS-CATÉGORIE
-$subCategory = new \App\Entity\SubCategory(); // Assure-toi d'avoir le bon namespace
-// LA CORRECTION :
-$formSubCategory = $this->createForm(SubCategoryType::class, $subCategory);
-$formSubCategory->handleRequest($request);
+        // Gestion du formulaire d'ajout de machine 
+        $machine = new Machine();
+        $formMachine = $this->createForm(MachineType::class, $machine);
+        $formMachine->handleRequest($request);
 
-if ($formSubCategory->isSubmitted() && $formSubCategory->isValid()) {
-    $em->persist($subCategory);
-    $em->flush();
-    $this->addFlash('success', 'Sous-catégorie ajoutée !');
-    return $this->redirectToRoute('app_admin_dashboard');
-}
-
-    // ajout de formulaire d'ajout des machine 
-    $machine = new Machine();
-$formMachine = $this->createForm(MachineType::class, $machine);
-$formMachine->handleRequest($request);
-
-if ($formMachine->isSubmitted() && $formMachine->isValid()) {
-    $em->persist($machine);
-    $em->flush();
-    $this->addFlash('success', 'Machine ajoutée !');
-    return $this->redirectToRoute('app_admin_dashboard');
-}
+        if ($formMachine->isSubmitted() && $formMachine->isValid()) {
+            $em->persist($machine);
+            $em->flush();
+            $this->addFlash('success', 'Machine ajoutée !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
 
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
+            'form' => $form->createView(),
+            'formService' => $formService->createView(),
+            'services' => $serviceRepository->findAll(),
             'users' => $allUsers,
             'tousLesUtilisateurs' => $allUsers, 
             'listeComptables' => $listeComptables,
@@ -161,18 +175,14 @@ if ($formMachine->isSubmitted() && $formMachine->isValid()) {
             'rapportGlobal' => $rapportGlobal,
             'date_debut' => $dateDebutParam,
             'date_fin' => $dateFinParam,
-            'form' => $form->createView(),
-            'formCategory' => $formCategory->createView(), // Ajoute bien celui-ci !
-            'categories' => $em->getRepository(Category::class)->findAll(), // Ajoute bien celui-ci !
-
+            'formCategory' => $formCategory->createView(),
+            'categories' => $em->getRepository(Category::class)->findAll(),
             'formSubCategory' => $formSubCategory->createView(),
-    'subCategories' => $em->getRepository(\App\Entity\SubCategory::class)->findAll(),
-        'formMachine' => $formMachine->createView(),
-    'machines' => $em->getRepository(Machine::class)->findAll(),
+            'subCategories' => $em->getRepository(SubCategory::class)->findAll(),
+            'formMachine' => $formMachine->createView(),
+            'machines' => $em->getRepository(Machine::class)->findAll(),
         ]);
-    } // Fin de la fonction index
- // Fin de la clas
-     
+    }
 
     #[Route('/admin/assigner-chef-compta', name: 'app_admin_assigner_chef_compta', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
@@ -242,30 +252,37 @@ if ($formMachine->isSubmitted() && $formMachine->isValid()) {
     }
 
     #[Route('/admin/user/{id}/modifier', name: 'app_admin_user_edit', methods: ['GET', 'POST'])]
-    public function editUser(Request $request, User $user, EntityManagerInterface $em, UserPasswordHasherInterface $hasher): Response
+    public function editUser(Request $request, User $user, EntityManagerInterface $em, UserPasswordHasherInterface $hasher,ServiceRepository $serviceRepository): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        if ($request->isMethod('POST')) {
-            $email = $request->get('email');
-            $role = $request->get('role');
-            $plainPassword = $request->get('password');
+        $form = $this->createForm(UserType::class, $user, [
+            'is_edit' => true
+        ]);
+        $form->handleRequest($request);
 
-            if (!empty($email)) {
-                $user->setEmail($email);
-            }
-
-            // CORRECTION ICI : Gestion propre du rôle
-            if (!empty($role)) {
-                $roles = $user->getRoles();
-                if (!in_array($role, $roles)) {
-                    $roles[] = $role;
-                    $user->setRoles($roles);
-                }
-            }
-
+        if ($form->isSubmitted() && $form->isValid()) {
+            // 1. Gestion du mot de passe
+            $plainPassword = $form->get('password')->getData();
             if (!empty($plainPassword)) {
                 $user->setPassword($hasher->hashPassword($user, $plainPassword));
+            }
+
+            // 2. Gestion de l'attachement au service selon le rôle
+            $roles = $user->getRoles();
+            
+            // Si l'utilisateur a le rôle utilisateur standard (ou n'a pas de rôle admin/comptable exclusif)
+            // Tu peux ajuster la condition selon ton, par exemple s'il a 'ROLE_USER'
+            if (in_array('ROLE_USER', $roles)) {
+                // Le service est déjà lié automatiquement par le formulaire si le champ y est présent.
+                // Tu peux ajouter ici une validation spécifique si le service est obligatoire pour un simple utilisateur :
+                if (!$user->getService()) {
+                    $this->addFlash('warning', '⚠️ Un utilisateur standard devrait idéalement être rattaché à un service.');
+                }
+            } else {
+                // Optionnel : Si l'utilisateur n'est plus un utilisateur standard (ex: admin pur), 
+                // tu peux décider de détacher le service si nécessaire :
+                // $user->setService(null);
             }
 
             $em->flush();
@@ -274,9 +291,12 @@ if ($formMachine->isSubmitted() && $formMachine->isValid()) {
         }
 
         return $this->render('admin/edit_user.html.twig', [
-            'user' => $user
+            'user' => $user,
+            'services' => $serviceRepository->findAll(),
+            'form' => $form->createView()
+
         ]);
-    }
+    }   
     #[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
     {
@@ -297,32 +317,31 @@ if ($formMachine->isSubmitted() && $formMachine->isValid()) {
     }
 
     #[Route('/admin/assigner-caissier', name: 'app_admin_assigner_caissier', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
-public function assignerCaissier(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
-{
-    $user = $userRepository->find($request->request->get('user_id'));
-    if ($user && !in_array('ROLE_CAISSIER', $user->getRoles())) {
-        $roles = $user->getRoles();
-        $roles[] = 'ROLE_CAISSIER';
-        $user->setRoles($roles);
-        $em->flush();
-        $this->addFlash('success', 'Utilisateur promu Caissier.');
+    #[IsGranted('ROLE_ADMIN')]
+    public function assignerCaissier(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($request->request->get('user_id'));
+        if ($user && !in_array('ROLE_CAISSIER', $user->getRoles())) {
+            $roles = $user->getRoles();
+            $roles[] = 'ROLE_CAISSIER';
+            $user->setRoles($roles);
+            $em->flush();
+            $this->addFlash('success', 'Utilisateur promu Caissier.');
+        }
+        return $this->redirectToRoute('app_admin_dashboard');
     }
-    return $this->redirectToRoute('app_admin_dashboard');
-}
 
-#[Route('/admin/destituer-caissier/{id}', name: 'app_admin_destituer_caissier', methods: ['POST'])]
-#[IsGranted('ROLE_ADMIN')]
-public function destituerCaissier(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
-{
-    $user = $userRepository->find($id);
-    if ($user) {
-        $roles = array_diff($user->getRoles(), ['ROLE_CAISSIER']);
-        $user->setRoles(array_values($roles));
-        $em->flush();
-        $this->addFlash('success', 'Rôle Caissier retiré.');
+    #[Route('/admin/destituer-caissier/{id}', name: 'app_admin_destituer_caissier', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function destituerCaissier(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($id);
+        if ($user) {
+            $roles = array_diff($user->getRoles(), ['ROLE_CAISSIER']);
+            $user->setRoles(array_values($roles));
+            $em->flush();
+            $this->addFlash('success', 'Rôle Caissier retiré.');
+        }
+        return $this->redirectToRoute('app_admin_dashboard');
     }
-    return $this->redirectToRoute('app_admin_dashboard');
 }
-}
-

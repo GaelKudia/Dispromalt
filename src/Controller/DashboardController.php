@@ -39,6 +39,7 @@ class DashboardController extends AbstractController
         BonSortieRepository $bonSortieRepository,
         SubCategoryRepository $subCategoryRepo,
         CategoryRepository $categoryRepo,
+        DevisRepository $devisRepository,
         ArticleAttributRepository $attributRepo,
         EntityManagerInterface $em
     ): Response {
@@ -110,6 +111,123 @@ class DashboardController extends AbstractController
 
         $userDept = 'Impression';
 
+        // Si l'utilisateur est un Chef de Service
+        // Si l'utilisateur est un Chef de Service
+        // Si l'utilisateur est un Chef de Service
+        // Si l'utilisateur est un Chef de Service
+        if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
+            $serviceChef = $currentUser->getService();
+            $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
+
+            // 1. FORMULAIRE DE DEMANDE DE MATÉRIEL (pour lui-même)
+            $demande = new Demande();
+            $formDemande = $this->createForm(DemandeType::class, $demande);
+            $formDemande->handleRequest($request);
+
+            if ($formDemande->isSubmitted() && $formDemande->isValid()) {
+                $nomMaterielSaisi = $formDemande->get('materiel')->getData();
+                $attribut = $formDemande->get('attribut')->getData();
+
+                if (empty($nomMaterielSaisi)) {
+                    $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
+                    return $this->redirectToRoute('app_dashboard');
+                }
+
+                $quantiteDemandee = $demande->getQuantite() ?? 1;
+                $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+
+                if ($attribut && method_exists($attribut, 'getQuantite')) {
+                    if ($attribut->getQuantite() < $quantiteDemandee) {
+                        $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
+                        return $this->redirectToRoute('app_dashboard');
+                    }
+                    $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+                    $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
+                } else {
+                    if ($article) {
+                        if ($article->getQuantite() < $quantiteDemandee) {
+                            $this->addFlash('danger', 'Stock insuffisant pour cet article.');
+                            return $this->redirectToRoute('app_dashboard');
+                        }
+                        $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                    }
+                    $demande->setMateriel($nomMaterielSaisi);
+                }
+
+                $demande->setDepartement($userDept);
+                $demande->setStatut('En attente');
+                if (method_exists($demande, 'setDemandeur')) {
+                    $demande->setDemandeur($currentUser);
+                }
+                
+                $em->persist($demande);
+                $em->flush();
+
+                $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
+                return $this->redirectToRoute('app_dashboard');
+            }
+
+            // 2. Récupérer les demandes des utilisateurs de son service en attente
+            $demandesService = $demandeRepository->createQueryBuilder('d')
+                ->join('d.demandeur', 'u')
+                ->where('u.service = :service')
+                ->andWhere('d.statut = :statut')
+                ->setParameter('service', $serviceChef)
+                ->setParameter('statut', 'En attente')
+                ->orderBy('d.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            // 3. Récupérer les bons de sortie de son département
+            $bonsSortieService = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+
+            // 4. Filtrer les DEVIS pour qu'il ne voie QUE ceux de son service
+            $devisServiceListe = [];
+            $totalDevisUSD = 0;
+            $totalDevisCDF = 0;
+
+            if (isset($devisRepository)) {
+                $qbDevisService = $devisRepository->createQueryBuilder('dev')
+                    // ⚠️ VÉRIFIEZ LE NOM DE LA RELATION DANS VOTRE ENTITÉ DEVIS :
+                    // Si la relation vers l'utilisateur s'appelle 'demandeur' ou 'user' ou 'createur'
+                    ->join('dev.user', 'u') 
+                    ->where('u.service = :service')
+                    ->andWhere('dev.createdAt BETWEEN :start AND :end')
+                    ->setParameter('service', $serviceChef)
+                    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                    ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+                    ->orderBy('dev.id', 'DESC');
+
+                $devisServiceListe = $qbDevisService->getQuery()->getResult();
+
+                foreach ($devisServiceListe as $d) {
+                    if (method_exists($d, 'getDevise') && method_exists($d, 'getMontant')) {
+                        // S'assurer de couvrir tous les statuts valides/encaissés
+                        if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé', 'DECAISSE'])) {
+                            if (strtoupper($d->getDevise()) === 'USD') {
+                                $totalDevisUSD += $d->getMontant();
+                            } elseif (strtoupper($d->getDevise()) === 'CDF') {
+                                $totalDevisCDF += $d->getMontant();
+                            }
+                        }
+                    }
+                }
+            }
+
+            return $this->render('dashboard/membre.html.twig', [
+                'demandes'      => $demandesService,
+                'bonsSortie'    => $bonsSortieService,
+                'devisListe'    => $devisServiceListe, // 👈 Variable injectée explicitement pour le chef de service
+                'totalDevisUSD' => $totalDevisUSD,
+                'totalDevisCDF' => $totalDevisCDF,
+                'formDemande'   => $formDemande->createView(),
+                'formBon'       => null,
+                'userRole'      => 'Chef de Service (' . ($serviceChef ? $serviceChef->getNom() : 'Général') . ')',
+                'stats'         => $stats,
+                'date_debut'    => $dateDebutFiltre,
+                'date_fin'      => $dateFinFiltre,
+            ]);
+        }
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
@@ -412,6 +530,21 @@ class DashboardController extends AbstractController
         }
 
         if ($this->isGranted('ROLE_COORDON')) {
+            $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
+            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
+            
+            return $this->render('dashboard/membre.html.twig', [
+                'demandes' => $demandesCoordon,
+                'bonsSortie' => $bonsSortie,
+                'userRole' => $roleLabel,
+                'stats' => $stats,
+                'date_debut' => $dateDebutFiltre,
+                'date_fin'   => $dateFinFiltre,
+                'rapportGlobal'  => $rapportGlobal,
+            ]);
+        }
+
+        if ($this->isGranted('ROLE_COORDON')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
         } elseif ($this->isGranted('ROLE_GUERITE')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
@@ -423,7 +556,8 @@ class DashboardController extends AbstractController
         // COMPTA
         if ($this->isGranted('ROLE_COMPTA')) {
             return $this->render('dashboard/compta.html.twig', [
-                'demandes'      => $demandeRepository->findBy(['statut' => 'En attente'], ['id' => 'DESC']),
+            //    'demandes'      => $demandeRepository->findBy(['statut' => 'En attente'], ['id' => 'DESC']),
+                'demandes'      => $demandeRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']),
                 'rapportGlobal' => $rapportGlobal,
                 'devisListe'    => $devisListe,
                 'totalDevisUSD' => $totalDevisUSD,
@@ -625,7 +759,7 @@ class DashboardController extends AbstractController
     // ============================================================
     // RECHERCHE API ARTICLE
     // ============================================================
-    #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
+   /* #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
     public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
     {
         $nom = $request->query->get('nom');
@@ -655,6 +789,106 @@ class DashboardController extends AbstractController
         return new JsonResponse([
             'found' => true,
             'article_id' => $article->getId(),
+            'attributs' => $attributs
+        ]);
+    } */
+
+    #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
+
+        // 1. Vérifier si l'utilisateur est bien chef de service
+        if (!$currentUser->isChefService()) {
+            throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+        }
+
+        // 2. Vérifier que la demande appartient au même service que le chef
+        $demandeur = $demande->getUser(); // Assure-toi que la relation user est bien mappée dans Demande
+        if (!$demandeur || $demandeur->getService() !== $currentUser->getService()) {
+            $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $action = $request->request->get('action');
+
+        if ($action === 'valider') {
+            $demande->setStatut('Validé Chef');
+            $this->addFlash('success', '✅ Demande validée et transmise à l\'étape suivante.');
+        } elseif ($action === 'rejeter') {
+            $demande->setStatut('Rejeté Chef');
+            $this->addFlash('warning', '❌ La demande a été rejetée.');
+        }
+
+        $em->flush();
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    #[Route('/dashboard/coordonnateur/valider/{id}', name: 'app_coordonnateur_valider_demande', methods: ['POST'])]
+    #[IsGranted('ROLE_COORDON')]
+    public function validerDemandeCoordonnateur(Request $request, Demande $demande, EntityManagerInterface $em): Response
+    {
+        // Vérifier que la demande est bien dans l'état attendu
+        if ($demande->getStatut() !== 'Validé Chef') {
+            $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $action = $request->request->get('action'); // 'valider' ou 'rejeter'
+
+        if ($action === 'valider') {
+            // Passe au statut validé par le coordonnateur (prêt pour la compta ou stock)
+            $demande->setStatut('Validé Coordon');
+            $this->addFlash('success', '🖋️ Demande validée par le Coordonnateur et transmise.');
+        } elseif ($action === 'rejeter') {
+            $demande->setStatut('Rejeté Coordon');
+            $this->addFlash('warning', '❌ La demande a été rejetée par le Coordonnateur.');
+        }
+
+        $em->flush();
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // ============================================================
+    // RECHERCHE API ARTICLE
+    // ============================================================
+    #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
+    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $nom = $request->query->get('nom');
+        if (empty($nom)) {
+            return new JsonResponse(['error' => 'Nom requis'], 400);
+        }
+
+        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nom]);
+        if (!$article) {
+            return new JsonResponse(['found' => false]);
+        }
+
+        $attributs = [];
+        foreach ($article->getAttributs() as $attr) {
+            $details = [];
+            if ($attr->getCouleur()) $details[] = 'Couleur: ' . $attr->getCouleur();
+            if ($attr->getGrammage()) $details[] = 'Grammage: ' . $attr->getGrammage();
+            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
+            if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
+            $label = implode(' - ', $details) ?: 'Standard';
+            
+            // Fin de l'affectation du tableau associatif pour chaque attribut
+            $attributs[] = [   
+                'id' => $attr->getId(),
+                'valeur' => $label,
+                'quantite' => $attr->getQuantite()
+            ];
+        }
+
+        // Retourne la réponse JSON avec les données trouvées
+        return new JsonResponse([
+            'found' => true,
+            'nom' => $article->getNom(),
+            'quantite' => $article->getQuantite(),
             'attributs' => $attributs
         ]);
     }
