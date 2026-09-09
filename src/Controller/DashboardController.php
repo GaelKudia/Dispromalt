@@ -165,16 +165,15 @@ class DashboardController extends AbstractController
             }
 
             // 2. Récupérer les demandes des utilisateurs de son service en attente
-            $demandesService = $demandeRepository->createQueryBuilder('d')
-                ->join('d.demandeur', 'u')
-                ->where('u.service = :service')
-                ->andWhere('d.statut = :statut')
-                ->setParameter('service', $serviceChef)
-                ->setParameter('statut', 'En attente')
-                ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
-
+           // 2. Récupérer les demandes des utilisateurs de son service en attente
+$demandesService = $demandeRepository->createQueryBuilder('d')
+    ->where('d.departement = :dept')
+    ->andWhere('d.statut = :statut')
+    ->setParameter('dept', $serviceChef->getNom())
+    ->setParameter('statut', 'En attente')
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
             // 3. Récupérer les bons de sortie de son département
             $bonsSortieService = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
 
@@ -187,6 +186,7 @@ class DashboardController extends AbstractController
                 $qbDevisService = $devisRepository->createQueryBuilder('dev')
                     ->join('dev.user', 'u') 
                     ->where('u.service = :service')
+                    ->andWhere('dev.statut = :statut')
                     ->andWhere('dev.createdAt BETWEEN :start AND :end')
                     ->setParameter('service', $serviceChef)
                     ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
@@ -195,32 +195,35 @@ class DashboardController extends AbstractController
 
                 $devisServiceListe = $qbDevisService->getQuery()->getResult();
 
-                foreach ($devisServiceListe as $d) {
-                    if (method_exists($d, 'getDevise') && method_exists($d, 'getMontant')) {
-                        if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé', 'DECAISSE'])) {
-                            if (strtoupper($d->getDevise()) === 'USD') {
-                                $totalDevisUSD += $d->getMontant();
-                            } elseif (strtoupper($d->getDevise()) === 'CDF') {
-                                $totalDevisCDF += $d->getMontant();
-                            }
-                        }
-                    }
-                }
+                $totalDevisUSD = 0;
+$totalDevisCDF = 0;
+foreach ($devisServiceListe as $d) {
+    if ($d->getDevise() === 'CDF') {
+        $totalDevisCDF += $d->getMontant();
+    } else {
+        $totalDevisUSD += $d->getMontant();
+    }
+}   
             }
 
-            return $this->render('dashboard/membre.html.twig', [
-                'demandes'      => $demandesService,
-                'bonsSortie'    => $bonsSortieService,
-                'devisListe'    => $devisServiceListe,
-                'totalDevisUSD' => $totalDevisUSD,
-                'totalDevisCDF' => $totalDevisCDF,
-                'formDemande'   => $formDemande->createView(),
-                'formBon'       => null,
-                'userRole'      => 'Chef de Service (' . ($serviceChef ? $serviceChef->getNom() : 'Général') . ')',
-                'stats'         => $stats,
-                'date_debut'    => $dateDebutFiltre,
-                'date_fin'      => $dateFinFiltre,
-            ]);
+            // PAR DÉFAUT (UTILISATEUR SIMPLE)
+return $this->render('dashboard/membre.html.twig', [
+    'demandes'       => $demandes,
+    'bonsSortie'     => $bonsSortie,
+    'rapportGlobal'  => $rapportGlobal,
+    'articles'       => $articles,
+    'devisListe'     => $devisListe,
+    'totalDevisUSD'  => $totalDevisUSD,
+    'totalDevisCDF'  => $totalDevisCDF,
+    'userRole'       => $roleLabel,
+    'stats'          => $stats,
+    'formDemande'    => $formDemandeView,
+    'formBon'        => $formBonView,
+    'formVisite'     => $formVisiteView,
+    'date_debut'     => $dateDebutFiltre,
+    'date_fin'       => $dateFinFiltre,
+    'isChefService'  => false, // ← AJOUT
+]);
         }
 
         if ($this->isGranted('ROLE_ADMIN')) {
@@ -306,65 +309,32 @@ class DashboardController extends AbstractController
         }
 
         // 3. FORMULAIRES POUR LES UTILISATEURS SIMPLES (MEMBRES)
-        if (!$this->isGranted('ROLE_COORDON') &&
-            !$this->isGranted('ROLE_STOCK') &&
-            !$this->isGranted('ROLE_DG') &&
-            !$this->isGranted('ROLE_GUERITE') &&
-            !$this->isGranted('ROLE_COMPTA') &&
-            !$this->isGranted('ROLE_CAISSIER') &&
-            !$this->isGranted('ROLE_ADMIN')) {
+        // 3. FORMULAIRES POUR LES UTILISATEURS SIMPLES (MEMBRES)
+if (!$this->isGranted('ROLE_COORDON') &&
+    !$this->isGranted('ROLE_STOCK') &&
+    !$this->isGranted('ROLE_DG') &&
+    !$this->isGranted('ROLE_GUERITE') &&
+    !$this->isGranted('ROLE_COMPTA') &&
+    !$this->isGranted('ROLE_CAISSIER') &&
+    !$this->isGranted('ROLE_ADMIN')) {
 
-            $demande = new Demande();
-            $formDemande = $this->createForm(DemandeType::class, $demande);
-            $formDemande->handleRequest($request);
+    $demande = new Demande();
+    $formDemande = $this->createForm(DemandeType::class, $demande);
+    $formDemande->handleRequest($request);
 
-            if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-                $nomMaterielSaisi = $formDemande->get('materiel')->getData();
-                /** @var ArticleAttribut|null $attribut */
-                $attribut = $formDemande->get('attribut')->getData();
+    if ($formDemande->isSubmitted() && $formDemande->isValid()) {
+        // ... traitement ...
+        $demande->setDemandeur($currentUser);
+        $demande->setDepartement($userDept);
+        $demande->setStatut('En attente');
+        $em->persist($demande);
+        $em->flush();
 
-                if (empty($nomMaterielSaisi)) {
-                    $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
-                    return $this->redirectToRoute('app_dashboard');
-                }
+        $this->addFlash('success', 'Demande enregistrée avec succès.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formDemandeView = $formDemande->createView();
 
-                $quantiteDemandee = $demande->getQuantite() ?? 1;
-                $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
-
-                if ($attribut && method_exists($attribut, 'getQuantite')) {
-                    if ($attribut->getQuantite() < $quantiteDemandee) {
-                        $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
-                        return $this->redirectToRoute('app_dashboard');
-                    }
-                    $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
-                    $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
-                } else {
-                    if ($article) {
-                        if ($article->getQuantite() < $quantiteDemandee) {
-                            $this->addFlash('danger', 'Stock insuffisant pour cet article.');
-                            return $this->redirectToRoute('app_dashboard');
-                        }
-                        $article->setQuantite($article->getQuantite() - $quantiteDemandee);
-                    } else {
-                        $this->addFlash('warning', 'Article introuvable en stock. La demande sera enregistrée sans contrôle de stock.');
-                    }
-                    $demande->setMateriel($nomMaterielSaisi);
-                }
-
-                if (str_contains(strtolower($nomMaterielSaisi), 'gilet') && empty($demande->getDestination())) {
-                    $this->addFlash('danger', 'La commune de destination est obligatoire pour les gilets.');
-                    return $this->redirectToRoute('app_dashboard');
-                }
-
-                $demande->setDepartement($userDept);
-                $demande->setStatut('En attente');
-                $em->persist($demande);
-                $em->flush();
-
-                $this->addFlash('success', 'Demande enregistrée avec succès.');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formDemandeView = $formDemande->createView();
 
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
@@ -538,25 +508,25 @@ if ($this->isGranted('ROLE_COORDON')) {
     // 2. Récupérer TOUS les devis (de tous les services) pour le coordonnateur
     //    On peut récupérer tous les devis, ou seulement ceux avec certains statuts
     $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
-        ->where('d.createdAt BETWEEN :start AND :end')
-        ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-        ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-        ->orderBy('d.id', 'DESC')
-        ->getQuery()
-        ->getResult();
+    ->where('d.statut = :statut')
+    ->andWhere('d.createdAt BETWEEN :start AND :end')
+    ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
+    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+    ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
 
     // 3. Calculer les totaux
     $totalDevisUSD = 0;
-    $totalDevisCDF = 0;
-    foreach ($devisCoordon as $d) {
-        if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé', 'DECAISSE'])) {
-            if ($d->getDevise() === 'CDF') {
-                $totalDevisCDF += $d->getMontant();
-            } else {
-                $totalDevisUSD += $d->getMontant();
-            }
-        }
+$totalDevisCDF = 0;
+foreach ($devisCoordon as $d) {
+    if ($d->getDevise() === 'CDF') {
+        $totalDevisCDF += $d->getMontant();
+    } else {
+        $totalDevisUSD += $d->getMontant();
     }
+}
 
     // 4. Création du formulaire de visite pour le coordonnateur
     $visite = new Visite();
@@ -861,39 +831,48 @@ if ($this->isGranted('ROLE_COORDON')) {
     // RECHERCHE API ARTICLE
     // ============================================================
     #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
-    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $nom = $request->query->get('nom');
-        if (empty($nom)) {
-            return new JsonResponse(['error' => 'Nom requis'], 400);
-        }
-
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nom]);
-        if (!$article) {
-            return new JsonResponse(['found' => false]);
-        }
-
-        $attributs = [];
-        foreach ($article->getAttributs() as $attr) {
-            $details = [];
-            if ($attr->getCouleur()) $details[] = 'Couleur: ' . $attr->getCouleur();
-            if ($attr->getGrammage()) $details[] = 'Grammage: ' . $attr->getGrammage();
-            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
-            if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
-            $label = implode(' - ', $details) ?: 'Standard';
-            
-            $attributs[] = [   
-                'id' => $attr->getId(),
-                'valeur' => $label,
-                'quantite' => $attr->getQuantite()
-            ];
-        }
-
-        return new JsonResponse([
-            'found' => true,
-            'nom' => $article->getNom(),
-            'quantite' => $article->getQuantite(),
-            'attributs' => $attributs
-        ]);
+public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
+{
+    $nom = $request->query->get('nom');
+    if (empty($nom)) {
+        return new JsonResponse(['error' => 'Nom requis'], 400);
     }
+
+    // Recherche avec LIKE pour une correspondance partielle
+    $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
+        ->where('a.nom LIKE :nom')
+        ->setParameter('nom', '%' . $nom . '%')
+        ->setMaxResults(1) // on prend le premier trouvé
+        ->getQuery()
+        ->getResult();
+
+    if (empty($articles)) {
+        return new JsonResponse(['found' => false]);
+    }
+
+    $article = $articles[0];
+    $attributs = [];
+
+    foreach ($article->getAttributs() as $attr) {
+        $details = [];
+        if ($attr->getCouleur())   $details[] = 'Couleur: ' . $attr->getCouleur();
+        if ($attr->getGrammage())  $details[] = 'Grammage: ' . $attr->getGrammage();
+        if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
+        if ($attr->getLongueur())  $details[] = 'Longueur: ' . $attr->getLongueur();
+        $label = implode(' - ', $details) ?: 'Standard';
+
+        $attributs[] = [
+            'id'       => $attr->getId(),
+            'valeur'   => $label,
+            'quantite' => $attr->getQuantite()
+        ];
+    }
+
+    return new JsonResponse([
+        'found'     => true,
+        'nom'       => $article->getNom(),
+        'quantite'  => $article->getQuantite(),
+        'attributs' => $attributs
+    ]);
+}
 }
