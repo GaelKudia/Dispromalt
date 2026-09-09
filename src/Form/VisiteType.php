@@ -29,25 +29,32 @@ class VisiteType extends AbstractType
             ->add('motif', TextType::class, [
                 'label' => 'Motif de la visite',
                 'attr' => ['placeholder' => 'Raison de la visite']
-            ])
-            // 🚀 AJOUT DU CHAMP DE DÉLÉGATION
-            ->add('responsableDelegue', EntityType::class, [
-                'class' => User::class,
-                'query_builder' => function (EntityRepository $er) {
-                    // On filtre pour ne proposer que les rôles concernés (DG, Coordonnateur, etc.)
-                    return $er->createQueryBuilder('u')
-                        ->where('u.roles LIKE :dg OR u.roles LIKE :coordon')
-                        ->setParameter('dg', '%ROLE_DG%')
-                        ->setParameter('coordon', '%ROLE_COORDON%');
-                },
-                'choice_label' => 'email', // Ou un autre champ identifiant si tu as un nom/prénom
-                'label' => 'Déléguer la visite à un responsable (DG, Coordon...)',
-                'required' => false,
-                'placeholder' => 'Sélectionner un responsable (Optionnel)',
-                'attr' => ['class' => 'form-select']
             ]);
 
-        // Champs supplémentaires (si l'option est activée)
+        // ============================================================
+        // CHAMP DE DÉLÉGATION (UNIQUEMENT SI L'OPTION EST ACTIVÉE)
+        // ============================================================
+        if ($options['with_delegation']) {
+            $builder->add('responsableDelegue', EntityType::class, [
+                'class' => User::class,
+                'query_builder' => function (EntityRepository $er) {
+                    return $er->createQueryBuilder('u')
+                        ->where('u.roles LIKE :dg OR u.roles LIKE :coordon OR u.roles LIKE :compta')
+                        ->setParameter('dg', '%ROLE_DG%')
+                        ->setParameter('coordon', '%ROLE_COORDON%')
+                        ->setParameter('compta', '%ROLE_COMPTA%');
+                },
+                'choice_label' => 'email',
+                'label' => 'Déléguer la visite à un responsable',
+                'required' => false,
+                'placeholder' => 'Sélectionner un responsable (Optionnel)',
+                'attr' => ['class' => 'form-select', 'id' => 'responsable_delegue']
+            ]);
+        }
+
+        // ============================================================
+        // CHAMPS SUPPLÉMENTAIRES (téléphone, email, pièce d'identité)
+        // ============================================================
         if ($options['with_extra_fields']) {
             $builder
                 ->add('telephone', TelType::class, [
@@ -72,7 +79,8 @@ class VisiteType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Visite::class,
-            'with_extra_fields' => true, // Mis à true pour afficher tous les détails par défaut
+            'with_extra_fields' => false,
+            'with_delegation' => false, // ← option ajoutée
         ]);
     }
 }

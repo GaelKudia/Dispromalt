@@ -112,9 +112,6 @@ class DashboardController extends AbstractController
         $userDept = 'Impression';
 
         // Si l'utilisateur est un Chef de Service
-        // Si l'utilisateur est un Chef de Service
-        // Si l'utilisateur est un Chef de Service
-        // Si l'utilisateur est un Chef de Service
         if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
             $serviceChef = $currentUser->getService();
             $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
@@ -188,8 +185,6 @@ class DashboardController extends AbstractController
 
             if (isset($devisRepository)) {
                 $qbDevisService = $devisRepository->createQueryBuilder('dev')
-                    // ⚠️ VÉRIFIEZ LE NOM DE LA RELATION DANS VOTRE ENTITÉ DEVIS :
-                    // Si la relation vers l'utilisateur s'appelle 'demandeur' ou 'user' ou 'createur'
                     ->join('dev.user', 'u') 
                     ->where('u.service = :service')
                     ->andWhere('dev.createdAt BETWEEN :start AND :end')
@@ -202,7 +197,6 @@ class DashboardController extends AbstractController
 
                 foreach ($devisServiceListe as $d) {
                     if (method_exists($d, 'getDevise') && method_exists($d, 'getMontant')) {
-                        // S'assurer de couvrir tous les statuts valides/encaissés
                         if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé', 'DECAISSE'])) {
                             if (strtoupper($d->getDevise()) === 'USD') {
                                 $totalDevisUSD += $d->getMontant();
@@ -217,7 +211,7 @@ class DashboardController extends AbstractController
             return $this->render('dashboard/membre.html.twig', [
                 'demandes'      => $demandesService,
                 'bonsSortie'    => $bonsSortieService,
-                'devisListe'    => $devisServiceListe, // 👈 Variable injectée explicitement pour le chef de service
+                'devisListe'    => $devisServiceListe,
                 'totalDevisUSD' => $totalDevisUSD,
                 'totalDevisCDF' => $totalDevisCDF,
                 'formDemande'   => $formDemande->createView(),
@@ -228,6 +222,7 @@ class DashboardController extends AbstractController
                 'date_fin'      => $dateFinFiltre,
             ]);
         }
+
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
@@ -529,24 +524,74 @@ class DashboardController extends AbstractController
             $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
 
-        if ($this->isGranted('ROLE_COORDON')) {
-            $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
-            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
-            
-            return $this->render('dashboard/membre.html.twig', [
-                'demandes' => $demandesCoordon,
-                'bonsSortie' => $bonsSortie,
-                'userRole' => $roleLabel,
-                'stats' => $stats,
-                'date_debut' => $dateDebutFiltre,
-                'date_fin'   => $dateFinFiltre,
-                'rapportGlobal'  => $rapportGlobal,
-            ]);
-        }
+        // ============================================================
+        // RENDU POUR LE COORDONNATEUR (avec formulaire de visite)
+        // ============================================================
+        // ============================================================
+// RENDU POUR LE COORDONNATEUR (avec formulaire de visite et devis)
+// ============================================================
+if ($this->isGranted('ROLE_COORDON')) {
+    // 1. Récupérer les demandes en attente de validation par le coordonnateur
+    $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
+    $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-        if ($this->isGranted('ROLE_COORDON')) {
-            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
-        } elseif ($this->isGranted('ROLE_GUERITE')) {
+    // 2. Récupérer TOUS les devis (de tous les services) pour le coordonnateur
+    //    On peut récupérer tous les devis, ou seulement ceux avec certains statuts
+    $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->where('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+        ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // 3. Calculer les totaux
+    $totalDevisUSD = 0;
+    $totalDevisCDF = 0;
+    foreach ($devisCoordon as $d) {
+        if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé', 'DECAISSE'])) {
+            if ($d->getDevise() === 'CDF') {
+                $totalDevisCDF += $d->getMontant();
+            } else {
+                $totalDevisUSD += $d->getMontant();
+            }
+        }
+    }
+
+    // 4. Création du formulaire de visite pour le coordonnateur
+    $visite = new Visite();
+    $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
+        'with_extra_fields' => true,
+    ]);
+    $formVisiteCoordon->handleRequest($request);
+    if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
+        $visite->setStatut('RESERVE');
+        $visite->setDateArrivee(new \DateTime());
+        $em->persist($visite);
+        $em->flush();
+        $this->addFlash('success', '🗓️ Visite réservée avec succès.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formVisiteView = $formVisiteCoordon->createView();
+
+    // 5. Rendu
+    return $this->render('dashboard/coordonnateur.html.twig', [
+        'demandes'       => $demandesCoordon,
+        'bonsSortie'     => $bonsSortie,
+        'devisListe'     => $devisCoordon,        // ← variable attendue dans le template
+        'totalDevisUSD'  => $totalDevisUSD,       // ← variable attendue
+        'totalDevisCDF'  => $totalDevisCDF,       // ← variable attendue
+        'userRole'       => $roleLabel,
+        'stats'          => $stats,
+        'date_debut'     => $dateDebutFiltre,
+        'date_fin'       => $dateFinFiltre,
+        'rapportGlobal'  => $rapportGlobal,
+        'formVisite'     => $formVisiteView,
+    ]);
+}
+
+        // Gestion des bons de sortie pour les autres rôles (sans le COORDON)
+        if ($this->isGranted('ROLE_GUERITE')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
             $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
@@ -556,7 +601,6 @@ class DashboardController extends AbstractController
         // COMPTA
         if ($this->isGranted('ROLE_COMPTA')) {
             return $this->render('dashboard/compta.html.twig', [
-            //    'demandes'      => $demandeRepository->findBy(['statut' => 'En attente'], ['id' => 'DESC']),
                 'demandes'      => $demandeRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']),
                 'rapportGlobal' => $rapportGlobal,
                 'devisListe'    => $devisListe,
@@ -598,7 +642,7 @@ class DashboardController extends AbstractController
 
         // DG
         if ($this->isGranted('ROLE_DG')) {
-            return $this->render('dashboard/membre.html.twig', [
+            return $this->render('dashboard/directeur.html.twig', [
                 'demandes'      => $demandes,
                 'rapportGlobal' => $rapportGlobal,
                 'bonsSortie'    => $bonsSortie,
@@ -756,43 +800,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ============================================================
-    // RECHERCHE API ARTICLE
-    // ============================================================
-   /* #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
-    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $nom = $request->query->get('nom');
-        if (empty($nom)) {
-            return new JsonResponse(['error' => 'Nom requis'], 400);
-        }
-
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nom]);
-        if (!$article) {
-            return new JsonResponse(['found' => false]);
-        }
-
-        $attributs = [];
-        foreach ($article->getAttributs() as $attr) {
-            $details = [];
-            if ($attr->getCouleur()) $details[] = 'Couleur: ' . $attr->getCouleur();
-            if ($attr->getGrammage()) $details[] = 'Grammage: ' . $attr->getGrammage();
-            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
-            if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
-            $label = implode(' - ', $details) ?: 'Standard';
-            $attributs[] = [
-                'id' => $attr->getId(),
-                'valeur' => $label
-            ];
-        }
-
-        return new JsonResponse([
-            'found' => true,
-            'article_id' => $article->getId(),
-            'attributs' => $attributs
-        ]);
-    } */
-
     #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
@@ -806,7 +813,7 @@ class DashboardController extends AbstractController
         }
 
         // 2. Vérifier que la demande appartient au même service que le chef
-        $demandeur = $demande->getUser(); // Assure-toi que la relation user est bien mappée dans Demande
+        $demandeur = $demande->getUser();
         if (!$demandeur || $demandeur->getService() !== $currentUser->getService()) {
             $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
             return $this->redirectToRoute('app_dashboard');
@@ -839,7 +846,6 @@ class DashboardController extends AbstractController
         $action = $request->request->get('action'); // 'valider' ou 'rejeter'
 
         if ($action === 'valider') {
-            // Passe au statut validé par le coordonnateur (prêt pour la compta ou stock)
             $demande->setStatut('Validé Coordon');
             $this->addFlash('success', '🖋️ Demande validée par le Coordonnateur et transmise.');
         } elseif ($action === 'rejeter') {
@@ -876,7 +882,6 @@ class DashboardController extends AbstractController
             if ($attr->getLongueur()) $details[] = 'Longueur: ' . $attr->getLongueur();
             $label = implode(' - ', $details) ?: 'Standard';
             
-            // Fin de l'affectation du tableau associatif pour chaque attribut
             $attributs[] = [   
                 'id' => $attr->getId(),
                 'valeur' => $label,
@@ -884,7 +889,6 @@ class DashboardController extends AbstractController
             ];
         }
 
-        // Retourne la réponse JSON avec les données trouvées
         return new JsonResponse([
             'found' => true,
             'nom' => $article->getNom(),

@@ -1,0 +1,518 @@
+{# templates/dashboard/coordonnateur.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Espace Coordonnateur - Dispromalt</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --dg-primary: #1e293b;
+            --dg-accent: #dc2626;
+        }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background-color: #f4f6f9; }
+        .card-counter { border: none; border-radius: 12px; transition: all 0.25s ease; }
+        .card-counter:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; }
+        .table-modern thead { background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; }
+        .table-modern th { font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #475569; padding: 1rem 0.75rem; }
+        .table-modern td { padding: 1rem 0.75rem; vertical-align: middle; }
+        .badge-statut { font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 50px; }
+        .btn-action { border-radius: 50px; padding: 0.35rem 1rem; font-weight: 600; transition: all 0.2s; }
+        .btn-action:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2); }
+        .nav-tabs .nav-link { border: none; color: #64748b; transition: all 0.2s; position: relative; }
+        .nav-tabs .nav-link.active { color: var(--dg-primary) !important; font-weight: 700; background: none; }
+        .nav-tabs .nav-link.active::after { content: ''; position: absolute; bottom: 0; left: 1.5rem; right: 1.5rem; height: 3.5px; background: #0d6efd; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+    {# ============================================
+       NAVBAR
+    ============================================ #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="#">
+                <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Coordonnateur</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
+                    <i class="fas fa-user-check text-success me-2"></i>Rôle actif : <strong>{{ userRole|default('Coordonnateur') }}</strong>
+                </div>
+                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
+                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    {# ============================================
+       MAIN CONTAINER
+    ============================================ #}
+    <div class="container-fluid py-4 px-4">
+
+        {# En-tête #}
+        <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="fw-bold text-dark m-0 tracking-tight">Espace de Coordination</h1>
+                <p class="text-muted m-0 fs-6">Validez les demandes, suivez la traçabilité, gérez les visites et supervisez l'état de besoin.</p>
+            </div>
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2 rounded-pill fw-bold">
+                <i class="fas fa-tasks me-1"></i> En attente : {{ demandes|filter(d => d.statut == 'Validé Chef')|length }}
+            </span>
+        </div>
+
+        {# Flash Messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Statistiques #}
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">En attente de validation</h6>
+                            <h3 class="fw-bold m-0 text-warning">{{ demandes|filter(d => d.statut == 'Validé Chef')|length }}</h3>
+                        </div>
+                        <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning">
+                            <i class="fas fa-clock fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Validées (ce mois)</h6>
+                            <h3 class="fw-bold m-0 text-success">{{ demandes|filter(d => d.statut == 'Validé Coordon')|length }}</h3>
+                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success">
+                            <i class="fas fa-check-circle fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-danger border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Rejetées</h6>
+                            <h3 class="fw-bold m-0 text-danger">{{ demandes|filter(d => d.statut == 'Rejeté Coordon')|length }}</h3>
+                        </div>
+                        <div class="bg-danger bg-opacity-10 p-3 rounded-3 text-danger">
+                            <i class="fas fa-times-circle fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-counter bg-white p-4 shadow-sm border-start border-info border-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase small fw-bold">Total traitées</h6>
+                            <h3 class="fw-bold m-0 text-info">{{ demandes|length }}</h3>
+                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded-3 text-info">
+                            <i class="fas fa-list fa-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ============================================
+           ONGLETS
+        ============================================ #}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white p-0 border-bottom">
+                <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2 border-bottom-0" id="coordonTab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active py-3 px-4 fw-bold border-0 text-primary" id="validation-tab" data-bs-toggle="tab" data-bs-target="#validation-pane" type="button" role="tab">
+                            <i class="fas fa-tasks me-2"></i>Validation des Demandes
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0 text-info" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
+                            <i class="fas fa-history me-2"></i>Rapport Général Hist.
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0 text-warning" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button" role="tab">
+                            <i class="fas fa-calendar-plus me-2"></i>Réserver une Visite
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-3 px-4 fw-bold border-0 text-success" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>Etat de besoin
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="tab-content">
+
+                    {# ============================================
+                       ONGLET 1 : VALIDATION DES DEMANDES
+                    ============================================ #}
+                    <div class="tab-pane fade show active" id="validation-pane" role="tabpanel">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-modern align-middle m-0 border rounded">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Demandeur</th>
+                                        <th>Matériel</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th>Département</th>
+                                        <th>Date</th>
+                                        <th>Statut Chef</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    {% set hasPending = false %}
+                                    {% for demande in demandes %}
+                                        {% if demande.statut == 'Validé Chef' %}
+                                            {% set hasPending = true %}
+                                            <tr style="border-left: 4px solid #ffc107;">
+                                                <td class="fw-bold text-secondary">#{{ demande.id }}</td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border px-2 py-1">
+                                                        {{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}
+                                                    </span>
+                                                </td>
+                                                <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
+                                                <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
+                                                <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ demande.departement }}</span></td>
+                                                <td class="text-muted">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
+                                                <td>
+                                                    <span class="badge bg-info text-dark"><i class="fas fa-check me-1"></i>Validé Chef</span>
+                                                </td>
+                                                <td class="text-end">
+                                                    <div class="d-flex justify-content-end gap-1">
+                                                        <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline">
+                                                            <input type="hidden" name="action" value="valider">
+                                                            <button type="submit" class="btn btn-sm btn-success btn-action px-3">
+                                                                <i class="fas fa-check me-1"></i> Valider
+                                                            </button>
+                                                        </form>
+                                                        <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Voulez-vous vraiment rejeter cette demande ?');">
+                                                            <input type="hidden" name="action" value="rejeter">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-action px-3" title="Rejeter">
+                                                                <i class="fas fa-ban"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if not hasPending %}
+                                        <tr>
+                                            <td colspan="8" class="text-center py-5 text-muted">
+                                                <i class="fas fa-check-circle fa-2x mb-2 text-success opacity-50 d-block"></i>
+                                                Aucune demande en attente de validation par le Coordonnateur.
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {# Historique des demandes traitées (dans le même onglet) #}
+                        <div class="mt-4">
+                            <h6 class="fw-bold text-secondary"><i class="fas fa-history me-2"></i>Historique des demandes traitées</h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover table-modern align-middle m-0 border rounded">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Demandeur</th>
+                                            <th>Matériel</th>
+                                            <th class="text-center">Quantité</th>
+                                            <th>Département</th>
+                                            <th>Date</th>
+                                            <th>Statut final</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="small">
+                                        {% set hasHistory = false %}
+                                        {% for demande in demandes %}
+                                            {% if demande.statut == 'Validé Coordon' or demande.statut == 'Rejeté Coordon' %}
+                                                {% set hasHistory = true %}
+                                                <tr>
+                                                    <td class="fw-bold text-secondary">#{{ demande.id }}</td>
+                                                    <td>
+                                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                                            {{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
+                                                    <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
+                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ demande.departement }}</span></td>
+                                                    <td class="text-muted">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
+                                                    <td>
+                                                        {% if demande.statut == 'Validé Coordon' %}
+                                                            <span class="badge bg-success text-white"><i class="fas fa-check me-1"></i>Validé</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger text-white"><i class="fas fa-times me-1"></i>Rejeté</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if not hasHistory %}
+                                            <tr>
+                                                <td colspan="7" class="text-center py-4 text-muted">
+                                                    <i class="fas fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                                                    Aucune demande traitée pour le moment.
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ============================================
+                       ONGLET 2 : RAPPORT GÉNÉRAL HISTORIQUE
+                    ============================================ #}
+                    <div class="tab-pane fade" id="report-pane" role="tabpanel">
+                        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-history text-info me-2"></i>Registre de Sortie & Traçabilité Logistique</h5>
+                        
+                        <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Du :</label>
+                                <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Au :</label>
+                                <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary text-white fw-bold btn-sm w-100 py-2 shadow-sm">
+                                    <i class="fas fa-filter me-2"></i> Filtrer les Mouvements
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-modern align-middle m-0 border rounded">
+                                <thead>
+                                    <tr>
+                                        <th>Date de Saisie</th>
+                                        <th>Département</th>
+                                        <th>Origine</th>
+                                        <th>Article Distribué</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th>Destination Finale</th>
+                                        <th class="text-center">État Flux</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    {% for rg in rapportGlobal %}
+                                        <tr>
+                                            <td class="fw-semibold text-muted font-monospace">{{ rg.createdAt|date('d/m/Y H:i') }}</td>
+                                            <td><span class="badge bg-light text-dark border px-2 py-1">{{ rg.departement }}</span></td>
+                                            <td><span class="badge bg-secondary bg-opacity-10 text-dark border px-2 py-1">{{ rg.localisation|default('Direction')|upper }}</span></td>
+                                            <td class="fw-bold text-dark">{{ rg.materiel }}</td>
+                                            <td class="text-center fw-bold font-monospace">
+                                                {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
+                                                    {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
+                                                    {% set r_rep = rg.quantite % 25 %}
+                                                    <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
+                                                {% else %}
+                                                    {{ rg.quantite }}
+                                                {% endif %}
+                                            </td>
+                                            <td class="fw-bold text-secondary"><i class="fas fa-map-marked-alt text-primary me-1 text-opacity-50"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
+                                            <td class="text-center">
+                                                {% if rg.statut == 'Livré par le Stock' %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-2.5 py-1.5"><i class="fas fa-check me-1"></i> Sortie Confirmée</span>
+                                                {% else %}
+                                                    <span class="badge bg-light text-dark border px-2.5 py-1.5">{{ rg.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="7" class="text-center py-4 text-muted">Aucun historique trouvé pour cette plage de dates.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {# ============================================
+                       ONGLET 3 : RÉSERVER UNE VISITE
+                    ============================================ #}
+                    <div class="tab-pane fade" id="visite-pane" role="tabpanel">
+                        {% if formVisite is defined and formVisite is not null %}
+                            <div class="row justify-content-center">
+                                <div class="col-lg-8 col-xl-7">
+                                    <div class="card border-0 shadow-sm rounded-4 p-4">
+                                        <div class="text-center mb-4">
+                                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
+                                                <i class="fas fa-calendar-alt text-warning fa-2x"></i>
+                                            </div>
+                                            <h5 class="fw-bold text-dark">Planifier une Visite</h5>
+                                            <p class="text-muted small">Enregistrez l'arrivée d'un visiteur ou d'un partenaire.</p>
+                                        </div>
+
+                                        {{ form_start(formVisite, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    {{ form_label(formVisite.nomVisiteur, 'Nom & Prénom', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
+                                                    {{ form_errors(formVisite.nomVisiteur) }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {{ form_label(formVisite.departement, 'Département visité', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production'}}) }}
+                                                    {{ form_errors(formVisite.departement) }}
+                                                </div>
+                                                <div class="col-12">
+                                                    {{ form_label(formVisite.motif, 'Motif de la visite', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'rows': 2, 'placeholder': 'Raison de la visite'}}) }}
+                                                    {{ form_errors(formVisite.motif) }}
+                                                </div>
+                                                {# Champs supplémentaires si présents (téléphone, email, pièce) #}
+                                                {% if formVisite.telephone is defined %}
+                                                    <div class="col-md-6">
+                                                        {{ form_label(formVisite.telephone, 'Téléphone', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                        {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
+                                                        {{ form_errors(formVisite.telephone) }}
+                                                    </div>
+                                                {% endif %}
+                                                {% if formVisite.email is defined %}
+                                                    <div class="col-md-6">
+                                                        {{ form_label(formVisite.email, 'Email', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                        {{ form_widget(formVisite.email, {'attr': {'class': 'form-control', 'placeholder': 'email@exemple.com'}}) }}
+                                                        {{ form_errors(formVisite.email) }}
+                                                    </div>
+                                                {% endif %}
+                                                {% if formVisite.pieceIdentite is defined %}
+                                                    <div class="col-12">
+                                                        {{ form_label(formVisite.pieceIdentite, 'Pièce d’identité', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
+                                                        {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control', 'placeholder': 'CIN, Passeport, etc.'}}) }}
+                                                        {{ form_errors(formVisite.pieceIdentite) }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <div class="d-grid gap-2 mt-4">
+                                                <button type="submit" class="btn btn-warning fw-bold py-2 rounded-pill shadow-sm">
+                                                    <i class="fas fa-save me-2"></i>Enregistrer la Visite
+                                                </button>
+                                            </div>
+                                        {{ form_end(formVisite) }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning text-center mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n’est pas disponible.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# ============================================
+                       ONGLET 4 : DEVIS
+                    ============================================ #}
+                    <div class="tab-pane fade" id="devis-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-invoice-dollar text-success me-2"></i>Devis de tous les services</h5>
+                                <small class="text-muted">Supervision des état de besoin émis par l'ensemble des services.</small>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="{{ path('app_devis_nouveau') }}" class="btn btn-sm btn-primary fw-bold">
+                                    <i class="fas fa-plus-circle me-1"></i> Créer un état de besoin
+                                </a>
+                                <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-3 py-2 rounded-3 fw-bold">Total USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }} $</span>
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-3 fw-bold">Total CDF : {{ totalDevisCDF|default(0)|number_format(2, ',', ' ') }} FC</span>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-modern align-middle border rounded m-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Date</th>
+                                        <th>Demandeur (Créateur)</th>
+                                        <th>Description / Objet</th>
+                                        <th>Statut</th>
+                                        <th class="text-end">Montant</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    {% for devis in devisListe %}
+                                        <tr>
+                                            <td class="fw-bold text-secondary">#{{ devis.id }}</td>
+                                            <td class="text-muted">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                            <td>
+                                                <span class="badge bg-white text-dark border px-2 py-1">
+                                                    {{ devis.user ? devis.user.userIdentifier : devis.createdBy }}
+                                                </span>
+                                            </td>
+                                            <td class="fw-semibold text-dark">{{ devis.description }}</td>
+                                            <td>
+                                                {% if devis.statut == 'DECAISSE' %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1"><i class="fas fa-check-double me-1"></i>Décaissé</span>
+                                                {% elseif devis.statut == 'REJETE' %}
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning bg-opacity-10 text-dark border border-warning px-2 py-1"><i class="fas fa-clock me-1"></i>{{ devis.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end font-monospace fw-bold text-dark">
+                                                {{ devis.montant|number_format(2, ',', ' ') }} <span class="small text-muted">{{ devis.devise }}</span>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5 text-muted">
+                                                <i class="fas fa-folder-open fa-2x mb-2 text-black-50 d-block"></i>
+                                                Aucun état de besoin enregistré pour le moment.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div> {# fin tab-content #}
+            </div> {# fin card-body #}
+        </div> {# fin card #}
+
+    </div> {# fin container #}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Optionnel : persistance de l'onglet actif après rechargement (si besoin)
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            if (activeTab) {
+                const tab = document.querySelector(`#coordonTab button[data-bs-target="${activeTab}"]`);
+                if (tab) {
+                    bootstrap.Tab.getOrCreateInstance(tab).show();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
