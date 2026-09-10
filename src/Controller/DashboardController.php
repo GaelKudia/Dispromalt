@@ -8,6 +8,8 @@ use App\Entity\Article;
 use App\Entity\Visite;
 use App\Entity\Devis;
 use App\Entity\Machine;
+use App\Entity\User;
+use App\Entity\Service;
 
 use App\Form\DemandeType;
 use App\Form\BonSortieType;
@@ -76,7 +78,7 @@ class DashboardController extends AbstractController
         $dateDebutFiltre = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
         $dateFinFiltre = $request->query->get('date_fin', (new \DateTime('today'))->format('Y-m-d'));
 
-        // DEVIS
+        // DEVIS (global, utilisé par plusieurs rôles)
         $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d')
             ->where('d.createdAt BETWEEN :start AND :end')
             ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
@@ -109,28 +111,136 @@ class DashboardController extends AbstractController
             ]);
         }
 
+        // Déterminer le département de l'utilisateur
         $userDept = 'Impression';
+        if ($currentUser->getService()) {
+            $userDept = $currentUser->getService()->getNom();
+        }
 
-        // Si l'utilisateur est un Chef de Service
-        if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
-            $serviceChef = $currentUser->getService();
-            $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
+        // ============================================================
+        // INITIALISATION DES VARIABLES (seront remplies selon le rôle)
+        // ============================================================
+        $demandes = [];
+        $bonsSortie = [];
+        $visites = [];
+        $rapportGlobal = [];
+        $articles = [];
+        $attributs = [];
+        $categories = [];
+        $subCategories = [];
+        $selectedCategory = null;
+        $selectedSubCategory = null;
+        $formDemandeView = null;
+        $formBonView = null;
+        $formVisiteView = null;
+        $formStockView = null;
+        $formVisiteGueriteView = null;
 
-            // 1. FORMULAIRE DE DEMANDE DE MATÉRIEL (pour lui-même)
+        // Dates pour les requêtes
+        $debutAujourdhui = new \DateTime('today 00:00:00');
+        $finAujourdhui   = new \DateTime('today 23:59:59');
+
+        // Filtres supplémentaires
+        $filtreType      = $request->query->get('filtre_type');
+        $filtreDateDebut = $request->query->get('filtre_date_debut');
+        $filtreDateFin   = $request->query->get('filtre_date_fin');
+        $filtreStatut    = $request->query->get('filtre_statut');
+
+        // ============================================================
+        // TRAITEMENT DES FORMULAIRES (selon les rôles)
+        // ============================================================
+
+        // 1. FORMULAIRE DE VISITE (générique)
+        if ($this->isGranted('ROLE_GUERITE')) {
+            $visiteGuerite = new Visite();
+            $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, ['with_extra_fields' => true]);
+            $formVisiteGuerite->handleRequest($request);
+            if ($formVisiteGuerite->isSubmitted() && $formVisiteGuerite->isValid()) {
+                $visiteGuerite->setStatut('A_L_ACCUEIL');
+                $visiteGuerite->setDateArrivee(new \DateTime());
+                $em->persist($visiteGuerite);
+                $em->flush();
+                $this->addFlash('success', '✅ Visiteur enregistré avec succès !');
+                return $this->redirectToRoute('app_dashboard');
+            }
+            $formVisiteGueriteView = $formVisiteGuerite->createView();
+        } elseif ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
+            $visite = new Visite();
+            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => true]);
+            $formVisite->handleRequest($request);
+            if ($formVisite->isSubmitted() && $formVisite->isValid()) {
+                $visite->setStatut('RESERVE');
+                $em->persist($visite);
+                $em->flush();
+                $this->addFlash('success', '🗓️ Visite réservée.');
+                return $this->redirectToRoute('app_dashboard');
+            }
+            $formVisiteView = $formVisite->createView();
+        } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
+            // Pour les autres rôles (sauf DG et Admin)
+            $visite = new Visite();
+            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => false]);
+            $formVisite->handleRequest($request);
+            if ($formVisite->isSubmitted() && $formVisite->isValid()) {
+                $visite->setStatut('RESERVE');
+                $em->persist($visite);
+                $em->flush();
+                $this->addFlash('success', '🗓️ Visite réservée.');
+                return $this->redirectToRoute('app_dashboard');
+            }
+            $formVisiteView = $formVisite->createView();
+        }
+
+        // 2. FORMULAIRE STOCK (pour rôle STOCK)
+        if ($this->isGranted('ROLE_STOCK')) {
+            $article = new Article();
+            $formStock = $this->createForm(StockType::class, $article);
+            $formStock->handleRequest($request);
+            if ($formStock->isSubmitted() && $formStock->isValid()) {
+                $em->persist($article);
+                $em->flush();
+                $this->addFlash('success', '📥 Article enregistré.');
+                return $this->redirectToRoute('app_dashboard');
+            }
+            $formStockView = $formStock->createView();
+        }
+
+        // 3. FORMULAIRE BON DE SORTIE (pour les rôles STOCK ou membres simples)
+        if ($this->isGranted('ROLE_STOCK') || 
+            (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
+            
+            $bonSortie = new BonSortie();
+            $formBon = $this->createForm(BonSortieType::class, $bonSortie);
+            $formBon->handleRequest($request);
+            if ($formBon->isSubmitted() && $formBon->isValid()) {
+                $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
+                $bonSortie->setDepartement($userDept);
+                $bonSortie->setDateCreation(new \DateTime());
+                $bonSortie->setStatut('Créé');
+                $em->persist($bonSortie);
+                $em->flush();
+                $this->addFlash('success', '🚀 Le bon de sortie a été transmis avec succès !');
+                return $this->redirectToRoute('app_dashboard');
+            }
+            $formBonView = $formBon->createView();
+        }
+
+        // 4. FORMULAIRE DEMANDE (pour les membres simples et chefs de service)
+        if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN')) {
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
-
             if ($formDemande->isSubmitted() && $formDemande->isValid()) {
+                // Traitement de la demande (avec vérification stock)
                 $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                 $attribut = $formDemande->get('attribut')->getData();
+                $quantiteDemandee = $demande->getQuantite() ?? 1;
 
                 if (empty($nomMaterielSaisi)) {
                     $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
                     return $this->redirectToRoute('app_dashboard');
                 }
 
-                $quantiteDemandee = $demande->getQuantite() ?? 1;
                 $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
 
                 if ($attribut && method_exists($attribut, 'getQuantite')) {
@@ -163,215 +273,150 @@ class DashboardController extends AbstractController
                 $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
                 return $this->redirectToRoute('app_dashboard');
             }
-
-            // 2. Récupérer les demandes des utilisateurs de son service en attente
-           // 2. Récupérer les demandes des utilisateurs de son service en attente
-$demandesService = $demandeRepository->createQueryBuilder('d')
-    ->where('d.departement = :dept')
-    ->andWhere('d.statut = :statut')
-    ->setParameter('dept', $serviceChef->getNom())
-    ->setParameter('statut', 'En attente')
-    ->orderBy('d.id', 'DESC')
-    ->getQuery()
-    ->getResult();
-            // 3. Récupérer les bons de sortie de son département
-            $bonsSortieService = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
-
-            // 4. Filtrer les DEVIS pour qu'il ne voie QUE ceux de son service
-            $devisServiceListe = [];
-            $totalDevisUSD = 0;
-            $totalDevisCDF = 0;
-
-            if (isset($devisRepository)) {
-                $qbDevisService = $devisRepository->createQueryBuilder('dev')
-                    ->join('dev.user', 'u') 
-                    ->where('u.service = :service')
-                    ->andWhere('dev.statut = :statut')
-                    ->andWhere('dev.createdAt BETWEEN :start AND :end')
-                    ->setParameter('service', $serviceChef)
-                    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                    ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-                    ->orderBy('dev.id', 'DESC');
-
-                $devisServiceListe = $qbDevisService->getQuery()->getResult();
-
-                $totalDevisUSD = 0;
-$totalDevisCDF = 0;
-foreach ($devisServiceListe as $d) {
-    if ($d->getDevise() === 'CDF') {
-        $totalDevisCDF += $d->getMontant();
-    } else {
-        $totalDevisUSD += $d->getMontant();
-    }
-}   
-            }
-
-            // PAR DÉFAUT (UTILISATEUR SIMPLE)
-return $this->render('dashboard/membre.html.twig', [
-    'demandes'       => $demandes,
-    'bonsSortie'     => $bonsSortie,
-    'rapportGlobal'  => $rapportGlobal,
-    'articles'       => $articles,
-    'devisListe'     => $devisListe,
-    'totalDevisUSD'  => $totalDevisUSD,
-    'totalDevisCDF'  => $totalDevisCDF,
-    'userRole'       => $roleLabel,
-    'stats'          => $stats,
-    'formDemande'    => $formDemandeView,
-    'formBon'        => $formBonView,
-    'formVisite'     => $formVisiteView,
-    'date_debut'     => $dateDebutFiltre,
-    'date_fin'       => $dateFinFiltre,
-    'isChefService'  => false, // ← AJOUT
-]);
+            $formDemandeView = $formDemande->createView();
         }
 
+        // ============================================================
+        // GESTION DES CAS SPÉCIAUX (CHEF DE SERVICE)
+        // ============================================================
+        if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
+            $serviceChef = $currentUser->getService();
+            $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
+
+            // Récupérer les demandes du service en attente
+            $demandes = $demandeRepository->createQueryBuilder('d')
+                ->where('d.departement = :dept')
+                ->andWhere('d.statut = :statut')
+                ->setParameter('dept', $serviceChef->getNom())
+                ->setParameter('statut', 'En attente')
+                ->orderBy('d.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            // Bons de sortie du service
+            $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+
+            // Devis du service (validés par le chef)
+            $devisServiceListe = $devisRepository->createQueryBuilder('dev')
+                ->join('dev.user', 'u')
+                ->where('u.service = :service')
+                ->andWhere('dev.statut = :statut')
+                ->andWhere('dev.createdAt BETWEEN :start AND :end')
+                ->setParameter('service', $serviceChef)
+                ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
+                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+                ->orderBy('dev.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            $totalDevisUSD = 0;
+            $totalDevisCDF = 0;
+            foreach ($devisServiceListe as $d) {
+                if ($d->getDevise() === 'CDF') {
+                    $totalDevisCDF += $d->getMontant();
+                } else {
+                    $totalDevisUSD += $d->getMontant();
+                }
+            }
+
+            // Rapport global (demandes du service filtrées par dates)
+            $rapportGlobal = $demandeRepository->createQueryBuilder('d')
+                ->where('d.departement = :dept')
+                ->andWhere('d.createdAt BETWEEN :start AND :end')
+                ->setParameter('dept', $userDept)
+                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+                ->orderBy('d.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            // Articles (pour l'affichage éventuel)
+            $articles = $em->getRepository(Article::class)->findAll();
+
+            // Si le chef de service a un formulaire de demande (il peut en faire lui-même)
+            // Nous avons déjà créé $formDemandeView plus haut, mais on peut le réutiliser.
+            // Sinon, on le crée ici.
+            if (!$formDemandeView) {
+                $demande = new Demande();
+                $formDemande = $this->createForm(DemandeType::class, $demande);
+                $formDemande->handleRequest($request);
+                if ($formDemande->isSubmitted() && $formDemande->isValid()) {
+                    // Traitement similaire à celui fait plus haut, mais on peut factoriser.
+                    // Pour simplifier, on reprend le même code (ou on pourrait appeler une méthode privée)
+                    $nomMaterielSaisi = $formDemande->get('materiel')->getData();
+                    $attribut = $formDemande->get('attribut')->getData();
+                    $quantiteDemandee = $demande->getQuantite() ?? 1;
+
+                    if (empty($nomMaterielSaisi)) {
+                        $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
+                        return $this->redirectToRoute('app_dashboard');
+                    }
+
+                    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+
+                    if ($attribut && method_exists($attribut, 'getQuantite')) {
+                        if ($attribut->getQuantite() < $quantiteDemandee) {
+                            $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
+                            return $this->redirectToRoute('app_dashboard');
+                        }
+                        $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+                        $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
+                    } else {
+                        if ($article) {
+                            if ($article->getQuantite() < $quantiteDemandee) {
+                                $this->addFlash('danger', 'Stock insuffisant pour cet article.');
+                                return $this->redirectToRoute('app_dashboard');
+                            }
+                            $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                        }
+                        $demande->setMateriel($nomMaterielSaisi);
+                    }
+
+                    $demande->setDepartement($userDept);
+                    $demande->setStatut('En attente');
+                    if (method_exists($demande, 'setDemandeur')) {
+                        $demande->setDemandeur($currentUser);
+                    }
+                    
+                    $em->persist($demande);
+                    $em->flush();
+
+                    $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
+                    return $this->redirectToRoute('app_dashboard');
+                }
+                $formDemandeView = $formDemande->createView();
+            }
+
+            return $this->render('dashboard/membre.html.twig', [
+                'demandes'       => $demandes,
+                'bonsSortie'     => $bonsSortie,
+                'rapportGlobal'  => $rapportGlobal,
+                'articles'       => $articles,
+                'devisListe'     => $devisServiceListe,
+                'totalDevisUSD'  => $totalDevisUSD,
+                'totalDevisCDF'  => $totalDevisCDF,
+                'userRole'       => $roleLabel,
+                'stats'          => $stats,
+                'formDemande'    => $formDemandeView,
+                'formBon'        => $formBonView,
+                'formVisite'     => $formVisiteView,
+                'date_debut'     => $dateDebutFiltre,
+                'date_fin'       => $dateFinFiltre,
+                'isChefService'  => true,
+            ]);
+        }
+
+        // ============================================================
+        // ADMIN : redirection vers le tableau de bord admin
+        // ============================================================
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // ------------------  Initialisation des vues de formulaires  ------------------
-        $formStockView        = null;
-        $formDemandeView      = null;
-        $formBonView          = null;
-        $formVisiteView       = null;
-        $formVisiteGueriteView = null;
-
-        // ------------------  Traitement des formulaires selon le rôle  ------------------
-
-        // 1. FORMULAIRE DE VISITE
-        if ($this->isGranted('ROLE_GUERITE')) {
-            $visiteGuerite = new Visite();
-            $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, ['with_extra_fields' => true]);
-            $formVisiteGuerite->handleRequest($request);
-            if ($formVisiteGuerite->isSubmitted() && $formVisiteGuerite->isValid()) {
-                $visiteGuerite->setStatut('A_L_ACCUEIL');
-                $visiteGuerite->setDateArrivee(new \DateTime());
-                $em->persist($visiteGuerite);
-                $em->flush();
-                $this->addFlash('success', '✅ Visiteur enregistré avec succès !');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formVisiteGueriteView = $formVisiteGuerite->createView();
-        } elseif ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
-            $visite = new Visite();
-            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => true]);
-            $formVisite->handleRequest($request);
-            if ($formVisite->isSubmitted() && $formVisite->isValid()) {
-                $visite->setStatut('RESERVE');
-                $em->persist($visite);
-                $em->flush();
-                $this->addFlash('success', '🗓️ Visite réservée.');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formVisiteView = $formVisite->createView();
-        } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
-            $visite = new Visite();
-            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => false]);
-            $formVisite->handleRequest($request);
-            if ($formVisite->isSubmitted() && $formVisite->isValid()) {
-                $visite->setStatut('RESERVE');
-                $em->persist($visite);
-                $em->flush();
-                $this->addFlash('success', '🗓️ Visite réservée.');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formVisiteView = $formVisite->createView();
-        }
-
-        // 2. FORMULAIRES POUR LE RÔLE STOCK
-        if ($this->isGranted('ROLE_STOCK')) {
-            $article = new Article();
-            $formStock = $this->createForm(StockType::class, $article);
-            $formStock->handleRequest($request);
-            if ($formStock->isSubmitted() && $formStock->isValid()) {
-                $em->persist($article);
-                $em->flush();
-                $this->addFlash('success', '📥 Article enregistré.');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formStockView = $formStock->createView();
-
-            $bonSortie = new BonSortie();
-            $formBon = $this->createForm(BonSortieType::class, $bonSortie);
-            $formBon->handleRequest($request);
-            if ($formBon->isSubmitted() && $formBon->isValid()) {
-                $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
-                $bonSortie->setDepartement($userDept);
-                $bonSortie->setDateCreation(new \DateTime());
-                $bonSortie->setStatut('Créé');
-                $em->persist($bonSortie);
-                $em->flush();
-                $this->addFlash('success', '🚀 Le bon de sortie a été transmis avec succès !');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formBonView = $formBon->createView();
-        }
-
-        // 3. FORMULAIRES POUR LES UTILISATEURS SIMPLES (MEMBRES)
-        // 3. FORMULAIRES POUR LES UTILISATEURS SIMPLES (MEMBRES)
-if (!$this->isGranted('ROLE_COORDON') &&
-    !$this->isGranted('ROLE_STOCK') &&
-    !$this->isGranted('ROLE_DG') &&
-    !$this->isGranted('ROLE_GUERITE') &&
-    !$this->isGranted('ROLE_COMPTA') &&
-    !$this->isGranted('ROLE_CAISSIER') &&
-    !$this->isGranted('ROLE_ADMIN')) {
-
-    $demande = new Demande();
-    $formDemande = $this->createForm(DemandeType::class, $demande);
-    $formDemande->handleRequest($request);
-
-    if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-        // ... traitement ...
-        $demande->setDemandeur($currentUser);
-        $demande->setDepartement($userDept);
-        $demande->setStatut('En attente');
-        $em->persist($demande);
-        $em->flush();
-
-        $this->addFlash('success', 'Demande enregistrée avec succès.');
-        return $this->redirectToRoute('app_dashboard');
-    }
-    $formDemandeView = $formDemande->createView();
-
-
-            $bonSortie = new BonSortie();
-            $formBon = $this->createForm(BonSortieType::class, $bonSortie);
-            $formBon->handleRequest($request);
-
-            if ($formBon->isSubmitted() && $formBon->isValid()) {
-                $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
-                $bonSortie->setDepartement($userDept);
-                $bonSortie->setDateCreation(new \DateTime());
-                $bonSortie->setStatut('Créé');
-                $em->persist($bonSortie);
-                $em->flush();
-                $this->addFlash('success', '🚀 Le bon de sortie a été transmis avec succès !');
-                return $this->redirectToRoute('app_dashboard');
-            }
-            $formBonView = $formBon->createView();
-        }
-
-        // ------------------  INTERROGATION BASE DE DONNÉES  ------------------
-        $demandes      = [];
-        $bonsSortie    = [];
-        $visites       = [];
-        $rapportGlobal = [];
-        $articles      = [];
-        $attributs     = [];
-        $categories    = [];
-        $subCategories = [];
-        $selectedCategory    = null;
-        $selectedSubCategory = null;
-
-        $debutAujourdhui = new \DateTime('today 00:00:00');
-        $finAujourdhui   = new \DateTime('today 23:59:59');
-
-        $filtreType      = $request->query->get('filtre_type');
-        $filtreDateDebut = $request->query->get('filtre_date_debut');
-        $filtreDateFin   = $request->query->get('filtre_date_fin');
-        $filtreStatut    = $request->query->get('filtre_statut');
+        // ============================================================
+        // INTERROGATION BASE DE DONNÉES (pour les rôles restants)
+        // ============================================================
 
         // --- POUR LA GUERITE ---
         if ($this->isGranted('ROLE_GUERITE')) {
@@ -439,7 +484,9 @@ if (!$this->isGranted('ROLE_COORDON') &&
             ]);
         }
 
-        // --- AUTRES RÔLES ---
+        // --- POUR LES AUTRES RÔLES (STOCK, COORDON, DG, COMPTA, membres simples) ---
+
+        // Récupération des demandes
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.createdAt BETWEEN :debut AND :fin')
@@ -460,6 +507,7 @@ if (!$this->isGranted('ROLE_COORDON') &&
                 ->getResult();
         }
 
+        // Récupération du rapport global (pour DG, Stock, Compta, Coordon)
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
             $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
             $categoryId = $request->query->get('category');
@@ -494,78 +542,73 @@ if (!$this->isGranted('ROLE_COORDON') &&
             $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
 
-        // ============================================================
-        // RENDU POUR LE COORDONNATEUR (avec formulaire de visite)
-        // ============================================================
-        // ============================================================
-// RENDU POUR LE COORDONNATEUR (avec formulaire de visite et devis)
-// ============================================================
-if ($this->isGranted('ROLE_COORDON')) {
-    // 1. Récupérer les demandes en attente de validation par le coordonnateur
-    $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
-    $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
-
-    // 2. Récupérer TOUS les devis (de tous les services) pour le coordonnateur
-    //    On peut récupérer tous les devis, ou seulement ceux avec certains statuts
-    $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
-    ->where('d.statut = :statut')
-    ->andWhere('d.createdAt BETWEEN :start AND :end')
-    ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
-    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-    ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-    ->orderBy('d.id', 'DESC')
-    ->getQuery()
-    ->getResult();
-
-    // 3. Calculer les totaux
-    $totalDevisUSD = 0;
-$totalDevisCDF = 0;
-foreach ($devisCoordon as $d) {
-    if ($d->getDevise() === 'CDF') {
-        $totalDevisCDF += $d->getMontant();
-    } else {
-        $totalDevisUSD += $d->getMontant();
-    }
-}
-
-    // 4. Création du formulaire de visite pour le coordonnateur
-    $visite = new Visite();
-    $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
-        'with_extra_fields' => true,
-    ]);
-    $formVisiteCoordon->handleRequest($request);
-    if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
-        $visite->setStatut('RESERVE');
-        $visite->setDateArrivee(new \DateTime());
-        $em->persist($visite);
-        $em->flush();
-        $this->addFlash('success', '🗓️ Visite réservée avec succès.');
-        return $this->redirectToRoute('app_dashboard');
-    }
-    $formVisiteView = $formVisiteCoordon->createView();
-
-    // 5. Rendu
-    return $this->render('dashboard/coordonnateur.html.twig', [
-        'demandes'       => $demandesCoordon,
-        'bonsSortie'     => $bonsSortie,
-        'devisListe'     => $devisCoordon,        // ← variable attendue dans le template
-        'totalDevisUSD'  => $totalDevisUSD,       // ← variable attendue
-        'totalDevisCDF'  => $totalDevisCDF,       // ← variable attendue
-        'userRole'       => $roleLabel,
-        'stats'          => $stats,
-        'date_debut'     => $dateDebutFiltre,
-        'date_fin'       => $dateFinFiltre,
-        'rapportGlobal'  => $rapportGlobal,
-        'formVisite'     => $formVisiteView,
-    ]);
-}
-
-        // Gestion des bons de sortie pour les autres rôles (sans le COORDON)
+        // Bons de sortie pour certains rôles
         if ($this->isGranted('ROLE_GUERITE')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
             $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+        }
+
+        // ============================================================
+        // RENDU SELON LE RÔLE
+        // ============================================================
+
+        // COORDONNATEUR
+        if ($this->isGranted('ROLE_COORDON')) {
+            $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
+            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
+
+            // Devis pour le coordonnateur (tous les services, statut VALIDÉ_CHEF_SERVICE)
+            $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
+                ->where('d.statut = :statut')
+                ->andWhere('d.createdAt BETWEEN :start AND :end')
+                ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
+                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+                ->orderBy('d.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            $totalDevisUSD = 0;
+            $totalDevisCDF = 0;
+            foreach ($devisCoordon as $d) {
+                if ($d->getDevise() === 'CDF') {
+                    $totalDevisCDF += $d->getMontant();
+                } else {
+                    $totalDevisUSD += $d->getMontant();
+                }
+            }
+
+            // Formulaire de visite pour le coordonnateur (si pas déjà créé)
+            if (!$formVisiteView) {
+                $visite = new Visite();
+                $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => true]);
+                $formVisiteCoordon->handleRequest($request);
+                if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
+                    $visite->setStatut('RESERVE');
+                    $visite->setDateArrivee(new \DateTime());
+                    $em->persist($visite);
+                    $em->flush();
+                    $this->addFlash('success', '🗓️ Visite réservée avec succès.');
+                    return $this->redirectToRoute('app_dashboard');
+                }
+                $formVisiteView = $formVisiteCoordon->createView();
+            }
+
+            return $this->render('dashboard/coordonnateur.html.twig', [
+                'demandes'       => $demandesCoordon,
+                'bonsSortie'     => $bonsSortie,
+                'devisListe'     => $devisCoordon,
+                'totalDevisUSD'  => $totalDevisUSD,
+                'totalDevisCDF'  => $totalDevisCDF,
+                'userRole'       => $roleLabel,
+                'stats'          => $stats,
+                'date_debut'     => $dateDebutFiltre,
+                'date_fin'       => $dateFinFiltre,
+                'rapportGlobal'  => $rapportGlobal,
+                'formVisite'     => $formVisiteView,
+            ]);
         }
 
         // COMPTA
@@ -641,6 +684,7 @@ foreach ($devisCoordon as $d) {
             'formVisite'     => $formVisiteView,
             'date_debut'     => $dateDebutFiltre,
             'date_fin'       => $dateFinFiltre,
+            'isChefService'  => false, // ← AJOUT OBLIGATOIRE
         ]);
     }
 
@@ -813,7 +857,7 @@ foreach ($devisCoordon as $d) {
             return $this->redirectToRoute('app_dashboard');
         }
 
-        $action = $request->request->get('action'); // 'valider' ou 'rejeter'
+        $action = $request->request->get('action');
 
         if ($action === 'valider') {
             $demande->setStatut('Validé Coordon');
@@ -831,48 +875,48 @@ foreach ($devisCoordon as $d) {
     // RECHERCHE API ARTICLE
     // ============================================================
     #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
-public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
-{
-    $nom = $request->query->get('nom');
-    if (empty($nom)) {
-        return new JsonResponse(['error' => 'Nom requis'], 400);
+    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $nom = $request->query->get('nom');
+        if (empty($nom)) {
+            return new JsonResponse(['error' => 'Nom requis'], 400);
+        }
+
+        // Recherche avec LIKE pour une correspondance partielle
+        $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
+            ->where('a.nom LIKE :nom')
+            ->setParameter('nom', '%' . $nom . '%')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        if (empty($articles)) {
+            return new JsonResponse(['found' => false]);
+        }
+
+        $article = $articles[0];
+        $attributs = [];
+
+        foreach ($article->getAttributs() as $attr) {
+            $details = [];
+            if ($attr->getCouleur())   $details[] = 'Couleur: ' . $attr->getCouleur();
+            if ($attr->getGrammage())  $details[] = 'Grammage: ' . $attr->getGrammage();
+            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
+            if ($attr->getLongueur())  $details[] = 'Longueur: ' . $attr->getLongueur();
+            $label = implode(' - ', $details) ?: 'Standard';
+
+            $attributs[] = [
+                'id'       => $attr->getId(),
+                'valeur'   => $label,
+                'quantite' => $attr->getQuantite()
+            ];
+        }
+
+        return new JsonResponse([
+            'found'     => true,
+            'nom'       => $article->getNom(),
+            'quantite'  => $article->getQuantite(),
+            'attributs' => $attributs
+        ]);
     }
-
-    // Recherche avec LIKE pour une correspondance partielle
-    $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
-        ->where('a.nom LIKE :nom')
-        ->setParameter('nom', '%' . $nom . '%')
-        ->setMaxResults(1) // on prend le premier trouvé
-        ->getQuery()
-        ->getResult();
-
-    if (empty($articles)) {
-        return new JsonResponse(['found' => false]);
-    }
-
-    $article = $articles[0];
-    $attributs = [];
-
-    foreach ($article->getAttributs() as $attr) {
-        $details = [];
-        if ($attr->getCouleur())   $details[] = 'Couleur: ' . $attr->getCouleur();
-        if ($attr->getGrammage())  $details[] = 'Grammage: ' . $attr->getGrammage();
-        if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
-        if ($attr->getLongueur())  $details[] = 'Longueur: ' . $attr->getLongueur();
-        $label = implode(' - ', $details) ?: 'Standard';
-
-        $attributs[] = [
-            'id'       => $attr->getId(),
-            'valeur'   => $label,
-            'quantite' => $attr->getQuantite()
-        ];
-    }
-
-    return new JsonResponse([
-        'found'     => true,
-        'nom'       => $article->getNom(),
-        'quantite'  => $article->getQuantite(),
-        'attributs' => $attributs
-    ]);
-}
 }
