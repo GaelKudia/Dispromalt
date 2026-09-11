@@ -65,6 +65,8 @@ class DashboardController extends AbstractController
             $roleLabel = 'Coordonnateur';
         } elseif ($this->isGranted('ROLE_DG')) {
             $roleLabel = 'Direction Générale';
+        } elseif ($this->isGranted('ROLE_CAISSIER')) {
+            $roleLabel = 'Caissier';
         }
 
         // STATS
@@ -118,7 +120,7 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // INITIALISATION DES VARIABLES (seront remplies selon le rôle)
+        // INITIALISATION DES VARIABLES
         // ============================================================
         $demandes = [];
         $bonsSortie = [];
@@ -147,13 +149,34 @@ class DashboardController extends AbstractController
         $filtreStatut    = $request->query->get('filtre_statut');
 
         // ============================================================
+        // 🔐 DÉTERMINER QUI PEUT DÉLÉGUER UNE VISITE
+        // ============================================================
+        $rolesAutorisesPourDeleguer = [
+            'ROLE_CAISSIER',
+            'ROLE_ACCUEIL',
+            'ROLE_RECEPTION',
+        ];
+
+        $peutDeleguer = false;
+        foreach ($rolesAutorisesPourDeleguer as $role) {
+            if ($this->isGranted($role)) {
+                $peutDeleguer = true;
+                break;
+            }
+        }
+
+        // ============================================================
         // TRAITEMENT DES FORMULAIRES (selon les rôles)
         // ============================================================
 
-        // 1. FORMULAIRE DE VISITE (générique)
+        // 1. FORMULAIRE DE VISITE (GÉNÉRIQUE SELON RÔLE)
         if ($this->isGranted('ROLE_GUERITE')) {
+            // Guérite : formulaire complet, sans délégation
             $visiteGuerite = new Visite();
-            $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, ['with_extra_fields' => true]);
+            $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, [
+                'with_extra_fields' => true,
+                'with_delegation'   => false,
+            ]);
             $formVisiteGuerite->handleRequest($request);
             if ($formVisiteGuerite->isSubmitted() && $formVisiteGuerite->isValid()) {
                 $visiteGuerite->setStatut('A_L_ACCUEIL');
@@ -164,9 +187,14 @@ class DashboardController extends AbstractController
                 return $this->redirectToRoute('app_dashboard');
             }
             $formVisiteGueriteView = $formVisiteGuerite->createView();
+
         } elseif ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
+            // Accueil / Réception : formulaire complet + délégation possible
             $visite = new Visite();
-            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => true]);
+            $formVisite = $this->createForm(VisiteType::class, $visite, [
+                'with_extra_fields' => true,
+                'with_delegation'   => $peutDeleguer, // ← true pour ACCUEIL / RECEPTION
+            ]);
             $formVisite->handleRequest($request);
             if ($formVisite->isSubmitted() && $formVisite->isValid()) {
                 $visite->setStatut('RESERVE');
@@ -176,10 +204,14 @@ class DashboardController extends AbstractController
                 return $this->redirectToRoute('app_dashboard');
             }
             $formVisiteView = $formVisite->createView();
+
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
-            // Pour les autres rôles (sauf DG et Admin)
+            // Autres rôles : formulaire avec délégation SEULEMENT si autorisé
             $visite = new Visite();
-            $formVisite = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => false]);
+            $formVisite = $this->createForm(VisiteType::class, $visite, [
+                'with_extra_fields' => false,
+                'with_delegation'   => $peutDeleguer, // ← true uniquement pour CAISSIER
+            ]);
             $formVisite->handleRequest($request);
             if ($formVisite->isSubmitted() && $formVisite->isValid()) {
                 $visite->setStatut('RESERVE');
@@ -191,7 +223,7 @@ class DashboardController extends AbstractController
             $formVisiteView = $formVisite->createView();
         }
 
-        // 2. FORMULAIRE STOCK (pour rôle STOCK)
+        // 2. FORMULAIRE STOCK
         if ($this->isGranted('ROLE_STOCK')) {
             $article = new Article();
             $formStock = $this->createForm(StockType::class, $article);
@@ -205,10 +237,10 @@ class DashboardController extends AbstractController
             $formStockView = $formStock->createView();
         }
 
-        // 3. FORMULAIRE BON DE SORTIE (pour les rôles STOCK ou membres simples)
-        if ($this->isGranted('ROLE_STOCK') || 
+        // 3. FORMULAIRE BON DE SORTIE
+        if ($this->isGranted('ROLE_STOCK') ||
             (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
-            
+
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
@@ -225,13 +257,12 @@ class DashboardController extends AbstractController
             $formBonView = $formBon->createView();
         }
 
-        // 4. FORMULAIRE DEMANDE (pour les membres simples et chefs de service)
+        // 4. FORMULAIRE DEMANDE
         if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN')) {
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
             if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-                // Traitement de la demande (avec vérification stock)
                 $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                 $attribut = $formDemande->get('attribut')->getData();
                 $quantiteDemandee = $demande->getQuantite() ?? 1;
@@ -266,7 +297,7 @@ class DashboardController extends AbstractController
                 if (method_exists($demande, 'setDemandeur')) {
                     $demande->setDemandeur($currentUser);
                 }
-                
+
                 $em->persist($demande);
                 $em->flush();
 
@@ -283,7 +314,6 @@ class DashboardController extends AbstractController
             $serviceChef = $currentUser->getService();
             $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
 
-            // Récupérer les demandes du service en attente
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.departement = :dept')
                 ->andWhere('d.statut = :statut')
@@ -293,10 +323,8 @@ class DashboardController extends AbstractController
                 ->getQuery()
                 ->getResult();
 
-            // Bons de sortie du service
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
 
-            // Devis du service (validés par le chef)
             $devisServiceListe = $devisRepository->createQueryBuilder('dev')
                 ->join('dev.user', 'u')
                 ->where('u.service = :service')
@@ -320,7 +348,6 @@ class DashboardController extends AbstractController
                 }
             }
 
-            // Rapport global (demandes du service filtrées par dates)
             $rapportGlobal = $demandeRepository->createQueryBuilder('d')
                 ->where('d.departement = :dept')
                 ->andWhere('d.createdAt BETWEEN :start AND :end')
@@ -331,19 +358,13 @@ class DashboardController extends AbstractController
                 ->getQuery()
                 ->getResult();
 
-            // Articles (pour l'affichage éventuel)
             $articles = $em->getRepository(Article::class)->findAll();
 
-            // Si le chef de service a un formulaire de demande (il peut en faire lui-même)
-            // Nous avons déjà créé $formDemandeView plus haut, mais on peut le réutiliser.
-            // Sinon, on le crée ici.
             if (!$formDemandeView) {
                 $demande = new Demande();
                 $formDemande = $this->createForm(DemandeType::class, $demande);
                 $formDemande->handleRequest($request);
                 if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-                    // Traitement similaire à celui fait plus haut, mais on peut factoriser.
-                    // Pour simplifier, on reprend le même code (ou on pourrait appeler une méthode privée)
                     $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                     $attribut = $formDemande->get('attribut')->getData();
                     $quantiteDemandee = $demande->getQuantite() ?? 1;
@@ -378,7 +399,7 @@ class DashboardController extends AbstractController
                     if (method_exists($demande, 'setDemandeur')) {
                         $demande->setDemandeur($currentUser);
                     }
-                    
+
                     $em->persist($demande);
                     $em->flush();
 
@@ -408,14 +429,14 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // ADMIN : redirection vers le tableau de bord admin
+        // ADMIN
         // ============================================================
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
         // ============================================================
-        // INTERROGATION BASE DE DONNÉES (pour les rôles restants)
+        // INTERROGATION BASE DE DONNÉES (RÔLES RESTANTS)
         // ============================================================
 
         // --- POUR LA GUERITE ---
@@ -484,9 +505,8 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // --- POUR LES AUTRES RÔLES (STOCK, COORDON, DG, COMPTA, membres simples) ---
+        // --- POUR LES AUTRES RÔLES ---
 
-        // Récupération des demandes
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.createdAt BETWEEN :debut AND :fin')
@@ -507,7 +527,6 @@ class DashboardController extends AbstractController
                 ->getResult();
         }
 
-        // Récupération du rapport global (pour DG, Stock, Compta, Coordon)
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
             $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
             $categoryId = $request->query->get('category');
@@ -542,7 +561,6 @@ class DashboardController extends AbstractController
             $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
 
-        // Bons de sortie pour certains rôles
         if ($this->isGranted('ROLE_GUERITE')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
             $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
@@ -559,7 +577,6 @@ class DashboardController extends AbstractController
             $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-            // Devis pour le coordonnateur (tous les services, statut VALIDÉ_CHEF_SERVICE)
             $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
                 ->where('d.statut = :statut')
                 ->andWhere('d.createdAt BETWEEN :start AND :end')
@@ -580,10 +597,12 @@ class DashboardController extends AbstractController
                 }
             }
 
-            // Formulaire de visite pour le coordonnateur (si pas déjà créé)
             if (!$formVisiteView) {
                 $visite = new Visite();
-                $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, ['with_extra_fields' => true]);
+                $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
+                    'with_extra_fields' => true,
+                    'with_delegation'   => false,
+                ]);
                 $formVisiteCoordon->handleRequest($request);
                 if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
                     $visite->setStatut('RESERVE');
@@ -668,7 +687,7 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // PAR DÉFAUT (UTILISATEUR SIMPLE)
+        // PAR DÉFAUT
         return $this->render('dashboard/membre.html.twig', [
             'demandes'       => $demandes,
             'bonsSortie'     => $bonsSortie,
@@ -684,7 +703,7 @@ class DashboardController extends AbstractController
             'formVisite'     => $formVisiteView,
             'date_debut'     => $dateDebutFiltre,
             'date_fin'       => $dateFinFiltre,
-            'isChefService'  => false, // ← AJOUT OBLIGATOIRE
+            'isChefService'  => false,
         ]);
     }
 
@@ -718,7 +737,7 @@ class DashboardController extends AbstractController
     }
 
     // ============================================================
-    // ROUTES POUR LES RAPPORTS PDF ET EXCEL
+    // ROUTES POUR LES RAPPORTS
     // ============================================================
     #[Route('/rapport/pdf', name: 'app_rapport_pdf')]
     public function rapportPdf(Request $request): Response
@@ -795,9 +814,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ============================================================
-    // ROUTE POUR LA SORTIE EFFECTIVE (GUERITE)
-    // ============================================================
     #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
     #[IsGranted('ROLE_GUERITE')]
     public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
@@ -821,12 +837,10 @@ class DashboardController extends AbstractController
         /** @var User $currentUser */
         $currentUser = $this->getUser();
 
-        // 1. Vérifier si l'utilisateur est bien chef de service
         if (!$currentUser->isChefService()) {
             throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
 
-        // 2. Vérifier que la demande appartient au même service que le chef
         $demandeur = $demande->getUser();
         if (!$demandeur || $demandeur->getService() !== $currentUser->getService()) {
             $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
@@ -851,7 +865,6 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_COORDON')]
     public function validerDemandeCoordonnateur(Request $request, Demande $demande, EntityManagerInterface $em): Response
     {
-        // Vérifier que la demande est bien dans l'état attendu
         if ($demande->getStatut() !== 'Validé Chef') {
             $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape.');
             return $this->redirectToRoute('app_dashboard');
@@ -882,7 +895,6 @@ class DashboardController extends AbstractController
             return new JsonResponse(['error' => 'Nom requis'], 400);
         }
 
-        // Recherche avec LIKE pour une correspondance partielle
         $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
             ->where('a.nom LIKE :nom')
             ->setParameter('nom', '%' . $nom . '%')

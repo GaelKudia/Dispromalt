@@ -25,15 +25,9 @@ class Visite
     #[ORM\Column(length: 50)]
     private ?string $statut = null;
 
-    // ============================================================
-    // NOUVEAU CHAMP : DATE D'ARRIVÉE
-    // ============================================================
     #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateArrivee = null;
 
-    // ============================================================
-    // CHAMPS OPTIONNELS (pour compléter le formulaire)
-    // ============================================================
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $telephone = null;
 
@@ -44,128 +38,43 @@ class Visite
     private ?string $pieceIdentite = null;
 
     // ============================================================
-    // GETTERS ET SETTERS
+    // RELATION : Responsable à qui la visite est déléguée
+    // (uniquement un compte prédéfini : DG, Coordonnateur, Chef Compta)
     // ============================================================
-
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getNomVisiteur(): ?string
-    {
-        return $this->nomVisiteur;
-    }
-
-    public function setNomVisiteur(string $nomVisiteur): static
-    {
-        $this->nomVisiteur = $nomVisiteur;
-        return $this;
-    }
-
-    public function getDepartement(): ?string
-    {
-        return $this->departement;
-    }
-
-    public function setDepartement(string $departement): static
-    {
-        $this->departement = $departement;
-        return $this;
-    }
-
-    public function getMotif(): ?string
-    {
-        return $this->motif;
-    }
-
-    public function setMotif(string $motif): static
-    {
-        $this->motif = $motif;
-        return $this;
-    }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(string $statut): static
-    {
-        $this->statut = $statut;
-        return $this;
-    }
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $responsableDelegue = null;
 
     // ============================================================
-    // GETTERS ET SETTERS POUR dateArrivee
+    // GETTERS / SETTERS
     // ============================================================
-    public function getDateArrivee(): ?\DateTimeInterface
-    {
-        return $this->dateArrivee;
-    }
 
-    public function setDateArrivee(?\DateTimeInterface $dateArrivee): static
-    {
-        $this->dateArrivee = $dateArrivee;
-        return $this;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    // ============================================================
-    // GETTERS ET SETTERS POUR telephone
-    // ============================================================
-    public function getTelephone(): ?string
-    {
-        return $this->telephone;
-    }
+    public function getNomVisiteur(): ?string { return $this->nomVisiteur; }
+    public function setNomVisiteur(string $nomVisiteur): static { $this->nomVisiteur = $nomVisiteur; return $this; }
 
-    public function setTelephone(?string $telephone): static
-    {
-        $this->telephone = $telephone;
-        return $this;
-    }
+    public function getDepartement(): ?string { return $this->departement; }
+    public function setDepartement(string $departement): static { $this->departement = $departement; return $this; }
 
-    // ============================================================
-    // GETTERS ET SETTERS POUR email
-    // ============================================================
-    public function getEmail(): ?string
-    {
-        return $this->email;
-    }
+    public function getMotif(): ?string { return $this->motif; }
+    public function setMotif(string $motif): static { $this->motif = $motif; return $this; }
 
-    public function setEmail(?string $email): static
-    {
-        $this->email = $email;
-        return $this;
-    }
+    public function getStatut(): ?string { return $this->statut; }
+    public function setStatut(string $statut): static { $this->statut = $statut; return $this; }
 
-    // ============================================================
-    // GETTERS ET SETTERS POUR pieceIdentite
-    // ============================================================
-    public function getPieceIdentite(): ?string
-    {
-        return $this->pieceIdentite;
-    }
+    public function getDateArrivee(): ?\DateTimeInterface { return $this->dateArrivee; }
+    public function setDateArrivee(?\DateTimeInterface $dateArrivee): static { $this->dateArrivee = $dateArrivee; return $this; }
 
-    public function setPieceIdentite(?string $pieceIdentite): static
-    {
-        $this->pieceIdentite = $pieceIdentite;
-        return $this;
-    }
+    public function getTelephone(): ?string { return $this->telephone; }
+    public function setTelephone(?string $telephone): static { $this->telephone = $telephone; return $this; }
 
-    // Ajoute cette propriété en haut avec les autres champs :
-#[ORM\ManyToOne(targetEntity: User::class)]
-#[ORM\JoinColumn(nullable: true)]
-private ?User $responsableDelegue = null;
+    public function getEmail(): ?string { return $this->email; }
+    public function setEmail(?string $email): static { $this->email = $email; return $this; }
 
-// Ajoute ensuite le Getter et le Setter correspondants :
-public function getResponsableDelegue(): ?User
-{
-    return $this->responsableDelegue;
-}
+    public function getPieceIdentite(): ?string { return $this->pieceIdentite; }
+    public function setPieceIdentite(?string $pieceIdentite): static { $this->pieceIdentite = $pieceIdentite; return $this; }
 
-public function setResponsableDelegue(?User $responsableDelegue): static
-{
-    $this->responsableDelegue = $responsableDelegue;
-    return $this;
-}
+    public function getResponsableDelegue(): ?User { return $this->responsableDelegue; }
+    public function setResponsableDelegue(?User $responsableDelegue): static { $this->responsableDelegue = $responsableDelegue; return $this; }
 }

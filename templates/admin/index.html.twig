@@ -4,585 +4,1015 @@
     <meta charset="UTF-8">
     <title>Panneau de Contrôle Général - Administration</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
-    <link class="jsbin" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    
+
     <style>
-        .card-counter { shadow: 0 4px 10px rgba(0,0,0,0.05); border: none; border-radius: 10px; transition: transform 0.2s; }
-        .card-counter:hover { transform: translateY(-3px); }
-        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; }
-        .sticky-form { position: sticky; top: 20px; }
+        :root {
+            --dg-primary: #1e293b;
+            --dg-accent: #dc2626;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --gradient-purple: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+            --shadow-soft: 0 4px 20px rgba(0,0,0,0.06);
+            --shadow-hover: 0 12px 30px rgba(0,0,0,0.10);
+        }
+
+        * { transition: all 0.25s ease; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f7;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
+            min-height: 100vh;
+        }
+
+        /* ========= NAVBAR ========= */
+        .navbar-modern {
+            background: rgba(30, 41, 59, 0.98);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .navbar-brand-modern { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
+        .role-pill {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+        }
+
+        /* ========= STAT CARDS ========= */
+        .stat-card {
+            border: none;
+            border-radius: 18px;
+            padding: 1.4rem;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: var(--shadow-soft);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--gradient-3);
+        }
+        .stat-card.stat-primary::before { background: var(--gradient-3); }
+        .stat-card.stat-success::before { background: var(--gradient-4); }
+        .stat-card.stat-purple::before { background: var(--gradient-purple); }
+        .stat-card.stat-warning::before { background: var(--gradient-5); }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+
+        .stat-icon {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .stat-icon-primary { background: rgba(79, 172, 254, 0.12); color: #3b82f6; }
+        .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
+        .stat-icon-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+        .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
+
+        /* ========= MAIN CARD & TABS ========= */
+        .main-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            background: #fff;
+            overflow: hidden;
+        }
+        .nav-tabs-modern {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 1rem;
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .nav-tabs-modern::-webkit-scrollbar { display: none; }
+        .nav-tabs-modern .nav-link {
+            border: none !important;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 1rem 1.1rem;
+            white-space: nowrap;
+            border-radius: 0;
+            position: relative;
+            background: none;
+        }
+        .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); }
+        .nav-tabs-modern .nav-link.active { color: var(--dg-primary) !important; background: none; }
+        .nav-tabs-modern .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 1rem; right: 1rem;
+            height: 3px;
+            background: var(--gradient-1);
+            border-radius: 3px 3px 0 0;
+        }
+        .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
+
+        /* ========= TABLE ========= */
+        .table-modern { margin: 0; }
+        .table-modern thead th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 1rem 0.9rem;
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .table-modern tbody td {
+            padding: 1rem 0.9rem;
+            vertical-align: middle;
+            border-color: #f1f5f9;
+        }
+        .table-modern tbody tr:hover { background: #f8fafc; }
+
+        .badge-soft {
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+        .badge-soft-warning { background: rgba(250, 112, 154, 0.12); color: #d63384; }
+        .badge-soft-primary { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
+        .badge-soft-success { background: rgba(67, 233, 123, 0.15); color: #059669; }
+        .badge-soft-danger  { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+        .badge-soft-info    { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
+        .badge-soft-secondary { background: #f1f5f9; color: #475569; }
+        .badge-soft-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+
+        /* ========= FORM CARDS ========= */
+        .form-card {
+            border: none;
+            border-radius: 16px;
+            background: #fff;
+            border: 1px solid #eef2f7;
+            padding: 1.75rem;
+        }
+        .form-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .form-card-icon {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .form-card-icon-blue   { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
+        .form-card-icon-green  { background: rgba(67, 233, 123, 0.15); color: #059669; }
+        .form-card-icon-yellow { background: rgba(250, 210, 90, 0.18); color: #ca8a04; }
+        .form-card-icon-purple { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+        .form-card-icon-red    { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+
+        .btn-modern {
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 0.7rem 1.25rem;
+            border: none;
+            transition: all 0.25s ease;
+        }
+        .btn-modern:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 0.65rem 0.9rem;
+            font-size: 0.9rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.10);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #94a3b8;
+        }
+        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
+
+        .page-title { font-weight: 800; font-size: 1.85rem; letter-spacing: -0.5px; color: var(--dg-primary); margin: 0; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; margin: 0; }
+
+        /* ========= USER LIST ========= */
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 1rem;
+        }
+        .user-item:hover { background: #f8fafc; }
+        .user-item:last-child { border-bottom: none; }
+
+        /* Fix purple color */
+        .text-purple { color: #9333ea !important; }
+        .bg-purple-soft { background: rgba(168, 85, 247, 0.12) !important; }
     </style>
 </head>
-<body class="bg-light text-dark">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="#">
-               Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Gérant Imprimerie</span>
+{# ============================================
+   NAVBAR
+============================================ #}
+<nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand navbar-brand-modern text-white" href="#">
+            <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span>
+            <span class="fw-light fs-6 text-white-50 ms-2">| Gérant Imprimerie</span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <div class="role-pill d-none d-md-inline-flex align-items-center">
+                <i class="fas fa-user-shield text-warning me-2"></i>
+                <span class="fw-bold">Super-Administrateur</span>
+            </div>
+            <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
+                <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
-            <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-user-shield text-warning me-2"></i><strong>Super-Administrateur</strong>
-                </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
-                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
-                </a>
-            </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <div class="container-fluid py-4 px-4">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-            <div>
-                <h1 class="fw-bold text-dark m-0">Tableau de Bord Général</h1>
-                <p class="text-muted m-0">Supervision des flux de l'imprimerie et gestion globale des identifiants des agents.</p>
-            </div>
-            <div class="text-end text-muted small font-monospace">
-                <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
-            </div>
+{# ============================================
+   MAIN CONTAINER
+============================================ #}
+<div class="container-fluid py-4 px-4" style="max-width: 1600px;">
+
+    {# En-tête #}
+    <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">Tableau de Bord Général</h1>
+            <p class="page-subtitle">Supervision des flux de l'imprimerie et gestion globale des identifiants.</p>
         </div>
+        <div class="text-muted small font-monospace">
+            <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+        </div>
+    </div>
 
-        {# Flash Messages #}
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-start border-{{ label == 'danger' ? 'danger' : 'success' }} border-4" role="alert">
-                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle text-danger' : 'fa-check-circle text-success' }} me-2 fs-5"></i> 
-                    <strong>{{ label == 'danger' ? 'Erreur :' : 'Succès :' }}</strong> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                </div>
-            {% endfor %}
+    {# Flash Messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
+                <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
         {% endfor %}
+    {% endfor %}
 
-        <div class="row g-3 mb-4">
-            <div class="col-md-4 col-xl-3">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-primary border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Demandes Totales</h6>
-                            <h3 class="fw-bold m-0 text-primary">{{ demandes|length }}</h3>
-                        </div>
-                        <i class="fas fa-box fa-2x text-primary bg-primary bg-opacity-10 p-3 rounded-circle"></i>
+    {# Cartes de statistiques #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-xl-3">
+            <div class="stat-card stat-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Demandes Totales</h6>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ demandes|length }}</h3>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-xl-3">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-success border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons de Sortie</h6>
-                            <h3 class="fw-bold m-0 text-success">{{ bons|length }}</h3>
-                        </div>
-                        <i class="fas fa-file-signature fa-2x text-success bg-success bg-opacity-10 p-3 rounded-circle"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-xl-3">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-purple border-4" style="border-left-color: #6f42c1 !important;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Agents Enregistrés</h6>
-                            <h3 class="fw-bold m-0" style="color: #6f42c1;">{{ users|length }}</h3>
-                        </div>
-                        <i class="fas fa-users fa-2x text-purple bg-purple bg-opacity-10 p-3 rounded-circle" style="color: #6f42c1;"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-primary"><i class="fas fa-box"></i></div>
                 </div>
             </div>
         </div>
-
-        <div class="row g-4">
-            
-            <div class="col-xl-5 col-lg-5">
-                <div class="sticky-form">
-                    
-                    {# Formulaire de création de compte existant #}
-                    <div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #6f42c1 !important;">
-                        <div class="card-header bg-white py-3">
-                            <h5 class="card-title m-0 fw-bold text-dark">
-                                <i class="fas fa-user-plus me-2" style="color: #6f42c1;"></i>Créer un Compte Agent
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            {{ form_start(form) }}
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">Adresse Email de connexion</label>
-                                    {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'agent.nom@imprimerie.com'}}) }}
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">Département d'affectation / Rôle</label>
-                                    {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
-                                    <small class="text-muted" style="font-size: 11px;">Note : Si votre formulaire FormType n'inclut pas directement le rôle Chef Comptable, vous pouvez le promouvoir à l'aide de l'outil ci-dessous.</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">Localisation géographique</label>
-                                    {{ form_widget(form.localisation, {'attr': {'class': 'form-select'}}) }}
-                                </div>
-                                <div class="mb-4">
-                                    <label class="form-label small fw-bold text-secondary">Mot de passe provisoire</label>
-                                    {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Mot de passe'}}) }}
-                                </div>
-                                <button type="submit" class="btn w-100 fw-bold text-white shadow-sm" style="background-color: #6f42c1;">
-                                    <i class="fas fa-check-shield me-2"></i>Générer et Activer l'Accès
-                                </button>
-                            {{ form_end(form) }}
-                        </div>
+        <div class="col-md-4 col-xl-3">
+            <div class="stat-card stat-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons de Sortie</h6>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ bons|length }}</h3>
                     </div>
-
-                    <div class="card border-0 shadow-sm mb-4 border-start border-info border-4">
-    <div class="card-header bg-white py-3">
-        <h6 class="m-0 fw-bold text-dark">
-            <i class="fas fa-cash-register text-info me-2"></i>Nommer un Caissier
-        </h6>
-    </div>
-    <div class="card-body py-3">
-        <form method="POST" action="{{ path('app_admin_assigner_caissier') }}">
-            <div class="input-group input-group-sm">
-                <select name="user_id" class="form-select form-select-sm" required>
-                    <option value="" disabled selected>Sélectionner un agent...</option>
-                    {% for u in users %}
-                        {# Liste ceux qui ne sont pas déjà caissier #}
-                        {% if 'ROLE_CAISSIER' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
-                            <option value="{{ u.id }}">{{ u.email }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-info btn-sm fw-bold text-white">
-                    <i class="fas fa-check me-1"></i> Nommer
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{# 🆕 BLOC : CRÉATION D'UN SERVICE #}
-<div class="card border-0 shadow-sm mb-4" style="border-top: 4px solid #0d6efd !important;">
-    <div class="card-header bg-white py-3">
-        <h5 class="card-title m-0 fw-bold text-dark">
-            <i class="fas fa-building me-2 text-primary"></i>Créer un Nouveau Service
-        </h5>
-    </div>
-    <div class="card-body">
-        {{ form_start(formService) }}
-            <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary">Nom du Service</label>
-                {{ form_widget(formService.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Comptabilité, Logistique...'}}) }}
-            </div>
-            <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
-                <i class="fas fa-plus-circle me-2"></i>Enregistrer le Service
-            </button>
-        {{ form_end(formService) }}
-    </div>
-</div>
-
-                    {# 🆕 NOUVEAU BLOC : ATTRIBUTION RAPIDE DU RÔLE CHEF COMPTABLE #}
-                    <div class="card border-0 shadow-sm mb-4 border-start border-warning border-4">
-                        <div class="card-header bg-white py-3">
-                            <h6 class="m-0 fw-bold text-dark">
-                                <i class="fas fa-user-shield text-warning me-2"></i>Nommer un Chef Comptable
-                            </h6>
-                        </div>
-                        <div class="card-body py-3">
-                            <form method="POST" action="{{ path('app_admin_assigner_chef_compta') }}">
-                                <div class="input-group input-group-sm">
-                                    <select name="user_id" class="form-select form-select-sm" required>
-                                        <option value="" disabled selected>Sélectionner un agent...</option>
-                                        {% for u in listeComptables|default(users) %}
-                                            {# Éviter de lister ceux qui le sont déjà ou les admins #}
-                                            {% if 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
-                                                <option value="{{ u.id }}">{{ u.email }}</option>
-                                            {% endif %}
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-warning btn-sm fw-bold">
-                                        <i class="fas fa-check me-1"></i> Promouvoir
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    {# Registre & Contrôle des Comptes #}
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white py-3">
-                            <h6 class="m-0 fw-bold text-dark"><i class="fas fa-users-cog me-2 text-muted"></i>Registre & Contrôle des Comptes ({{ users|length }})</h6>
-                        </div>
-                        <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
-                            <div class="list-group list-group-flush">
-                                {% for u in users %}
-                                    <div class="list-group-item p-3 d-flex justify-content-between align-items-center small">
-                                        <div style="max-width: 60%;">
-                                            <span class="d-block fw-bold text-dark text-truncate" title="{{ u.email }}">{{ u.email }}</span>
-                                            
-                                            {# Rôles et Badges mis à jour #}
-                                            <div class="d-flex flex-wrap gap-1 mt-1">
-                                                {% if 'ROLE_ADMIN' in u.roles %}
-                                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 10px;">ADMINISTRATEUR</span>
-                                                {% endif %}
-                                                
-                                                {# 🆕 Badge dédié pour le Chef Comptable #}
-                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
-                                                    <span class="badge bg-warning text-dark border border-warning fw-bold" style="font-size: 10px;">
-                                                        <i class="fas fa-star me-1"></i>CHEF COMPTABLE
-                                                    </span>
-                                                {% elseif 'ROLE_COMPTA' in u.roles %}
-                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size: 10px;">COMPTABLE</span>
-                                                {% endif %}
-
-                                                {% if 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
-                                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning-subtle" style="font-size: 10px;"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
-                                                {% elseif 'ROLE_GUERITE' in u.roles %}
-                                                    <span class="badge bg-info bg-opacity-10 text-info border border-info-subtle" style="font-size: 10px;"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
-                                                {% endif %}
-                                                
-                                                {# Afficher le rôle brut si aucun des critères précédents n'est matché #}
-                                                {% if 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles %}
-                                                    <span class="badge bg-light text-secondary border font-monospace" style="font-size: 10px;">{{ u.roles[0]|default('ROLE_USER') }}</span>
-                                                {% endif %}
-                                            </div>
-                                            
-                                            <div class="mt-1">
-                                                {% if u.localisation is defined and u.localisation %}
-                                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle" style="font-size: 10px;"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle" style="font-size: 10px;"><i class="fas fa-building me-1"></i>DIRECTION</span>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-
-                                                {# 🆕 Badge pour le Caissier #}
-        {% if 'ROLE_CAISSIER' in u.roles %}
-            <span class="badge bg-info text-white border border-info fw-bold" style="font-size: 10px;">
-                <i class="fas fa-cash-register me-1"></i>CAISSIER
-            </span>
-        {% endif %}
-                                        
-                                        <div class="text-end">
-                                            <div class="mb-2">
-                                                {% if u.isActif is defined %}
-                                                    {% if u.isActif %}
-                                                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2">Actif</span>
-                                                    {% else %}
-                                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle rounded-pill px-2">Inactif</span>
-                                                    {% endif %}
-                                                {% else %}
-                                                    <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2">Actif</span>
-                                                {% endif %}
-                                            </div>
-
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                {# Bouton de destitution si l'utilisateur est Chef Comptable #}
-                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
-                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
-                                                        <button type="submit" class="btn btn-light border btn-sm text-dark" title="Retirer le visa de Chef Comptable">
-                                                            <i class="fas fa-user-slash text-danger"></i>
-                                                        </button>
-                                                    </form>
-                                                {% endif %}
-
-                                                <a href="{{ path('app_admin_user_edit', {'id': u.id}) }}" class="btn btn-light border btn-sm text-primary" title="Modifier le compte">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-
-                                                <form action="{{ path('app_admin_user_toggle', {'id': u.id}) }}" method="POST" class="d-inline">
-                                                    <button type="submit" class="btn btn-light border btn-sm {{ u.isActif|default(true) ? 'text-warning' : 'text-success' }}" title="{{ u.isActif|default(true) ? 'Rendre inactif' : 'Réactiver' }}">
-                                                        <i class="fas {{ u.isActif|default(true) ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
-                                                    </button>
-                                                </form>
-
-                                                <form action="{{ path('app_admin_user_delete', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('⚠️ Attention : Voulez-vous supprimer définitivement l\'accès de {{ u.email }} ?');">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
-                                                    <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer définitivement">
-                                                        <i class="fas fa-trash-alt"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
+                    <div class="stat-icon stat-icon-success"><i class="fas fa-file-signature"></i></div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-4 col-xl-3">
+            <div class="stat-card stat-purple">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Agents Enregistrés</h6>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ users|length }}</h3>
+                    </div>
+                    <div class="stat-icon stat-icon-purple"><i class="fas fa-users"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-xl-3">
+            <div class="stat-card stat-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Catégories / Machines</h6>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ categories|length }} / {{ machines|length }}</h3>
+                    </div>
+                    <div class="stat-icon stat-icon-warning"><i class="fas fa-layer-group"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            {# Bloc de droite : Onglets Demandes & Bons #}
-            <div class="col-xl-7 col-lg-7">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white p-2 border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
-                        <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="panelTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active py-2 px-3 fw-bold border-0 text-primary" id="demandes-tab" data-bs-toggle="tab" data-bs-target="#demandes-pane" type="button" role="tab">
-                                    <i class="fas fa-boxes me-2"></i>Suivi des Demandes de Matériel
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link py-2 px-3 fw-bold border-0 text-success" id="bons-tab" data-bs-toggle="tab" data-bs-target="#bons-pane" type="button" role="tab">
-                                    <i class="fas fa-id-badge me-2"></i>Registre des Bons de Sortie
-                                </button>
-                            </li>
-                        </ul>
+    {# ============================================
+       CARTE PRINCIPALE À ONGLETS
+    ============================================ #}
+    <div class="main-card">
 
-                        <form method="get" class="d-flex align-items-center gap-2 me-2">
+        {# Barre d'onglets #}
+        <ul class="nav nav-tabs nav-tabs-modern" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
+                    <i class="fas fa-boxes text-primary"></i>Demandes
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
+                    <i class="fas fa-id-badge text-success"></i>Bons de Sortie
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-agents" data-bs-toggle="tab" data-bs-target="#pane-agents" type="button" role="tab">
+                    <i class="fas fa-user-plus text-purple"></i>Comptes Agents
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-nominations" data-bs-toggle="tab" data-bs-target="#pane-nominations" type="button" role="tab">
+                    <i class="fas fa-user-shield text-warning"></i>Nominations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-structure" data-bs-toggle="tab" data-bs-target="#pane-structure" type="button" role="tab">
+                    <i class="fas fa-sitemap text-primary"></i>Catégories
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-machines" data-bs-toggle="tab" data-bs-target="#pane-machines" type="button" role="tab">
+                    <i class="fas fa-cogs text-secondary"></i>Machines
+                </button>
+            </li>
+        </ul>
+
+        {# Contenu des onglets #}
+        <div class="p-4">
+            <div class="tab-content">
+
+                {# ============ ONGLET 1 : DEMANDES ============ #}
+                <div class="tab-pane fade show active" id="pane-demandes" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Suivi des Demandes de Matériel</h5>
+                            <small class="text-muted">Contrôle et validation des demandes de tous les services.</small>
+                        </div>
+                        <form method="get" class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center gap-1">
-                                <span class="small fw-bold text-muted text-nowrap" style="font-size: 11px;">Du :</span>
-                                <input type="date" name="date_debut" class="form-control form-control-sm py-0.5" style="font-size: 12px; width: 125px;" value="{{ date_debut }}">
+                                <span class="small fw-bold text-muted text-nowrap">Du :</span>
+                                <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}" style="width: 140px;">
                             </div>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="small fw-bold text-muted text-nowrap" style="font-size: 11px;">Au :</span>
-                                <input type="date" name="date_fin" class="form-control form-control-sm py-0.5" style="font-size: 12px; width: 125px;" value="{{ date_fin }}">
+                                <span class="small fw-bold text-muted text-nowrap">Au :</span>
+                                <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}" style="width: 140px;">
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm px-2 py-0.5" style="font-size: 12px;" title="Filtrer">
+                            <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" title="Filtrer">
                                 <i class="fas fa-search"></i>
                             </button>
-                            <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary btn-sm px-2 py-0.5" style="font-size: 12px;" title="Réinitialiser">
+                            <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary btn-sm px-3 rounded-3" title="Réinitialiser">
                                 <i class="fas fa-undo"></i>
                             </a>
                         </form>
                     </div>
 
-                    <div class="card-body p-3">
-                        <div class="tab-content" id="panelTabContent">
-                            
-                            <div class="tab-pane fade show active" id="demandes-pane" role="tabpanel" aria-labelledby="demandes-tab">
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle m-0">
-                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                            <tr>
-                                                <th>Code</th>
-                                                <th>Département</th>
-                                                <th>Localisation</th> 
-                                                <th>Matériel Demandé</th>
-                                                <th>Quantité</th>
-                                                <th>État</th>
-                                                <th class="text-center">Actions / Contrôle</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for d in demandes %}
-                                                <tr>
-                                                    <td class="fw-bold text-secondary">#{{ d.id }}</td>
-                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ d.departement }}</span></td>
-                                                    <td>
-                                                        {% if d.localisation == 'sedwe' %}
-                                                            <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1 fw-bold">SEDWE</span>
-                                                        {% elseif d.localisation == 'bonagere' %}
-                                                            <span class="badge bg-info bg-opacity-10 text-info border px-2 py-1 fw-bold">BONAGÈRE</span>
-                                                        {% else %}
-                                                            <span class="badge bg-dark bg-opacity-10 text-dark border px-2 py-1">DIRECTION</span>
-                                                        {% endif %}
-                                                    </td>
-                                                    <td class="fw-semibold text-dark">{{ d.materiel }}</td>
-                                                    <td><span class="badge bg-light text-dark border px-2 py-1">{{ d.quantite }}</span></td>
-                                                    <td>
-                                                        <span class="badge rounded-pill px-2.5 py-1 {% if d.statut == 'En attente' %}bg-warning text-dark{% elseif 'Livré' in d.statut %}bg-info text-white{% else %}bg-success{% endif %}">
-                                                            {{ d.statut }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
-                                                            <button class="btn btn-light border text-primary" title="Voir les détails"><i class="fas fa-eye"></i></button>
-                                                            <button class="btn btn-light border text-success" title="Valider la demande"><i class="fas fa-check"></i></button>
-                                                            <button class="btn btn-light border text-danger" title="Refuser la demande"><i class="fas fa-times"></i></button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Département</th>
+                                    <th>Localisation</th>
+                                    <th>Matériel</th>
+                                    <th class="text-center">Quantité</th>
+                                    <th>État</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in demandes %}
+                                    <tr>
+                                        <td class="fw-bold text-secondary">#{{ d.id }}</td>
+                                        <td><span class="badge badge-soft badge-soft-secondary">{{ d.departement }}</span></td>
+                                        <td>
+                                            {% if d.localisation == 'sedwe' %}
+                                                <span class="badge badge-soft badge-soft-primary"><i class="fas fa-map-marker-alt me-1"></i>SEDWE</span>
+                                            {% elseif d.localisation == 'bonagere' %}
+                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-map-marker-alt me-1"></i>BONAGÈRE</span>
                                             {% else %}
-                                                <tr>
-                                                    <td colspan="7" class="text-center py-5 text-muted">
-                                                        <i class="fas fa-folder-open d-block fs-3 mb-2"></i> Aucune demande de matériel enregistrée.
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
+                                                <span class="badge badge-soft badge-soft-secondary"><i class="fas fa-building me-1"></i>DIRECTION</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="fw-semibold text-dark">{{ d.materiel }}</td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-secondary">{{ d.quantite }}</span></td>
+                                        <td>
+                                            {% if d.statut == 'En attente' %}
+                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>{{ d.statut }}</span>
+                                            {% elseif 'Livré' in d.statut %}
+                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-truck me-1"></i>{{ d.statut }}</span>
+                                            {% else %}
+                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-circle me-1"></i>{{ d.statut }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-light border text-primary" title="Voir les détails"><i class="fas fa-eye"></i></button>
+                                                <button class="btn btn-light border text-success" title="Valider"><i class="fas fa-check"></i></button>
+                                                <button class="btn btn-light border text-danger" title="Refuser"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-folder-open"></i>
+                                                <div class="fw-bold">Aucune demande enregistrée</div>
+                                                <small>Aucune demande de matériel n'est en cours.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# ============ ONGLET 2 : BONS DE SORTIE ============ #}
+                <div class="tab-pane fade" id="pane-bons" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-id-badge text-success me-2"></i>Registre des Bons de Sortie</h5>
+                            <small class="text-muted">Contrôle des sorties effectives à la guérite.</small>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Nom de l'Agent</th>
+                                    <th>Département</th>
+                                    <th>Référence</th>
+                                    <th>État Sécurité</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for b in bons %}
+                                    <tr>
+                                        <td class="fw-bold text-secondary">#{{ b.id }}</td>
+                                        <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
+                                        <td><span class="badge badge-soft badge-soft-secondary">{{ b.departement }}</span></td>
+                                        <td class="text-muted small">Bon d'autorisation n°{{ b.id }}</td>
+                                        <td>
+                                            {% if b.statut == 'Créé' %}
+                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>{{ b.statut }}</span>
+                                            {% elseif b.statut == 'Validé Coordon' %}
+                                                <span class="badge badge-soft badge-soft-primary"><i class="fas fa-pen-nib me-1"></i>{{ b.statut }}</span>
+                                            {% else %}
+                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-circle me-1"></i>{{ b.statut }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-light border text-primary" title="Imprimer"><i class="fas fa-print"></i></button>
+                                                <button class="btn btn-light border text-success" title="Autoriser"><i class="fas fa-shield-alt"></i></button>
+                                                <button class="btn btn-light border text-danger" title="Bloquer"><i class="fas fa-ban"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="empty-state">
+                                                <i class="fas fa-users-slash"></i>
+                                                <div class="fw-bold">Aucun bon en circulation</div>
+                                                <small>Aucun bon de sortie n'est actuellement en circulation.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# ============ ONGLET 3 : COMPTES AGENTS ============ #}
+                <div class="tab-pane fade" id="pane-agents" role="tabpanel">
+                    <div class="row g-4">
+                        {# Colonne gauche : formulaire de création #}
+                        <div class="col-lg-5">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-purple">
+                                        <i class="fas fa-user-plus"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Créer un Compte Agent</h5>
+                                        <small class="text-muted">Ajouter un nouveau membre à l'équipe.</small>
+                                    </div>
+                                </div>
+
+                                {{ form_start(form) }}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary">Adresse Email de connexion</label>
+                                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'agent.nom@imprimerie.com'}}) }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary">Département d'affectation / Rôle</label>
+                                        {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
+                                        <small class="text-muted" style="font-size: 11px;">Utilisez l'onglet Nominations pour promouvoir un agent.</small>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary">Localisation géographique</label>
+                                        {{ form_widget(form.localisation, {'attr': {'class': 'form-select'}}) }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary">Mot de passe provisoire</label>
+                                        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Mot de passe'}}) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-modern w-100 text-white" style="background: var(--gradient-purple);">
+                                        <i class="fas fa-user-check me-2"></i>Générer et Activer l'Accès
+                                    </button>
+                                {{ form_end(form) }}
+                            </div>
+                        </div>
+
+                        {# Colonne droite : liste des comptes #}
+                        <div class="col-lg-7">
+                            <div class="form-card p-0">
+                                <div class="form-card-header px-4 pt-4 mb-0">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-users-cog"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h5 class="fw-bold m-0 text-dark">Registre & Contrôle des Comptes</h5>
+                                        <small class="text-muted">{{ users|length }} agent(s) enregistré(s)</small>
+                                    </div>
+                                </div>
+
+                                <div style="max-height: 620px; overflow-y: auto;">
+                                    {% for u in users %}
+                                        <div class="user-item">
+                                            <div style="flex: 1; min-width: 0;">
+                                                <div class="fw-bold text-dark text-truncate" title="{{ u.email }}">
+                                                    <i class="fas fa-user-circle text-muted me-2"></i>{{ u.email }}
+                                                </div>
+
+                                                <div class="d-flex flex-wrap gap-1 mt-2">
+                                                    {% if 'ROLE_ADMIN' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-crown me-1"></i>ADMIN</span>
+                                                    {% endif %}
+                                                    {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-warning"><i class="fas fa-star me-1"></i>CHEF COMPTABLE</span>
+                                                    {% elseif 'ROLE_COMPTA' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-success">COMPTABLE</span>
+                                                    {% endif %}
+                                                    {% if 'ROLE_CAISSIER' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>CAISSIER</span>
+                                                    {% endif %}
+                                                    {% if 'ROLE_RECEPTION' in u.roles or 'ROLE_ACCUEIL' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-warning"><i class="fas fa-bell me-1"></i>RÉCEPTION</span>
+                                                    {% elseif 'ROLE_GUERITE' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-info"><i class="fas fa-shield-alt me-1"></i>GUÉRITE</span>
+                                                    {% endif %}
+                                                    {% if 'ROLE_STOCK' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-primary"><i class="fas fa-boxes me-1"></i>STOCK</span>
+                                                    {% endif %}
+                                                    {% if 'ROLE_COORDON' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-purple"><i class="fas fa-sitemap me-1"></i>COORDON</span>
+                                                    {% endif %}
+
+                                                    {% if 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles and 'ROLE_CAISSIER' not in u.roles and 'ROLE_STOCK' not in u.roles and 'ROLE_COORDON' not in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-secondary font-monospace">{{ u.roles[0]|default('ROLE_USER') }}</span>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="mt-2 d-flex gap-2 flex-wrap">
+                                                    {% if u.localisation is defined and u.localisation %}
+                                                        <span class="badge badge-soft badge-soft-primary"><i class="fas fa-map-marker-alt me-1"></i>{{ u.localisation|upper }}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-soft badge-soft-secondary"><i class="fas fa-building me-1"></i>DIRECTION</span>
+                                                    {% endif %}
+                                                    {% if u.isActif is defined and not u.isActif %}
+                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Inactif</span>
+                                                    {% else %}
+                                                        <span class="badge badge-soft badge-soft-success"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>Actif</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <div class="d-flex gap-1 flex-shrink-0">
+                                                {% if 'ROLE_CHEF_COMPTA' in u.roles %}
+                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer">
+                                                            <i class="fas fa-user-slash"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                <a href="{{ path('app_admin_user_edit', {'id': u.id}) }}" class="btn btn-light border btn-sm text-primary" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form action="{{ path('app_admin_user_toggle', {'id': u.id}) }}" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-light border btn-sm {{ u.isActif|default(true) ? 'text-warning' : 'text-success' }}" title="{{ u.isActif|default(true) ? 'Désactiver' : 'Réactiver' }}">
+                                                        <i class="fas {{ u.isActif|default(true) ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ path('app_admin_user_delete', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('⚠️ Supprimer définitivement {{ u.email }} ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
+                                                    <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             </div>
-
-                        <div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">Ajouter une nouvelle catégorie</h5>
-    </div>
-    <div class="card-body">
-        {{ form_start(formCategory) }}
-            <div class="row align-items-end">
-                <div class="col-md-10">
-                    {{ form_row(formCategory.nom, {'label': 'Nom de la catégorie', 'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Ajouter</button>
-                </div>
-            </div>
-        {{ form_end(formCategory) }}
-    </div>
-</div>
-
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white py-3">
-        <h6 class="m-0 fw-bold text-dark">
-            <i class="fas fa-layer-group text-secondary me-2"></i>Ajouter une Sous-Catégorie
-        </h6>
-    </div>
-    <div class="card-body">
-        {{ form_start(formSubCategory) }}
-            <div class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    {{ form_row(formSubCategory.category, {'label': 'Catégorie parente', 'attr': {'class': 'form-select'}}) }}
-                </div>
-                <div class="col-md-5">
-                    {{ form_row(formSubCategory.nom, {'label': 'Nom sous-catégorie', 'attr': {'class': 'form-control'}}) }}
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Ajouter</button>
-                </div>
-            </div>
-        {{ form_end(formSubCategory) }}
-    </div>
-</div>
-{# formulaire d'ajout de machine #}
-<div class="card mb-4">
-    <div class="card-header">
-        <h5>Ajouter une nouvelle Machine</h5>
-    </div>
-    <div class="card-body">
-        {{ form_start(formMachine) }}
-            {{ form_row(formMachine.nom, {'label': 'Nom de la machine'}) }}
-            {{ form_row(formMachine.subCategory, {'label': 'Lier à une sous-catégorie'}) }}
-            
-            <button type="submit" class="btn btn-success">Ajouter la machine</button>
-        {{ form_end(formMachine) }}
-    </div>
-</div>
-
-<div class="card">
-    <div class="card-header">
-        <h5>Liste des Machines</h5>
-    </div>
-    <div class="card-body">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Sous-catégorie</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for machine in machines %}
-                    <tr>
-                        <td>{{ machine.nom }}</td>
-                        <td>{{ machine.subCategory.nom }}</td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="2">Aucune machine enregistrée.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-
-{# Optionnel : Affichage de la liste des catégories en dessous #}
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Liste des catégories</h5>
-    </div>
-    <div class="card-body">
-        <ul class="list-group">
-            {% for category in categories %}
-                <li class="list-group-item">{{ category.nom }}</li>
-            {% else %}
-                <li class="list-group-item text-muted">Aucune catégorie enregistrée.</li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
-
-<div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3">
-        <h6 class="m-0 fw-bold text-dark">Liste des Sous-Catégories</h6>
-    </div>
-    <div class="card-body p-0">
-        <table class="table table-hover m-0">
-            <thead class="table-light small">
-                <tr>
-                    <th>Sous-Catégorie</th>
-                    <th>Catégorie Parent</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sub in subCategories %}
-                    <tr>
-                        <td class="fw-bold">{{ sub.nom }}</td>
-                        <td>
-                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle">
-                                {{ sub.category.nom }}
-                            </span>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="2" class="text-center text-muted">Aucune sous-catégorie.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-                            <div class="tab-pane fade" id="bons-pane" role="tabpanel" aria-labelledby="bons-tab">
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle m-0">
-                                        <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                            <tr>
-                                                <th>Code</th>
-                                                <th>Nom de l'Agent</th>
-                                                <th>Département</th>
-                                                <th>Référence du Bon</th>
-                                                <th>État Sécurité</th>
-                                                <th class="text-center">Actions / Contrôle</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="small">
-                                            {% for b in bons %}
-                                                <tr>
-                                                    <td class="fw-bold text-secondary">#{{ b.id }}</td>
-                                                    <td class="fw-semibold text-dark">{{ b.nomEmploye }}</td>
-                                                    <td><span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ b.departement }}</span></td>
-                                                    <td><span class="text-muted">Bon d'autorisation n°{{ b.id }}</span></td>
-                                                    <td>
-                                                        <span class="badge rounded-pill px-2.5 py-1 {% if b.statut == 'Créé' %}bg-warning text-dark{% elseif b.statut == 'Validé Coordon' %}bg-primary{% else %}bg-success{% endif %}">
-                                                            {{ b.statut }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <div class="btn-group btn-group-sm shadow-sm" role="group">
-                                                            <button class="btn btn-light border text-primary" title="Imprimer le bon"><i class="fas fa-print"></i></button>
-                                                            <button class="btn btn-light border text-success" title="Autoriser le passage"><i class="fas fa-shield-check"></i></button>
-                                                            <button class="btn btn-light border text-danger" title="Bloquer le passage"><i class="fas fa-ban"></i></button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            {% else %}
-                                                <tr>
-                                                    <td colspan="6" class="text-center py-5 text-muted">
-                                                        <i class="fas fa-users-slash d-block fs-3 mb-2"></i> Aucun bon de sortie en circulation.
-                                                    </td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
-            </div>
 
+                {# ============ ONGLET 4 : NOMINATIONS ============ #}
+                <div class="tab-pane fade" id="pane-nominations" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-cash-register"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Nommer un Caissier</h5>
+                                        <small class="text-muted">Attribuer le rôle de gestion de caisse.</small>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ path('app_admin_assigner_caissier') }}">
+                                    <label class="form-label small fw-bold text-secondary">Sélectionner un agent</label>
+                                    <div class="input-group">
+                                        <select name="user_id" class="form-select" required>
+                                            <option value="" disabled selected>Choisir un agent...</option>
+                                            {% for u in users %}
+                                                {% if 'ROLE_CAISSIER' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                                                    <option value="{{ u.id }}">{{ u.email }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-modern btn-info text-white">
+                                            <i class="fas fa-check me-1"></i> Nommer
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-yellow">
+                                        <i class="fas fa-user-shield"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Nommer un Chef Comptable</h5>
+                                        <small class="text-muted">Promouvoir un agent au poste de responsable compta.</small>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ path('app_admin_assigner_chef_compta') }}">
+                                    <label class="form-label small fw-bold text-secondary">Sélectionner un agent</label>
+                                    <div class="input-group">
+                                        <select name="user_id" class="form-select" required>
+                                            <option value="" disabled selected>Choisir un agent...</option>
+                                            {% for u in listeComptables|default(users) %}
+                                                {% if 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_ADMIN' not in u.roles %}
+                                                    <option value="{{ u.id }}">{{ u.email }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-modern btn-warning text-dark">
+                                            <i class="fas fa-star me-1"></i> Promouvoir
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-green">
+                                        <i class="fas fa-building"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Créer un Nouveau Service</h5>
+                                        <small class="text-muted">Ajouter un département à l'organisation.</small>
+                                    </div>
+                                </div>
+                                {{ form_start(formService) }}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-secondary">Nom du Service</label>
+                                        {{ form_widget(formService.nom, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Comptabilité, Logistique...'}}) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-modern btn-primary w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>Enregistrer le Service
+                                    </button>
+                                {{ form_end(formService) }}
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="form-card h-100">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-purple">
+                                        <i class="fas fa-info-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Rôles disponibles</h5>
+                                        <small class="text-muted">Aide à la nomination</small>
+                                    </div>
+                                </div>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-cash-register text-info me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">Caissier</strong>
+                                            <div class="text-muted">Gère les décaissements et les devis validés.</div>
+                                        </div>
+                                    </li>
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-star text-warning me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">Chef Comptable</strong>
+                                            <div class="text-muted">Supervise la comptabilité et valide les budgets.</div>
+                                        </div>
+                                    </li>
+                                    <li class="d-flex">
+                                        <i class="fas fa-building text-success me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">Service</strong>
+                                            <div class="text-muted">Unité organisationnelle rattachée à des agents.</div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ============ ONGLET 5 : CATÉGORIES & SOUS-CATÉGORIES ============ #}
+                <div class="tab-pane fade" id="pane-structure" role="tabpanel">
+                    <div class="row g-4">
+                        {# Formulaire catégorie #}
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-layer-group"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Ajouter une Catégorie</h5>
+                                        <small class="text-muted">Créer une catégorie principale d'articles.</small>
+                                    </div>
+                                </div>
+                                {{ form_start(formCategory) }}
+                                    <div class="mb-3">
+                                        {{ form_row(formCategory.nom, {'label': 'Nom de la catégorie', 'attr': {'class': 'form-control', 'placeholder': 'Ex: Papeterie'}}) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-modern btn-primary w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>Ajouter la Catégorie
+                                    </button>
+                                {{ form_end(formCategory) }}
+                            </div>
+                        </div>
+
+                        {# Formulaire sous-catégorie #}
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-green">
+                                        <i class="fas fa-sitemap"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Ajouter une Sous-Catégorie</h5>
+                                        <small class="text-muted">Rattacher une sous-catégorie à une catégorie.</small>
+                                    </div>
+                                </div>
+                                {{ form_start(formSubCategory) }}
+                                    <div class="mb-3">
+                                        {{ form_row(formSubCategory.category, {'label': 'Catégorie parente', 'attr': {'class': 'form-select'}}) }}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form_row(formSubCategory.nom, {'label': 'Nom sous-catégorie', 'attr': {'class': 'form-control', 'placeholder': 'Ex: Ramettes A4'}}) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-modern btn-success w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>Ajouter la Sous-Catégorie
+                                    </button>
+                                {{ form_end(formSubCategory) }}
+                            </div>
+                        </div>
+
+                        {# Liste des catégories #}
+                        <div class="col-lg-6">
+                            <div class="form-card p-0">
+                                <div class="form-card-header px-4 pt-4 mb-0">
+                                    <div class="form-card-icon form-card-icon-purple">
+                                        <i class="fas fa-list"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Catégories existantes</h5>
+                                        <small class="text-muted">{{ categories|length }} catégorie(s)</small>
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <ul class="list-group list-group-flush">
+                                        {% for category in categories %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom">
+                                                <span class="fw-bold text-dark"><i class="fas fa-folder text-primary me-2"></i>{{ category.nom }}</span>
+                                                <span class="badge badge-soft badge-soft-primary">{{ category.subCategories|default([])|length }} sous-cat.</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="list-group-item text-center text-muted py-4 border-0">
+                                                <i class="fas fa-folder-open d-block fs-3 mb-2"></i>
+                                                Aucune catégorie enregistrée.
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Liste des sous-catégories #}
+                        <div class="col-lg-6">
+                            <div class="form-card p-0">
+                                <div class="form-card-header px-4 pt-4 mb-0">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-tags"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Sous-Catégories existantes</h5>
+                                        <small class="text-muted">{{ subCategories|length }} sous-catégorie(s)</small>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                                    <table class="table table-modern table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Sous-Catégorie</th>
+                                                <th>Catégorie Parent</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sub in subCategories %}
+                                                <tr>
+                                                    <td class="fw-bold text-dark">{{ sub.nom }}</td>
+                                                    <td>
+                                                        <span class="badge badge-soft badge-soft-primary">
+                                                            <i class="fas fa-folder me-1"></i>{{ sub.category.nom }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <div class="empty-state">
+                                                            <i class="fas fa-tags"></i>
+                                                            <div class="fw-bold">Aucune sous-catégorie</div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# ============ ONGLET 6 : MACHINES ============ #}
+                <div class="tab-pane fade" id="pane-machines" role="tabpanel">
+                    <div class="row g-4">
+                        {# Formulaire #}
+                        <div class="col-lg-5">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-yellow">
+                                        <i class="fas fa-cogs"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Ajouter une Machine</h5>
+                                        <small class="text-muted">Enregistrer un nouvel équipement.</small>
+                                    </div>
+                                </div>
+                                {{ form_start(formMachine) }}
+                                    <div class="mb-3">
+                                        {{ form_row(formMachine.nom, {'label': 'Nom de la machine', 'attr': {'class': 'form-control', 'placeholder': 'Ex: Offset HD'}}) }}
+                                    </div>
+                                    <div class="mb-3">
+                                        {{ form_row(formMachine.subCategory, {'label': 'Lier à une sous-catégorie', 'attr': {'class': 'form-select'}}) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-modern btn-success w-100">
+                                        <i class="fas fa-plus-circle me-2"></i>Ajouter la Machine
+                                    </button>
+                                {{ form_end(formMachine) }}
+                            </div>
+                        </div>
+
+                        {# Liste des machines #}
+                        <div class="col-lg-7">
+                            <div class="form-card p-0">
+                                <div class="form-card-header px-4 pt-4 mb-0">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-industry"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Parc de Machines</h5>
+                                        <small class="text-muted">{{ machines|length }} machine(s) enregistrée(s)</small>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                    <table class="table table-modern table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Nom</th>
+                                                <th>Sous-catégorie</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for machine in machines %}
+                                                <tr>
+                                                    <td class="fw-bold text-dark">
+                                                        <i class="fas fa-cog text-secondary me-2"></i>{{ machine.nom }}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge badge-soft badge-soft-primary">
+                                                            <i class="fas fa-tag me-1"></i>{{ machine.subCategory.nom }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="2">
+                                                        <div class="empty-state">
+                                                            <i class="fas fa-cogs"></i>
+                                                            <div class="fw-bold">Aucune machine enregistrée</div>
+                                                            <small>Utilisez le formulaire pour ajouter votre première machine.</small>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Mémorisation de l'onglet actif via l'URL
+        const urlHash = window.location.hash;
+        if (urlHash) {
+            const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
+            if (triggerEl) new bootstrap.Tab(triggerEl).show();
+        }
+        document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', e => {
+                history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+            });
+        });
+    });
+</script>
 </body>
 </html>

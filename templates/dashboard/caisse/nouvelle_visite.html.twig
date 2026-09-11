@@ -55,7 +55,7 @@
                             {{ form_errors(formVisite.motif) }}
                         </div>
 
-                        <!-- Téléphone (Affiché uniquement si activé) -->
+                        <!-- Téléphone (affiché uniquement si activé) -->
                         {% if formVisite.telephone is defined %}
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-secondary small text-uppercase">Téléphone</label>
@@ -64,7 +64,7 @@
                         </div>
                         {% endif %}
 
-                        <!-- Email (Affiché uniquement si activé) -->
+                        <!-- Email (affiché uniquement si activé) -->
                         {% if formVisite.email is defined %}
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-secondary small text-uppercase">Email</label>
@@ -73,7 +73,7 @@
                         </div>
                         {% endif %}
 
-                        <!-- Pièce d'identité (Affiché uniquement si activé) -->
+                        <!-- Pièce d'identité (affiché uniquement si activé) -->
                         {% if formVisite.pieceIdentite is defined %}
                         <div class="col-md-12">
                             <label class="form-label fw-bold text-secondary small text-uppercase">Pièce d'identité</label>
@@ -81,17 +81,22 @@
                             {{ form_errors(formVisite.pieceIdentite) }}
                         </div>
                         {% endif %}
-                        <!-- 🚀 Section spéciale : Délégation -->
+
+                        <!-- 🚀 Section spéciale : Délégation (affichée uniquement si activée) -->
+                        {% if formVisite.responsableDelegue is defined %}
                         <div class="col-12 mt-4">
                             <div class="p-3 bg-light border border-info rounded-3">
                                 <label class="form-label fw-bold text-dark mb-1">
                                     <i class="fa-solid fa-share-nodes text-info me-1"></i> Déléguer cette visite (Optionnel)
                                 </label>
-                                <p class="text-muted small mb-2">Si cette visite est destinée à la direction ou au secrétariat principal, sélectionnez le responsable ci-dessous :</p>
+                                <p class="text-muted small mb-2">
+                                    Si cette visite est destinée à la direction ou au secrétariat principal, sélectionnez le responsable ci-dessous :
+                                </p>
                                 {{ form_widget(formVisite.responsableDelegue, {'attr': {'class': 'form-select rounded-3'}}) }}
                                 {{ form_errors(formVisite.responsableDelegue) }}
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Bouton de soumission -->
