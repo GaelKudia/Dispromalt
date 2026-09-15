@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -43,6 +45,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'boolean')]
     private bool $isChefService = false;
 
+    // ============================================================
+    // RELATION INVERSE : Devis créés par cet utilisateur
+    // ------------------------------------------------------------
+    // Note : la suppression de l'utilisateur met user_id à NULL
+    // dans les devis (onDelete: 'SET NULL' côté Devis).
+    // On conserve donc createdBy pour la traçabilité.
+    // ============================================================
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Devis::class)]
+    private Collection $devis;
+
+    public function __construct()
+    {
+        $this->devis = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -56,7 +73,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
@@ -69,14 +85,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $roles = $this->roles;
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
@@ -88,15 +102,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
-
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
         return $data;
     }
 
@@ -113,7 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLocalisation(?string $localisation): static
     {
         $this->localisation = $localisation;
-
         return $this;
     }
 
@@ -136,7 +147,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setService(?Service $service): static
     {
         $this->service = $service;
-
         return $this;
     }
 
@@ -148,7 +158,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsChefService(bool $isChefService): static
     {
         $this->isChefService = $isChefService;
+        return $this;
+    }
 
+    // ============================================================
+    // COLLECTION DEVIS
+    // ============================================================
+    /**
+     * @return Collection<int, Devis>
+     */
+    public function getDevis(): Collection
+    {
+        return $this->devis;
+    }
+
+    public function addDevis(Devis $devi): static
+    {
+        if (!$this->devis->contains($devi)) {
+            $this->devis->add($devi);
+            $devi->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeDevis(Devis $devi): static
+    {
+        if ($this->devis->removeElement($devi)) {
+            if ($devi->getUser() === $this) {
+                $devi->setUser(null);
+            }
+        }
         return $this;
     }
 }

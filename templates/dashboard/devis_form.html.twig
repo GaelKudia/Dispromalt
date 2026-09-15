@@ -6,65 +6,924 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* ============================================
+           DESIGN TOKENS
+        ============================================ */
+        :root {
+            /* Ambre */
+            --amber-50:  #fffbeb;
+            --amber-100: #fef3c7;
+            --amber-400: #fbbf24;
+            --amber-500: #f59e0b;
+            --amber-600: #d97706;
+            --amber-700: #b45309;
+
+            /* Rouge */
+            --red-50:  #fef2f2;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+            --red-700: #b91c1c;
+
+            /* Ardoise */
+            --slate-50:  #f8fafc;
+            --slate-100: #f1f5f9;
+            --slate-200: #e2e8f0;
+            --slate-300: #cbd5e1;
+            --slate-400: #94a3b8;
+            --slate-500: #64748b;
+            --slate-600: #475569;
+            --slate-700: #334155;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+
+            /* Vert */
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+
+            --gradient-amber:  linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+            --gradient-danger: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-pill: 50px;
+
+            --shadow-soft:  0 4px 20px rgba(15, 23, 42, 0.06);
+            --shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.10);
+            --shadow-glow:  0 26px 60px -22px rgba(245, 158, 11, 0.45),
+                            0 8px 24px rgba(15, 23, 42, 0.06);
+
+            --ring-amber: 0 0 0 4px rgba(245, 158, 11, 0.14);
+            --ring-red:   0 0 0 4px rgba(220, 38, 38, 0.14);
+        }
+
+        /* ============================================
+           BASE
+        ============================================ */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            background-color: #eff1f6;
+            background-image:
+                radial-gradient(at 0% 0%,   rgba(245, 158, 11, 0.10) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--slate-700);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Transitions ciblées (plus performant que * { transition }) */
+        .form-control,
+        .form-select,
+        .btn-devis,
+        .btn-back,
+        .montant-group,
+        .echeance-group,
+        .echeance-preview,
+        .devis-card,
+        .step-item,
+        .step-num {
+            transition:
+                border-color 0.22s ease,
+                box-shadow 0.22s ease,
+                background-color 0.22s ease,
+                color 0.22s ease,
+                transform 0.22s ease;
+        }
+
+        /* ============================================
+           NAVBAR MINI
+        ============================================ */
+        .navbar-mini {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: rgba(30, 41, 59, 0.97);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 0.9rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            border-image: var(--gradient-amber) 1;
+        }
+        .navbar-mini .brand {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #fff;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.2;
+        }
+        .navbar-mini .brand:hover { color: #fff; opacity: 0.92; }
+        .navbar-mini .brand .brand-sub {
+            font-weight: 300;
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-left: 0.6rem;
+            padding-left: 0.6rem;
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .badge-step {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--amber-400);
+            border: 1px solid rgba(245, 158, 11, 0.30);
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-pill);
+            font-weight: 700;
+            font-size: 0.72rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        /* ============================================
+           CARTE PRINCIPALE
+        ============================================ */
+        .devis-card {
+            border: none;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            background: #fff;
+            box-shadow: var(--shadow-glow);
+            position: relative;
+        }
+        .devis-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: var(--gradient-amber);
+            z-index: 1;
+        }
+
+        .devis-card-header {
+            padding: 2rem 2.25rem 1.4rem;
+            border-bottom: 1px dashed var(--slate-200);
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+        }
+        .devis-icon-header {
+            width: 58px;
+            height: 58px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(251, 191, 36, 0.10) 100%);
+            color: var(--amber-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.18);
+            border: 1px solid rgba(245, 158, 11, 0.18);
+        }
+        .devis-card-body { padding: 2rem 2.25rem 2.25rem; }
+
+        /* ============================================
+           TITRES
+        ============================================ */
+        .page-title-devis {
+            font-size: 1.32rem;
+            font-weight: 800;
+            color: var(--slate-800);
+            margin: 0;
+            letter-spacing: -0.3px;
+            line-height: 1.25;
+        }
+        .page-subtitle-devis {
+            font-size: 0.85rem;
+            color: var(--slate-500);
+            margin: 0.25rem 0 0;
+        }
+
+        /* ============================================
+           ÉTAPES
+        ============================================ */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1.75rem;
+            padding: 0.7rem 0.9rem;
+            background: var(--slate-50);
+            border: 1px solid var(--slate-200);
+            border-radius: var(--radius-lg);
+            flex-wrap: wrap;
+        }
+        .step-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--slate-400);
+            padding: 0.35rem 0.7rem;
+            border-radius: var(--radius-pill);
+        }
+        .step-item.active {
+            color: var(--amber-700);
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(245, 158, 11, 0.16);
+            border: 1px solid rgba(245, 158, 11, 0.22);
+        }
+        .step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--slate-200);
+            color: var(--slate-500);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+        .step-item.active .step-num {
+            background: var(--gradient-amber);
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.40);
+        }
+        .step-arrow {
+            color: var(--slate-300);
+            font-size: 0.65rem;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           ENCART INFO
+        ============================================ */
+        .info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            padding: 1rem 1.15rem;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.09) 0%, rgba(245, 158, 11, 0.02) 100%);
+            border-left: 4px solid var(--amber-500);
+            border-radius: 10px;
+            margin-bottom: 1.85rem;
+        }
+        .info-banner i {
+            color: var(--amber-600);
+            font-size: 1.05rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .info-banner p {
+            margin: 0;
+            color: var(--slate-500);
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+        .info-banner strong { color: var(--slate-800); }
+
+        /* ============================================
+           LABELS
+        ============================================ */
+        .form-label-modern {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: var(--slate-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.55rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            line-height: 1.4;
+        }
+        .form-label-modern i {
+            color: var(--amber-600);
+            font-size: 0.85rem;
+        }
+        .form-label-modern .required-star {
+            color: var(--red-600);
+            font-size: 0.95rem;
+            font-weight: 900;
+            margin-left: 0.05rem;
+        }
+
+        .required-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.62rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            background: rgba(220, 38, 38, 0.10);
+            color: var(--red-600);
+            padding: 0.2rem 0.55rem;
+            border-radius: var(--radius-pill);
+            margin-left: 0.35rem;
+        }
+
+        /* ============================================
+           CHAMPS STANDARDS
+        ============================================ */
+        .form-control,
+        .form-select {
+            border-radius: var(--radius-md);
+            border: 1.5px solid var(--slate-200);
+            padding: 0.75rem 1rem;
+            font-size: 0.92rem;
+            background: var(--slate-50);
+            color: var(--slate-800);
+            min-height: 50px;
+        }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--amber-500);
+            background: #fff;
+            box-shadow: var(--ring-amber);
+        }
+        .form-control::placeholder {
+            color: var(--slate-400);
+            font-size: 0.88rem;
+        }
+        textarea.form-control {
+            resize: vertical;
+            min-height: 118px;
+            line-height: 1.65;
+        }
+        .form-select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23d97706' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.9rem center;
+            background-size: 14px 11px;
+        }
+
+        /* ============================================
+           BLOC MONTANT + DEVISE
+        ============================================ */
+        .montant-group {
+            display: flex;
+            align-items: stretch;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1.5px solid var(--slate-200);
+            background: var(--slate-50);
+            min-height: 50px;
+        }
+        .montant-group:focus-within {
+            border-color: var(--amber-500);
+            background: #fff;
+            box-shadow: var(--ring-amber);
+        }
+        .montant-group .form-control,
+        .montant-group .form-select {
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            min-height: auto;
+            padding: 0.75rem 1rem;
+        }
+        .montant-group .form-control:focus,
+        .montant-group .form-select:focus {
+            box-shadow: none;
+            background: transparent;
+            border-color: transparent;
+        }
+        .montant-group .form-control {
+            font-family: 'Courier New', ui-monospace, monospace;
+            font-weight: 700;
+            font-size: 1.02rem;
+            color: var(--slate-800);
+            min-width: 0;            /* permet le shrink en flex */
+            flex: 1 1 auto;
+        }
+        .montant-group .form-select {
+            border-left: 1.5px solid var(--slate-200);
+            flex: 0 0 auto;
+            width: 122px;
+            font-weight: 700;
+            color: var(--amber-600);
+            cursor: pointer;
+            background-position: right 0.7rem center;
+            padding-right: 2rem;
+        }
+
+        /* ============================================
+           BLOC DATE D'ÉCHÉANCE
+        ============================================ */
+        .echeance-group {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            border: 2px solid var(--red-600);
+            border-radius: var(--radius-md);
+            background: #fff;
+            overflow: hidden;
+            min-height: 50px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
+        }
+        .echeance-group:focus-within {
+            box-shadow: var(--ring-red), 0 4px 12px rgba(220, 38, 38, 0.12);
+        }
+        .echeance-group .echeance-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1rem;
+            background: var(--gradient-danger);
+            color: #fff;
+            font-size: 1.02rem;
+            align-self: stretch;
+            flex-shrink: 0;
+        }
+        .echeance-group .form-control {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            font-weight: 700;
+            color: var(--red-700);
+            font-family: 'Courier New', ui-monospace, monospace;
+            font-size: 0.95rem;
+            padding: 0.75rem 0.9rem;
+            min-height: auto;
+            cursor: pointer;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+        .echeance-group .form-control:focus {
+            box-shadow: none;
+            background: transparent;
+            border-color: transparent;
+        }
+        .echeance-group .form-control::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.65;
+            filter: invert(18%) sepia(85%) saturate(2400%) hue-rotate(345deg);
+        }
+        .echeance-group .form-control::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+        /* ============================================
+           APERÇU "JOURS RESTANTS"
+        ============================================ */
+        .echeance-preview {
+            display: none;
+            align-items: flex-start;
+            gap: 0.55rem;
+            margin-top: 0.6rem;
+            padding: 0.6rem 0.85rem;
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid rgba(220, 38, 38, 0.20);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--red-700);
+            line-height: 1.4;
+        }
+        .echeance-preview.visible {
+            display: flex;
+            animation: slideDown 0.35s ease;
+        }
+        .echeance-preview i { flex-shrink: 0; font-size: 0.95rem; margin-top: 1px; }
+        .echeance-preview small { font-weight: 500; opacity: 0.78; }
+
+        .echeance-preview.urgent {
+            background: var(--red-50);
+            border-color: var(--red-600);
+            color: var(--red-700);
+        }
+        .echeance-preview.urgent i { color: var(--red-600); }
+
+        .echeance-preview.moyen {
+            background: var(--amber-50);
+            border-color: var(--amber-500);
+            color: var(--amber-700);
+        }
+        .echeance-preview.moyen i { color: var(--amber-600); }
+
+        .echeance-preview.confortable {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: var(--emerald-500);
+            color: var(--emerald-600);
+        }
+        .echeance-preview.confortable i { color: var(--emerald-600); }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           BOUTON PRINCIPAL
+        ============================================ */
+        .btn-devis {
+            background: var(--gradient-amber);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.95rem 1.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.01em;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            box-shadow: 0 8px 20px rgba(245, 158, 11, 0.35);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.10);
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .btn-devis:hover,
+        .btn-devis:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(245, 158, 11, 0.45);
+            color: #fff;
+            outline: none;
+        }
+        .btn-devis:active { transform: translateY(0); }
+
+        /* ============================================
+           BOUTON RETOUR
+        ============================================ */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.15rem;
+            background: #fff;
+            border: 1.5px solid var(--slate-200);
+            border-radius: var(--radius-pill);
+            color: var(--slate-500);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.87rem;
+            box-shadow: var(--shadow-soft);
+        }
+        .btn-back:hover {
+            color: var(--slate-800);
+            border-color: var(--slate-300);
+            transform: translateX(-3px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* ============================================
+           ERREURS
+        ============================================ */
+        .error-text {
+            color: var(--red-600);
+            font-size: 0.79rem;
+            margin-top: 0.4rem;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.35rem;
+            line-height: 1.4;
+        }
+        .error-text::before {
+            content: '\f06a';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .error-text ul {
+            margin: 0;
+            padding-left: 1rem;
+            list-style: none;
+        }
+
+        /* ============================================
+           PIED DE PAGE
+        ============================================ */
+        .page-footnote {
+            text-align: center;
+            color: var(--slate-400);
+            font-size: 0.78rem;
+            margin-top: 1.5rem;
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 767.98px) {
+            .navbar-mini { padding: 0.75rem 1rem; }
+            .devis-card-header { padding: 1.6rem 1.5rem 1.15rem; }
+            .devis-card-body { padding: 1.5rem; }
+            .devis-icon-header { width: 50px; height: 50px; font-size: 1.3rem; }
+            .page-title-devis { font-size: 1.15rem; }
+            .info-banner { margin-bottom: 1.5rem; }
+        }
+
+        @media (max-width: 575.98px) {
+            .devis-card { border-radius: 18px; }
+            .devis-card-header { padding: 1.35rem 1.15rem 1rem; gap: 0.85rem; }
+            .devis-card-body { padding: 1.25rem; }
+            .devis-icon-header { width: 44px; height: 44px; font-size: 1.15rem; border-radius: 13px; }
+            .page-title-devis { font-size: 1.05rem; }
+            .page-subtitle-devis { font-size: 0.78rem; }
+            .step-indicator { gap: 0.35rem; padding: 0.6rem 0.65rem; }
+            .step-item { padding: 0.3rem 0.5rem; font-size: 0.72rem; }
+            .step-arrow { display: none; }
+            .montant-group .form-select { width: 104px; padding-right: 1.7rem; }
+            .btn-devis { font-size: 0.94rem; padding: 0.9rem 1.25rem; }
+        }
+
+        /* Accessibilité : mouvement réduit */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                
-                <div class="mb-4">
-                    <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Retour au tableau de bord
-                    </a>
-                </div>
-
-                <div class="card border-0 shadow-sm" style="border-top: 4px solid #ffc107 !important;">
-                    <div class="card-header bg-white py-3">
-                        <h4 class="card-title m-0 fw-bold text-dark">
-                            <i class="fas fa-file-invoice-dollar text-warning me-2"></i>Rédaction d'un nouveau Devis
-                        </h4>
-                    </div>
-                    <div class="card-body p-4">
-                        <p class="text-muted small mb-4">
-                            Remplissez les champs ci-dessous. Une fois validé, vous accéderez à l'aperçu avant de l'envoyer définitivement à la comptabilité.
-                        </p>
-
-                        {{ form_start(form, {'action': path('app_devis_nouveau'), 'method': 'POST'}) }}
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-secondary">Objet / En-tête du devis</label>
-                                {{ form_widget(form.entete, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Devis de travaux d\'impression - Service Marketing'}}) }}
-                                <div class="text-danger small">{{ form_errors(form.entete) }}</div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-secondary">Description des travaux ou matériel</label>
-                                {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Détaillez précisément votre besoin...'}}) }}
-                                <div class="text-danger small">{{ form_errors(form.description) }}</div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-bold small text-secondary">Montant estimatif global et Devise</label>
-                                <div class="input-group">
-                                    {{ form_widget(form.montant, {'attr': {'class': 'form-control', 'placeholder': '0.00', 'style': 'flex: 2;'}}) }}
-                                    {{ form_widget(form.devise, {'attr': {'class': 'form-select', 'style': 'max-width: 110px;'}}) }}
-                                </div>
-                                <div class="text-danger small">{{ form_errors(form.montant) }}</div>
-                                <div class="text-danger small">{{ form_errors(form.devise) }}</div>
-                            </div>
-
-                            <button type="submit" class="btn btn-warning w-100 fw-bold text-dark py-2 shadow-sm">
-                                <i class="fas fa-eye me-1"></i> Générer l'aperçu
-                            </button>
-
-                        {{ form_end(form) }}
-                    </div>
-                </div>
-
-            </div>
+{# ============================================
+   NAVBAR MINI
+============================================ #}
+<nav class="navbar-mini">
+    <div class="d-flex justify-content-between align-items-center">
+        <a href="{{ path('app_dashboard') }}" class="brand">
+            <i class="fas fa-print text-warning me-2"></i>Dispro<span class="text-warning">malt</span>
+            <span class="brand-sub d-none d-sm-inline">Nouveau Devis</span>
+        </a>
+        <div class="d-none d-md-flex align-items-center gap-2">
+            <span class="badge-step">
+                <i class="fas fa-file-invoice-dollar"></i> Étape 1 / 2
+            </span>
         </div>
     </div>
+</nav>
+
+{# ============================================
+   MAIN CONTAINER
+============================================ #}
+<div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+
+            <div class="mb-4">
+                <a href="{{ path('app_dashboard') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                </a>
+            </div>
+
+            {# ============================================
+               CARTE PRINCIPALE
+            ============================================ #}
+            <div class="devis-card">
+
+                {# En-tête #}
+                <div class="devis-card-header">
+                    <div class="devis-icon-header">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h1 class="page-title-devis">Rédaction d'un nouveau Devis</h1>
+                        <p class="page-subtitle-devis">Création d'une demande budgétaire</p>
+                    </div>
+                </div>
+
+                <div class="devis-card-body">
+
+                    {# Étapes #}
+                    <div class="step-indicator">
+                        <div class="step-item active">
+                            <span class="step-num">1</span>
+                            <span>Saisie du devis</span>
+                        </div>
+                        <i class="fas fa-chevron-right step-arrow"></i>
+                        <div class="step-item">
+                            <span class="step-num">2</span>
+                            <span>Aperçu &amp; envoi</span>
+                        </div>
+                    </div>
+
+                    {# Info banner #}
+                    <div class="info-banner">
+                        <i class="fas fa-info-circle"></i>
+                        <p>
+                            Les champs marqués d'un <strong class="text-danger">*</strong> sont obligatoires.
+                            La <strong>date d'échéance</strong> précise la date à laquelle les travaux doivent être terminés.
+                        </p>
+                    </div>
+
+                    {# FORMULAIRE #}
+                    {{ form_start(form, {'action': path('app_devis_nouveau'), 'method': 'POST'}) }}
+
+                        {# ==========================================
+                           OBJET
+                        ========================================== #}
+                        <div class="mb-4">
+                            <label class="form-label-modern" for="devis_entete">
+                                <i class="fas fa-heading"></i>
+                                Objet / En-tête du devis
+                                <span class="required-star">*</span>
+                            </label>
+                            {{ form_widget(form.entete, {'attr': {
+                                'class': 'form-control',
+                                'id': 'devis_entete',
+                                'placeholder': 'Ex: Devis de travaux d\'impression - Service Marketing',
+                                'required': 'required'
+                            }}) }}
+                            {% if form.entete.vars.errors|length > 0 %}
+                                <div class="error-text">{{ form_errors(form.entete) }}</div>
+                            {% endif %}
+                        </div>
+
+                        {# ==========================================
+                           DESCRIPTION
+                        ========================================== #}
+                        <div class="mb-4">
+                            <label class="form-label-modern" for="devis_description">
+                                <i class="fas fa-align-left"></i>
+                                Description des travaux ou matériel
+                                <span class="required-star">*</span>
+                            </label>
+                            {{ form_widget(form.description, {'attr': {
+                                'class': 'form-control',
+                                'id': 'devis_description',
+                                'rows': '4',
+                                'placeholder': 'Détaillez précisément votre besoin (type de travaux, quantité, délais souhaités...)...',
+                                'required': 'required'
+                            }}) }}
+                            {% if form.description.vars.errors|length > 0 %}
+                                <div class="error-text">{{ form_errors(form.description) }}</div>
+                            {% endif %}
+                        </div>
+
+                        {# ==========================================
+                           LIGNE : MONTANT + DEVISE | DATE D'ÉCHÉANCE
+                        ========================================== #}
+                        <div class="row g-3 g-lg-4 mb-4">
+
+                            {# --- Montant + Devise (colonne gauche) --- #}
+                            <div class="col-lg-6">
+                                <label class="form-label-modern" for="devis_montant">
+                                    <i class="fas fa-coins"></i>
+                                    Montant &amp; Devise
+                                    <span class="required-star">*</span>
+                                </label>
+                                <div class="montant-group">
+                                    {{ form_widget(form.montant, {'attr': {
+                                        'class': 'form-control',
+                                        'id': 'devis_montant',
+                                        'placeholder': '0.00',
+                                        'required': 'required'
+                                    }}) }}
+                                    {{ form_widget(form.devise, {'attr': {
+                                        'class': 'form-select',
+                                        'id': 'devis_devise',
+                                        'required': 'required'
+                                    }}) }}
+                                </div>
+                                {% if form.montant.vars.errors|length > 0 %}
+                                    <div class="error-text">{{ form_errors(form.montant) }}</div>
+                                {% endif %}
+                                {% if form.devise.vars.errors|length > 0 %}
+                                    <div class="error-text">{{ form_errors(form.devise) }}</div>
+                                {% endif %}
+                            </div>
+
+                            {# --- Date d'échéance (colonne droite, OBLIGATOIRE) --- #}
+                            <div class="col-lg-6">
+                                <label class="form-label-modern" for="devis_echeance">
+                                    <i class="fas fa-hourglass-end" style="color:#dc2626;"></i>
+                                    Date d'échéance des travaux
+                                    <span class="required-star">*</span>
+                                    <span class="required-badge">
+                                        <i class="fas fa-lock" style="font-size:0.55rem;"></i> Obligatoire
+                                    </span>
+                                </label>
+
+                                {% if form.echeance is defined %}
+                                <div class="echeance-group">
+                                    <div class="echeance-icon">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    {{ form_widget(form.echeance, {'attr': {
+                                        'class': 'form-control',
+                                        'id': 'devis_echeance',
+                                        'required': 'required'
+                                    }}) }}
+                                </div>
+
+                                {% if form.echeance.vars.errors|length > 0 %}
+                                    <div class="error-text">{{ form_errors(form.echeance) }}</div>
+                                {% endif %}
+
+                                {# Aperçu dynamique #}
+                                <div class="echeance-preview" id="echeancePreview">
+                                    <i class="fas fa-clock" id="echeancePreviewIcon"></i>
+                                    <span id="echeancePreviewText"></span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                        </div>
+
+                        {# ==========================================
+                           BOUTON
+                        ========================================== #}
+                        <button type="submit" class="btn-devis">
+                            <i class="fas fa-eye"></i>
+                            Générer l'aperçu du devis
+                        </button>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+
+            <div class="page-footnote">
+                <i class="fas fa-shield-alt me-1"></i>
+                Vos données sont sécurisées • Dispromalt {{ 'now'|date('Y') }}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{# ============================================
+   SCRIPT : Aperçu dynamique + Validation
+============================================ #}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const echeanceInput  = document.getElementById('devis_echeance');
+        const preview        = document.getElementById('echeancePreview');
+        const previewIcon    = document.getElementById('echeancePreviewIcon');
+        const previewText    = document.getElementById('echeancePreviewText');
+
+        if (!echeanceInput || !preview) return;
+
+        // Bloquer les dates dans le passé
+        const today = new Date().toISOString().split('T')[0];
+        echeanceInput.setAttribute('min', today);
+
+        function updatePreview() {
+            const valeur = echeanceInput.value;
+            if (!valeur) {
+                preview.classList.remove('visible', 'urgent', 'moyen', 'confortable');
+                return;
+            }
+
+            const dateEcheance = new Date(valeur + 'T00:00:00');
+            const aujourdhui = new Date();
+            aujourdhui.setHours(0, 0, 0, 0);
+
+            const diffMs    = dateEcheance - aujourdhui;
+            const diffJours = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+            preview.classList.add('visible');
+            preview.classList.remove('urgent', 'moyen', 'confortable');
+
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const dateFormatee = dateEcheance.toLocaleDateString('fr-FR', options);
+
+            if (diffJours < 0) {
+                preview.classList.add('urgent');
+                previewIcon.className = 'fas fa-exclamation-triangle';
+                previewText.innerHTML = '<strong>Date invalide !</strong> L\'échéance ne peut pas être dans le passé.';
+            } else if (diffJours === 0) {
+                preview.classList.add('urgent');
+                previewIcon.className = 'fas fa-fire';
+                previewText.innerHTML = '<strong>Aujourd\'hui !</strong> Travaux à terminer aujourd\'hui.';
+            } else if (diffJours === 1) {
+                preview.classList.add('urgent');
+                previewIcon.className = 'fas fa-exclamation-circle';
+                previewText.innerHTML = '<strong>Demain !</strong> Il reste 1 jour.';
+            } else if (diffJours <= 7) {
+                preview.classList.add('urgent');
+                previewIcon.className = 'fas fa-hourglass-half';
+                previewText.innerHTML = 'Délai serré : <strong>' + diffJours + ' jours</strong> restants.';
+            } else if (diffJours <= 30) {
+                preview.classList.add('moyen');
+                previewIcon.className = 'fas fa-clock';
+                previewText.innerHTML = '<strong>' + diffJours + ' jours</strong> avant l\'échéance.';
+            } else {
+                preview.classList.add('confortable');
+                previewIcon.className = 'fas fa-check-circle';
+                previewText.innerHTML = 'Délai confortable : <strong>' + diffJours + ' jours</strong>.';
+            }
+
+            previewText.innerHTML += '<br><small>📅 ' + dateFormatee + '</small>';
+        }
+
+        echeanceInput.addEventListener('change', updatePreview);
+        echeanceInput.addEventListener('input', updatePreview);
+        updatePreview();
+    });
+</script>
 
 </body>
 </html>

@@ -8,19 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            --dg-primary: #1e293b;
-            --dg-accent: #dc2626;
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
             --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
             --shadow-soft: 0 4px 20px rgba(0,0,0,0.06);
             --shadow-hover: 0 12px 30px rgba(0,0,0,0.10);
         }
-
         * { transition: all 0.25s ease; }
-
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #f0f2f7;
@@ -29,224 +24,189 @@
                 radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.06) 0px, transparent 50%);
             min-height: 100vh;
         }
-
-        /* ========= NAVBAR ========= */
-        .navbar-modern {
-            background: rgba(30, 41, 59, 0.98);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-        .navbar-brand-modern {
-            font-weight: 800;
-            font-size: 1.4rem;
-            letter-spacing: -0.5px;
-        }
+        .navbar-modern { background: rgba(30,41,59,0.98); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .navbar-brand-modern { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
         .notification-bell {
-            width: 42px; height: 42px;
-            border-radius: 50%;
+            width: 42px; height: 42px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #fff;
-            position: relative;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            color: #fff; position: relative;
         }
-        .notification-bell:hover {
-            background: rgba(220, 38, 38, 0.9);
-            transform: scale(1.05);
-        }
+        .notification-bell:hover { background: rgba(220,38,38,0.9); transform: scale(1.05); }
         .role-pill {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.12);
-            color: #e2e8f0;
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 0.85rem;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+            color: #e2e8f0; padding: 8px 16px; border-radius: 50px; font-size: 0.85rem;
         }
-
-        /* ========= STAT CARDS ========= */
-        .stat-card {
-            border: none;
-            border-radius: 18px;
-            padding: 1.4rem;
-            position: relative;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: var(--shadow-soft);
-        }
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: var(--gradient-1);
-        }
+        .stat-card { border: none; border-radius: 18px; padding: 1.4rem; position: relative; overflow: hidden; background: #fff; box-shadow: var(--shadow-soft); }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-1); }
         .stat-card.stat-warning::before { background: var(--gradient-5); }
         .stat-card.stat-primary::before { background: var(--gradient-3); }
         .stat-card.stat-success::before { background: var(--gradient-4); }
-        .stat-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-hover);
-        }
-        .stat-icon {
-            width: 56px; height: 56px;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
-        }
-        .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
-        .stat-icon-primary { background: rgba(79, 172, 254, 0.12); color: #3b82f6; }
-        .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
-
-        /* ========= MAIN CARD & TABS ========= */
-        .main-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: var(--shadow-soft);
-            background: #fff;
-            overflow: hidden;
-        }
-        .nav-tabs-modern {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0 1rem;
-            gap: 0.25rem;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+        .stat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .stat-icon-warning { background: rgba(250,112,154,0.12); color: #f5576c; }
+        .stat-icon-primary { background: rgba(79,172,254,0.12); color: #3b82f6; }
+        .stat-icon-success { background: rgba(67,233,123,0.12); color: #10b981; }
+        .main-card { border: none; border-radius: 20px; box-shadow: var(--shadow-soft); background: #fff; overflow: hidden; }
+        .nav-tabs-modern { border-bottom: 1px solid #e2e8f0; padding: 0 1rem; gap: 0.25rem; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
         .nav-tabs-modern::-webkit-scrollbar { display: none; }
         .nav-tabs-modern .nav-link {
-            border: none !important;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 1rem 1.1rem;
-            white-space: nowrap;
-            border-radius: 0;
-            position: relative;
-            background: none;
+            border: none !important; color: #64748b; font-weight: 600;
+            font-size: 0.9rem; padding: 1rem 1.1rem; white-space: nowrap;
+            border-radius: 0; position: relative; background: none;
         }
-        .nav-tabs-modern .nav-link:hover {
-            color: var(--dg-primary);
-        }
-        .nav-tabs-modern .nav-link.active {
-            color: var(--dg-primary) !important;
-            background: none;
-        }
+        .nav-tabs-modern .nav-link:hover { color: #1e293b; }
+        .nav-tabs-modern .nav-link.active { color: #1e293b !important; background: none; }
         .nav-tabs-modern .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; left: 1rem; right: 1rem;
-            height: 3px;
-            background: var(--gradient-1);
-            border-radius: 3px 3px 0 0;
+            content: ''; position: absolute; bottom: -1px; left: 1rem; right: 1rem;
+            height: 3px; background: var(--gradient-1); border-radius: 3px 3px 0 0;
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
-
-        /* ========= TABLE ========= */
         .table-modern { margin: 0; }
         .table-modern thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 1rem 0.9rem;
-            border-bottom: 2px solid #e2e8f0;
-            white-space: nowrap;
+            background: #f8fafc; color: #475569; font-size: 0.72rem;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0; white-space: nowrap;
         }
-        .table-modern tbody td {
-            padding: 1rem 0.9rem;
-            vertical-align: middle;
-            border-color: #f1f5f9;
-        }
+        .table-modern tbody td { padding: 1rem 0.9rem; vertical-align: middle; border-color: #f1f5f9; }
         .table-modern tbody tr:hover { background: #f8fafc; }
-
-        .badge-soft {
-            padding: 0.4rem 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-        .badge-soft-warning { background: rgba(250, 112, 154, 0.12); color: #d63384; }
-        .badge-soft-primary { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
-        .badge-soft-success { background: rgba(67, 233, 123, 0.15); color: #059669; }
-        .badge-soft-danger  { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
-        .badge-soft-info    { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
+        .badge-soft { padding: 0.4rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.75rem; }
+        .badge-soft-warning { background: rgba(250,112,154,0.12); color: #d63384; }
+        .badge-soft-primary { background: rgba(79,172,254,0.12); color: #2563eb; }
+        .badge-soft-success { background: rgba(67,233,123,0.15); color: #059669; }
+        .badge-soft-danger  { background: rgba(220,38,38,0.12); color: #dc2626; }
+        .badge-soft-info    { background: rgba(14,165,233,0.12); color: #0284c7; }
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
-
-        /* ========= FORM CARDS (dans onglets) ========= */
-        .form-card {
-            border: none;
-            border-radius: 16px;
-            background: #fff;
-            border: 1px solid #eef2f7;
-            padding: 1.75rem;
-        }
+        .form-card { border: 1px solid #eef2f7; border-radius: 16px; background: #fff; padding: 1.75rem; }
         .form-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.85rem;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px dashed #e2e8f0;
+            display: flex; align-items: center; gap: 0.85rem;
+            margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px dashed #e2e8f0;
         }
         .form-card-icon {
-            width: 48px; height: 48px;
-            border-radius: 12px;
+            width: 48px; height: 48px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
+            font-size: 1.2rem; flex-shrink: 0;
         }
-        .form-card-icon-blue { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
-        .form-card-icon-green { background: rgba(67, 233, 123, 0.15); color: #059669; }
-        .form-card-icon-yellow { background: rgba(250, 210, 90, 0.18); color: #ca8a04; }
-        .form-card-icon-purple { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
-
-        .btn-modern {
-            border-radius: 10px;
-            font-weight: 600;
-            padding: 0.7rem 1.25rem;
-            border: none;
-            transition: all 0.25s ease;
-        }
+        .form-card-icon-blue { background: rgba(79,172,254,0.12); color: #2563eb; }
+        .form-card-icon-green { background: rgba(67,233,123,0.15); color: #059669; }
+        .form-card-icon-yellow { background: rgba(250,210,90,0.18); color: #ca8a04; }
+        .form-card-icon-purple { background: rgba(168,85,247,0.12); color: #9333ea; }
+        .btn-modern { border-radius: 10px; font-weight: 600; padding: 0.7rem 1.25rem; border: none; }
         .btn-modern:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.12); }
+        .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.65rem 0.9rem; font-size: 0.9rem; }
+        .form-control:focus, .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 4px rgba(102,126,234,0.10); }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
+        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
+        .page-title { font-weight: 800; font-size: 1.85rem; letter-spacing: -0.5px; color: #1e293b; margin: 0; }
+        .page-subtitle { color: #64748b; font-size: 0.95rem; margin: 0; }
+        .hero-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border-radius: 20px; padding: 1.75rem 2rem; color: #fff;
+            margin-bottom: 1.75rem; position: relative; overflow: hidden;
+            box-shadow: 0 12px 30px rgba(30,41,59,0.15);
+        }
+        .hero-banner::before {
+            content: ''; position: absolute; top: -50%; right: -10%;
+            width: 380px; height: 380px; border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            opacity: 0.25; filter: blur(60px);
+        }
+        .hero-banner-content { position: relative; z-index: 1; }
+        .hero-badge-chef {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3);
+            color: #f9d976; padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem;
+        }
 
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            padding: 0.65rem 0.9rem;
-            font-size: 0.9rem;
+        /* ============================================
+           BANNIÈRE "RÉDIGER UN DEVIS" (CHEF)
+        ============================================ */
+        .chef-devis-banner {
+            background: linear-gradient(135deg, rgba(250,210,90,0.12) 0%, rgba(250,210,90,0.03) 100%);
+            border: 1.5px dashed rgba(202, 138, 4, 0.35);
+            border-radius: 16px;
+            padding: 1.35rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.10);
+        .chef-devis-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #94a3b8;
+        .chef-devis-banner-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            background: var(--gradient-5);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px rgba(250, 112, 154, 0.35);
         }
-        .empty-state i {
-            font-size: 3rem;
-            color: #cbd5e1;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .page-title {
+        .chef-devis-banner-title {
+            font-size: 1rem;
             font-weight: 800;
-            font-size: 1.85rem;
-            letter-spacing: -0.5px;
-            color: var(--dg-primary);
+            color: #1e293b;
             margin: 0;
+            letter-spacing: -0.2px;
         }
-        .page-subtitle {
+        .chef-devis-banner-subtitle {
+            font-size: 0.83rem;
             color: #64748b;
-            font-size: 0.95rem;
-            margin: 0;
+            margin: 0.15rem 0 0;
+            font-weight: 500;
         }
+        .btn-creer-devis {
+            background: var(--gradient-5);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.75rem 1.4rem;
+            font-weight: 700;
+            font-size: 0.92rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 8px 20px rgba(250, 112, 154, 0.35);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .btn-creer-devis:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(250, 112, 154, 0.5);
+        }
+
+        /* Statistiques en haut du tableau chef */
+        .chef-stats-row {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.25rem;
+        }
+        .chef-stat-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #475569;
+        }
+        .chef-stat-chip i { font-size: 0.95rem; }
+        .chef-stat-chip.chip-warning { background: rgba(250,112,154,0.08); border-color: rgba(250,112,154,0.25); color: #d63384; }
+        .chef-stat-chip.chip-success { background: rgba(67,233,123,0.08); border-color: rgba(67,233,123,0.25); color: #059669; }
+        .chef-stat-chip.chip-info    { background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.25); color: #0284c7; }
     </style>
 </head>
 <body>
@@ -261,7 +221,6 @@
             <span class="fw-light fs-6 text-white-50 ms-2">| Espace Opérationnel</span>
         </a>
         <div class="d-flex align-items-center gap-3">
-            {# Cloche de notification #}
             <div class="dropdown">
                 <button class="notification-bell" type="button" id="notificationsMenu" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-bell"></i>
@@ -271,7 +230,7 @@
                         </span>
                     {% endif %}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" aria-labelledby="notificationsMenu" style="width: 320px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 320px;">
                     <li class="dropdown-header fw-bold text-dark border-bottom pb-2 mb-2">
                         <i class="fas fa-calendar-alt text-primary me-2"></i>Réunions / Ordres Délégués
                     </li>
@@ -294,14 +253,10 @@
                     {% endif %}
                 </ul>
             </div>
-
-            {# Rôle #}
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-user-shield text-info me-2"></i>
                 <span class="fw-bold">{{ userRole }}</span>
             </div>
-
-            {# Déconnexion #}
             <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
                 <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
@@ -314,13 +269,30 @@
 ============================================ #}
 <div class="container-fluid py-4 px-4" style="max-width: 1500px;">
 
-    {# En-tête #}
+    {# ============ HERO BANNER CHEF DE SERVICE ============ #}
+    {% if isChefService|default(false) %}
+    <div class="hero-banner">
+        <div class="hero-banner-content">
+            <div class="hero-badge-chef">
+                <i class="fas fa-user-tie"></i>
+                Chef de service
+            </div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.7rem; letter-spacing: -0.5px;">
+                Espace de supervision — {{ app.user.service ? app.user.service.nom : 'Service' }}
+            </h1>
+            <p class="mb-0" style="color: rgba(255,255,255,0.75); font-size: 0.92rem;">
+                Validez les demandes de votre équipe et suivez les devis émis par vos collaborateurs.
+            </p>
+        </div>
+    </div>
+    {% else %}
     <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h1 class="page-title">Espace de Gestion des Flux</h1>
             <p class="page-subtitle">Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques.</p>
         </div>
     </div>
+    {% endif %}
 
     {# Flash Messages #}
     {% for label, messages in app.flashes %}
@@ -332,18 +304,18 @@
         {% endfor %}
     {% endfor %}
 
-    {# Cartes de statistiques #}
+    {# ============ STATISTIQUES ============ #}
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="stat-card stat-warning">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Demandes en attente</h6>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                            {% if isChefService|default(false) %}Demandes à valider{% else %}Demandes en attente{% endif %}
+                        </h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ stats.demandes_attente|default(0) }}</h3>
                     </div>
-                    <div class="stat-icon stat-icon-warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-warning"><i class="fas fa-clock"></i></div>
                 </div>
             </div>
         </div>
@@ -354,9 +326,7 @@
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons à signer</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ stats.bons_a_valider|default(0) }}</h3>
                     </div>
-                    <div class="stat-icon stat-icon-primary">
-                        <i class="fas fa-pen-nib"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-primary"><i class="fas fa-pen-nib"></i></div>
                 </div>
             </div>
         </div>
@@ -367,9 +337,7 @@
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons validés Guérite</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ stats.bons_guerite|default(0) }}</h3>
                     </div>
-                    <div class="stat-icon stat-icon-success">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-success"><i class="fas fa-shield-alt"></i></div>
                 </div>
             </div>
         </div>
@@ -379,9 +347,27 @@
        CARTE PRINCIPALE À ONGLETS
     ============================================ #}
     <div class="main-card">
-
-        {# Barre d'onglets principale #}
         <ul class="nav nav-tabs nav-tabs-modern" id="mainTabs" role="tablist">
+
+            {# ONGLETS PRIORITAIRES POUR LE CHEF DE SERVICE #}
+            {% if isChefService|default(false) %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-devis-service" data-bs-toggle="tab" data-bs-target="#pane-devis-service" type="button" role="tab">
+                    <i class="fas fa-file-invoice-dollar text-warning"></i>Devis du service
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
+                    <i class="fas fa-boxes text-primary"></i>Demandes à valider
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
+                    <i class="fas fa-file-signature text-success"></i>Bons de Sortie
+                </button>
+            </li>
+            {% else %}
+            {# MEMBRE SIMPLE #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Suivi des Demandes
@@ -393,22 +379,20 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-devis" data-bs-toggle="tab" data-bs-target="#pane-devis" type="button" role="tab">
-                    <i class="fas fa-file-invoice-dollar text-warning"></i>Devis du Service
+                <button class="nav-link" id="tab-mes-devis" data-bs-toggle="tab" data-bs-target="#pane-mes-devis" type="button" role="tab">
+                    <i class="fas fa-file-invoice-dollar text-warning"></i>Mes Devis
                 </button>
             </li>
-
-            {% if not is_granted('ROLE_COORDON') and not is_granted('ROLE_STOCK') and not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') %}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-new-demande" data-bs-toggle="tab" data-bs-target="#pane-new-demande" type="button" role="tab">
-                        <i class="fas fa-plus-circle text-primary"></i>Nouvelle Demande
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-new-bon" data-bs-toggle="tab" data-bs-target="#pane-new-bon" type="button" role="tab">
-                        <i class="fas fa-plus-circle text-success"></i>Nouveau Bon
-                    </button>
-                </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-new-demande" data-bs-toggle="tab" data-bs-target="#pane-new-demande" type="button" role="tab">
+                    <i class="fas fa-plus-circle text-primary"></i>Nouvelle Demande
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-new-bon" data-bs-toggle="tab" data-bs-target="#pane-new-bon" type="button" role="tab">
+                    <i class="fas fa-plus-circle text-success"></i>Nouveau Bon
+                </button>
+            </li>
             {% endif %}
 
             {% if not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') and formVisite is defined and formVisite is not null %}
@@ -420,16 +404,152 @@
             {% endif %}
         </ul>
 
-        {# Contenu des onglets #}
         <div class="p-4">
             <div class="tab-content">
 
-                {# ============ ONGLET 1 : DEMANDES ============ #}
-                <div class="tab-pane fade show active" id="pane-demandes" role="tabpanel">
+                {# ============================================================
+                   ONGLET CHEF : DEVIS DU SERVICE (Validation + Création)
+                ============================================================ #}
+                {% if isChefService|default(false) %}
+                <div class="tab-pane fade show active" id="pane-devis-service" role="tabpanel">
+
+                    {# Bannière "Rédiger un Devis" #}
+                    <div class="chef-devis-banner">
+                        <div class="chef-devis-banner-left">
+                            <div class="chef-devis-banner-icon">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div>
+                                <h5 class="chef-devis-banner-title">Gestion des devis de mon service</h5>
+                                <p class="chef-devis-banner-subtitle">
+                                    Créez vos propres devis, validez et ajustez ceux émis par vos collaborateurs.
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ path('app_devis_nouveau') }}" class="btn-creer-devis">
+                            <i class="fas fa-plus-circle"></i>
+                            Rédiger un Devis
+                        </a>
+                    </div>
+
+                    {# Statistiques rapides #}
+                    <div class="chef-stats-row">
+                        <span class="chef-stat-chip chip-warning">
+                            <i class="fas fa-clock"></i>
+                            En attente :
+                            {% set nb_attente = 0 %}
+                            {% for devis in devisListe %}
+                                {% if devis.statut == 'ATTENTE_TRAITEMENT' or devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+                                    {% set nb_attente = nb_attente + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ nb_attente }}
+                        </span>
+                        <span class="chef-stat-chip chip-success">
+                            <i class="fas fa-dollar-sign"></i>
+                            Total USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}
+                        </span>
+                        <span class="chef-stat-chip chip-success">
+                            <i class="fas fa-coins"></i>
+                            Total CDF : {{ totalDevisCDF|default(0)|number_format(2, ',', ' ') }}
+                        </span>
+                        <span class="chef-stat-chip chip-info">
+                            <i class="fas fa-list"></i>
+                            Total : {{ devisListe|length }} devis
+                        </span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Émetteur</th>
+                                    <th>Description</th>
+                                    <th>Statut</th>
+                                    <th class="text-end">Montant</th>
+                                    <th class="text-center">Action Chef</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for devis in devisListe %}
+                                    <tr>
+                                        <td class="fw-bold text-secondary">#{{ devis.id }}</td>
+                                        <td class="text-muted small">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                        <td>
+                                            <span class="badge badge-soft badge-soft-secondary">
+                                                <i class="fas fa-user me-1"></i>{{ devis.user ? devis.user.userIdentifier : devis.createdBy }}
+                                            </span>
+                                        </td>
+                                        <td class="fw-semibold text-dark">{{ devis.description }}</td>
+                                        <td>
+                                            {% if devis.statut == 'DECAISSE' %}
+                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
+                                            {% elseif devis.statut == 'REJETE' %}
+                                                <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                            {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
+                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i>Transmis au DG</span>
+                                            {% elseif devis.statut == 'ATTENTE_DIRECTION' %}
+                                                <span class="badge badge-soft badge-soft-primary"><i class="fas fa-hourglass-half me-1"></i>Chez le DG</span>
+                                            {% else %}
+                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>En attente validation</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end font-monospace fw-bold text-dark">
+                                            {{ devis.montant|number_format(2, ',', ' ') }}
+                                            <span class="small text-muted">{{ devis.devise }}</span>
+                                        </td>
+                                        <td class="text-center">
+                                            {% if devis.statut == 'ATTENTE_TRAITEMENT' or devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+                                                <form action="{{ path('app_chef_service_valider_devis', {'id': devis.id}) }}" method="POST" class="d-flex gap-2 justify-content-center align-items-center flex-wrap">
+                                                    <div class="input-group input-group-sm" style="max-width: 130px;">
+                                                        <input type="number" step="0.01" name="nouveau_montant" class="form-control text-end fw-bold text-primary" value="{{ devis.montant }}">
+                                                        <span class="input-group-text bg-light small fw-bold" style="font-size: 0.7rem;">{{ devis.devise }}</span>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
+                                                        <i class="fas fa-check me-1"></i> Transmettre
+                                                    </button>
+                                                </form>
+                                            {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
+                                                <span class="badge badge-soft badge-soft-info">
+                                                    <i class="fas fa-check-circle me-1"></i> Transmis au DG
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted small">Non modifiable</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-folder-open"></i>
+                                                <div class="fw-bold">Aucun devis dans mon service</div>
+                                                <small>Cliquez sur "Rédiger un Devis" pour créer votre premier devis.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ============================================================
+                   ONGLET DEMANDES
+                ============================================================ #}
+                <div class="tab-pane fade {% if not isChefService|default(false) %}show active{% endif %}" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Suivi des demandes logistiques</h5>
-                            <small class="text-muted">Toutes vos demandes de matériel en cours.</small>
+                            <h5 class="fw-bold text-dark m-0">
+                                <i class="fas fa-boxes text-primary me-2"></i>
+                                {% if isChefService|default(false) %}Demandes à valider — {{ app.user.service ? app.user.service.nom : '' }}{% else %}Suivi des demandes{% endif %}
+                            </h5>
+                            <small class="text-muted">
+                                {% if isChefService|default(false) %}Demandes de votre équipe en attente de validation.{% else %}Vos demandes de matériel en cours.{% endif %}
+                            </small>
                         </div>
                     </div>
 
@@ -439,11 +559,11 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Département</th>
-                                    <th>Localisation</th>
                                     <th>Matériel</th>
                                     <th class="text-center">Quantité</th>
                                     <th>Statut</th>
-                                    {% if is_granted('ROLE_STOCK') %}<th class="text-center">Action</th>{% endif %}
+                                    {% if isChefService|default(false) %}<th class="text-center">Action Chef</th>{% endif %}
+                                    {% if is_granted('ROLE_STOCK') %}<th class="text-center">Action Stock</th>{% endif %}
                                 </tr>
                             </thead>
                             <tbody>
@@ -451,11 +571,6 @@
                                     <tr>
                                         <td class="fw-bold text-secondary">#{{ d.id }}</td>
                                         <td><span class="badge badge-soft badge-soft-secondary">{{ d.departement }}</span></td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                <i class="fas fa-building me-1 text-muted"></i>{{ d.localisation|default('Direction')|upper }}
-                                            </span>
-                                        </td>
                                         <td class="fw-semibold text-dark">{{ d.materiel }}</td>
                                         <td class="text-center fw-bold text-primary font-monospace">
                                             {% if d.materiel|lower == 'gilet' or d.materiel|lower == 'gilets' %}
@@ -469,10 +584,29 @@
                                         <td>
                                             {% if 'attente' in d.statut|lower %}
                                                 <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>{{ d.statut }}</span>
+                                            {% elseif 'validé chef' in d.statut|lower %}
+                                                <span class="badge badge-soft badge-soft-primary"><i class="fas fa-check-circle me-1"></i>{{ d.statut }}</span>
                                             {% else %}
                                                 <span class="badge badge-soft badge-soft-info"><i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>{{ d.statut }}</span>
                                             {% endif %}
                                         </td>
+                                        {% if isChefService|default(false) %}
+                                            <td class="text-center">
+                                                {% if d.statut == 'En attente' %}
+                                                    <form action="{{ path('app_chef_service_traiter', {'id': d.id}) }}" method="POST" class="d-inline-flex gap-1">
+                                                        <button type="submit" name="action" value="valider" class="btn btn-sm btn-success fw-bold rounded-pill px-3" title="Valider la demande">
+                                                            <i class="fas fa-check me-1"></i> Valider
+                                                        </button>
+                                                        <button type="submit" name="action" value="rejeter" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Rejeter"
+                                                                onclick="return confirm('Rejeter cette demande ?');">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                        {% endif %}
                                         {% if is_granted('ROLE_STOCK') %}
                                             <td class="text-center">
                                                 <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
@@ -485,11 +619,11 @@
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="7">
+                                        <td colspan="6">
                                             <div class="empty-state">
                                                 <i class="fas fa-inbox"></i>
-                                                <div class="fw-bold">Aucune demande enregistrée</div>
-                                                <small>Aucune demande logistique n'est en cours pour le moment.</small>
+                                                <div class="fw-bold">Aucune demande</div>
+                                                <small>{% if isChefService|default(false) %}Aucune demande en attente de validation.{% else %}Aucune demande logistique en cours.{% endif %}</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -499,15 +633,16 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 2 : BONS DE SORTIE ============ #}
+                {# ============================================================
+                   ONGLET BONS DE SORTIE
+                ============================================================ #}
                 <div class="tab-pane fade" id="pane-bons" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-signature text-success me-2"></i>Registre des bons de sortie</h5>
-                            <small class="text-muted">Tous les bons émis et leur état de signature.</small>
+                            <small class="text-muted">Tous les bons émis et leur état.</small>
                         </div>
                     </div>
-
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
                             <thead>
@@ -541,8 +676,8 @@
                                         <td colspan="5">
                                             <div class="empty-state">
                                                 <i class="fas fa-file-signature"></i>
-                                                <div class="fw-bold">Aucun bon en traitement</div>
-                                                <small>Aucun bon de sortie n'est actuellement en cours.</small>
+                                                <div class="fw-bold">Aucun bon</div>
+                                                <small>Aucun bon de sortie en cours.</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -552,100 +687,100 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 3 : DEVIS ============ #}
-                <div class="tab-pane fade" id="pane-devis" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                        <div>
-                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis émis par mon service</h5>
-                            <small class="text-muted">Suivi financier des demandes de budget.</small>
-                        </div>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <span class="badge badge-soft badge-soft-warning px-3 py-2">
-                                <i class="fas fa-dollar-sign me-1"></i>USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}
-                            </span>
-                            <span class="badge badge-soft badge-soft-success px-3 py-2">
-                                <i class="fas fa-coins me-1"></i>CDF : {{ totalDevisCDF|default(0)|number_format(2, ',', ' ') }}
-                            </span>
-                        </div>
-                    </div>
+                {# ============================================================
+                   ONGLET MEMBRE : MES DEVIS
+                ============================================================ #}
+                {% if not isChefService|default(false) %}
+                <div class="tab-pane fade" id="pane-mes-devis" role="tabpanel">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-10">
 
-                    <div class="table-responsive">
-                        <table class="table table-modern table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Demandeur</th>
-                                    <th>Description</th>
-                                    <th>Statut</th>
-                                    <th class="text-end">Montant</th>
-                                    {% if isChefService %}<th class="text-center">Action</th>{% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for devis in devisListe %}
-                                    <tr>
-                                        <td class="fw-bold text-secondary">#{{ devis.id }}</td>
-                                        <td class="text-muted small">{{ devis.createdAt|date('d/m/Y') }}</td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                <i class="fas fa-user me-1"></i>{{ devis.user ? devis.user.userIdentifier : devis.createdBy }}
-                                            </span>
-                                        </td>
-                                        <td class="fw-semibold text-dark">{{ devis.description }}</td>
-                                        <td>
-                                            {% if devis.statut == 'DECAISSE' %}
-                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
-                                            {% elseif devis.statut == 'REJETE' %}
-                                                <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
-                                            {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
-                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i>Validé Chef</span>
+                            {# Bouton création devis #}
+                            <div class="form-card mb-4" style="background: linear-gradient(135deg, rgba(250,210,90,0.08) 0%, rgba(250,210,90,0.02) 100%);">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-card-icon form-card-icon-yellow">
+                                            <i class="fas fa-file-invoice-dollar"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="fw-bold m-0 text-dark">Émettre un nouveau devis</h5>
+                                            <small class="text-muted">Rédigez un devis qui sera transmis à votre chef de service pour validation.</small>
+                                        </div>
+                                    </div>
+                                    <a href="{{ path('app_devis_nouveau') }}" class="btn btn-modern btn-warning text-dark">
+                                        <i class="fas fa-plus-circle me-2"></i>Rédiger un Devis
+                                    </a>
+                                </div>
+                            </div>
+
+                            {# Liste de mes devis #}
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-yellow">
+                                        <i class="fas fa-list"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Mes devis émis</h5>
+                                        <small class="text-muted">Suivi de vos demandes de budget transmises à votre chef de service.</small>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-modern table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Date</th>
+                                                <th>Description</th>
+                                                <th>Statut</th>
+                                                <th class="text-end">Montant</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% set mesDevis = devisListe|filter(d => d.user == app.user or d.createdBy == app.user.userIdentifier) %}
+                                            {% for devis in mesDevis %}
+                                                <tr>
+                                                    <td class="fw-bold text-secondary">#{{ devis.id }}</td>
+                                                    <td class="text-muted small">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                                    <td class="fw-semibold text-dark">{{ devis.description }}</td>
+                                                    <td>
+                                                        {% if devis.statut == 'DECAISSE' %}
+                                                            <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
+                                                        {% elseif devis.statut == 'REJETE' %}
+                                                            <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                                        {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
+                                                            <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i>Validé par le chef</span>
+                                                        {% else %}
+                                                            <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>En attente</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td class="text-end font-monospace fw-bold text-dark">
+                                                        {{ devis.montant|number_format(2, ',', ' ') }}
+                                                        <span class="small text-muted">{{ devis.devise }}</span>
+                                                    </td>
+                                                </tr>
                                             {% else %}
-                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>{{ devis.statut }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-end font-monospace fw-bold text-dark">
-                                            {{ devis.montant|number_format(2, ',', ' ') }}
-                                            <span class="small text-muted">{{ devis.devise }}</span>
-                                        </td>
-                                        {% if isChefService %}
-                                            <td class="text-center">
-                                                {% if devis.statut == 'ATTENTE_TRAITEMENT' %}
-                                                    <form action="{{ path('app_chef_service_valider_devis', {'id': devis.id}) }}" method="POST" class="d-flex gap-2 justify-content-center align-items-center flex-wrap">
-                                                        <div class="input-group input-group-sm" style="max-width: 140px;">
-                                                            <input type="number" step="0.01" name="nouveau_montant" class="form-control text-end fw-bold text-primary" value="{{ devis.montant }}">
-                                                            <span class="input-group-text bg-light small fw-bold" style="font-size: 0.7rem;">{{ devis.devise }}</span>
+                                                <tr>
+                                                    <td colspan="5">
+                                                        <div class="empty-state">
+                                                            <i class="fas fa-folder-open"></i>
+                                                            <div class="fw-bold">Aucun devis émis</div>
+                                                            <small>Cliquez sur "Rédiger un Devis" pour créer votre premier devis.</small>
                                                         </div>
-                                                        <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                            <i class="fas fa-check me-1"></i> Valider
-                                                        </button>
-                                                    </form>
-                                                {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
-                                                    <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i> Déjà validé</span>
-                                                {% else %}
-                                                    <span class="text-muted small">Non modifiable</span>
-                                                {% endif %}
-                                            </td>
-                                        {% endif %}
-                                    </tr>
-                                {% else %}
-                                    <tr>
-                                        <td colspan="{% if isChefService %}7{% else %}6{% endif %}">
-                                            <div class="empty-state">
-                                                <i class="fas fa-folder-open"></i>
-                                                <div class="fw-bold">Aucun devis</div>
-                                                <small>Aucun devis enregistré pour les membres de votre service.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {# ============ ONGLET 4 : NOUVELLE DEMANDE ============ #}
-                {% if not is_granted('ROLE_COORDON') and not is_granted('ROLE_STOCK') and not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') %}
+                {# ============================================================
+                   ONGLET : NOUVELLE DEMANDE
+                ============================================================ #}
                 <div class="tab-pane fade" id="pane-new-demande" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-8">
@@ -659,7 +794,6 @@
                                         <small class="text-muted">Remplissez le formulaire pour soumettre une demande.</small>
                                     </div>
                                 </div>
-
                                 {% if formDemande is defined and formDemande is not null %}
                                     {{ form_start(formDemande) }}
                                         <div class="row">
@@ -691,7 +825,7 @@
                                     {{ form_end(formDemande) }}
                                 {% else %}
                                     <div class="alert alert-info mb-0 rounded-3">
-                                        <i class="fas fa-info-circle me-2"></i> Vous n'avez pas les droits pour faire une demande de matériel.
+                                        <i class="fas fa-info-circle me-2"></i> Formulaire de demande indisponible.
                                     </div>
                                 {% endif %}
                             </div>
@@ -699,9 +833,7 @@
                         <div class="col-lg-4">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
-                                    <div class="form-card-icon form-card-icon-yellow">
-                                        <i class="fas fa-lightbulb"></i>
-                                    </div>
+                                    <div class="form-card-icon form-card-icon-yellow"><i class="fas fa-lightbulb"></i></div>
                                     <div>
                                         <h5 class="fw-bold m-0 text-dark">Bon à savoir</h5>
                                         <small class="text-muted">Informations utiles</small>
@@ -716,9 +848,9 @@
                                         <i class="fas fa-check-circle text-success me-2 mt-1"></i>
                                         <span class="small text-muted">Pour les gilets, précisez la commune de destination.</span>
                                     </li>
-                                    <li class="mb-3 d-flex">
+                                    <li class="d-flex">
                                         <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                        <span class="small text-muted">La demande est transmise au chef de service pour validation.</span>
+                                        <span class="small text-muted">La demande est transmise à votre chef de service.</span>
                                     </li>
                                 </ul>
                             </div>
@@ -726,21 +858,20 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 5 : NOUVEAU BON DE SORTIE ============ #}
+                {# ============================================================
+                   ONGLET : NOUVEAU BON
+                ============================================================ #}
                 <div class="tab-pane fade" id="pane-new-bon" role="tabpanel">
-                    <div class="row g-4">
+                    <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="form-card">
                                 <div class="form-card-header">
-                                    <div class="form-card-icon form-card-icon-green">
-                                        <i class="fas fa-file-invoice"></i>
-                                    </div>
+                                    <div class="form-card-icon form-card-icon-green"><i class="fas fa-file-invoice"></i></div>
                                     <div>
                                         <h5 class="fw-bold m-0 text-dark">Créer un Bon de Sortie</h5>
                                         <small class="text-muted">Émettez un bon pour la sortie de matériel.</small>
                                     </div>
                                 </div>
-
                                 {% if formBon is defined and formBon is not null %}
                                     {{ form_start(formBon) }}
                                         {{ form_widget(formBon) }}
@@ -750,62 +881,30 @@
                                     {{ form_end(formBon) }}
                                 {% else %}
                                     <div class="alert alert-info mb-0 rounded-3">
-                                        <i class="fas fa-info-circle me-2"></i> Vous n'avez pas les droits pour créer un bon de sortie.
+                                        <i class="fas fa-info-circle me-2"></i> Formulaire de bon indisponible.
                                     </div>
                                 {% endif %}
-                            </div>
-                        </div>
-                        <div class="col-lg-4">
-                            <div class="form-card h-100">
-                                <div class="form-card-header">
-                                    <div class="form-card-icon form-card-icon-green">
-                                        <i class="fas fa-info-circle"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="fw-bold m-0 text-dark">Procédure</h5>
-                                        <small class="text-muted">Étapes de validation</small>
-                                    </div>
-                                </div>
-                                <div class="d-flex mb-3">
-                                    <div class="me-3">
-                                        <span class="badge bg-primary rounded-circle" style="width: 26px; height: 26px; line-height: 18px;">1</span>
-                                    </div>
-                                    <div class="small text-muted">Le bon est créé et transmis au coordonnateur.</div>
-                                </div>
-                                <div class="d-flex mb-3">
-                                    <div class="me-3">
-                                        <span class="badge bg-success rounded-circle" style="width: 26px; height: 26px; line-height: 18px;">2</span>
-                                    </div>
-                                    <div class="small text-muted">Le coordonnateur signe et valide.</div>
-                                </div>
-                                <div class="d-flex">
-                                    <div class="me-3">
-                                        <span class="badge bg-warning rounded-circle" style="width: 26px; height: 26px; line-height: 18px;">3</span>
-                                    </div>
-                                    <div class="small text-muted">La guérite confirme la sortie effective.</div>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 {% endif %}
 
-                {# ============ ONGLET 6 : VISITE ============ #}
+                {# ============================================================
+                   ONGLET : RÉSERVER UNE VISITE
+                ============================================================ #}
                 {% if not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') and formVisite is defined and formVisite is not null %}
                 <div class="tab-pane fade" id="pane-visite" role="tabpanel">
-                    <div class="row g-4">
+                    <div class="row justify-content-center">
                         <div class="col-lg-8">
                             <div class="form-card">
                                 <div class="form-card-header">
-                                    <div class="form-card-icon form-card-icon-purple">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </div>
+                                    <div class="form-card-icon form-card-icon-purple"><i class="fas fa-calendar-alt"></i></div>
                                     <div>
                                         <h5 class="fw-bold m-0 text-dark">Réserver une Visite</h5>
                                         <small class="text-muted">Enregistrez les informations du visiteur.</small>
                                     </div>
                                 </div>
-
                                 {{ form_start(formVisite) }}
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
@@ -827,33 +926,6 @@
                                 {{ form_end(formVisite) }}
                             </div>
                         </div>
-                        <div class="col-lg-4">
-                            <div class="form-card h-100">
-                                <div class="form-card-header">
-                                    <div class="form-card-icon form-card-icon-purple">
-                                        <i class="fas fa-clipboard-check"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="fw-bold m-0 text-dark">Rappel</h5>
-                                        <small class="text-muted">Consignes de sécurité</small>
-                                    </div>
-                                </div>
-                                <ul class="list-unstyled mb-0">
-                                    <li class="mb-3 d-flex">
-                                        <i class="fas fa-shield-alt text-primary me-2 mt-1"></i>
-                                        <span class="small text-muted">Tout visiteur doit être enregistré à la guérite.</span>
-                                    </li>
-                                    <li class="mb-3 d-flex">
-                                        <i class="fas fa-id-card text-primary me-2 mt-1"></i>
-                                        <span class="small text-muted">Vérifiez la pièce d'identité du visiteur.</span>
-                                    </li>
-                                    <li class="d-flex">
-                                        <i class="fas fa-clock text-primary me-2 mt-1"></i>
-                                        <span class="small text-muted">La visite doit être clôturée à la sortie.</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -869,7 +941,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-
         // 1. Obligation de la commune pour les gilets
         const champMateriel = document.getElementById('demande_materiel');
         const champDestination = document.getElementById('demande_destination');
@@ -879,17 +950,9 @@
                 if (valeurMateriel.includes('gilet')) {
                     champDestination.setAttribute('required', 'required');
                     champDestination.classList.add('border-danger');
-                    const label = champDestination.closest('.mb-3').querySelector('.form-label');
-                    if (label && !label.innerHTML.includes('*')) {
-                        label.innerHTML = 'Commune de destination <span class="text-danger">*</span>';
-                    }
                 } else {
                     champDestination.removeAttribute('required');
                     champDestination.classList.remove('border-danger');
-                    const label = champDestination.closest('.mb-3').querySelector('.form-label');
-                    if (label) {
-                        label.innerHTML = 'Commune de destination (Optionnel)';
-                    }
                 }
             }
             champMateriel.addEventListener('input', verifierConditionCommune);
@@ -900,28 +963,17 @@
         // 2. Chargement dynamique des attributs
         const champRecherche = document.getElementById('demande_materiel');
         const attributSelect = document.getElementById('demande_attribut');
-
         if (champRecherche && attributSelect) {
             let timeoutId = null;
-
             function chargerAttributs(nom) {
                 if (!nom || nom.length < 2) {
                     attributSelect.innerHTML = '<option value="">Saisissez au moins 2 caractères</option>';
                     attributSelect.disabled = true;
                     return;
                 }
-
                 fetch('/api/recherche-article?nom=' + encodeURIComponent(nom))
-                    .then(response => {
-                        if (!response.ok) throw new Error('Erreur réseau');
-                        return response.json();
-                    })
+                    .then(r => r.ok ? r.json() : Promise.reject())
                     .then(data => {
-                        if (data.error) {
-                            attributSelect.innerHTML = '<option value="">Erreur serveur</option>';
-                            attributSelect.disabled = true;
-                            return;
-                        }
                         if (!data.found) {
                             attributSelect.innerHTML = '<option value="">Aucun article trouvé</option>';
                             attributSelect.disabled = true;
@@ -929,7 +981,7 @@
                         }
                         attributSelect.innerHTML = '<option value="">Choisissez une variante</option>';
                         if (data.attributs.length === 0) {
-                            attributSelect.innerHTML = '<option value="">Aucune variante disponible</option>';
+                            attributSelect.innerHTML = '<option value="">Aucune variante</option>';
                             attributSelect.disabled = true;
                         } else {
                             data.attributs.forEach(attr => {
@@ -941,25 +993,18 @@
                             attributSelect.disabled = false;
                         }
                     })
-                    .catch(error => {
-                        console.error('Erreur lors du chargement des attributs :', error);
+                    .catch(() => {
                         attributSelect.innerHTML = '<option value="">Erreur de chargement</option>';
                         attributSelect.disabled = true;
                     });
             }
-
             champRecherche.addEventListener('input', function() {
                 clearTimeout(timeoutId);
-                const nom = this.value.trim();
-                timeoutId = setTimeout(() => chargerAttributs(nom), 500);
+                timeoutId = setTimeout(() => chargerAttributs(this.value.trim()), 500);
             });
-
-            if (champRecherche.value.trim()) {
-                chargerAttributs(champRecherche.value.trim());
-            }
         }
 
-        // 3. Mémoriser l'onglet actif après rechargement
+        // 3. Mémorisation de l'onglet actif via l'URL
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -967,7 +1012,7 @@
         }
         document.querySelectorAll('#mainTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
-                history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+                history.replaceState(null, null, e.target.dataset.bsTarget);
             });
         });
     });

@@ -5,6 +5,22 @@
     <title>Modifier Utilisateur - Administration</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Chef toggle : switch bleu primary pour rester dans le thème */
+        .form-switch .form-check-input {
+            width: 48px;
+            height: 26px;
+            cursor: pointer;
+        }
+        .form-switch .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .form-switch .form-check-input:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container py-5" style="max-width: 600px;">
@@ -17,15 +33,30 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="m-0 fw-bold"><i class="fas fa-user-edit me-2 text-primary"></i>Modifier l'utilisateur</h5>
+                <h5 class="m-0 fw-bold">
+                    <i class="fas fa-user-edit me-2 text-primary"></i>Modifier l'utilisateur
+                </h5>
+                {% if user.isChefService %}
+                    <span class="badge bg-warning text-dark fw-bold">
+                        <i class="fas fa-crown me-1"></i>CHEF DE SERVICE
+                    </span>
+                {% endif %}
             </div>
+
             <div class="card-body p-4">
                 <form method="POST">
+
+                    {# ==========================================
+                       EMAIL
+                    ========================================== #}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Adresse Email :</label>
                         <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
                     </div>
 
+                    {# ==========================================
+                       RÔLE
+                    ========================================== #}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Rôle Assigné :</label>
                         <select name="role" class="form-select" id="roleSelect">
@@ -35,55 +66,149 @@
                             <option value="ROLE_COMPTA" {% if 'ROLE_COMPTA' in user.roles %}selected{% endif %}>Comptabilité (ROLE_COMPTA)</option>
                             <option value="ROLE_RECEPTION" {% if 'ROLE_RECEPTION' in user.roles %}selected{% endif %}>Réception (ROLE_RECEPTION)</option>
                             <option value="ROLE_GUERITE" {% if 'ROLE_GUERITE' in user.roles %}selected{% endif %}>Agent Guérite (ROLE_GUERITE)</option>
+                            <option value="ROLE_CAISSIER" {% if 'ROLE_CAISSIER' in user.roles %}selected{% endif %}>Caissier (ROLE_CAISSIER)</option>
                             <option value="ROLE_DG" {% if 'ROLE_DG' in user.roles %}selected{% endif %}>Directeur Général (ROLE_DG)</option>
                             <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Administrateur (ROLE_ADMIN)</option>
                         </select>
                     </div>
 
-                    <!-- Bloc d'attachement au service (affiché uniquement si ROLE_USER) -->
-                    <div class="mb-3" id="serviceBlock" style="display: {% if 'ROLE_USER' in user.roles %}block{% else %}none{% endif %};">
+                    {# ==========================================
+                       SERVICE DE RATTACHEMENT
+                    ========================================== #}
+                    <div class="mb-3" id="serviceBlock">
                         <label class="form-label small fw-bold text-secondary">Service de rattachement :</label>
-                        <select name="service_id" class="form-select">
-                            <option value="">-- Sélectionner un service --</option>
+                        <select name="service_id" class="form-select" id="serviceSelect">
+                            <option value="">-- Aucun service --</option>
                             {% for service in services %}
                                 <option value="{{ service.id }}" {% if user.service and user.service.id == service.id %}selected{% endif %}>
                                     {{ service.nom }}
                                 </option>
                             {% endfor %}
                         </select>
-                        <div class="form-text text-muted">Obligatoire ou recommandé pour un utilisateur opérationnel.</div>
+                        <div class="form-text text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Obligatoire pour un agent opérationnel et pour être chef de service.
+                        </div>
                     </div>
 
+                    {# ==========================================
+                       NOMINATION CHEF DE SERVICE (NOUVEAU)
+                    ========================================== #}
+                    <div class="mb-3" id="chefBlock">
+                        <label class="form-label small fw-bold text-secondary">
+                            <i class="fas fa-user-tie text-warning me-1"></i>Nomination au poste de Chef de Service :
+                        </label>
+                        <div class="form-check form-switch bg-light border rounded p-3 ps-4">
+                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch"
+                                   id="isChefService" name="isChefService" value="1"
+                                   {% if user.isChefService %}checked{% endif %}>
+                            <label class="form-check-label small fw-bold text-dark" for="isChefService">
+                                Nommer cet agent comme <strong>Chef de son service</strong>
+                            </label>
+                            <div class="form-text text-muted mt-1 mb-0" style="margin-left: 0;">
+                                Le chef de service peut valider les demandes de matériel et les devis émis par son équipe.
+                            </div>
+                        </div>
+
+                        {# Avertissement dynamique si chef coché sans service #}
+                        <div class="alert alert-danger mt-2 mb-0 py-2 small d-none" id="chefWarning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Attention :</strong> Un chef de service doit obligatoirement être rattaché à un service.
+                        </div>
+                    </div>
+
+                    {# ==========================================
+                       MOT DE PASSE
+                    ========================================== #}
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-secondary">Changer le mot de passe :</label>
                         <input type="password" name="password" class="form-control" placeholder="Laisser vide si inchangé">
-                        <div class="form-text text-muted">Saisir un mot de passe uniquement si l'employé demande une réinitialisation.</div>
+                        <div class="form-text text-muted">
+                            Saisir un mot de passe uniquement si l'employé demande une réinitialisation.
+                        </div>
                     </div>
 
+                    {# ==========================================
+                       BOUTONS
+                    ========================================== #}
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary fw-bold flex-grow-1">Sauvegarder les modifications</button>
-                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary fw-bold">Annuler</a>
+                        <button type="submit" class="btn btn-primary fw-bold flex-grow-1">
+                            <i class="fas fa-save me-1"></i> Sauvegarder les modifications
+                        </button>
+                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary fw-bold">
+                            Annuler
+                        </a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Script JavaScript pour afficher/masquer le champ service dynamiquement -->
+    <!-- ============================================
+         SCRIPT : logique interactive
+    ============================================ -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const roleSelect = document.getElementById('roleSelect');
-            const serviceBlock = document.getElementById('serviceBlock');
+            const roleSelect    = document.getElementById('roleSelect');
+            const serviceBlock  = document.getElementById('serviceBlock');
+            const serviceSelect = document.getElementById('serviceSelect');
+            const chefBlock     = document.getElementById('chefBlock');
+            const chefCheckbox  = document.getElementById('isChefService');
+            const chefWarning   = document.getElementById('chefWarning');
 
-            function toggleServiceBlock() {
-                if (roleSelect.value === 'ROLE_USER') {
-                    serviceBlock.style.display = 'block';
+            // Rôles pouvant avoir un service
+            const rolesAvecService = [
+                'ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON',
+                'ROLE_COMPTA', 'ROLE_RECEPTION', 'ROLE_GUERITE', 'ROLE_CAISSIER'
+            ];
+
+            // Rôles pouvant être chef de service
+            const rolesChefPossible = ['ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON', 'ROLE_COMPTA'];
+
+            function updateUI() {
+                const role = roleSelect.value;
+
+                // Bloc service
+                serviceBlock.style.display = rolesAvecService.includes(role) ? 'block' : 'none';
+
+                // Bloc chef
+                if (rolesChefPossible.includes(role)) {
+                    chefBlock.style.display = 'block';
                 } else {
-                    serviceBlock.style.display = 'none';
+                    chefBlock.style.display = 'none';
+                    chefCheckbox.checked = false;
+                }
+
+                verifierChef();
+            }
+
+            function verifierChef() {
+                if (chefCheckbox.checked && (!serviceSelect.value || serviceSelect.value === '')) {
+                    chefWarning.classList.remove('d-none');
+                    serviceSelect.classList.add('is-invalid');
+                } else {
+                    chefWarning.classList.add('d-none');
+                    serviceSelect.classList.remove('is-invalid');
                 }
             }
 
-            roleSelect.addEventListener('change', toggleServiceBlock);
+            // Écouteurs
+            roleSelect.addEventListener('change', updateUI);
+            chefCheckbox.addEventListener('change', verifierChef);
+            serviceSelect.addEventListener('change', verifierChef);
+
+            // Bloquer la soumission si chef sans service
+            document.querySelector('form').addEventListener('submit', function(e) {
+                if (chefCheckbox.checked && (!serviceSelect.value || serviceSelect.value === '')) {
+                    e.preventDefault();
+                    chefWarning.classList.remove('d-none');
+                    serviceSelect.focus();
+                    serviceSelect.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+            // État initial
+            updateUI();
         });
     </script>
 </body>

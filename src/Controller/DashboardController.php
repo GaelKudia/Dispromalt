@@ -310,124 +310,139 @@ class DashboardController extends AbstractController
         // ============================================================
         // GESTION DES CAS SPÉCIAUX (CHEF DE SERVICE)
         // ============================================================
-        if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
-            $serviceChef = $currentUser->getService();
-            $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
+        // ============================================================
+// GESTION DES CAS SPÉCIAUX (CHEF DE SERVICE)
+// ============================================================
+if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
+    $serviceChef = $currentUser->getService();
+    $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
 
-            $demandes = $demandeRepository->createQueryBuilder('d')
-                ->where('d.departement = :dept')
-                ->andWhere('d.statut = :statut')
-                ->setParameter('dept', $serviceChef->getNom())
-                ->setParameter('statut', 'En attente')
-                ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+    // Demandes en attente de validation
+    $demandes = $demandeRepository->createQueryBuilder('d')
+        ->where('d.departement = :dept')
+        ->andWhere('d.statut = :statut')
+        ->setParameter('dept', $userDept)
+        ->setParameter('statut', 'En attente')
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
 
-            $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+    // Bons de sortie du service
+    $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
 
-            $devisServiceListe = $devisRepository->createQueryBuilder('dev')
-                ->join('dev.user', 'u')
-                ->where('u.service = :service')
-                ->andWhere('dev.statut = :statut')
-                ->andWhere('dev.createdAt BETWEEN :start AND :end')
-                ->setParameter('service', $serviceChef)
-                ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
-                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-                ->orderBy('dev.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+    // ============================================================
+    // ✅ DEVIS DU SERVICE — SANS filtres restrictifs
+    // ------------------------------------------------------------
+    // - On ne filtre PLUS par statut (le chef doit tout voir)
+    // - On ne filtre PLUS par date (ou optionnel)
+    // - LEFT JOIN pour capter aussi les devis sans user (après delete)
+    // ============================================================
+    $devisServiceListe = [];
+    $totalDevisUSD = 0;
+    $totalDevisCDF = 0;
 
-            $totalDevisUSD = 0;
-            $totalDevisCDF = 0;
-            foreach ($devisServiceListe as $d) {
-                if ($d->getDevise() === 'CDF') {
-                    $totalDevisCDF += $d->getMontant();
-                } else {
-                    $totalDevisUSD += $d->getMontant();
-                }
+    if ($serviceChef) {
+        $devisServiceListe = $devisRepository->createQueryBuilder('dev')
+            ->leftJoin('dev.user', 'u')
+            ->where('u.service = :service')
+            ->orWhere('dev.createdBy IN (
+                SELECT usr.email FROM App\Entity\User usr WHERE usr.service = :service
+            )')
+            ->setParameter('service', $serviceChef)
+            ->orderBy('dev.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        foreach ($devisServiceListe as $d) {
+            if ($d->getDevise() === 'CDF') {
+                $totalDevisCDF += (float) $d->getMontant();
+            } else {
+                $totalDevisUSD += (float) $d->getMontant();
+            }
+        }
+    }
+
+    // Rapport global (demandes du service)
+    $rapportGlobal = $demandeRepository->createQueryBuilder('d')
+        ->where('d.departement = :dept')
+        ->andWhere('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('dept', $userDept)
+        ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+        ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    $articles = $em->getRepository(Article::class)->findAll();
+
+    // Formulaire de demande du chef
+    if (!$formDemandeView) {
+        $demande = new Demande();
+        $formDemande = $this->createForm(DemandeType::class, $demande);
+        $formDemande->handleRequest($request);
+        if ($formDemande->isSubmitted() && $formDemande->isValid()) {
+            $nomMaterielSaisi = $formDemande->get('materiel')->getData();
+            $attribut = $formDemande->get('attribut')->getData();
+            $quantiteDemandee = $demande->getQuantite() ?? 1;
+
+            if (empty($nomMaterielSaisi)) {
+                $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
+                return $this->redirectToRoute('app_dashboard');
             }
 
-            $rapportGlobal = $demandeRepository->createQueryBuilder('d')
-                ->where('d.departement = :dept')
-                ->andWhere('d.createdAt BETWEEN :start AND :end')
-                ->setParameter('dept', $userDept)
-                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-                ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+            $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
 
-            $articles = $em->getRepository(Article::class)->findAll();
-
-            if (!$formDemandeView) {
-                $demande = new Demande();
-                $formDemande = $this->createForm(DemandeType::class, $demande);
-                $formDemande->handleRequest($request);
-                if ($formDemande->isSubmitted() && $formDemande->isValid()) {
-                    $nomMaterielSaisi = $formDemande->get('materiel')->getData();
-                    $attribut = $formDemande->get('attribut')->getData();
-                    $quantiteDemandee = $demande->getQuantite() ?? 1;
-
-                    if (empty($nomMaterielSaisi)) {
-                        $this->addFlash('danger', 'Veuillez saisir ou sélectionner un article.');
-                        return $this->redirectToRoute('app_dashboard');
-                    }
-
-                    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
-
-                    if ($attribut && method_exists($attribut, 'getQuantite')) {
-                        if ($attribut->getQuantite() < $quantiteDemandee) {
-                            $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
-                            return $this->redirectToRoute('app_dashboard');
-                        }
-                        $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
-                        $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
-                    } else {
-                        if ($article) {
-                            if ($article->getQuantite() < $quantiteDemandee) {
-                                $this->addFlash('danger', 'Stock insuffisant pour cet article.');
-                                return $this->redirectToRoute('app_dashboard');
-                            }
-                            $article->setQuantite($article->getQuantite() - $quantiteDemandee);
-                        }
-                        $demande->setMateriel($nomMaterielSaisi);
-                    }
-
-                    $demande->setDepartement($userDept);
-                    $demande->setStatut('En attente');
-                    if (method_exists($demande, 'setDemandeur')) {
-                        $demande->setDemandeur($currentUser);
-                    }
-
-                    $em->persist($demande);
-                    $em->flush();
-
-                    $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
+            if ($attribut && method_exists($attribut, 'getQuantite')) {
+                if ($attribut->getQuantite() < $quantiteDemandee) {
+                    $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
                     return $this->redirectToRoute('app_dashboard');
                 }
-                $formDemandeView = $formDemande->createView();
+                $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+                $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
+            } else {
+                if ($article) {
+                    if ($article->getQuantite() < $quantiteDemandee) {
+                        $this->addFlash('danger', 'Stock insuffisant pour cet article.');
+                        return $this->redirectToRoute('app_dashboard');
+                    }
+                    $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                }
+                $demande->setMateriel($nomMaterielSaisi);
             }
 
-            return $this->render('dashboard/membre.html.twig', [
-                'demandes'       => $demandes,
-                'bonsSortie'     => $bonsSortie,
-                'rapportGlobal'  => $rapportGlobal,
-                'articles'       => $articles,
-                'devisListe'     => $devisServiceListe,
-                'totalDevisUSD'  => $totalDevisUSD,
-                'totalDevisCDF'  => $totalDevisCDF,
-                'userRole'       => $roleLabel,
-                'stats'          => $stats,
-                'formDemande'    => $formDemandeView,
-                'formBon'        => $formBonView,
-                'formVisite'     => $formVisiteView,
-                'date_debut'     => $dateDebutFiltre,
-                'date_fin'       => $dateFinFiltre,
-                'isChefService'  => true,
-            ]);
-        }
+            $demande->setDepartement($userDept);
+            $demande->setStatut('En attente');
+            if (method_exists($demande, 'setDemandeur')) {
+                $demande->setDemandeur($currentUser);
+            }
 
+            $em->persist($demande);
+            $em->flush();
+
+            $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+        $formDemandeView = $formDemande->createView();
+    }
+
+    return $this->render('dashboard/membre.html.twig', [
+        'demandes'       => $demandes,
+        'bonsSortie'     => $bonsSortie,
+        'rapportGlobal'  => $rapportGlobal,
+        'articles'       => $articles,
+        'devisListe'     => $devisServiceListe,
+        'totalDevisUSD'  => $totalDevisUSD,
+        'totalDevisCDF'  => $totalDevisCDF,
+        'userRole'       => $roleLabel,
+        'stats'          => $stats,
+        'formDemande'    => $formDemandeView,
+        'formBon'        => $formBonView,
+        'formVisite'     => $formVisiteView,
+        'date_debut'     => $dateDebutFiltre,
+        'date_fin'       => $dateFinFiltre,
+        'isChefService'  => true,
+    ]);
+}
         // ============================================================
         // ADMIN
         // ============================================================
@@ -573,62 +588,65 @@ class DashboardController extends AbstractController
         // ============================================================
 
         // COORDONNATEUR
-        if ($this->isGranted('ROLE_COORDON')) {
-            $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
-            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
+        // ============================================================
+// COORDONNATEUR
+// ============================================================
+if ($this->isGranted('ROLE_COORDON')) {
+    // Demandes en attente de validation coordon
+    $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
+    $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-            $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->where('d.statut = :statut')
-                ->andWhere('d.createdAt BETWEEN :start AND :end')
-                ->setParameter('statut', 'VALIDÉ_CHEF_SERVICE')
-                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                ->setParameter('end', new \DateTime($dateFinFiltre . ' 23:59:59'))
-                ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+    // ✅ TOUS les devis de TOUS les départements (sans filtre de date ni de statut)
+    $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->leftJoin('d.user', 'u')
+        ->addSelect('u')
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
 
-            $totalDevisUSD = 0;
-            $totalDevisCDF = 0;
-            foreach ($devisCoordon as $d) {
-                if ($d->getDevise() === 'CDF') {
-                    $totalDevisCDF += $d->getMontant();
-                } else {
-                    $totalDevisUSD += $d->getMontant();
-                }
-            }
-
-            if (!$formVisiteView) {
-                $visite = new Visite();
-                $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
-                    'with_extra_fields' => true,
-                    'with_delegation'   => false,
-                ]);
-                $formVisiteCoordon->handleRequest($request);
-                if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
-                    $visite->setStatut('RESERVE');
-                    $visite->setDateArrivee(new \DateTime());
-                    $em->persist($visite);
-                    $em->flush();
-                    $this->addFlash('success', '🗓️ Visite réservée avec succès.');
-                    return $this->redirectToRoute('app_dashboard');
-                }
-                $formVisiteView = $formVisiteCoordon->createView();
-            }
-
-            return $this->render('dashboard/coordonnateur.html.twig', [
-                'demandes'       => $demandesCoordon,
-                'bonsSortie'     => $bonsSortie,
-                'devisListe'     => $devisCoordon,
-                'totalDevisUSD'  => $totalDevisUSD,
-                'totalDevisCDF'  => $totalDevisCDF,
-                'userRole'       => $roleLabel,
-                'stats'          => $stats,
-                'date_debut'     => $dateDebutFiltre,
-                'date_fin'       => $dateFinFiltre,
-                'rapportGlobal'  => $rapportGlobal,
-                'formVisite'     => $formVisiteView,
-            ]);
+    $totalDevisUSD = 0;
+    $totalDevisCDF = 0;
+    foreach ($devisCoordon as $d) {
+        if ($d->getDevise() === 'CDF') {
+            $totalDevisCDF += (float) $d->getMontant();
+        } else {
+            $totalDevisUSD += (float) $d->getMontant();
         }
+    }
+
+    // Formulaire de visite (inchangé)
+    if (!$formVisiteView) {
+        $visite = new Visite();
+        $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
+            'with_extra_fields' => true,
+            'with_delegation'   => false,
+        ]);
+        $formVisiteCoordon->handleRequest($request);
+        if ($formVisiteCoordon->isSubmitted() && $formVisiteCoordon->isValid()) {
+            $visite->setStatut('RESERVE');
+            $visite->setDateArrivee(new \DateTime());
+            $em->persist($visite);
+            $em->flush();
+            $this->addFlash('success', '🗓️ Visite réservée avec succès.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+        $formVisiteView = $formVisiteCoordon->createView();
+    }
+
+    return $this->render('dashboard/coordonnateur.html.twig', [
+        'demandes'       => $demandesCoordon,
+        'bonsSortie'     => $bonsSortie,
+        'devisListe'     => $devisCoordon,
+        'totalDevisUSD'  => $totalDevisUSD,
+        'totalDevisCDF'  => $totalDevisCDF,
+        'userRole'       => $roleLabel,
+        'stats'          => $stats,
+        'date_debut'     => $dateDebutFiltre,
+        'date_fin'       => $dateFinFiltre,
+        'rapportGlobal'  => $rapportGlobal,
+        'formVisite'     => $formVisiteView,
+    ]);
+}
 
         // COMPTA
         if ($this->isGranted('ROLE_COMPTA')) {
@@ -883,6 +901,49 @@ class DashboardController extends AbstractController
         $em->flush();
         return $this->redirectToRoute('app_dashboard');
     }
+
+    // ============================================================
+// VALIDATION DEVIS PAR LE COORDONNATEUR
+// ============================================================
+#[Route('/dashboard/coordonnateur/valider-devis/{id}', name: 'app_coordonnateur_valider_devis', methods: ['POST'])]
+#[IsGranted('ROLE_COORDON')]
+public function validerDevisCoordon(Request $request, Devis $devis, EntityManagerInterface $em): Response
+{
+    // Seuls les devis validés par le chef peuvent être traités
+    if ($devis->getStatut() !== 'VALIDÉ_CHEF_SERVICE') {
+        $this->addFlash('danger', '❌ Ce devis ne peut pas être validé à cette étape.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // Récupérer le nouveau montant
+    $nouveauMontant = $request->request->get('nouveau_montant');
+    if ($nouveauMontant !== null && $nouveauMontant !== '') {
+        $devis->setMontant((float) $nouveauMontant);
+    }
+
+    // Passer au statut DG
+    $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
+    $em->flush();
+
+    $this->addFlash('success', '🖋️ Devis validé par le Coordonnateur et transmis à la Direction Générale.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+#[Route('/dashboard/coordonnateur/rejeter-devis/{id}', name: 'app_coordonnateur_rejeter_devis', methods: ['POST'])]
+#[IsGranted('ROLE_COORDON')]
+public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== 'VALIDÉ_CHEF_SERVICE') {
+        $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $devis->setStatut(Devis::STATUT_REJETE);
+    $em->flush();
+
+    $this->addFlash('warning', '❌ Le devis a été rejeté par le Coordonnateur.');
+    return $this->redirectToRoute('app_dashboard');
+}
 
     // ============================================================
     // RECHERCHE API ARTICLE

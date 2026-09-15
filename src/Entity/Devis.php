@@ -8,12 +8,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: DevisRepository::class)]
 class Devis
 {
-    // Définition des étapes du workflow
-    public const STATUT_ATTENTE_CHEF = 'ATTENTE_CHEF_COMPTA';
-    public const STATUT_ATTENTE_DIR  = 'ATTENTE_DIRECTEUR';
+    // ============================================================
+    // WORKFLOW : ÉTAPES DE VALIDATION
+    // ============================================================
+    public const STATUT_ATTENTE_CHEF   = 'ATTENTE_CHEF_COMPTA';
+    public const STATUT_ATTENTE_DIR    = 'ATTENTE_DIRECTEUR';
     public const STATUT_ATTENTE_CAISSE = 'ATTENTE_CAISSE';
-    public const STATUT_DECAISSE     = 'DECAISSE';
-    public const STATUT_REJETE       = 'REJETE';
+    public const STATUT_DECAISSE       = 'DECAISSE';
+    public const STATUT_REJETE         = 'REJETE';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -51,10 +53,14 @@ class Devis
     private ?\DateTimeInterface $dateLimite = null;
 
     // ============================================================
-    // RELATION VERS L'UTILISATEUR (UNIQUE DÉCLARATION)
+    // RELATION VERS L'UTILISATEUR
+    // ------------------------------------------------------------
+    // - nullable: true       → la colonne user_id peut être NULL en base
+    // - onDelete: 'SET NULL' → si l'user est supprimé, user_id passe à NULL
+    //   au lieu de bloquer la suppression (résout l'erreur FK)
     // ============================================================
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
     // ============================================================
@@ -186,7 +192,7 @@ class Devis
     }
 
     // ============================================================
-    // GETTER / SETTER POUR LA RELATION USER (UNIQUE)
+    // RELATION USER
     // ============================================================
     public function getUser(): ?User
     {
@@ -198,4 +204,7 @@ class Devis
         $this->user = $user;
         return $this;
     }
+
+    // Dans src/Entity/Devis.php, ajoutez :
+public const STATUT_VALIDE_COORDON = 'VALIDÉ_COORDON';
 }
