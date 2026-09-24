@@ -224,19 +224,42 @@ class DashboardController extends AbstractController
         }
 
         // 2. FORMULAIRE STOCK
-        if ($this->isGranted('ROLE_STOCK')) {
-            $article = new Article();
-            $formStock = $this->createForm(StockType::class, $article);
-            $formStock->handleRequest($request);
-            if ($formStock->isSubmitted() && $formStock->isValid()) {
-                $em->persist($article);
-                $em->flush();
-                $this->addFlash('success', '📥 Article enregistré.');
-                return $this->redirectToRoute('app_dashboard');
+        // 2. FORMULAIRE STOCK
+if ($this->isGranted('ROLE_STOCK')) {
+    $article = new Article();
+    $formStock = $this->createForm(StockType::class, $article);
+    $formStock->handleRequest($request);
+    
+    if ($formStock->isSubmitted() && $formStock->isValid()) {
+        // 🎯 Vérifier si un article avec le même nom existe déjà
+        $nomArticle = $article->getNom();
+        $quantiteAjoutee = $article->getQuantite() ?? 0;
+        
+        $articleExistant = $em->getRepository(Article::class)->findOneBy(['nom' => $nomArticle]);
+        
+        if ($articleExistant) {
+            // 🅰️ Article existant → AUGMENTER la quantité
+            $nouvelleQuantite = $articleExistant->getQuantite() + $quantiteAjoutee;
+            $articleExistant->setQuantite($nouvelleQuantite);
+            
+            // Mettre à jour le seuil d'alerte si fourni
+            if ($article->getSeuilAlerte()) {
+                $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
             }
-            $formStockView = $formStock->createView();
+            
+            $em->flush();
+            $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' » — Stock incrémenté de ' . $quantiteAjoutee . ' (total : ' . $nouvelleQuantite . ')');
+        } else {
+            // 🅱️ Nouvel article → CRÉER
+            $em->persist($article);
+            $em->flush();
+            $this->addFlash('success', '📥 Nouvel article « ' . $nomArticle . ' » enregistré.');
         }
-
+        
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formStockView = $formStock->createView();
+}
         // 3. FORMULAIRE BON DE SORTIE
         if ($this->isGranted('ROLE_STOCK') ||
             (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
@@ -390,16 +413,24 @@ if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
                 return $this->redirectToRoute('app_dashboard');
             }
 
-            $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
-
-            if ($attribut && method_exists($attribut, 'getQuantite')) {
-                if ($attribut->getQuantite() < $quantiteDemandee) {
-                    $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
-                    return $this->redirectToRoute('app_dashboard');
-                }
-                $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
-                $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
-            } else {
+            // 🎯 Récupérer le PREMIER article correspondant
+$article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+if ($article) {
+    // Calculer le stock total (article + tous ses doublons éventuels)
+    $articlesSimilaires = $em->getRepository(Article::class)->findBy(['nom' => $nomMaterielSaisi]);
+    $stockTotal = 0;
+    foreach ($articlesSimilaires as $a) {
+        $stockTotal += $a->getQuantite() ?? 0;
+    }
+    
+    if ($stockTotal < $quantiteDemandee) {
+        $this->addFlash('danger', 'Stock insuffisant pour cet article (stock total : ' . $stockTotal . ').');
+        return $this->redirectToRoute('app_dashboard');
+    }
+    
+    // Déduire du stock sur le premier article
+    $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+} else {
                 if ($article) {
                     if ($article->getQuantite() < $quantiteDemandee) {
                         $this->addFlash('danger', 'Stock insuffisant pour cet article.');
@@ -647,28 +678,73 @@ if ($this->isGranted('ROLE_COORDON')) {
         'formVisite'     => $formVisiteView,
     ]);
 }
+// ============================================================
+// COMPTABLE — Voit TOUS les devis + ses décaissements
+// ============================================================
+if ($this->isGranted('ROLE_COMPTA')) {
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
 
-        // COMPTA
-        if ($this->isGranted('ROLE_COMPTA')) {
-            return $this->render('dashboard/compta.html.twig', [
-                'demandes'      => $demandeRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']),
-                'rapportGlobal' => $rapportGlobal,
-                'devisListe'    => $devisListe,
-                'totalDevisUSD' => $totalDevisUSD,
-                'totalDevisCDF' => $totalDevisCDF,
-                'userRole'      => $roleLabel,
-                'stats'         => $stats,
-                'formVisite'    => $formVisiteView,
-                'date_debut'    => $dateDebutFiltre,
-                'date_fin'      => $dateFinFiltre,
-                'articles'      => $articles,
-                'categories'    => $categories,
-                'subCategories' => $subCategories,
-                'selectedCategory'    => $selectedCategory,
-                'selectedSubCategory' => $selectedSubCategory,
-                'attributs'     => $attributs,
-            ]);
+    // 🎯 TOUS les devis SANS filtre de date
+    $devisListe = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->leftJoin('d.user', 'u')
+        ->addSelect('u')
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // 🎯 Construire les compteurs à partir de la liste
+    $devisA_Aiguiller = [];
+    $devisPretsADecaisser = [];
+    $mesDecaissements = [];
+
+    foreach ($devisListe as $d) {
+        $statut = $d->getStatut();
+        
+        if ($statut === 'ATTENTE_COMPTA' || $statut === Devis::STATUT_ATTENTE_COMPTA) {
+            $devisA_Aiguiller[] = $d;
         }
+        if ($statut === 'ATTENTE_CAISSE' || $statut === Devis::STATUT_ATTENTE_CAISSE) {
+            $devisPretsADecaisser[] = $d;
+        }
+        if ($statut === 'DECAISSE' && $d->getDecaissePar() === $currentUser) {
+            $mesDecaissements[] = $d;
+        }
+    }
+
+    // 💰 Totaux sur MES décaissements uniquement
+    $totalDevisUSD = 0;
+    $totalDevisCDF = 0;
+    foreach ($mesDecaissements as $d) {
+        if ($d->getDevise() === 'CDF') {
+            $totalDevisCDF += (float) $d->getMontant();
+        } else {
+            $totalDevisUSD += (float) $d->getMontant();
+        }
+    }
+
+    return $this->render('dashboard/compta.html.twig', [
+    'demandes'              => $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']),
+    'rapportGlobal'         => $rapportGlobal,
+    'devisListe'            => $devisListe,
+    'mesDecaissements'      => $mesDecaissements,
+    'devisA_Aiguiller'      => $devisA_Aiguiller,
+    'devisPretsADecaisser'  => $devisPretsADecaisser,
+    'totalDevisUSD'         => $totalDevisUSD,
+    'totalDevisCDF'         => $totalDevisCDF,
+    'userRole'              => $roleLabel,
+    'stats'                 => $stats,
+    'formVisite'            => $formVisiteView,
+    'date_debut'            => $dateDebutFiltre,
+    'date_fin'              => $dateFinFiltre,
+    'articles'              => $articles,
+    'categories'            => $categories,
+    'subCategories'         => $subCategories,
+    'selectedCategory'      => $selectedCategory,
+    'selectedSubCategory'   => $selectedSubCategory,
+    'attributs'             => $attributs,
+]);
+}
 
         // STOCK
         if ($this->isGranted('ROLE_STOCK')) {
@@ -815,23 +891,29 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
     return $this->redirectToRoute('app_dashboard');
 }
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
-    #[IsGranted('ROLE_COMPTA')]
-    public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
-    {
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
-        $quantiteDemandee = $demande->getQuantite() ?? 1;
-
-        if (!$article || $article->getQuantite() < $quantiteDemandee) {
-            $this->addFlash('danger', '🛑 Impossible de valider le budget. Le matériel "' . $demande->getMateriel() . '" n\'est pas assez en stock au dépôt.');
-            return $this->redirectToRoute('app_dashboard');
-        }
-
-        $demande->setStatut('Validé Compta');
-        $em->flush();
-        $this->addFlash('success', '💰 Budget accordé avec succès !');
+#[IsGranted('ROLE_COMPTA')]
+public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
+{
+    // 🎯 Accepte maintenant les demandes validées par le chef de service
+    if ($demande->getStatut() !== 'Validé Chef') {
+        $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape.');
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // Vérifier le stock disponible
+    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
+    $quantiteDemandee = $demande->getQuantite() ?? 1;
+
+    if (!$article || $article->getQuantite() < $quantiteDemandee) {
+        $this->addFlash('danger', '🛑 Impossible de valider le budget. Stock insuffisant pour "' . $demande->getMateriel() . '".');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $demande->setStatut('Validé Compta');
+    $em->flush();
+    $this->addFlash('success', '💰 Budget accordé. La demande est transmise au Stock pour livraison.');
+    return $this->redirectToRoute('app_dashboard');
+}
     #[Route('/dashboard/livrer/{id}', name: 'app_demande_livrer', methods: ['POST'])]
     #[IsGranted('ROLE_STOCK')]
     public function livrer(Demande $demande, EntityManagerInterface $em): Response
@@ -917,29 +999,7 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
         return $this->redirectToRoute('app_dashboard');
     }
 
-    #[Route('/dashboard/coordonnateur/valider/{id}', name: 'app_coordonnateur_valider_demande', methods: ['POST'])]
-    #[IsGranted('ROLE_COORDON')]
-    public function validerDemandeCoordonnateur(Request $request, Demande $demande, EntityManagerInterface $em): Response
-    {
-        if ($demande->getStatut() !== 'Validé Chef') {
-            $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape.');
-            return $this->redirectToRoute('app_dashboard');
-        }
-
-        $action = $request->request->get('action');
-
-        if ($action === 'valider') {
-            $demande->setStatut('Validé Coordon');
-            $this->addFlash('success', '🖋️ Demande validée par le Coordonnateur et transmise.');
-        } elseif ($action === 'rejeter') {
-            $demande->setStatut('Rejeté Coordon');
-            $this->addFlash('warning', '❌ La demande a été rejetée par le Coordonnateur.');
-        }
-
-        $em->flush();
-        return $this->redirectToRoute('app_dashboard');
-    }
-
+    
     // ============================================================
 // VALIDATION DEVIS PAR LE COORDONNATEUR
 // ============================================================
@@ -995,12 +1055,14 @@ public function rechercheArticle(Request $request, EntityManagerInterface $em): 
     }
 
     try {
+        // 🎯 Récupérer TOUS les articles qui matchent
         $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
             ->leftJoin('a.attributs', 'attr')
             ->addSelect('attr')
             ->where('a.nom LIKE :nom')
             ->setParameter('nom', '%' . $nom . '%')
-            ->setMaxResults(1)
+            ->orderBy('a.id', 'ASC')
+            ->setMaxResults(10)
             ->getQuery()
             ->getResult();
 
@@ -1008,41 +1070,47 @@ public function rechercheArticle(Request $request, EntityManagerInterface $em): 
             return new JsonResponse(['found' => false]);
         }
 
-        $article = $articles[0];
-        $attributs = [];
+        // 🎯 Construire un tableau de tous les attributs de tous les articles
+        $attributsGlobal = [];
+        $nomAffiche = $articles[0]->getNom(); // Premier nom trouvé
 
-        foreach ($article->getAttributs() as $attr) {
-            $details = [];
-            if ($attr->getCouleur())   $details[] = 'Couleur: ' . $attr->getCouleur();
-            if ($attr->getGrammage())  $details[] = 'Grammage: ' . $attr->getGrammage();
-            if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
-            if ($attr->getLongueur())  $details[] = 'Longueur: ' . $attr->getLongueur();
-            if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+        foreach ($articles as $article) {
+            foreach ($article->getAttributs() as $attr) {
+                $details = [];
+                if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+                if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+                if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+                if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+                if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
 
-            $label = implode(' - ', $details) ?: 'Standard';
+                $label = implode(' - ', $details) ?: 'Standard';
+                $quantite = method_exists($attr, 'getQuantite') ? $attr->getQuantite() : null;
 
-            // 🆕 Utiliser method_exists pour éviter l'erreur si la propriété n'existe pas
-            $quantite = method_exists($attr, 'getQuantite') ? $attr->getQuantite() : null;
+                // 🆕 Si pas de couleur mais un article différent, ajouter le nom de l'article
+                if (empty($details)) {
+                    $label = $article->getNom() . ' (stock : ' . $article->getQuantite() . ')';
+                }
 
-            $attributs[] = [
-                'id'       => $attr->getId(),
-                'valeur'   => $label,
-                'quantite' => $quantite,
-            ];
+                $attributsGlobal[] = [
+                    'id'       => $attr->getId(),
+                    'valeur'   => $label,
+                    'quantite' => $quantite,
+                    'article'  => $article->getNom(),
+                ];
+            }
         }
 
         return new JsonResponse([
             'found'     => true,
-            'nom'       => $article->getNom(),
-            'quantite'  => $article->getQuantite(),
-            'attributs' => $attributs,
+            'nom'       => $nomAffiche,
+            'quantite'  => $articles[0]->getQuantite(),
+            'attributs' => $attributsGlobal,
         ]);
 
     } catch (\Exception $e) {
-        // En cas d'erreur, on log et on renvoie une erreur JSON propre
         return new JsonResponse([
             'error'   => 'Erreur serveur',
-            'message' => $e->getMessage(),  // à retirer en production
+            'message' => $e->getMessage(),
         ], 500);
     }
 }
