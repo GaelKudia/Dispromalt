@@ -776,6 +776,44 @@ if ($this->isGranted('ROLE_COORDON')) {
     // ============================================================
     // ACTIONS DE VALIDATION
     // ============================================================
+
+    #[Route('/dashboard/compta/devis/aiguiller/{id}', name: 'app_devis_aiguiller', methods: ['POST'])]
+#[IsGranted('ROLE_COMPTA')]
+public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_COMPTA) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt à être aiguillé.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $choix = $request->request->get('choix_procedure');
+
+    switch ($choix) {
+        case 'circuit_complet':
+            $devis->setStatut(Devis::STATUT_ATTENTE_CHEF_COMPTABLE);
+            $this->addFlash('success', '📤 Devis transmis au Chef Comptable.');
+            break;
+
+        case 'bon_caisse':
+            $devis->setStatut(Devis::STATUT_ATTENTE_CAISSE);
+            $this->addFlash('success', '📤 Bon de demande transmis à la Caisse.');
+            break;
+
+        case 'decaisser_direct':
+            $devis->setStatut(Devis::STATUT_DECAISSE);
+            $devis->setDecaissePar($this->getUser());
+            $devis->setDateDecaissementPar(new \DateTime());
+            $this->addFlash('success', '✅ Décaissement direct effectué.');
+            break;
+
+        default:
+            $this->addFlash('danger', '❌ Choix invalide.');
+            return $this->redirectToRoute('app_dashboard');
+    }
+
+    $em->flush();
+    return $this->redirectToRoute('app_dashboard');
+}
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
@@ -949,14 +987,17 @@ public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): R
     // RECHERCHE API ARTICLE
     // ============================================================
     #[Route('/api/recherche-article', name: 'api_recherche_article', methods: ['GET'])]
-    public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
-    {
-        $nom = $request->query->get('nom');
-        if (empty($nom)) {
-            return new JsonResponse(['error' => 'Nom requis'], 400);
-        }
+public function rechercheArticle(Request $request, EntityManagerInterface $em): JsonResponse
+{
+    $nom = $request->query->get('nom');
+    if (empty($nom)) {
+        return new JsonResponse(['error' => 'Nom requis'], 400);
+    }
 
+    try {
         $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
+            ->leftJoin('a.attributs', 'attr')
+            ->addSelect('attr')
             ->where('a.nom LIKE :nom')
             ->setParameter('nom', '%' . $nom . '%')
             ->setMaxResults(1)
@@ -976,12 +1017,17 @@ public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): R
             if ($attr->getGrammage())  $details[] = 'Grammage: ' . $attr->getGrammage();
             if ($attr->getDimension()) $details[] = 'Dimension: ' . $attr->getDimension();
             if ($attr->getLongueur())  $details[] = 'Longueur: ' . $attr->getLongueur();
+            if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
             $label = implode(' - ', $details) ?: 'Standard';
+
+            // 🆕 Utiliser method_exists pour éviter l'erreur si la propriété n'existe pas
+            $quantite = method_exists($attr, 'getQuantite') ? $attr->getQuantite() : null;
 
             $attributs[] = [
                 'id'       => $attr->getId(),
                 'valeur'   => $label,
-                'quantite' => $attr->getQuantite()
+                'quantite' => $quantite,
             ];
         }
 
@@ -989,7 +1035,15 @@ public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): R
             'found'     => true,
             'nom'       => $article->getNom(),
             'quantite'  => $article->getQuantite(),
-            'attributs' => $attributs
+            'attributs' => $attributs,
         ]);
+
+    } catch (\Exception $e) {
+        // En cas d'erreur, on log et on renvoie une erreur JSON propre
+        return new JsonResponse([
+            'error'   => 'Erreur serveur',
+            'message' => $e->getMessage(),  // à retirer en production
+        ], 500);
     }
+}
 }

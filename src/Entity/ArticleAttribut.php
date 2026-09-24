@@ -103,4 +103,16 @@ class ArticleAttribut
         $this->article = $article;
         return $this;
     }
+    #[ORM\Column(nullable: true)]
+private ?int $quantite = null;public function getQuantite(): ?int
+{
+    return $this->quantite;
+}
+
+public function setQuantite(?int $quantite): static
+{
+    $this->quantite = $quantite;
+    return $this;
+}
+    
 }
