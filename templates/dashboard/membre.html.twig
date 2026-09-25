@@ -366,6 +366,12 @@
                     <i class="fas fa-file-signature text-success"></i>Bons de Sortie
                 </button>
             </li>
+
+            <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-ma-demande" data-bs-toggle="tab" data-bs-target="#pane-ma-demande" type="button" role="tab">
+        <i class="fas fa-plus-circle text-primary"></i>Ma Demande
+    </button>
+</li>
             {% else %}
             {# MEMBRE SIMPLE #}
             <li class="nav-item" role="presentation">
@@ -538,6 +544,107 @@
                 {% endif %}
 
                 {# ============================================================
+                   ONGLET CHEF : MA NOUVELLE DEMANDE
+                ============================================================ #}
+                {% if isChefService|default(false) %}
+                <div class="tab-pane fade" id="pane-ma-demande" role="tabpanel">
+
+                    {# Bannière info #}
+                    <div class="chef-devis-banner mb-4" style="border-color: rgba(79,172,254,0.35);">
+                        <div class="chef-devis-banner-left">
+                            <div class="chef-devis-banner-icon" style="background: var(--gradient-3);">
+                                <i class="fas fa-box-open"></i>
+                            </div>
+                            <div>
+                                <h5 class="chef-devis-banner-title">Créer ma propre demande de matériel</h5>
+                                <p class="chef-devis-banner-subtitle">
+                                    Remplissez le formulaire pour soumettre une demande au nom de votre service.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-blue">
+                                        <i class="fas fa-box-open"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Ma demande de matériel</h5>
+                                        <small class="text-muted">La demande sera transmise à la comptabilité après validation.</small>
+                                    </div>
+                                </div>
+
+                                {% if formDemande is defined and formDemande is not null %}
+                                    {{ form_start(formDemande) }}
+                                        <div class="row">
+                                            <div class="col-md-8 mb-3">
+                                                {{ form_label(formDemande.materiel, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
+                                                {{ form_widget(formDemande.materiel, {'attr': {'class': 'form-control', 'id': 'demande_materiel', 'placeholder': 'Tapez le nom de l\'article'}}) }}
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
+                                                {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3" id="attribut-wrapper">
+                                                {{ form_label(formDemande.attribut, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
+                                                {{ form_widget(formDemande.attribut, {'attr': {'class': 'form-select', 'id': 'demande_attribut', 'disabled': 'disabled'}}) }}
+                                            </div>
+                                            {% if formDemande.destination is defined %}
+                                                <div class="col-md-6 mb-3">
+                                                    {{ form_label(formDemande.destination, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
+                                                    {{ form_widget(formDemande.destination, {'attr': {'class': 'form-select'}}) }}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {{ form_rest(formDemande) }}
+                                        <button type="submit" class="btn btn-modern btn-primary w-100 mt-2">
+                                            <i class="fas fa-paper-plane me-2"></i>Envoyer ma Demande
+                                        </button>
+                                    {{ form_end(formDemande) }}
+                                {% else %}
+                                    <div class="alert alert-info mb-0 rounded-3">
+                                        <i class="fas fa-info-circle me-2"></i> Formulaire de demande indisponible.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-card h-100">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-yellow">
+                                        <i class="fas fa-lightbulb"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Bon à savoir</h5>
+                                        <small class="text-muted">Informations utiles</small>
+                                    </div>
+                                </div>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                        <span class="small text-muted">Votre demande sera transmise à la comptabilité après validation.</span>
+                                    </li>
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                        <span class="small text-muted">Pour les gilets, précisez la commune de destination.</span>
+                                    </li>
+                                    <li class="d-flex">
+                                        <i class="fas fa-check-circle text-success me-2 mt-1"></i>
+                                        <span class="small text-muted">Le stock disponible est vérifié automatiquement.</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# ============================================================
                    ONGLET DEMANDES
                 ============================================================ #}
                 <div class="tab-pane fade {% if not isChefService|default(false) %}show active{% endif %}" id="pane-demandes" role="tabpanel">
@@ -616,6 +723,8 @@
                                                 </form>
                                             </td>
                                         {% endif %}
+
+                                        
                                     </tr>
                                 {% else %}
                                     <tr>
@@ -759,6 +868,8 @@
                                                         <span class="small text-muted">{{ devis.devise }}</span>
                                                     </td>
                                                 </tr>
+
+                                                
                                             {% else %}
                                                 <tr>
                                                     <td colspan="5">
@@ -889,6 +1000,8 @@
                     </div>
                 </div>
                 {% endif %}
+
+                
 
                 {# ============================================================
                    ONGLET : RÉSERVER UNE VISITE

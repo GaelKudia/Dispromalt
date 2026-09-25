@@ -155,4 +155,32 @@ public function setAttribut(?ArticleAttribut $attribut): self {
     return $this; 
 }
 
+    // ============================================================
+    // GETTER / SETTER pour la relation Demandeur
+    // ============================================================
+    public function getDemandeur(): ?User
+    {
+        return $this->demandeur;
+    }
+
+    public function setDemandeur(?User $demandeur): static
+    {
+        $this->demandeur = $demandeur;
+        return $this;
+    }
+
+    // ============================================================
+    // GETTER / SETTER pour la relation Article
+    // ============================================================
+    public function getArticle(): ?Article
+    {
+        return $this->article;
+    }
+
+    public function setArticle(?Article $article): static
+    {
+        $this->article = $article;
+        return $this;
+    }
+
 }

@@ -968,37 +968,43 @@ public function validerCompta(Demande $demande, EntityManagerInterface $em): Res
         return $this->redirectToRoute('app_dashboard');
     }
 
-    #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
-    {
-        /** @var User $currentUser */
-        $currentUser = $this->getUser();
+ #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
+{
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
 
-        if (!$currentUser->isChefService()) {
-            throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
-        }
+    if (!$currentUser->isChefService()) {
+        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+    }
 
-        $demandeur = $demande->getUser();
-        if (!$demandeur || $demandeur->getService() !== $currentUser->getService()) {
-            $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
-            return $this->redirectToRoute('app_dashboard');
-        }
+    // 🎯 Vérifier que la demande appartient bien au service du chef
+    $demandeur = $demande->getDemandeur();
 
-        $action = $request->request->get('action');
-
-        if ($action === 'valider') {
-            $demande->setStatut('Validé Chef');
-            $this->addFlash('success', '✅ Demande validée et transmise à l\'étape suivante.');
-        } elseif ($action === 'rejeter') {
-            $demande->setStatut('Rejeté Chef');
-            $this->addFlash('warning', '❌ La demande a été rejetée.');
-        }
-
-        $em->flush();
+    if ($demandeur && $demandeur->getService() !== $currentUser->getService()) {
+        $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // 🎯 Traiter l'action (valider / rejeter)
+    $action = $request->request->get('action');
+
+    if ($action === 'valider') {
+        $demande->setStatut('Validé Chef');
+        $this->addFlash('success', '✅ Demande validée et transmise à la comptabilité.');
+    } elseif ($action === 'rejeter') {
+        $demande->setStatut('Rejeté Chef');
+        $this->addFlash('warning', '❌ La demande a été rejetée.');
+    } else {
+        $this->addFlash('danger', '❌ Action non reconnue.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $em->flush();
+
+    return $this->redirectToRoute('app_dashboard');
+}
     
     // ============================================================
 // VALIDATION DEVIS PAR LE COORDONNATEUR
@@ -1113,5 +1119,50 @@ public function rechercheArticle(Request $request, EntityManagerInterface $em): 
             'message' => $e->getMessage(),
         ], 500);
     }
+}
+
+// ============================================================
+// VALIDATION DEVIS PAR LE CHEF DE SERVICE
+// ============================================================
+#[Route('/dashboard/chef-service/valider-devis/{id}', name: 'app_chef_service_valider_devis', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function chefServiceValiderDevis(Request $request, Devis $devis, EntityManagerInterface $em): Response
+{
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
+
+    // 1. Vérifier que l'utilisateur est bien chef de service
+    if (!$currentUser->isChefService()) {
+        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+    }
+
+    // 2. Vérifier que le devis appartient à un utilisateur du même service
+    $createur = $devis->getUser();
+    if (!$createur || $createur->getService() !== $currentUser->getService()) {
+        $this->addFlash('danger', '🛑 Ce devis ne concerne pas votre service.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // 3. Vérifier le statut
+    if (!in_array($devis->getStatut(), ['ATTENTE_TRAITEMENT', 'ATTENTE_CHEF_COMPTA'])) {
+        $this->addFlash('danger', '❌ Ce devis ne peut plus être validé (statut : ' . $devis->getStatut() . ').');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // 4. Récupérer le nouveau montant (optionnel)
+    $nouveauMontant = $request->request->get('nouveau_montant');
+    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+        if ($devis->getMontantInitial() === null) {
+            $devis->setMontantInitial((string) $devis->getMontant());
+        }
+        $devis->setMontant((float) $nouveauMontant);
+    }
+
+    // 5. Passer au statut validé par le chef
+    $devis->setStatut('VALIDÉ_CHEF_SERVICE');
+    $em->flush();
+
+    $this->addFlash('success', '✅ Devis validé et transmis au Coordonnateur.');
+    return $this->redirectToRoute('app_dashboard');
 }
 }

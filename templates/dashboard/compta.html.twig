@@ -352,23 +352,23 @@
                                                     <span class="badge bg-light text-dark border">{{ d.statut }}</span>
                                                 {% endif %}
                                             </td>
-                                            <td class="text-center">
-                                                {% if d.statut == 'En attente' %}
-                                                    <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
-                                                        <button class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                            <i class="fas fa-dollar-sign me-1"></i> Accorder
-                                                        </button>
-                                                    </form>
-                                                {% elseif d.statut == 'Validé Compta' %}
-                                                    <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> Validé</span>
-                                                {% else %}
-                                                    <span class="text-muted"><i class="fas fa-lock me-1"></i> Traité</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="6" class="text-center py-5 text-muted">Aucun flux logistique en cours.</td>
+                                           <td class="text-center">
+    {% if d.statut == 'En attente' or d.statut == 'Validé Chef' %}
+        <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
+            <button class="btn btn-sm btn-success fw-bold rounded-pill px-3">
+                <i class="fas fa-dollar-sign me-1"></i> Accorder
+            </button>
+        </form>
+    {% elseif d.statut == 'Validé Compta' %}
+        <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> Validé</span>
+    {% elseif d.statut == 'Livré par le Stock' %}
+        <span class="text-info fw-bold"><i class="fas fa-truck me-1"></i> Livré</span>
+    {% elseif d.statut == 'Sortie effective' %}
+        <span class="text-success fw-bold"><i class="fas fa-check-double me-1"></i> Sortie</span>
+    {% else %}
+        <span class="text-muted"><i class="fas fa-lock me-1"></i> Traité</span>
+    {% endif %}
+</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
