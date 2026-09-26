@@ -1336,7 +1336,7 @@ public function validerDevisDirecteur(
 // ✅ REJET PAR LE CHEF COMPTABLE
 // ═══════════════════════════════════════════════════════════════
 #[Route('/dashboard/devis/rejeter-chef-comptable/{id}', name: 'app_devis_rejeter_chef_comptable', methods: ['POST'])]
-#[IsGranted('ROLE_CHEF_COMPTA')]
+#[IsGranted('ROLE_COMPTA')]
 public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $em): Response
 {
     if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
