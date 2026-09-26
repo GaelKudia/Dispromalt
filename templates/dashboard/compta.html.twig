@@ -452,9 +452,13 @@
     <div class="container-fluid px-4">
         <div class="d-flex justify-content-between align-items-center w-100">
             {# Brand #}
-            <a href="{{ path('app_dashboard') }}" class="text-decoration-none">
-                <span class="brand">Dispromalt<span class="brand-accent ms-2">/ Comptabilité</span></span>
-            </a>
+            <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
+    <img src="{{ asset('images/logo.png') }}"
+         alt="Logo Dispromalt"
+         style="height: 40px; width: auto; margin-right: 10px;">
+    Dispro<span class="text-primary">malt</span>
+    <span class="fw-light fs-6 text-white-50 ms-2">| Comptabilité</span>
+</a>
 
             {# Right side #}
             <div class="d-flex align-items-center gap-2">

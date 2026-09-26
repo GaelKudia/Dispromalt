@@ -25,46 +25,15 @@
                 radial-gradient(at 100% 100%, rgba(79, 172, 254, 0.06) 0px, transparent 50%);
             min-height: 100vh;
         }
-        /* NAVBAR */
-        .navbar-modern {
-            background: rgba(30, 41, 59, 0.98);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
+        .navbar-modern { background: rgba(30, 41, 59, 0.98); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); }
         .navbar-brand-modern { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
-        .notification-bell {
-            width: 42px; height: 42px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-            color: #fff; position: relative;
-        }
+        .notification-bell { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; position: relative; }
         .notification-bell:hover { background: rgba(79,172,254,0.9); transform: scale(1.05); }
-        .role-pill {
-            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
-            color: #e2e8f0; padding: 8px 16px; border-radius: 50px; font-size: 0.85rem;
-        }
-        /* HERO */
-        .hero-banner {
-            background: var(--gradient-coord);
-            border-radius: 20px; padding: 1.75rem 2rem; color: #fff;
-            margin-bottom: 1.75rem; position: relative; overflow: hidden;
-            box-shadow: 0 12px 30px rgba(30,41,59,0.18);
-        }
-        .hero-banner::before {
-            content: ''; position: absolute; top: -50%; right: -10%;
-            width: 380px; height: 380px; border-radius: 50%;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            opacity: 0.25; filter: blur(60px);
-        }
+        .role-pill { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e2e8f0; padding: 8px 16px; border-radius: 50px; font-size: 0.85rem; }
+        .hero-banner { background: var(--gradient-coord); border-radius: 20px; padding: 1.75rem 2rem; color: #fff; margin-bottom: 1.75rem; position: relative; overflow: hidden; box-shadow: 0 12px 30px rgba(30,41,59,0.18); }
+        .hero-banner::before { content: ''; position: absolute; top: -50%; right: -10%; width: 380px; height: 380px; border-radius: 50%; background: linear-gradient(135deg, #4facfe, #00f2fe); opacity: 0.25; filter: blur(60px); }
         .hero-banner-content { position: relative; z-index: 1; }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 0.5rem;
-            background: rgba(79,172,254,0.15); border: 1px solid rgba(79,172,254,0.3);
-            color: #93c5fd; padding: 0.4rem 1rem; border-radius: 50px;
-            font-size: 0.72rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem;
-        }
-        /* STAT CARDS */
+        .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(79,172,254,0.15); border: 1px solid rgba(79,172,254,0.3); color: #93c5fd; padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
         .stat-card { border: none; border-radius: 18px; padding: 1.4rem; position: relative; overflow: hidden; background: #fff; box-shadow: var(--shadow-soft); }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gradient-1); }
         .stat-card.stat-warning::before { background: var(--gradient-5); }
@@ -77,29 +46,16 @@
         .stat-icon-primary { background: rgba(79,172,254,0.12); color: #3b82f6; }
         .stat-icon-success { background: rgba(67,233,123,0.12); color: #10b981; }
         .stat-icon-danger  { background: rgba(220,38,38,0.12); color: #dc2626; }
-        /* MAIN CARD & TABS */
         .main-card { border: none; border-radius: 20px; box-shadow: var(--shadow-soft); background: #fff; overflow: hidden; }
         .nav-tabs-modern { border-bottom: 1px solid #e2e8f0; padding: 0 1rem; gap: 0.25rem; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
         .nav-tabs-modern::-webkit-scrollbar { display: none; }
-        .nav-tabs-modern .nav-link {
-            border: none !important; color: #64748b; font-weight: 600;
-            font-size: 0.9rem; padding: 1rem 1.1rem; white-space: nowrap;
-            border-radius: 0; position: relative; background: none;
-        }
+        .nav-tabs-modern .nav-link { border: none !important; color: #64748b; font-weight: 600; font-size: 0.9rem; padding: 1rem 1.1rem; white-space: nowrap; border-radius: 0; position: relative; background: none; }
         .nav-tabs-modern .nav-link:hover { color: #1e293b; }
         .nav-tabs-modern .nav-link.active { color: #1e293b !important; background: none; }
-        .nav-tabs-modern .nav-link.active::after {
-            content: ''; position: absolute; bottom: -1px; left: 1rem; right: 1rem;
-            height: 3px; background: var(--gradient-3); border-radius: 3px 3px 0 0;
-        }
+        .nav-tabs-modern .nav-link.active::after { content: ''; position: absolute; bottom: -1px; left: 1rem; right: 1rem; height: 3px; background: var(--gradient-3); border-radius: 3px 3px 0 0; }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
-        /* TABLE */
         .table-modern { margin: 0; }
-        .table-modern thead th {
-            background: #f8fafc; color: #475569; font-size: 0.72rem;
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-            padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0; white-space: nowrap;
-        }
+        .table-modern thead th { background: #f8fafc; color: #475569; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
         .table-modern tbody td { padding: 1rem 0.9rem; vertical-align: middle; border-color: #f1f5f9; }
         .table-modern tbody tr:hover { background: #f8fafc; }
         .badge-soft { padding: 0.4rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.75rem; }
@@ -110,16 +66,23 @@
         .badge-soft-info    { background: rgba(14,165,233,0.12); color: #0284c7; }
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-purple  { background: rgba(168,85,247,0.12); color: #9333ea; }
-        /* EMPTY STATE */
         .empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
         .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
-        /* FORM CARD */
         .form-card { border: 1px solid #eef2f7; border-radius: 16px; background: #fff; padding: 1.75rem; }
         .form-control, .form-select { border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.65rem 0.9rem; font-size: 0.9rem; }
         .form-control:focus, .form-select:focus { border-color: #4facfe; box-shadow: 0 0 0 4px rgba(79,172,254,0.10); }
-        /* ROW PENDING */
         .row-pending { border-left: 4px solid #dc2626; background-color: #fef2f2 !important; }
         .row-pending:hover { background-color: #fee2e2 !important; }
+
+        /* 🔎 FILTRE UNIFIÉ */
+        .filter-bar {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        .filter-bar .form-label { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
+        .filter-bar .form-control { font-size: 0.88rem; }
     </style>
 </head>
 <body>
@@ -129,85 +92,47 @@
 ============================================ #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
-        <a class="navbar-brand navbar-brand-modern text-white" href="#">
-            <i class="fas fa-print text-danger me-2"></i>Dispro<span class="text-primary">malt</span>
-            <span class="fw-light fs-6 text-white-50 ms-2">| Coordonnateur</span>
-        </a>
+        <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
+    <img src="{{ asset('images/logo.png') }}"
+         alt="Logo Dispromalt"
+         style="height: 40px; width: auto; margin-right: 10px;">
+    Dispro<span class="text-primary">malt</span>
+    <span class="fw-light fs-6 text-white-50 ms-2">| Coordonnateur</span>
+</a>
         <div class="d-flex align-items-center gap-3">
             <div class="dropdown">
-            <button class="notification-bell" type="button" id="notificationsMenu" data-bs-toggle="dropdown" aria-expanded="false">
-    <i class="fas fa-bell"></i>
-    {% set totalNotifsCoordon = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (nbAlertesStock|default(0)) %}
-    {% if totalNotifsCoordon > 0 %}
-        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">
-            {{ totalNotifsCoordon }}
-        </span>
-    {% endif %}
-</button>
-<ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
-    {# Alertes stock #}
-    {% if nbAlertesStock|default(0) > 0 %}
-        <li class="dropdown-header text-danger fw-bold small">
-            <i class="fas fa-exclamation-triangle me-1"></i>Alertes Stock ({{ nbAlertesStock }})
-        </li>
-        {% for art in articlesEnAlerte|slice(0, 5) %}
-            <li>
-                <a class="dropdown-item p-2 rounded mb-1" href="#alerteCollapseCoordon" data-bs-toggle="collapse">
-                    <div class="fw-bold text-danger small">
-                        <i class="fas fa-box me-1"></i>{{ art.nom }}
-                    </div>
-                    <div class="text-muted" style="font-size: 0.72rem;">
-                        Stock : <strong class="text-danger">{{ art.quantite }}</strong> / Seuil : {{ art.seuilAlerte }}
-                    </div>
-                </a>
-            </li>
-        {% endfor %}
-    {% endif %}
-
-    {# Réunions #}
-    {% if reunionsDelegation is defined and reunionsDelegation is not empty %}
-        <li class="dropdown-header text-primary fw-bold small mt-2">
-            <i class="fas fa-calendar-alt me-1"></i>Réunions ({{ reunionsDelegation|length }})
-        </li>
-        {% for reunion in reunionsDelegation %}
-            <li>
-                <a class="dropdown-item p-2 rounded mb-1 bg-light" href="#">
-                    <div class="fw-bold text-dark small">{{ reunion.titre }}</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                        <i class="far fa-clock me-1"></i>{{ reunion.date|date('d/m/Y H:i') }}
-                    </div>
-                </a>
-            </li>
-        {% endfor %}
-    {% endif %}
-
-    {% if (nbAlertesStock|default(0) == 0) and (reunionsDelegation is not defined or reunionsDelegation is empty) %}
-        <li class="text-center text-muted py-3 small">
-            <i class="fas fa-check-circle text-success mb-1 d-block"></i>
-            Aucune notification.
-        </li>
-    {% endif %}
-</ul>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 320px;">
-                    <li class="dropdown-header fw-bold text-dark border-bottom pb-2 mb-2">
-                        <i class="fas fa-calendar-alt text-primary me-2"></i>Réunions / Ordres Délégués
-                    </li>
+                <button class="notification-bell" type="button" id="notificationsMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    {% set totalNotifsCoordon = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (nbAlertesStock|default(0)) %}
+                    {% if totalNotifsCoordon > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">{{ totalNotifsCoordon }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
+                    {% if nbAlertesStock|default(0) > 0 %}
+                        <li class="dropdown-header text-danger fw-bold small"><i class="fas fa-exclamation-triangle me-1"></i>Alertes Stock ({{ nbAlertesStock }})</li>
+                        {% for art in articlesEnAlerte|slice(0, 5) %}
+                            <li>
+                                <a class="dropdown-item p-2 rounded mb-1" href="#alerteCollapseCoordon" data-bs-toggle="collapse">
+                                    <div class="fw-bold text-danger small"><i class="fas fa-box me-1"></i>{{ art.nom }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">Stock : <strong class="text-danger">{{ art.quantite }}</strong> / Seuil : {{ art.seuilAlerte }}</div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                     {% if reunionsDelegation is defined and reunionsDelegation is not empty %}
+                        <li class="dropdown-header text-primary fw-bold small mt-2"><i class="fas fa-calendar-alt me-1"></i>Réunions ({{ reunionsDelegation|length }})</li>
                         {% for reunion in reunionsDelegation %}
                             <li>
                                 <a class="dropdown-item p-2 rounded mb-1 bg-light" href="#">
                                     <div class="fw-bold text-dark small">{{ reunion.titre }}</div>
-                                    <div class="text-muted" style="font-size: 0.75rem;">
-                                        <i class="far fa-clock me-1"></i>{{ reunion.date|date('d/m/Y H:i') }}
-                                    </div>
+                                    <div class="text-muted" style="font-size: 0.75rem;"><i class="far fa-clock me-1"></i>{{ reunion.date|date('d/m/Y H:i') }}</div>
                                 </a>
                             </li>
                         {% endfor %}
-                    {% else %}
-                        <li class="text-center text-muted py-3 small">
-                            <i class="fas fa-check-circle text-success mb-1 d-block"></i>
-                            Aucune notification.
-                        </li>
+                    {% endif %}
+                    {% if (nbAlertesStock|default(0) == 0) and (reunionsDelegation is not defined or reunionsDelegation is empty) %}
+                        <li class="text-center text-muted py-3 small"><i class="fas fa-check-circle text-success mb-1 d-block"></i>Aucune notification.</li>
                     {% endif %}
                 </ul>
             </div>
@@ -222,21 +147,13 @@
     </div>
 </nav>
 
-{# ============================================
-   MAIN CONTAINER
-============================================ #}
 <div class="container-fluid py-4 px-4" style="max-width: 1600px;">
 
     {# HERO #}
     <div class="hero-banner">
         <div class="hero-banner-content">
-            <div class="hero-badge">
-                <i class="fas fa-tasks"></i>
-                Supervision intermédiaire
-            </div>
-            <h1 class="fw-bold mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">
-                Espace de Coordination
-            </h1>
+            <div class="hero-badge"><i class="fas fa-tasks"></i>Supervision intermédiaire</div>
+            <h1 class="fw-bold mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">Espace de Coordination</h1>
             <p class="mb-0" style="color: rgba(255,255,255,0.75); font-size: 0.92rem;">
                 Validez les demandes, arbitrez les devis de tous les services et supervisez la logistique.
             </p>
@@ -260,9 +177,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Demandes à valider</h6>
-                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
-                            {{ demandes|filter(d => d.statut == 'Validé Chef')|length }}
-                        </h3>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ demandes|filter(d => d.statut == 'Validé Chef')|length }}</h3>
                     </div>
                     <div class="stat-icon stat-icon-warning"><i class="fas fa-clock"></i></div>
                 </div>
@@ -273,9 +188,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis à arbitrer</h6>
-                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
-                            {{ devisListe|filter(d => d.statut == 'VALIDÉ_CHEF_SERVICE')|length }}
-                        </h3>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|filter(d => d.statut == 'VALIDÉ_CHEF_SERVICE')|length }}</h3>
                     </div>
                     <div class="stat-icon stat-icon-danger"><i class="fas fa-file-invoice-dollar"></i></div>
                 </div>
@@ -286,9 +199,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis traités</h6>
-                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
-                            {{ devisListe|filter(d => d.statut != 'VALIDÉ_CHEF_SERVICE')|length }}
-                        </h3>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|filter(d => d.statut != 'VALIDÉ_CHEF_SERVICE')|length }}</h3>
                     </div>
                     <div class="stat-icon stat-icon-success"><i class="fas fa-check-circle"></i></div>
                 </div>
@@ -307,71 +218,54 @@
         </div>
     </div>
 
-
-    {# ============================================
-   🚨 BANNIÈRE ALERTES STOCK — Coordonnateur
-============================================ #}
-{% if nbAlertesStock|default(0) > 0 %}
-<div class="alert border-0 shadow-sm rounded-4 mb-4 p-0 overflow-hidden" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-    <div class="p-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom" style="border-color: rgba(220,38,38,0.2) !important;">
-        <div>
-            <h6 class="fw-bold text-danger m-0">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                {{ nbAlertesStock }} article(s) sous le seuil critique
-            </h6>
-            <small class="text-muted">Suivi de réapprovisionnement géré par la comptabilité.</small>
+    {# 🚨 BANNIÈRE ALERTES STOCK #}
+    {% if nbAlertesStock|default(0) > 0 %}
+    <div class="alert border-0 shadow-sm rounded-4 mb-4 p-0 overflow-hidden" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+        <div class="p-3 d-flex justify-content-between align-items-center flex-wrap gap-2 border-bottom" style="border-color: rgba(220,38,38,0.2) !important;">
+            <div>
+                <h6 class="fw-bold text-danger m-0"><i class="fas fa-exclamation-triangle me-2"></i>{{ nbAlertesStock }} article(s) sous le seuil critique</h6>
+                <small class="text-muted">Suivi de réapprovisionnement géré par la comptabilité.</small>
+            </div>
+            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" data-bs-toggle="collapse" data-bs-target="#alerteCollapseCoordon">
+                <i class="fas fa-eye me-1"></i> Voir le détail
+            </button>
         </div>
-        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" 
-                data-bs-toggle="collapse" data-bs-target="#alerteCollapseCoordon">
-            <i class="fas fa-eye me-1"></i> Voir le détail
-        </button>
-    </div>
-    <div class="collapse" id="alerteCollapseCoordon">
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle m-0 bg-white">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-3">Article</th>
-                        <th class="text-center">Stock</th>
-                        <th class="text-center">Seuil</th>
-                        <th class="text-center">Statut réappro</th>
-                        <th>Date prévue</th>
-                        <th>Signalé le</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for art in articlesEnAlerte %}
+        <div class="collapse" id="alerteCollapseCoordon">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle m-0 bg-white">
+                    <thead class="table-light">
                         <tr>
-                            <td class="ps-3 fw-bold text-dark">
-                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                            </td>
-                            <td class="text-center"><span class="badge bg-danger">{{ art.quantite }}</span></td>
-                            <td class="text-center"><span class="badge bg-warning text-dark">{{ art.seuilAlerte }}</span></td>
-                            <td class="text-center">
-                                {% if art.reapprovisionnementEnCours %}
-                                    <span class="badge bg-primary"><i class="fas fa-truck-loading me-1"></i>En cours</span>
-                                {% else %}
-                                    <span class="badge bg-secondary"><i class="fas fa-hourglass-start me-1"></i>Non lancé</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if art.dateReapprovisionnement %}
-                                    <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
-                                {% else %}
-                                    <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-muted small">
-                                {{ art.dateSignalementAlerte ? art.dateSignalementAlerte|date('d/m/Y H:i') : '—' }}
-                            </td>
+                            <th class="ps-3">Article</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Seuil</th>
+                            <th class="text-center">Statut réappro</th>
+                            <th>Date prévue</th>
+                            <th>Signalé le</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for art in articlesEnAlerte %}
+                            <tr>
+                                <td class="ps-3 fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                <td class="text-center"><span class="badge bg-danger">{{ art.quantite }}</span></td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">{{ art.seuilAlerte }}</span></td>
+                                <td class="text-center">
+                                    {% if art.reapprovisionnementEnCours %}
+                                        <span class="badge bg-primary"><i class="fas fa-truck-loading me-1"></i>En cours</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary"><i class="fas fa-hourglass-start me-1"></i>Non lancé</span>
+                                    {% endif %}
+                                </td>
+                                <td>{% if art.dateReapprovisionnement %}<strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                                <td class="text-muted small">{{ art.dateSignalementAlerte ? art.dateSignalementAlerte|date('d/m/Y H:i') : '—' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
 
     {# ============================================
        CARTE PRINCIPALE À ONGLETS
@@ -379,36 +273,28 @@
     <div class="main-card">
         <ul class="nav nav-tabs nav-tabs-modern" id="coordonTab" role="tablist">
 
-            {# ONGLET 1 : DEVIS À ARBITRER (PRIORITAIRE) #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-danger"></i>Arbitrage des Devis
                     {% set nb_devis_attente = devisListe|filter(d => d.statut == 'VALIDÉ_CHEF_SERVICE')|length %}
-                    {% if nb_devis_attente > 0 %}
-                        <span class="badge bg-danger ms-1">{{ nb_devis_attente }}</span>
-                    {% endif %}
+                    {% if nb_devis_attente > 0 %}<span class="badge bg-danger ms-1">{{ nb_devis_attente }}</span>{% endif %}
                 </button>
             </li>
 
-            {# ONGLET 2 : VALIDATION DES DEMANDES #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="validation-tab" data-bs-toggle="tab" data-bs-target="#validation-pane" type="button" role="tab">
                     <i class="fas fa-tasks text-primary"></i>Validation des Demandes
                     {% set nb_dem_attente = demandes|filter(d => d.statut == 'Validé Chef')|length %}
-                    {% if nb_dem_attente > 0 %}
-                        <span class="badge bg-warning text-dark ms-1">{{ nb_dem_attente }}</span>
-                    {% endif %}
+                    {% if nb_dem_attente > 0 %}<span class="badge bg-warning text-dark ms-1">{{ nb_dem_attente }}</span>{% endif %}
                 </button>
             </li>
 
-            {# ONGLET 3 : HISTORIQUE #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button" role="tab">
                     <i class="fas fa-history text-info"></i>Historique & Traçabilité
                 </button>
             </li>
 
-            {# ONGLET 4 : VISITE #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button" role="tab">
                     <i class="fas fa-calendar-plus text-warning"></i>Réserver Visite
@@ -425,35 +311,38 @@
                 <div class="tab-pane fade show active" id="devis-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0">
-                                <i class="fas fa-gavel text-danger me-2"></i>Dossiers budgétaires à arbitrer
-                            </h5>
-                            <small class="text-muted">
-                                Devis validés par les chefs de service. Vous pouvez ajuster le montant avant transmission à la DG.
-                            </small>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-gavel text-danger me-2"></i>Dossiers budgétaires à arbitrer</h5>
+                            <small class="text-muted">Devis validés par les chefs de service. Vous pouvez ajuster le montant avant transmission à la DG.</small>
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
-                            <span class="badge badge-soft badge-soft-warning px-3 py-2">
-                                <i class="fas fa-dollar-sign me-1"></i>USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}
-                            </span>
-                            <span class="badge badge-soft badge-soft-success px-3 py-2">
-                                <i class="fas fa-coins me-1"></i>CDF : {{ totalDevisCDF|default(0)|number_format(2, ',', ' ') }}
-                            </span>
+                            <span class="badge badge-soft badge-soft-warning px-3 py-2"><i class="fas fa-dollar-sign me-1"></i>USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}</span>
+                            <span class="badge badge-soft badge-soft-success px-3 py-2"><i class="fas fa-coins me-1"></i>CDF : {{ totalDevisCDF|default(0)|number_format(2, ',', ' ') }}</span>
                         </div>
                     </div>
+
+                    {# 🔎 FILTRE #}
+                    <form method="GET" action="{{ path('app_dashboard') }}" class="filter-bar row g-2 align-items-end mb-4">
+                        <input type="hidden" name="tab" value="devis">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Du</label>
+                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut|default('now'|date('Y-m-d')) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Au</label>
+                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin|default('now'|date('Y-m-d')) }}">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-danger flex-grow-1 fw-bold rounded-pill"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary rounded-pill" title="Réinitialiser"><i class="fas fa-rotate"></i></a>
+                        </div>
+                    </form>
 
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Émetteur</th>
-                                    <th>Département</th>
-                                    <th>Description</th>
-                                    <th>Statut</th>
-                                    <th class="text-end">Montant</th>
-                                    <th class="text-center">Action Coordon</th>
+                                    <th>ID</th><th>Date</th><th>Émetteur</th><th>Département</th>
+                                    <th>Description</th><th>Statut</th><th class="text-end">Montant</th><th class="text-center">Action Coordon</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -461,68 +350,34 @@
                                     <tr class="{% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}row-pending{% endif %}">
                                         <td class="fw-bold text-secondary">#{{ devis.id }}</td>
                                         <td class="text-muted small">{{ devis.createdAt|date('d/m/Y') }}</td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                <i class="fas fa-user me-1"></i>{{ devis.user ? devis.user.userIdentifier : devis.createdBy }}
-                                            </span>
-                                        </td>
+                                        <td><span class="badge badge-soft badge-soft-secondary"><i class="fas fa-user me-1"></i>{{ devis.user ? devis.user.userIdentifier : devis.createdBy }}</span></td>
                                         <td>
                                             {% if devis.user and devis.user.service %}
-                                                <span class="badge badge-soft badge-soft-info">
-                                                    <i class="fas fa-building me-1"></i>{{ devis.user.service.nom }}
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-building me-1"></i>{{ devis.user.service.nom }}</span>
                                             {% else %}
                                                 <span class="badge badge-soft badge-soft-secondary">—</span>
                                             {% endif %}
                                         </td>
                                         <td class="fw-semibold text-dark">{{ devis.description }}</td>
                                         <td>
-                                            {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
-                                                <span class="badge badge-soft badge-soft-danger">
-                                                    <i class="fas fa-hourglass-half me-1"></i>À arbitrer
-                                                </span>
-                                            {% elseif devis.statut == 'ATTENTE_DIRECTEUR' %}
-                                                <span class="badge badge-soft badge-soft-primary">
-                                                    <i class="fas fa-arrow-right me-1"></i>Chez le DG
-                                                </span>
-                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                <span class="badge badge-soft badge-soft-info">
-                                                    <i class="fas fa-cash-register me-1"></i>Chez la caisse
-                                                </span>
-                                            {% elseif devis.statut == 'DECAISSE' %}
-                                                <span class="badge badge-soft badge-soft-success">
-                                                    <i class="fas fa-check-double me-1"></i>Décaissé
-                                                </span>
-                                            {% elseif devis.statut == 'REJETE' %}
-                                                <span class="badge badge-soft badge-soft-danger">
-                                                    <i class="fas fa-ban me-1"></i>Rejeté
-                                                </span>
-                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTA' %}
-                                                <span class="badge badge-soft badge-soft-warning">
-                                                    <i class="fas fa-user-tie me-1"></i>Chez le chef
-                                                </span>
-                                            {% else %}
-                                                <span class="badge badge-soft badge-soft-secondary">{{ devis.statut }}</span>
+                                            {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-hourglass-half me-1"></i>À arbitrer</span>
+                                            {% elseif devis.statut == 'ATTENTE_DIRECTEUR' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-arrow-right me-1"></i>Chez le DG</span>
+                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}<span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>Chez la caisse</span>
+                                            {% elseif devis.statut == 'DECAISSE' %}<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
+                                            {% elseif devis.statut == 'REJETE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTA' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-user-tie me-1"></i>Chez le chef</span>
+                                            {% else %}<span class="badge badge-soft badge-soft-secondary">{{ devis.statut }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-end font-monospace fw-bold text-dark">
-                                            {{ devis.montant|number_format(2, ',', ' ') }}
-                                            <span class="small text-muted">{{ devis.devise }}</span>
-                                        </td>
+                                        <td class="text-end font-monospace fw-bold text-dark">{{ devis.montant|number_format(2, ',', ' ') }} <span class="small text-muted">{{ devis.devise }}</span></td>
                                         <td class="text-center">
                                             {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
                                                 <form action="{{ path('app_coordonnateur_valider_devis', {'id': devis.id}) }}" method="POST" class="d-flex gap-2 justify-content-center align-items-center flex-wrap">
                                                     <div class="input-group input-group-sm" style="max-width: 130px;">
-                                                        <input type="number" step="0.01" name="nouveau_montant"
-                                                               class="form-control text-end fw-bold text-danger"
-                                                               value="{{ devis.montant }}" required>
-                                                        <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">
-                                                            {{ devis.devise }}
-                                                        </span>
+                                                        <input type="number" step="0.01" name="nouveau_montant" class="form-control text-end fw-bold text-danger" value="{{ devis.montant }}" required>
+                                                        <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">{{ devis.devise }}</span>
                                                     </div>
-                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                        <i class="fas fa-check me-1"></i> Valider
-                                                    </button>
+                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3"><i class="fas fa-check me-1"></i> Valider</button>
                                                     <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2"
                                                             onclick="if(confirm('Rejeter ce devis ?')) { document.getElementById('rejeter-{{ devis.id }}').submit(); }">
                                                         <i class="fas fa-ban"></i>
@@ -539,8 +394,8 @@
                                         <td colspan="8">
                                             <div class="empty-state">
                                                 <i class="fas fa-folder-open"></i>
-                                                <div class="fw-bold">Aucun devis en circulation</div>
-                                                <small>Les devis validés par les chefs de service apparaîtront ici.</small>
+                                                <div class="fw-bold">Aucun devis sur cette période</div>
+                                                <small>Modifiez les dates du filtre ou attendez de nouvelles validations.</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -554,26 +409,36 @@
                    ONGLET 2 : VALIDATION DES DEMANDES
                 ============================================================ #}
                 <div class="tab-pane fade" id="validation-pane" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0">
-                                <i class="fas fa-tasks text-primary me-2"></i>Demandes de matériel à valider
-                            </h5>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-tasks text-primary me-2"></i>Demandes de matériel à valider</h5>
                             <small class="text-muted">Demandes validées par les chefs de service.</small>
                         </div>
                     </div>
+
+                    {# 🔎 FILTRE #}
+                    <form method="GET" action="{{ path('app_dashboard') }}" class="filter-bar row g-2 align-items-end mb-4">
+                        <input type="hidden" name="tab" value="validation">
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Du</label>
+                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut|default('now'|date('Y-m-d')) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Au</label>
+                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin|default('now'|date('Y-m-d')) }}">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1 fw-bold rounded-pill"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                            <a href="{{ path('app_dashboard', {'tab': 'validation'}) }}" class="btn btn-outline-secondary rounded-pill" title="Réinitialiser"><i class="fas fa-rotate"></i></a>
+                        </div>
+                    </form>
 
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Demandeur</th>
-                                    <th>Matériel</th>
-                                    <th class="text-center">Quantité</th>
-                                    <th>Département</th>
-                                    <th>Date</th>
-                                    <th class="text-end">Actions</th>
+                                    <th>ID</th><th>Demandeur</th><th>Matériel</th>
+                                    <th class="text-center">Quantité</th><th>Département</th><th>Date</th><th class="text-end">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -583,33 +448,20 @@
                                         {% set hasPending = true %}
                                         <tr class="row-pending">
                                             <td class="fw-bold text-secondary">#{{ demande.id }}</td>
-                                            <td>
-                                                <span class="badge badge-soft badge-soft-secondary">
-                                                    {{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}
-                                                </span>
-                                            </td>
+                                            <td><span class="badge badge-soft badge-soft-secondary">{{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}</span></td>
                                             <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
                                             <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
-                                            <td>
-                                                <span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span>
-                                            </td>
-                                            <td class="text-muted small">
-                                                {{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}
-                                            </td>
+                                            <td><span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span></td>
+                                            <td class="text-muted small">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
                                             <td class="text-end">
                                                 <div class="d-flex justify-content-end gap-1">
                                                     <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline">
                                                         <input type="hidden" name="action" value="valider">
-                                                        <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                            <i class="fas fa-check me-1"></i> Valider
-                                                        </button>
+                                                        <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3"><i class="fas fa-check me-1"></i> Valider</button>
                                                     </form>
-                                                    <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline"
-                                                          onsubmit="return confirm('Voulez-vous vraiment rejeter cette demande ?');">
+                                                    <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Voulez-vous vraiment rejeter cette demande ?');">
                                                         <input type="hidden" name="action" value="rejeter">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Rejeter">
-                                                            <i class="fas fa-ban"></i>
-                                                        </button>
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Rejeter"><i class="fas fa-ban"></i></button>
                                                     </form>
                                                 </div>
                                             </td>
@@ -622,8 +474,8 @@
                                         <td colspan="7">
                                             <div class="empty-state">
                                                 <i class="fas fa-check-circle" style="color:#10b981;"></i>
-                                                <div class="fw-bold">Aucune demande en attente</div>
-                                                <small>Toutes les demandes ont été traitées.</small>
+                                                <div class="fw-bold">Aucune demande en attente sur cette période</div>
+                                                <small>Toutes les demandes ont été traitées ou élargissez le filtre.</small>
                                             </div>
                                         </td>
                                     </tr>
@@ -634,20 +486,13 @@
 
                     {# Historique #}
                     <div class="mt-5">
-                        <h6 class="fw-bold text-secondary mb-3">
-                            <i class="fas fa-history me-2"></i>Historique des demandes traitées
-                        </h6>
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Historique des demandes traitées</h6>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>Demandeur</th>
-                                        <th>Matériel</th>
-                                        <th class="text-center">Qté</th>
-                                        <th>Département</th>
-                                        <th>Date</th>
-                                        <th>Statut final</th>
+                                        <th>ID</th><th>Demandeur</th><th>Matériel</th>
+                                        <th class="text-center">Qté</th><th>Département</th><th>Date</th><th>Statut final</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -657,28 +502,16 @@
                                             {% set hasHistory = true %}
                                             <tr>
                                                 <td class="fw-bold text-secondary">#{{ demande.id }}</td>
-                                                <td>
-                                                    <span class="badge badge-soft badge-soft-secondary">
-                                                        {{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}
-                                                    </span>
-                                                </td>
+                                                <td><span class="badge badge-soft badge-soft-secondary">{{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}</span></td>
                                                 <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
                                                 <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
-                                                <td>
-                                                    <span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span>
-                                                </td>
-                                                <td class="text-muted small">
-                                                    {{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}
-                                                </td>
+                                                <td><span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span></td>
+                                                <td class="text-muted small">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
                                                 <td>
                                                     {% if demande.statut == 'Validé Coordon' %}
-                                                        <span class="badge badge-soft badge-soft-success">
-                                                            <i class="fas fa-check me-1"></i>Validé
-                                                        </span>
+                                                        <span class="badge badge-soft badge-soft-success"><i class="fas fa-check me-1"></i>Validé</span>
                                                     {% else %}
-                                                        <span class="badge badge-soft badge-soft-danger">
-                                                            <i class="fas fa-times me-1"></i>Rejeté
-                                                        </span>
+                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-times me-1"></i>Rejeté</span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -687,10 +520,7 @@
                                     {% if not hasHistory %}
                                         <tr>
                                             <td colspan="7">
-                                                <div class="empty-state">
-                                                    <i class="fas fa-inbox"></i>
-                                                    <div class="fw-bold">Aucune demande traitée</div>
-                                                </div>
+                                                <div class="empty-state"><i class="fas fa-inbox"></i><div class="fw-bold">Aucune demande traitée</div></div>
                                             </td>
                                         </tr>
                                     {% endif %}
@@ -704,28 +534,27 @@
                    ONGLET 3 : HISTORIQUE & TRAÇABILITÉ
                 ============================================================ #}
                 <div class="tab-pane fade" id="report-pane" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0">
-                                <i class="fas fa-history text-info me-2"></i>Registre de sortie & traçabilité logistique
-                            </h5>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-history text-info me-2"></i>Registre de sortie & traçabilité logistique</h5>
                             <small class="text-muted">Tous les mouvements de matériel sur la période sélectionnée.</small>
                         </div>
                     </div>
 
-                    <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-light p-3 rounded-3 mb-4 align-items-end border">
+                    {# 🔎 FILTRE UNIFIÉ #}
+                    <form method="GET" action="{{ path('app_dashboard') }}" class="filter-bar row g-2 align-items-end mb-4">
+                        <input type="hidden" name="tab" value="report">
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Du :</label>
-                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Du</label>
+                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut|default('now'|date('Y-m-d')) }}">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Au :</label>
-                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Au</label>
+                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin|default('now'|date('Y-m-d')) }}">
                         </div>
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary fw-bold w-100 rounded-3 py-2">
-                                <i class="fas fa-filter me-2"></i> Filtrer les mouvements
-                            </button>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-info text-white flex-grow-1 fw-bold rounded-pill"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                            <a href="{{ path('app_dashboard', {'tab': 'report'}) }}" class="btn btn-outline-secondary rounded-pill" title="Réinitialiser"><i class="fas fa-rotate"></i></a>
                         </div>
                     </form>
 
@@ -733,13 +562,8 @@
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Département</th>
-                                    <th>Origine</th>
-                                    <th>Article</th>
-                                    <th class="text-center">Quantité</th>
-                                    <th>Destination</th>
-                                    <th class="text-center">État</th>
+                                    <th>Date</th><th>Département</th><th>Origine</th><th>Article</th>
+                                    <th class="text-center">Quantité</th><th>Destination</th><th class="text-center">État</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -758,14 +582,10 @@
                                                 {{ rg.quantite }}
                                             {% endif %}
                                         </td>
-                                        <td class="fw-bold text-secondary">
-                                            <i class="fas fa-map-marker-alt text-primary me-1"></i>{{ rg.destination|default('Dépôt central')|upper }}
-                                        </td>
+                                        <td class="fw-bold text-secondary"><i class="fas fa-map-marker-alt text-primary me-1"></i>{{ rg.destination|default('Dépôt central')|upper }}</td>
                                         <td class="text-center">
                                             {% if rg.statut == 'Livré par le Stock' %}
-                                                <span class="badge badge-soft badge-soft-success">
-                                                    <i class="fas fa-check me-1"></i>Confirmée
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check me-1"></i>Confirmée</span>
                                             {% else %}
                                                 <span class="badge badge-soft badge-soft-secondary">{{ rg.statut }}</span>
                                             {% endif %}
@@ -802,7 +622,6 @@
                                         <h5 class="fw-bold text-dark">Planifier une Visite</h5>
                                         <p class="text-muted small mb-0">Enregistrez l'arrivée d'un visiteur ou d'un partenaire.</p>
                                     </div>
-
                                     {{ form_start(formVisite, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
                                         <div class="row g-3">
                                             <div class="col-md-6">
@@ -839,19 +658,13 @@
                                                 </div>
                                             {% endif %}
                                         </div>
-
-                                        <button type="submit" class="btn btn-warning fw-bold w-100 py-2 mt-3 rounded-3 text-dark">
-                                            <i class="fas fa-save me-2"></i>Enregistrer la Visite
-                                        </button>
+                                        <button type="submit" class="btn btn-warning fw-bold w-100 py-2 mt-3 rounded-3 text-dark"><i class="fas fa-save me-2"></i>Enregistrer la Visite</button>
                                     {{ form_end(formVisite) }}
                                 </div>
                             </div>
                         </div>
                     {% else %}
-                        <div class="alert alert-warning text-center mb-0 rounded-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Le formulaire de visite n'est pas disponible.
-                        </div>
+                        <div class="alert alert-warning text-center mb-0 rounded-3"><i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n'est pas disponible.</div>
                     {% endif %}
                 </div>
 
@@ -866,15 +679,19 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Mémorisation de l'onglet actif via URL
-        const urlHash = window.location.hash;
-        if (urlHash) {
-            const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
+        // 🔎 Restaurer l'onglet actif à partir du paramètre GET "tab"
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
+        if (tabParam) {
+            const triggerEl = document.querySelector(`#coordonTab button[data-bs-target="#${tabParam}-pane"]`);
             if (triggerEl) new bootstrap.Tab(triggerEl).show();
         }
+
+        // Mémorisation de l'onglet actif via URL (hash)
         document.querySelectorAll('#coordonTab button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
-                history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+                const target = e.target.getAttribute('data-bs-target').replace('#', '').replace('-pane', '');
+                history.replaceState(null, null, '?tab=' + target);
             });
         });
     });

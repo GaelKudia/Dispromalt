@@ -48,9 +48,13 @@
     {# ========== NAVBAR ========== #}
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="#">
-                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-white-50">| Espace Opérationnel</span>
-            </a>
+            <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
+    <img src="{{ asset('images/logo.png') }}"
+         alt="Logo Dispromalt"
+         style="height: 40px; width: auto; margin-right: 10px;">
+    Dispro<span class="text-primary">malt</span>
+    <span class="fw-light fs-6 text-white-50 ms-2">| Espace Opérationnel</span>
+</a>
             <div class="d-flex align-items-center">
                 <div class="badge-role px-3 py-1.5 rounded-pill me-3 small">
                     <i class="fas fa-warehouse text-warning me-2"></i>Rôle : <strong>{{ userRole }}</strong>

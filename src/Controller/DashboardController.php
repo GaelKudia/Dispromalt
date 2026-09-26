@@ -34,6 +34,16 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
+
+      #[Route('/', name: 'app_home')]
+    public function home(): Response
+    {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('app_dashboard');
+        }
+        return $this->redirectToRoute('app_login');
+    }
+    
     #[Route('/dashboard', name: 'app_dashboard')]
     public function index(
         Request $request,
@@ -113,14 +123,17 @@ if ($this->isGranted('ROLE_CAISSIER')) {
     $currentUser = $this->getUser();
 
     $devisCaisse = $em->getRepository(Devis::class)->createQueryBuilder('d')
-        ->where('d.statut = :attente')
-        ->orWhere('(d.statut = :decaisse AND d.decaissePar = :user)')
-        ->setParameter('attente',  Devis::STATUT_ATTENTE_CAISSE)
-        ->setParameter('decaisse', Devis::STATUT_DECAISSE)
-        ->setParameter('user',     $currentUser)
-        ->orderBy('d.id', 'DESC')
-        ->getQuery()
-        ->getResult();
+    ->where('d.statut = :attente')
+    ->orWhere('(d.statut = :decaisse AND d.decaissePar = :user)')
+    ->andWhere('d.createdAt BETWEEN :start AND :end')          // ✅ ajout
+    ->setParameter('attente',  Devis::STATUT_ATTENTE_CAISSE)
+    ->setParameter('decaisse', Devis::STATUT_DECAISSE)
+    ->setParameter('user',     $currentUser)
+    ->setParameter('start',    new \DateTime($dateDebutFiltre . ' 00:00:00'))
+    ->setParameter('end',      new \DateTime($dateFinFiltre   . ' 23:59:59'))
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
 
     // Totaux sur ses propres décaissements uniquement
     $totalDevisUSD = 0;
@@ -406,15 +419,17 @@ if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
 
     if ($serviceChef) {
         $devisServiceListe = $devisRepository->createQueryBuilder('dev')
-            ->leftJoin('dev.user', 'u')
-            ->where('u.service = :service')
-            ->orWhere('dev.createdBy IN (
-                SELECT usr.email FROM App\Entity\User usr WHERE usr.service = :service
-            )')
-            ->setParameter('service', $serviceChef)
-            ->orderBy('dev.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+    ->leftJoin('dev.user', 'u')
+    ->where('u.service = :service OR dev.createdBy IN (
+        SELECT usr.email FROM App\Entity\User usr WHERE usr.service = :service
+    )')
+    ->andWhere('dev.createdAt BETWEEN :start AND :end')       // ✅ ajout
+    ->setParameter('service', $serviceChef)
+    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+    ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
+    ->orderBy('dev.id', 'DESC')
+    ->getQuery()
+    ->getResult();
 
         foreach ($devisServiceListe as $d) {
             if ($d->getDevise() === 'CDF') {
@@ -667,13 +682,15 @@ if ($this->isGranted('ROLE_COORDON')) {
     $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
     $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-    // ✅ TOUS les devis de TOUS les départements (sans filtre de date ni de statut)
     $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
-        ->leftJoin('d.user', 'u')
-        ->addSelect('u')
-        ->orderBy('d.id', 'DESC')
-        ->getQuery()
-        ->getResult();
+    ->leftJoin('d.user', 'u')
+    ->addSelect('u')
+    ->where('d.createdAt BETWEEN :start AND :end')
+    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+    ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
 
     $totalDevisUSD = 0;
     $totalDevisCDF = 0;
@@ -728,12 +745,17 @@ if ($this->isGranted('ROLE_COMPTA')) {
     $currentUser = $this->getUser();
 
     // 🎯 TOUS les devis SANS filtre de date
+
+
     $devisListe = $em->getRepository(Devis::class)->createQueryBuilder('d')
-        ->leftJoin('d.user', 'u')
-        ->addSelect('u')
-        ->orderBy('d.id', 'DESC')
-        ->getQuery()
-        ->getResult();
+    ->leftJoin('d.user', 'u')
+    ->addSelect('u')
+    ->where('d.createdAt BETWEEN :start AND :end')            // ✅ ajout
+    ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+    ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
 
     // 🎯 Construire les compteurs à partir de la liste
     $devisA_Aiguiller      = [];
