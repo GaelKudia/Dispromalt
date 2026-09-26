@@ -2,796 +2,1248 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Espace Comptabilité - Gestion & Visites</title>
+    <title>Espace Comptabilité — Dispromalt</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --success-color: #198754;
-            --warning-color: #ffc107;
-            --danger-color: #dc3545;
-            --gray-bg: #f8f9fa;
+            --ink-900: #0f172a;
+            --ink-800: #1e293b;
+            --ink-700: #334155;
+            --ink-500: #64748b;
+            --ink-400: #94a3b8;
+            --ink-200: #e2e8f0;
+            --ink-100: #f1f5f9;
+            --ink-50:  #f8fafc;
+            --bg:      #f6f8fb;
+            --accent:  #4f46e5;
+            --accent-soft: rgba(79, 70, 229, 0.08);
+            --success: #059669;
+            --success-soft: rgba(5, 150, 105, 0.08);
+            --warn:    #d97706;
+            --warn-soft: rgba(217, 119, 6, 0.08);
+            --danger:  #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.08);
+            --radius:  14px;
+            --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.06);
+            --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.08);
         }
+
+        * { transition: all 0.2s ease; }
+
         body {
-            background-color: #f0f2f5;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--ink-800);
+            -webkit-font-smoothing: antialiased;
         }
-        .navbar-brand span.text-primary { color: var(--primary-color) !important; }
-        .card-counter {
-            border: none;
-            border-radius: 16px;
-            transition: all 0.25s ease;
+
+        /* ============ NAVBAR ============ */
+        .navbar-pro {
+            background: var(--ink-900);
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
-        .card-counter:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 28px rgba(0,0,0,0.08) !important;
-        }
-        .nav-tabs .nav-link {
-            color: #6c757d;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            border-radius: 10px 10px 0 0;
-        }
-        .nav-tabs .nav-link:hover {
-            background-color: rgba(13, 110, 253, 0.04);
-            color: var(--primary-color);
-        }
-        .nav-tabs .nav-link.active {
-            color: var(--primary-color) !important;
-            background: white;
-            border-bottom: 3px solid var(--primary-color);
+        .navbar-pro .brand {
             font-weight: 700;
+            font-size: 1.15rem;
+            color: #fff;
+            letter-spacing: -0.3px;
         }
-        .nav-tabs .nav-link i { margin-right: 8px; }
-        .tab-pane {
-            padding-top: 1.5rem;
-        }
-        .table-modern thead th {
-            background: var(--gray-bg);
-            border-bottom: 2px solid #dee2e6;
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #495057;
-            padding: 1rem 0.75rem;
-        }
-        .table-modern tbody td {
-            vertical-align: middle;
-            padding: 0.85rem 0.75rem;
-            font-size: 0.9rem;
-        }
-        .table-modern tbody tr {
-            transition: background 0.15s ease;
-        }
-        .table-modern tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.03);
-        }
-        .badge-statut {
-            font-weight: 600;
+        .navbar-pro .brand-accent { color: #a5b4fc; font-weight: 400; }
+        .nav-pill {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #cbd5e1;
             padding: 0.4rem 0.9rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
         }
-        .badge-statut i { margin-right: 5px; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-success { background: #d1e7dd; color: #0f5132; }
-        .badge-primary { background: #cfe2ff; color: #084298; }
-        .badge-info { background: #cff4fc; color: #055160; }
-        .badge-danger { background: #f8d7da; color: #842029; }
-        .filter-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border: 1px solid #e9ecef;
-            margin-bottom: 1.5rem;
+        .nav-pill strong { color: #fff; font-weight: 600; }
+        .btn-logout {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
         }
-        .filter-card .form-label {
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #6c757d;
+        .btn-logout:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
         }
-        .filter-card .form-control,
-        .filter-card .form-select {
-            border-radius: 10px;
-            border: 1px solid #dee2e6;
-            padding: 0.5rem 0.75rem;
-            font-size: 0.9rem;
+        .btn-ghost-light {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #e2e8f0;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
         }
-        .filter-card .btn {
-            border-radius: 50px;
-            padding: 0.45rem 1.5rem;
-            font-weight: 600;
+        .btn-ghost-light:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
         }
-        .btn-soft-primary {
-            background: #e7f1ff;
-            color: var(--primary-color);
-            border: 1px solid #cfe2ff;
+        .notif-btn {
+            width: 38px; height: 38px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #cbd5e1;
+            position: relative;
         }
-        .btn-soft-primary:hover {
-            background: #cfe2ff;
-            color: #0a58ca;
-        }
-        .card-visite {
-            border: none;
-            border-radius: 20px;
-            background: white;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-        }
-        .total-card {
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            background: #212529;
-            color: white;
-        }
-        .total-card .amount {
-            font-size: 1.8rem;
+        .notif-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+        .notif-btn .badge-dot {
+            position: absolute;
+            top: -4px; right: -4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.65rem;
             font-weight: 700;
-            color: #ffd43b;
+            padding: 0.15rem 0.4rem;
+            border-radius: 20px;
+            border: 2px solid var(--ink-900);
         }
-        .total-card .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.7;
+
+        /* ============ PAGE HEADER ============ */
+        .page-header {
+            padding: 1.75rem 0 1.25rem;
         }
-        .fade-in-row {
-            animation: fadeIn 0.4s ease forwards;
-            opacity: 0;
+        .page-header h1 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            letter-spacing: -0.4px;
+            margin: 0 0 0.35rem;
         }
-        @keyframes fadeIn {
-            to { opacity: 1; }
+        .page-header p {
+            color: var(--ink-500);
+            font-size: 0.9rem;
+            margin: 0;
         }
-        .stat-card {
-            border-radius: 16px;
-            border: 1px solid #e9ecef;
-            padding: 1.25rem;
-            background: white;
-            transition: all 0.2s;
+
+        /* ============ STAT CARDS ============ */
+        .stat-tile {
+            background: #fff;
+            border: 1px solid var(--ink-200);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.4rem;
+            position: relative;
+            overflow: hidden;
             height: 100%;
         }
-        .stat-card:hover {
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+        .stat-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 3px;
+            background: var(--ink-200);
         }
-        .stat-card .stat-number {
-            font-size: 2.2rem;
-            font-weight: 700;
-            color: #212529;
-        }
-        .stat-card .stat-label {
-            font-size: 0.8rem;
+        .stat-tile.is-warning::before { background: var(--warn); }
+        .stat-tile.is-accent::before  { background: var(--accent); }
+        .stat-tile.is-success::before { background: var(--success); }
+        .stat-tile.is-danger::before  { background: var(--danger); }
+
+        .stat-tile .stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--ink-500);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #6c757d;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
         }
+        .stat-tile .stat-value {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        .stat-tile .stat-hint {
+            font-size: 0.75rem;
+            color: var(--ink-400);
+            margin-top: 0.4rem;
+        }
+
+        /* ============ ALERT BANNER ============ */
+        .alert-banner {
+            background: #fff;
+            border: 1px solid var(--ink-200);
+            border-left: 4px solid var(--danger);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .alert-banner-header {
+            padding: 1.1rem 1.4rem;
+            border-bottom: 1px solid var(--ink-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .alert-banner-header h6 {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--ink-900);
+            margin: 0;
+        }
+        .alert-banner-header h6 i { color: var(--danger); margin-right: 0.5rem; }
+        .alert-banner-header small { color: var(--ink-500); font-size: 0.8rem; }
+        .alert-banner .count-chip {
+            background: var(--danger-soft);
+            color: var(--danger);
+            padding: 0.3rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* ============ CARD ============ */
+        .card-pro {
+            background: #fff;
+            border: 1px solid var(--ink-200);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+        }
+        .card-pro-body { padding: 1.25rem 1.4rem; }
+
+        /* ============ TABS ============ */
+        .tabs-pro {
+            border-bottom: 1px solid var(--ink-200);
+            padding: 0 1rem;
+            gap: 0.15rem;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .tabs-pro::-webkit-scrollbar { display: none; }
+        .tabs-pro .nav-link {
+            border: none !important;
+            color: var(--ink-500);
+            font-weight: 500;
+            font-size: 0.86rem;
+            padding: 1rem 1rem;
+            white-space: nowrap;
+            border-radius: 0;
+            position: relative;
+            background: none;
+        }
+        .tabs-pro .nav-link:hover { color: var(--ink-900); }
+        .tabs-pro .nav-link.active {
+            color: var(--ink-900) !important;
+            background: none;
+            font-weight: 600;
+        }
+        .tabs-pro .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0.85rem; right: 0.85rem;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 2px 2px 0 0;
+        }
+        .tabs-pro .nav-link i { margin-right: 0.45rem; opacity: 0.65; }
+        .tabs-pro .nav-link.active i { opacity: 1; color: var(--accent); }
+
+        /* ============ TABLE ============ */
+        .table-pro {
+            margin: 0;
+            font-size: 0.87rem;
+        }
+        .table-pro thead th {
+            background: var(--ink-50);
+            color: var(--ink-500);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--ink-200);
+            border-top: none;
+            white-space: nowrap;
+        }
+        .table-pro tbody td {
+            padding: 0.95rem 1rem;
+            vertical-align: middle;
+            border-color: var(--ink-100);
+            color: var(--ink-700);
+        }
+        .table-pro tbody tr:hover { background: var(--ink-50); }
+        .table-pro .cell-strong { font-weight: 600; color: var(--ink-900); }
+        .table-pro .cell-muted { color: var(--ink-400); font-size: 0.8rem; }
+
+        /* ============ BADGES (subtils) ============ */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1;
+            background: var(--ink-100);
+            color: var(--ink-700);
+        }
+        .tag i { font-size: 0.7rem; opacity: 0.8; }
+        .tag .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .tag-success { background: var(--success-soft); color: var(--success); }
+        .tag-warn    { background: var(--warn-soft); color: var(--warn); }
+        .tag-danger  { background: var(--danger-soft); color: var(--danger); }
+        .tag-accent  { background: var(--accent-soft); color: var(--accent); }
+        .tag-neutral { background: var(--ink-100); color: var(--ink-500); }
+
+        /* ============ BUTTONS ============ */
+        .btn-pro {
+            font-weight: 500;
+            font-size: 0.82rem;
+            padding: 0.45rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-pro-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-pro-primary:hover { background: #4338ca; color: #fff; }
+
+        .btn-pro-success {
+            background: var(--success);
+            color: #fff;
+            border-color: var(--success);
+        }
+        .btn-pro-success:hover { background: #047857; color: #fff; }
+
+        .btn-pro-ghost {
+            background: #fff;
+            color: var(--ink-700);
+            border-color: var(--ink-200);
+        }
+        .btn-pro-ghost:hover { background: var(--ink-50); color: var(--ink-900); }
+
+        .btn-pro-sm {
+            padding: 0.3rem 0.75rem;
+            font-size: 0.78rem;
+            border-radius: 6px;
+        }
+
+        /* ============ FORM CONTROLS ============ */
+        .form-pro {
+            border: 1px solid var(--ink-200);
+            border-radius: 8px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.85rem;
+            background: #fff;
+            color: var(--ink-800);
+        }
+        .form-pro:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+            outline: none;
+        }
+        .form-select.form-pro { padding-right: 2rem; }
+
+        /* ============ TOTAL CARD ============ */
+        .total-panel {
+            background: var(--ink-900);
+            border-radius: var(--radius);
+            padding: 1.1rem 1.4rem;
+            color: #fff;
+            min-width: 200px;
+        }
+        .total-panel .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #94a3b8;
+            margin-bottom: 0.35rem;
+        }
+        .total-panel .amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+        .total-panel .amount small {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-left: 0.25rem;
+        }
+
+        /* ============ EMPTY STATE ============ */
+        .empty-pro {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--ink-400);
+        }
+        .empty-pro i {
+            font-size: 2.5rem;
+            color: var(--ink-200);
+            margin-bottom: 0.85rem;
+            display: block;
+        }
+        .empty-pro .title {
+            font-weight: 600;
+            color: var(--ink-500);
+            font-size: 0.95rem;
+        }
+        .empty-pro .sub {
+            font-size: 0.82rem;
+            color: var(--ink-400);
+        }
+
+        /* ============ SECTION HEADING ============ */
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .section-heading h5 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--ink-900);
+            margin: 0;
+            letter-spacing: -0.2px;
+        }
+        .section-heading h5 i { color: var(--ink-400); margin-right: 0.5rem; font-weight: 400; }
+        .section-heading small { color: var(--ink-500); font-size: 0.82rem; }
+
+        /* ============ RESPONSIVE ============ */
         @media (max-width: 768px) {
-            .nav-tabs .nav-link { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
-            .total-card .amount { font-size: 1.4rem; }
-            .filter-card .row > div { margin-bottom: 0.5rem; }
+            .page-header h1 { font-size: 1.25rem; }
+            .stat-tile .stat-value { font-size: 1.5rem; }
+            .total-panel .amount { font-size: 1.2rem; }
+        }
+
+        /* ============ PRINT ============ */
+        @media print {
+            .navbar-pro, .tabs-pro, .btn-pro, .no-print { display: none !important; }
+            .card-pro { box-shadow: none; border-color: #ddd; }
+            .tab-content > .tab-pane { display: block !important; opacity: 1 !important; }
         }
     </style>
 </head>
 <body>
 
-    {# ============================================
-        NAVBAR
-    ============================================ #}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="#">
-                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Espace Opérationnel</span>
+{# ═══════════════════════════════════════════════
+   NAVBAR
+═══════════════════════════════════════════════ #}
+<nav class="navbar-pro">
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center w-100">
+            {# Brand #}
+            <a href="{{ path('app_dashboard') }}" class="text-decoration-none">
+                <span class="brand">Dispromalt<span class="brand-accent ms-2">/ Comptabilité</span></span>
             </a>
 
-            <div class="d-flex align-items-center">
-                {# === Cloche de notification === #}
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm position-relative rounded-circle p-2" type="button" id="notificationsMenu" data-bs-toggle="dropdown" aria-expanded="false" style="width: 38px; height: 38px;">
+            {# Right side #}
+            <div class="d-flex align-items-center gap-2">
+                {# Historique #}
+                <a href="{{ path('app_historique_reappro') }}" class="btn-ghost-light text-decoration-none d-none d-md-inline-flex align-items-center">
+                    <i class="fas fa-history me-2"></i>Historique
+                </a>
+
+                {# Notifications #}
+                <div class="dropdown">
+                    <button class="notif-btn" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-bell"></i>
-                        {% if reunionsDelegation is defined and reunionsDelegation|length > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                {{ reunionsDelegation|length }}
-                            </span>
+                        {% set totalNotifs = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (nbAlertesStock|default(0)) %}
+                        {% if totalNotifs > 0 %}
+                            <span class="badge-dot">{{ totalNotifs }}</span>
                         {% endif %}
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow p-2" aria-labelledby="notificationsMenu" style="width: 300px;">
-                        <li class="dropdown-header fw-bold text-dark border-bottom pb-2 mb-2">
-                            <i class="fas fa-calendar-alt text-primary me-2"></i>Réunions / Ordres Délégués
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2 mt-2" style="width: 320px;">
+                        <li class="px-2 pb-2 mb-2 border-bottom">
+                            <span class="fw-semibold text-dark small">Notifications</span>
                         </li>
+                        {% if nbAlertesStock|default(0) > 0 %}
+                            <li class="px-2 py-1">
+                                <small class="text-danger fw-semibold" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
+                                    Alertes stock ({{ nbAlertesStock }})
+                                </small>
+                            </li>
+                            {% for art in articlesEnAlerte|slice(0, 4) %}
+                                <li>
+                                    <a class="dropdown-item rounded py-2" href="#alerte-stock-{{ art.id }}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small fw-medium text-dark">{{ art.nom }}</span>
+                                            <span class="tag tag-danger" style="font-size:0.7rem;">{{ art.quantite }}/{{ art.seuilAlerte }}</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
                         {% if reunionsDelegation is defined and reunionsDelegation is not empty %}
+                            <li class="px-2 py-1 mt-2">
+                                <small class="text-muted fw-semibold" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
+                                    Réunions ({{ reunionsDelegation|length }})
+                                </small>
+                            </li>
                             {% for reunion in reunionsDelegation %}
                                 <li>
-                                    <a class="dropdown-item p-2 rounded mb-1 bg-light-subtle" href="#">
-                                        <div class="fw-bold text-dark small">{{ reunion.titre }}</div>
-                                        <div class="text-muted extra-small" style="font-size: 0.75rem;">
+                                    <a class="dropdown-item rounded py-2" href="#">
+                                        <div class="small fw-medium text-dark">{{ reunion.titre }}</div>
+                                        <div class="text-muted" style="font-size:0.72rem;">
                                             <i class="far fa-clock me-1"></i>{{ reunion.date|date('d/m/Y H:i') }}
                                         </div>
                                     </a>
                                 </li>
                             {% endfor %}
-                        {% else %}
-                            <li class="text-center text-muted py-3 small">
-                                <i class="fas fa-check-circle text-success mb-1 d-block"></i>
-                                Aucune notification.
+                        {% endif %}
+                        {% if (nbAlertesStock|default(0) == 0) and (reunionsDelegation is not defined or reunionsDelegation is empty) %}
+                            <li class="text-center text-muted py-4 small">
+                                <i class="fas fa-check-circle mb-2 d-block" style="font-size:1.5rem;color:var(--success);"></i>
+                                Aucune notification
                             </li>
                         {% endif %}
                     </ul>
                 </div>
-                
-            <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-wallet text-success me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+
+                {# Rôle #}
+                <div class="nav-pill d-none d-lg-flex align-items-center">
+                    <span class="text-white-50 me-2" style="font-size:0.75rem;">Rôle</span>
+                    <strong>{{ userRole }}</strong>
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
-                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+
+                {# Logout #}
+                <a href="/logout" class="btn-logout text-decoration-none d-inline-flex align-items-center">
+                    <i class="fas fa-sign-out-alt me-1"></i>
                 </a>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    {# ============================================
-        MAIN CONTAINER
-    ============================================ #}
-    <div class="container-fluid py-4 px-4">
+{# ═══════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════ #}
+<div class="container-fluid px-4" style="max-width: 1600px;">
 
-        {# En-tête #}
-        <div class="mb-4 pb-3 border-bottom">
-            <h1 class="fw-bold text-dark"><i class="fas fa-coins text-success me-2"></i>Espace Financier & Logistique</h1>
-            <p class="text-muted m-0">Accordez les budgets pour les livraisons, planifiez les visites et suivez l'analyse des consommables.</p>
-        </div>
+    {# Page header #}
+    <div class="page-header">
+        <h1>Espace Financier & Logistique</h1>
+        <p>Gestion des engagements budgétaires, alertes de stock et suivi des consommables.</p>
+    </div>
 
-        {# Flash messages #}
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-4" role="alert">
-                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-                </div>
-            {% endfor %}
+    {# Flash messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'danger' ? 'danger' : (label == 'warning' ? 'warning' : 'success') }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert" style="font-size:0.9rem;">
+                <i class="fas {{ label == 'danger' ? 'fa-exclamation-circle' : (label == 'warning' ? 'fa-info-circle' : 'fa-check-circle') }} me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
         {% endfor %}
+    {% endfor %}
 
-        {# Carte récapitulative des demandes en attente #}
-        <div class="row g-3 mb-4">
-            <div class="col-12">
-                <div class="card card-counter bg-white p-4 shadow-sm border-start border-warning border-5">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold mb-1">Demandes logistiques en attente d'engagement</h6>
-                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }} demandes</h3>
-                        </div>
-                        <i class="fas fa-file-invoice-dollar fa-2x text-warning bg-warning bg-opacity-10 p-3 rounded-circle"></i>
-                    </div>
-                </div>
+    {# ═══════════════════════════════════════════════
+       STAT CARDS
+    ═══════════════════════════════════════════════ #}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile is-warning">
+                <div class="stat-label">Demandes en attente</div>
+                <div class="stat-value">{{ stats.demandes_attente }}</div>
+                <div class="stat-hint">Engagement budgétaire requis</div>
             </div>
         </div>
-
-        {# ============================================
-            ONGLETS
-        ============================================ #}
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-            <div class="card-header bg-white p-0 border-bottom">
-                <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2 border-bottom-0" id="comptaTab" role="tablist">
-                    <li class="nav-item">
-                        <button class="nav-link active" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget-pane" type="button" role="tab">
-                            <i class="fas fa-coins text-success"></i>Engagements & Livraisons
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button" role="tab">
-                            <i class="fas fa-calendar-plus text-primary"></i>Réserver une Visite
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
-                            <i class="fas fa-file-invoice-dollar text-warning"></i>Workflow Financier (Devis)
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="inventaire-tab" data-bs-toggle="tab" data-bs-target="#inventaire-pane" type="button" role="tab">
-                            <i class="fas fa-warehouse text-success"></i>État du Stock
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button" role="tab">
-                            <i class="fas fa-chart-line text-danger"></i>Matériels les plus demandés
-                        </button>
-                    </li>
-                    <li class="nav-item ms-auto d-flex align-items-center gap-2 me-2">
-                        <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm fw-bold rounded-pill px-3">
-                            <i class="fas fa-file-pdf me-1"></i> PDF
-                        </a>
-                        <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm fw-bold rounded-pill px-3">
-                            <i class="fas fa-file-excel me-1"></i> Excel
-                        </a>
-                    </li>
-                </ul>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile is-accent">
+                <div class="stat-label">Devis en circulation</div>
+                <div class="stat-value">{{ devisListe|default([])|length }}</div>
+                <div class="stat-hint">Circuit d'approbation</div>
             </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile is-success">
+                <div class="stat-label">Décaissés (USD)</div>
+                <div class="stat-value">{{ totalDevisUSD|default(0)|number_format(0, ',', ' ') }}</div>
+                <div class="stat-hint">Fonds sortis ce cycle</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-tile is-danger">
+                <div class="stat-label">Alertes stock</div>
+                <div class="stat-value">{{ nbAlertesStock|default(0) }}</div>
+                <div class="stat-hint">Articles sous le seuil</div>
+            </div>
+        </div>
+    </div>
 
-            <div class="card-body p-4">
-                <div class="tab-content">
-
-                    {# ==========================================
-                       ONGLET 1 : BUDGET
-                    ========================================== #}
-                    <div class="tab-pane fade show active" id="budget-pane" role="tabpanel">
-                        <div class="table-responsive">
-                            <table class="table table-modern align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Code Demande</th>
-                                        <th>Service Demandeur</th>
-                                        <th>Consommable / Matériel</th>
-                                        <th class="text-center">Quantité</th>
-                                        <th class="text-center">Statut du Flux</th>
-                                        <th class="text-center">Validation Compta</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for d in demandes %}
-                                        <tr class="fade-in-row" style="animation-delay: {{ loop.index * 0.05 }}s;">
-                                            <td class="fw-bold">#DEM-{{ d.id }}</td>
-                                            <td>
-                                                <span class="badge bg-light text-dark border px-3 py-2">{{ d.departement }}</span>
-                                            </td>
-                                            <td class="fw-semibold text-dark">{{ d.materiel }}</td>
-                                            <td class="text-center fw-bold">{{ d.quantite|default('1') }}</td>
-                                            <td class="text-center">
-                                                {% if d.statut == 'En attente' %}
-                                                    <span class="badge badge-statut badge-warning"><i class="fas fa-clock"></i> En attente</span>
-                                                {% elseif d.statut == 'Validé Compta' %}
-                                                    <span class="badge badge-statut badge-primary"><i class="fas fa-thumbs-up"></i> Accordé</span>
-                                                {% elseif d.statut == 'Livré par le Stock' %}
-                                                    <span class="badge badge-statut badge-info"><i class="fas fa-truck"></i> Livré</span>
-                                                {% elseif d.statut == 'Reçu / Clôturé' %}
-                                                    <span class="badge badge-statut badge-success"><i class="fas fa-check-double"></i> Reçu / Confirmé</span>
-                                                {% else %}
-                                                    <span class="badge bg-light text-dark border">{{ d.statut }}</span>
-                                                {% endif %}
-                                            </td>
-                                           <td class="text-center">
-    {% if d.statut == 'En attente' or d.statut == 'Validé Chef' %}
-        <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
-            <button class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                <i class="fas fa-dollar-sign me-1"></i> Accorder
-            </button>
-        </form>
-    {% elseif d.statut == 'Validé Compta' %}
-        <span class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> Validé</span>
-    {% elseif d.statut == 'Livré par le Stock' %}
-        <span class="text-info fw-bold"><i class="fas fa-truck me-1"></i> Livré</span>
-    {% elseif d.statut == 'Sortie effective' %}
-        <span class="text-success fw-bold"><i class="fas fa-check-double me-1"></i> Sortie</span>
-    {% else %}
-        <span class="text-muted"><i class="fas fa-lock me-1"></i> Traité</span>
-    {% endif %}
-</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {# ==========================================
-                       ONGLET 2 : RÉSERVER UNE VISITE
-                    ========================================== #}
-                    <div class="tab-pane fade" id="visite-pane" role="tabpanel">
-                        <div class="row justify-content-center">
-                            <div class="col-lg-8 col-xl-7">
-                                <div class="card border-0 shadow-sm rounded-4 p-4">
-                                    <div class="text-center mb-4">
-                                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-3 mb-2">
-                                            <i class="fas fa-id-card text-primary fa-2x"></i>
-                                        </div>
-                                        <h5 class="fw-bold text-dark">Enregistrer un Visiteur / Partenaire</h5>
-                                        <p class="text-muted small">Planification d’accès pour les auditeurs, clients ou prestataires</p>
+    {# ═══════════════════════════════════════════════
+       ALERTES STOCK
+    ═══════════════════════════════════════════════ #}
+    {% if nbAlertesStock|default(0) > 0 %}
+    <div class="alert-banner" id="alerte-stock-section">
+        <div class="alert-banner-header">
+            <div>
+                <h6><i class="fas fa-exclamation-triangle"></i>Alertes de stock — Action requise</h6>
+                <small>{{ nbAlertesStock }} article(s) nécessitent un réapprovisionnement</small>
+            </div>
+            <span class="count-chip">{{ nbAlertesStock }} à traiter</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-pro mb-0">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th class="text-center">Stock</th>
+                        <th class="text-center">Seuil</th>
+                        <th>Statut réappro</th>
+                        <th style="min-width: 380px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for art in articlesEnAlerte %}
+                        <tr id="alerte-stock-{{ art.id }}">
+                            <td>
+                                <div class="cell-strong">{{ art.nom }}</div>
+                                {% if art.dateSignalementAlerte %}
+                                    <div class="cell-muted mt-1">
+                                        Signalé le {{ art.dateSignalementAlerte|date('d/m/Y à H:i') }}
                                     </div>
-                                    {% if formVisite is not null %}
-                                        {{ form_start(formVisite, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    {{ form_label(formVisite.nomVisiteur, 'Nom & Prénom', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                    {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
-                                                    {{ form_errors(formVisite.nomVisiteur) }}
-                                                </div>
-                                                <div class="col-md-6">
-                                                    {{ form_label(formVisite.departement, 'Département visité', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                    {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production'}}) }}
-                                                    {{ form_errors(formVisite.departement) }}
-                                                </div>
-                                                <div class="col-12">
-                                                    {{ form_label(formVisite.motif, 'Motif de la visite', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                    {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'rows': 2, 'placeholder': 'Raison de la visite'}}) }}
-                                                    {{ form_errors(formVisite.motif) }}
-                                                </div>
-                                                {% if formVisite.telephone is defined %}
-                                                    <div class="col-md-6">
-                                                        {{ form_label(formVisite.telephone, 'Téléphone', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                        {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
-                                                        {{ form_errors(formVisite.telephone) }}
-                                                    </div>
-                                                {% endif %}
-                                                {% if formVisite.email is defined %}
-                                                    <div class="col-md-6">
-                                                        {{ form_label(formVisite.email, 'Email', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                        {{ form_widget(formVisite.email, {'attr': {'class': 'form-control', 'placeholder': 'email@exemple.com'}}) }}
-                                                        {{ form_errors(formVisite.email) }}
-                                                    </div>
-                                                {% endif %}
-                                                {% if formVisite.pieceIdentite is defined %}
-                                                    <div class="col-12">
-                                                        {{ form_label(formVisite.pieceIdentite, 'Pièce d’identité', {'label_attr': {'class': 'form-label fw-semibold small'}}) }}
-                                                        {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control', 'placeholder': 'CIN, Passeport, etc.'}}) }}
-                                                        {{ form_errors(formVisite.pieceIdentite) }}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                            <div class="d-grid gap-2 mt-4">
-                                                <button type="submit" class="btn btn-primary fw-bold py-2 rounded-pill shadow-sm">
-                                                    <i class="fas fa-calendar-check me-2"></i>Confirmer la réservation
-                                                </button>
-                                            </div>
-                                        {{ form_end(formVisite) }}
-                                    {% else %}
-                                        <div class="alert alert-warning text-center mb-0">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n’est pas disponible.
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="tag tag-danger"><span class="dot" style="background:var(--danger);"></span>{{ art.quantite }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="tag tag-warn"><span class="dot" style="background:var(--warn);"></span>{{ art.seuilAlerte }}</span>
+                            </td>
+                            <td>
+                                {% if art.reapprovisionnementEnCours %}
+                                    <span class="tag tag-accent"><i class="fas fa-truck-loading"></i>En cours</span>
+                                    {% if art.dateReapprovisionnement %}
+                                        <div class="cell-muted mt-1">
+                                            Prévu : <strong style="color:var(--ink-700);">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
                                         </div>
                                     {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {# ==========================================
-                       ONGLET 3 : WORKFLOW DEVIS (COMPLET avec conditions is_granted)
-                    ========================================== #}
-                    <div class="tab-pane fade" id="devis-pane" role="tabpanel">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-                            <div>
-                                <h5 class="fw-bold text-dark m-0"><i class="fas fa-receipt text-warning me-2"></i>Circuit d'Approbation Hiérarchique</h5>
-                                <small class="text-muted">Interface unique partagée selon les autorisations spécifiques</small>
-                            </div>
-                            <div class="d-flex gap-2 flex-wrap mt-2 mt-sm-0">
-                                <div class="total-card">
-                                    <div class="label"><i class="fas fa-dollar-sign me-1"></i>Total décaissé</div>
-                                    <div class="amount">{{ totalDevisUSD|number_format(2, ',', ' ') }} USD</div>
-                                </div>
-                                <div class="total-card" style="background: #0d6efd;">
-                                    <div class="label"><i class="fas fa-money-bill-wave me-1"></i>Total décaissé</div>
-                                    <div class="amount" style="color: white;">{{ totalDevisCDF|number_format(0, ',', ' ') }} FC</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# Filtres temporels #}
-                        <div class="filter-card">
-                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
-                                <div class="col-md-3 col-sm-6">
-                                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Date début</label>
-                                    <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
-                                </div>
-                                <div class="col-md-3 col-sm-6">
-                                    <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Date fin</label>
-                                    <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
-                                </div>
-                                <div class="col-md-6 d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary flex-grow-1">
-                                        <i class="fas fa-filter me-1"></i> Filtrer
+                                {% else %}
+                                    <span class="tag tag-neutral"><i class="fas fa-hourglass-start"></i>Non lancé</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form action="{{ path('app_article_reappro', {'id': art.id}) }}" method="POST" class="d-flex gap-2 align-items-center flex-wrap">
+                                    <input type="date"
+                                           name="date_reapprovisionnement"
+                                           class="form-pro"
+                                           style="max-width: 160px;"
+                                           value="{{ art.dateReapprovisionnement ? art.dateReapprovisionnement|date('Y-m-d') : '' }}"
+                                           min="{{ 'now'|date('Y-m-d') }}">
+                                    <select name="reapprovisionnement_en_cours" class="form-pro form-select" style="max-width: 140px;">
+                                        <option value="0" {% if not art.reapprovisionnementEnCours %}selected{% endif %}>Non lancé</option>
+                                        <option value="1" {% if art.reapprovisionnementEnCours %}selected{% endif %}>En cours</option>
+                                    </select>
+                                    <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">
+                                        <i class="fas fa-check"></i>Enregistrer
                                     </button>
-                                    <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary">
-                                        <i class="fas fa-sync-alt"></i>
-                                    </a>
-                                </div>
-                            </form>
-                        </div>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 
-                        <div class="table-responsive">
-                            <table class="table table-modern align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Émetteur</th>
-                                        <th>Libellé / Détail</th>
-                                        <th>Montant Actuel</th>
-                                        <th>Date dépôt</th>
-                                        <th class="text-center">Niveau validation</th>
-                                        <th class="text-center">Action Requise</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for devis in devisListe %}
-                                        <tr class="fade-in-row" style="animation-delay: {{ loop.index * 0.05 }}s;">
-                                            <td><span class="fw-bold text-secondary"><i class="fas fa-user-circle me-1"></i> {{ devis.createdBy }}</span></td>
-                                            <td>
-                                                {% if devis.entete is defined and devis.entete %}
-                                                    <strong class="text-dark d-block">{{ devis.entete }}</strong>
-                                                {% endif %}
-                                                <span class="text-muted small">{{ devis.description|nl2br }}</span>
-                                            </td>
-                                            <td class="fw-bold">
-                                                {% if devis.devise == 'CDF' %}
-                                                    {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-primary small">FC</span>
-                                                {% else %}
-                                                    {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-success">$</span>
-                                                {% endif %}
-                                                {% if devis.montantInitial is defined and devis.montantInitial and devis.montantInitial != devis.montant %}
-                                                    <br><small class="text-decoration-line-through text-muted" style="font-size:0.7rem;">Initial: {{ devis.montantInitial }} {{ devis.devise }}</small>
-                                                {% endif %}
-                                            </td>
-                                            <td><small class="text-muted">{{ devis.createdAt|date('d/m/Y H:i') }}</small></td>
-                                            <td class="text-center">
-                                                {# === AFFICHAGE DES BADGES DE STATUT === #}
-                                                {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
-                                                    <span class="badge badge-statut badge-warning"><i class="fas fa-user-shield"></i> Visé Chef Compta</span>
-                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
-                                                    <span class="badge badge-statut badge-info"><i class="fas fa-gavel"></i> Attente Direction</span>
-                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                    <span class="badge badge-statut badge-primary"><i class="fas fa-money-check-alt"></i> Prêt décaissement</span>
-                                                {% elseif devis.statut == 'DECAISSE' %}
-                                                    <span class="badge badge-statut badge-success"><i class="fas fa-check-double"></i> Décaissé</span>
-                                                {% elseif devis.statut == 'ATTENTE_TRAITEMENT' %}
-                                                    <span class="badge badge-statut bg-secondary text-white"><i class="fas fa-hand-pointer"></i> En attente</span>
-                                                {% else %}
-                                                    <span class="badge bg-light text-dark border">{{ devis.statut }}</span>
-                                                {% endif %}
-                                            </td>
-                                            <td class="text-center" style="min-width: 200px;">
-                                                {# === 0️⃣ AIGUILLAGE PAR LE COMPTABLE === #}
-                                                {% if devis.statut == 'ATTENTE_TRAITEMENT' and is_granted('ROLE_COMPTA') %}
-                                                    <form method="POST" action="{{ path('app_devis_aiguiller', {'id': devis.id}) }}" class="p-2 border rounded bg-light shadow-sm">
-                                                        <select name="choix_procédure" class="form-select form-select-sm mb-2" required>
-                                                            <option value="" disabled selected>Choisir le flux...</option>
-                                                            <option value="circuit_complet">1. Circuit complet (Visas)</option>
-                                                            <option value="bon_caisse">2. Bon de demande (Caisse)</option>
-                                                            <option value="decaisser_direct">3. Décaissement direct</option>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-sm btn-primary w-100 fw-bold">
-                                                            <i class="fas fa-play-circle me-1"></i> Démarrer
-                                                        </button>
-                                                    </form>
+    {# ═══════════════════════════════════════════════
+       TABS PRINCIPAUX
+    ═══════════════════════════════════════════════ #}
+    <div class="card-pro mb-4">
+        <ul class="nav nav-tabs tabs-pro" id="comptaTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" id="budget-tab" data-bs-toggle="tab" data-bs-target="#budget-pane" type="button">
+                    <i class="fas fa-coins"></i>Engagements
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button">
+                    <i class="fas fa-file-invoice-dollar"></i>Workflow devis
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="inventaire-tab" data-bs-toggle="tab" data-bs-target="#inventaire-pane" type="button">
+                    <i class="fas fa-warehouse"></i>Stock
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button">
+                    <i class="fas fa-calendar-plus"></i>Visite
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats-pane" type="button">
+                    <i class="fas fa-chart-line"></i>Statistiques
+                </button>
+            </li>
+            <li class="nav-item ms-auto d-flex align-items-center gap-2 pe-2 no-print">
+                <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn-pro btn-pro-ghost btn-pro-sm">
+                    <i class="fas fa-file-pdf"></i>PDF
+                </a>
+                <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn-pro btn-pro-ghost btn-pro-sm">
+                    <i class="fas fa-file-excel"></i>Excel
+                </a>
+            </li>
+        </ul>
 
-                                                {# === 1️⃣ VISA CHEF COMPTABLE === #}
-                                                {% elseif devis.statut == 'ATTENTE_CHEF_COMPTA' %}
-                                                    {% if is_granted('ROLE_CHEF_COMPTA') %}
-                                                        <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');" class="d-inline">
-                                                            <button class="btn btn-sm btn-warning fw-bold rounded-pill px-3">
-                                                                <i class="fas fa-forward me-1"></i> Transmettre au Dir.
-                                                            </button>
-                                                        </form>
-                                                    {% else %}
-                                                        <span class="text-muted small"><i class="fas fa-hourglass-start me-1"></i> Attente Visa</span>
-                                                    {% endif %}
+        <div class="card-pro-body">
+            <div class="tab-content">
 
-                                                {# === 2️⃣ VALIDATION DIRECTEUR === #}
-                                                {% elseif devis.statut == 'ATTENTE_DIR' %}
-                                                    {% if is_granted('ROLE_DIRECTEUR') %}
-                                                        <form method="POST" action="{{ path('app_devis_valider_directeur', {'id': devis.id}) }}" class="p-1 border rounded bg-white">
-                                                            <div class="input-group input-group-sm">
-                                                                <input type="number" step="0.01" name="nouveau_montant" class="form-control fw-bold text-primary" value="{{ devis.montant }}" required style="max-width: 90px;">
-                                                                <span class="input-group-text bg-light small fw-bold">{{ devis.devise }}</span>
-                                                                <button type="submit" class="btn btn-primary btn-sm fw-bold px-2">
-                                                                    <i class="fas fa-check"></i> Fixer
-                                                                </button>
-                                                            </div>
-                                                        </form>
-                                                    {% else %}
-                                                        <span class="text-muted small"><i class="fas fa-user-clock me-1"></i> Arbitrage Direction</span>
-                                                    {% endif %}
-
-                                                {# === 3️⃣ DÉCAISSEMENT CAISSE === #}
-                                                {% elseif devis.statut == 'ATTENTE_CAISSE' %}
-                                                    <form method="POST" action="{{ path('app_devis_decaisser', {'id': devis.id}) }}" onsubmit="return confirm('Confirmez-vous la sortie physique des fonds ?');" class="d-inline">
-                                                        <button class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                            <i class="fas fa-cash-register me-1"></i> Sortir les Fonds
-                                                        </button>
-                                                    </form>
-
-                                                {# === 4️⃣ ARCHIVAGE === #}
-                                                {% else %}
-                                                    <span class="text-success small fw-bold"><i class="fas fa-lock me-1"></i> Fonds décaissés</span>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="6" class="text-center py-5 text-muted">Aucun devis enregistré pour cette période.</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                {# ═══════════════════════════════════════
+                   ONGLET 1 : ENGAGEMENTS
+                ═══════════════════════════════════════ #}
+                <div class="tab-pane fade show active" id="budget-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-list-check"></i>Demandes à engager</h5>
+                            <small>Validez budgétairement les demandes logistiques</small>
                         </div>
                     </div>
 
-                    {# ==========================================
-                       ONGLET 4 : INVENTAIRE
-                    ========================================== #}
-                    <div class="tab-pane fade" id="inventaire-pane" role="tabpanel">
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold text-secondary m-0"><i class="fas fa-warehouse text-success me-2"></i>État Actuel du Stock</h5>
-                            <div>
-                                <button class="btn btn-outline-primary btn-sm me-1" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
-                                <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exporter</button>
+                    <div class="table-responsive">
+                        <table class="table table-pro">
+                            <thead>
+                                <tr>
+                                    <th>Réf.</th>
+                                    <th>Service</th>
+                                    <th>Article</th>
+                                    <th class="text-center">Qté</th>
+                                    <th>Statut</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in demandes %}
+                                    <tr>
+                                        <td class="cell-strong">#DEM-{{ d.id }}</td>
+                                        <td><span class="tag tag-neutral">{{ d.departement }}</span></td>
+                                        <td class="cell-strong">{{ d.materiel }}</td>
+                                        <td class="text-center cell-strong">{{ d.quantite|default(1) }}</td>
+                                        <td>
+                                            {% if d.statut == 'En attente' %}
+                                                <span class="tag tag-warn"><i class="fas fa-clock"></i>En attente</span>
+                                            {% elseif d.statut == 'Validé Chef' %}
+                                                <span class="tag tag-accent"><i class="fas fa-user-check"></i>Validé chef</span>
+                                            {% elseif d.statut == 'Validé Compta' %}
+                                                <span class="tag tag-accent"><i class="fas fa-thumbs-up"></i>Accordé</span>
+                                            {% elseif d.statut == 'Livré par le Stock' %}
+                                                <span class="tag tag-success"><i class="fas fa-truck"></i>Livré</span>
+                                            {% elseif d.statut == 'Reçu / Clôturé' %}
+                                                <span class="tag tag-success"><i class="fas fa-check-double"></i>Clôturé</span>
+                                            {% else %}
+                                                <span class="tag tag-neutral">{{ d.statut }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            {% if d.statut == 'En attente' or d.statut == 'Validé Chef' %}
+                                                <form action="{{ path('app_demande_compta_valider', {'id': d.id}) }}" method="POST" class="d-inline">
+                                                    <button class="btn-pro btn-pro-primary btn-pro-sm">
+                                                        <i class="fas fa-check"></i>Accorder
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="cell-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="empty-pro">
+                                                <i class="fas fa-inbox"></i>
+                                                <div class="title">Aucune demande à traiter</div>
+                                                <div class="sub">Les nouvelles demandes apparaîtront ici</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {# ═══════════════════════════════════════
+                   ONGLET 2 : WORKFLOW DEVIS
+                ═══════════════════════════════════════ #}
+                <div class="tab-pane fade" id="devis-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-receipt"></i>Circuit d'approbation</h5>
+                            <small>Suivi des devis et validations hiérarchiques</small>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div class="total-panel">
+                                <div class="label">Total USD</div>
+                                <div class="amount">{{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}<small>USD</small></div>
+                            </div>
+                            <div class="total-panel" style="background: var(--ink-800);">
+                                <div class="label">Total CDF</div>
+                                <div class="amount">{{ totalDevisCDF|default(0)|number_format(0, ',', ' ') }}<small>FC</small></div>
                             </div>
                         </div>
+                    </div>
 
-                        {# Filtres par catégorie et sous-catégorie #}
-                        <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
-                            <select name="category" class="form-select w-auto" onchange="this.form.submit()">
-                                <option value="">Toutes catégories</option>
-                                {% for cat in categories %}
-                                    <option value="{{ cat.id }}" {% if app.request.get('category') == cat.id %}selected{% endif %}>{{ cat.nom }}</option>
+                    {# Filtres #}
+                    <form method="GET" action="{{ path('app_dashboard') }}" class="row g-2 align-items-end mb-4 p-3" style="background:var(--ink-50);border:1px solid var(--ink-200);border-radius:10px;">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Du</label>
+                            <input type="date" name="date_debut" class="form-pro w-100" value="{{ date_debut }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold text-secondary mb-1">Au</label>
+                            <input type="date" name="date_fin" class="form-pro w-100" value="{{ date_fin }}">
+                        </div>
+                        <div class="col-md-4 d-flex gap-2">
+                            <button type="submit" class="btn-pro btn-pro-primary flex-grow-1 justify-content-center">
+                                <i class="fas fa-filter"></i>Filtrer
+                            </button>
+                            <a href="{{ path('app_dashboard') }}" class="btn-pro btn-pro-ghost">
+                                <i class="fas fa-rotate"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-pro">
+                            <thead>
+                                <tr>
+                                    <th>Émetteur</th>
+                                    <th>Détail</th>
+                                    <th>Montant</th>
+                                    <th>Date</th>
+                                    <th>Étape</th>
+                                    <th class="text-end" style="min-width: 220px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for devis in devisListe %}
+                                    <tr>
+                                        <td class="cell-strong">{{ devis.createdBy }}</td>
+                                        <td>
+                                            {% if devis.entete is defined and devis.entete %}
+                                                <div class="cell-strong">{{ devis.entete }}</div>
+                                            {% endif %}
+                                            <span class="cell-muted">{{ devis.description|nl2br }}</span>
+                                        </td>
+                                        <td class="cell-strong">
+                                            {% if devis.devise == 'CDF' %}
+                                                {{ devis.montant|number_format(0, ',', ' ') }} <span class="text-muted small">FC</span>
+                                            {% else %}
+                                                {{ devis.montant|number_format(2, ',', ' ') }} <span class="text-muted small">$</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="cell-muted">{{ devis.createdAt|date('d/m/Y') }}</td>
+                                        <td>
+                                            {% if devis.statut == 'ATTENTE_CHEF_COMPTA' %}
+                                                <span class="tag tag-warn"><i class="fas fa-user-shield"></i>Chef compta</span>
+                                            {% elseif devis.statut == 'ATTENTE_DIR' %}
+                                                <span class="tag tag-accent"><i class="fas fa-gavel"></i>Direction</span>
+                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                <span class="tag tag-accent"><i class="fas fa-money-check-alt"></i>Caisse</span>
+                                            {% elseif devis.statut == 'DECAISSE' %}
+                                                <span class="tag tag-success"><i class="fas fa-check-double"></i>Décaissé</span>
+                                            {% elseif devis.statut == 'ATTENTE_TRAITEMENT' %}
+                                                <span class="tag tag-neutral"><i class="fas fa-hand-pointer"></i>À traiter</span>
+                                            {% else %}
+                                                <span class="tag tag-neutral">{{ devis.statut }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <td class="text-end">
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               1️⃣ COMPTABLE aiguille (ATTENTE_COMPTA) → choix du flux
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% if devis.statut == 'ATTENTE_COMPTA' and is_granted('ROLE_COMPTA') %}
+                                                <form method="POST" action="{{ path('app_devis_aiguiller', {'id': devis.id}) }}" class="d-flex gap-2 justify-content-end">
+                                                    <select name="choix_procedure" class="form-pro form-select form-select-sm" style="max-width: 200px;" required>
+                                                        <option value="" disabled selected>Choisir un flux…</option>
+                                                        <option value="circuit_complet">1️⃣ Circuit complet</option>
+                                                        <option value="bon_caisse">2️⃣ Bon de caisse</option>
+                                                        <option value="decaisser_direct">3️⃣ Décaissement direct</option>
+                                                    </select>
+                                                    <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">
+                                                        <i class="fas fa-play"></i>Démarrer
+                                                    </button>
+                                                </form>
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               2️⃣ CHEF COMPTABLE vise → DG
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and is_granted('ROLE_COMPTA') %}
+                                                <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" class="d-inline"
+                                                      onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');">
+                                                    <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">
+                                                        <i class="fas fa-forward"></i>Transmettre au Dir.
+                                                    </button>
+                                                </form>
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               3️⃣ DG fixe le montant → retourne au COMPTABLE
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% elseif devis.statut == 'ATTENTE_DIR' and is_granted('ROLE_DG') %}
+                                                <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}" class="d-flex gap-2 justify-content-end">
+                                                    <input type="number" step="0.01" name="nouveau_montant" class="form-pro"
+                                                           style="max-width:100px;" value="{{ devis.montant }}" required>
+                                                    <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">
+                                                        <i class="fas fa-check"></i>Fixer
+                                                    </button>
+                                                </form>
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               4️⃣ RETOUR DU DG → LE COMPTABLE DÉCAISSE LUI-MÊME (cas 1)
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' and is_granted('ROLE_COMPTA') %}
+                                                <form method="POST" action="{{ path('app_devis_compta_decaisser', {'id': devis.id}) }}" class="d-inline"
+                                                      onsubmit="return confirm('Confirmer le décaissement de ce devis ?');">
+                                                    <button type="submit" class="btn-pro btn-pro-success btn-pro-sm">
+                                                        <i class="fas fa-hand-holding-usd"></i>Décaisser
+                                                    </button>
+                                                </form>
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               5️⃣ CAS 2 : En attente de la CAISSE — lecture seule côté Compta
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}
+                                                <span class="tag tag-neutral">
+                                                    <i class="fas fa-hourglass-half"></i>En attente Caisse
+                                                </span>
+
+                                            {# ═══════════════════════════════════════════════════════════
+                                               6️⃣ DÉCAISSÉ (final)
+                                            ═══════════════════════════════════════════════════════════ #}
+                                            {% elseif devis.statut == 'DECAISSE' %}
+                                                <span class="tag tag-success">
+                                                    <i class="fas fa-check-double"></i>Décaissé
+                                                    {% if devis.decaissePar %}
+                                                        <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">par {{ devis.decaissePar.userIdentifier|split('@')|first }}</span>
+                                                    {% endif %}
+                                                </span>
+
+                                            {% else %}
+                                                <span class="cell-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="empty-pro">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                                <div class="title">Aucun devis sur cette période</div>
+                                                <div class="sub">Modifiez les filtres pour élargir la recherche</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+               
+                <div class="tab-pane fade" id="inventaire-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-warehouse"></i>État du stock</h5>
+                            <small>Inventaire temps réel des articles</small>
+                        </div>
+                        <div class="d-flex gap-2 no-print">
+                            <button onclick="window.print()" class="btn-pro btn-pro-ghost btn-pro-sm">
+                                <i class="fas fa-print"></i>Imprimer
+                            </button>
+                            <button onclick="exportToExcel()" class="btn-pro btn-pro-ghost btn-pro-sm">
+                                <i class="fas fa-file-excel"></i>Exporter
+                            </button>
+                        </div>
+                    </div>
+
+                    {# Filtres #}
+                    <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
+                        <select name="category" class="form-pro form-select" style="max-width:220px;" onchange="this.form.submit()">
+                            <option value="">Toutes les catégories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.id }}" {% if app.request.get('category') == cat.id %}selected{% endif %}>{{ cat.nom }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if subCategories is not empty %}
+                            <select name="subCategory" class="form-pro form-select" style="max-width:220px;" onchange="this.form.submit()">
+                                <option value="">Toutes sous-catégories</option>
+                                {% for subCat in subCategories %}
+                                    <option value="{{ subCat.id }}" {% if app.request.get('subCategory') == subCat.id %}selected{% endif %}>{{ subCat.nom }}</option>
                                 {% endfor %}
                             </select>
-                            {% if subCategories is not empty %}
-                                <select name="subCategory" class="form-select w-auto" onchange="this.form.submit()">
-                                    <option value="">Toutes sous-cat.</option>
-                                    {% for subCat in subCategories %}
-                                        <option value="{{ subCat.id }}" {% if app.request.get('subCategory') == subCat.id %}selected{% endif %}>{{ subCat.nom }}</option>
-                                    {% endfor %}
-                                </select>
-                            {% endif %}
-                        </form>
-
-                        {% set activeSubCatName = selectedSubCategory ? selectedSubCategory.nom|lower : '' %}
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead>
-                                    <tr>
-                                        <th>Article</th><th>Couleur</th>
-                                        {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
-                                            <th>Litrage</th><th>Grammage</th><th>Machine</th>
-                                        {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
-                                            <th>Laize</th><th>Longueur</th><th>Grammage</th>
-                                        {% else %}
-                                            <th>Grammage</th><th>Longueur</th><th>Dimensions</th><th>Machine</th>
-                                        {% endif %}
-                                        <th>Qté</th><th>Statut</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for attr in attributs %}
-                                    <tr>
-                                        <td><strong>{{ attr.article.nom }}</strong></td>
-                                        <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
-                                        {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
-                                            <td>{{ attr.longueur ?: '-' }}</td>
-                                            <td>{{ attr.grammage ?: '-' }}</td>
-                                            <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-                                        {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
-                                            <td>{{ attr.dimension ?: '-' }}</td>
-                                            <td>{{ attr.longueur ?: '-' }}</td>
-                                            <td>{{ attr.grammage ?: '-' }}</td>
-                                        {% else %}
-                                            <td>{{ attr.grammage ?: '-' }}</td>
-                                            <td>{{ attr.longueur ?: '-' }}</td>
-                                            <td>{{ attr.dimension ?: '-' }}</td>
-                                            <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-                                        {% endif %}
-                                        <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
-                                        <td>{% if attr.article.quantite <= attr.article.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
-                                    </tr>
-                                    {% else %}
-                                    <tr><td colspan="10" class="text-center text-muted py-4">Aucun article trouvé.</td></tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {# Formulaire d'ajout de stock – réservé au rôle STOCK #}
-                        {% if formStock is defined and formStock is not null %}
-                            <div class="mt-4 p-4 border rounded-4 bg-light">
-                                <h6 class="fw-bold text-secondary"><i class="fas fa-plus-circle me-2"></i>Ajouter un nouvel article</h6>
-                                {{ form_start(formStock) }}
-                                    {{ form_widget(formStock) }}
-                                    <div class="text-center mb-3">
-                                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" id="show-attributs-btn">
-                                            <i class="fas fa-cog me-2"></i> Ajouter des caractéristiques techniques
-                                        </button>
-                                        <small class="d-block text-muted mt-1">(Optionnel - pour les articles avec des spécificités)</small>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill shadow-sm mt-2">
-                                        <i class="fas fa-save me-2"></i> Enregistrer dans le stock
-                                    </button>
-                                {{ form_end(formStock) }}
-                            </div>
                         {% endif %}
+                    </form>
+
+                    {% set activeSubCatName = selectedSubCategory ? selectedSubCategory.nom|lower : '' %}
+                    <div class="table-responsive">
+                        <table class="table table-pro">
+                            <thead>
+                                <tr>
+                                    <th>Article</th>
+                                    <th>Couleur</th>
+                                    {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                        <th>Litrage</th><th>Grammage</th><th>Machine</th>
+                                    {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                        <th>Laize</th><th>Longueur</th><th>Grammage</th>
+                                    {% else %}
+                                        <th>Grammage</th><th>Longueur</th><th>Dims.</th><th>Machine</th>
+                                    {% endif %}
+                                    <th class="text-center">Qté</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for attr in attributs %}
+                                <tr>
+                                    <td class="cell-strong">{{ attr.article.nom }}</td>
+                                    <td>{% if attr.couleur %}<span class="tag tag-neutral">{{ attr.couleur }}</span>{% else %}<span class="cell-muted">—</span>{% endif %}</td>
+                                    {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                        <td>{{ attr.longueur ?: '—' }}</td>
+                                        <td>{{ attr.grammage ?: '—' }}</td>
+                                        <td>{{ attr.article.machine ? attr.article.machine.nom : '—' }}</td>
+                                    {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                        <td>{{ attr.dimension ?: '—' }}</td>
+                                        <td>{{ attr.longueur ?: '—' }}</td>
+                                        <td>{{ attr.grammage ?: '—' }}</td>
+                                    {% else %}
+                                        <td>{{ attr.grammage ?: '—' }}</td>
+                                        <td>{{ attr.longueur ?: '—' }}</td>
+                                        <td>{{ attr.dimension ?: '—' }}</td>
+                                        <td>{{ attr.article.machine ? attr.article.machine.nom : '—' }}</td>
+                                    {% endif %}
+                                    <td class="text-center cell-strong">{{ attr.article.quantite }}</td>
+                                    <td>
+                                        {% if attr.article.quantite <= attr.article.seuilAlerte %}
+                                            <span class="tag tag-warn"><span class="dot" style="background:var(--warn);"></span>Bas</span>
+                                        {% else %}
+                                            <span class="tag tag-success"><span class="dot" style="background:var(--success);"></span>Correct</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="10">
+                                        <div class="empty-pro">
+                                            <i class="fas fa-box-open"></i>
+                                            <div class="title">Aucun article trouvé</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
-                    {# ==========================================
-                       ONGLET 5 : STATISTIQUES (TOP MATÉRIELS)
-                    ========================================== #}
-                    <div class="tab-pane fade" id="stats-pane" role="tabpanel">
-                        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-danger me-2"></i>Analyse de la Consommation</h5>
-                        <p class="text-muted mb-4">Classement des articles les plus sollicités par l'ensemble des départements de l'imprimerie.</p>
+                    {# Formulaire ajout article #}
+                    {% if formStock is defined and formStock is not null %}
+                        <div class="mt-4 p-4" style="background:var(--ink-50);border:1px solid var(--ink-200);border-radius:var(--radius);">
+                            <h6 class="fw-semibold mb-3" style="font-size:0.9rem;color:var(--ink-900);">
+                                <i class="fas fa-plus-circle me-2" style="color:var(--accent);"></i>Ajouter un article
+                            </h6>
+                            {{ form_start(formStock) }}
+                                {{ form_widget(formStock) }}
+                                <div class="text-center my-3">
+                                    <button type="button" class="btn-pro btn-pro-ghost" id="show-attributs-btn">
+                                        <i class="fas fa-cog"></i>Caractéristiques techniques
+                                    </button>
+                                </div>
+                                <button type="submit" class="btn-pro btn-pro-primary w-100 justify-content-center py-2">
+                                    <i class="fas fa-save"></i>Enregistrer
+                                </button>
+                            {{ form_end(formStock) }}
+                        </div>
+                    {% endif %}
+                </div>
 
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                                    <div class="table-responsive">
-                                        <table class="table table-modern align-middle m-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Rang</th>
-                                                    <th>Désignation du Matériel</th>
-                                                    <th class="text-center">Occurrences</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% set counts = {} %}
-                                                {% for d in demandes %}
-                                                    {% set counts = counts|merge({ (d.materiel): (counts[d.materiel]|default(0) + 1) }) %}
-                                                {% endfor %}
-                                                {% set rank = 1 %}
-                                                {% for mat, count in counts|sort|reverse %}
-                                                    {% if rank <= 5 %}
-                                                        <tr>
-                                                            <td class="fw-bold text-muted">#{{ rank }}</td>
-                                                            <td class="fw-semibold"><i class="fas fa-box text-secondary me-2"></i>{{ mat }}</td>
-                                                            <td class="text-center"><span class="badge bg-danger bg-opacity-10 text-danger fw-bold px-3 py-2 rounded-pill">{{ count }}</span></td>
-                                                        </tr>
-                                                    {% endif %}
-                                                    {% set rank = rank + 1 %}
-                                                {% else %}
-                                                    <tr>
-                                                        <td colspan="3" class="text-center py-5 text-muted">Données insuffisantes pour établir des statistiques.</td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card h-100 p-4 bg-white border shadow-sm rounded-4 d-flex flex-column justify-content-center align-items-center text-center">
-                                    <i class="fas fa-info-circle text-primary fa-3x mb-3"></i>
-                                    <h6 class="fw-bold">Indicateur de flux direct</h6>
-                                    <p class="text-muted small px-3">Ces calculs dynamiques permettent au service comptable de prévoir les futures lignes budgétaires à accorder en priorité pour éviter les ruptures critiques de stock au dépôt.</p>
-                                </div>
-                            </div>
+                {# ═══════════════════════════════════════
+                   ONGLET 4 : VISITE
+                ═══════════════════════════════════════ #}
+                <div class="tab-pane fade" id="visite-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-calendar-plus"></i>Enregistrer une visite</h5>
+                            <small>Planification d'accès pour visiteurs et partenaires</small>
                         </div>
                     </div>
 
-                </div> {# fin tab-content #}
-            </div> {# fin card-body #}
-        </div> {# fin card #}
+                    {% if formVisite is not null %}
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                {{ form_start(formVisite, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            {{ form_label(formVisite.nomVisiteur, 'Nom & prénom', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                            {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-pro w-100', 'placeholder': 'Ex: Jean Dupont'}}) }}
+                                            {{ form_errors(formVisite.nomVisiteur) }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            {{ form_label(formVisite.departement, 'Département', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                            {{ form_widget(formVisite.departement, {'attr': {'class': 'form-pro w-100', 'placeholder': 'Ex: Production'}}) }}
+                                            {{ form_errors(formVisite.departement) }}
+                                        </div>
+                                        <div class="col-12">
+                                            {{ form_label(formVisite.motif, 'Motif', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                            {{ form_widget(formVisite.motif, {'attr': {'class': 'form-pro w-100', 'rows': 3, 'placeholder': 'Raison de la visite'}}) }}
+                                            {{ form_errors(formVisite.motif) }}
+                                        </div>
+                                        {% if formVisite.telephone is defined %}
+                                            <div class="col-md-6">
+                                                {{ form_label(formVisite.telephone, 'Téléphone', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                                {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-pro w-100'}}) }}
+                                            </div>
+                                        {% endif %}
+                                        {% if formVisite.email is defined %}
+                                            <div class="col-md-6">
+                                                {{ form_label(formVisite.email, 'Email', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                                {{ form_widget(formVisite.email, {'attr': {'class': 'form-pro w-100'}}) }}
+                                            </div>
+                                        {% endif %}
+                                        {% if formVisite.pieceIdentite is defined %}
+                                            <div class="col-12">
+                                                {{ form_label(formVisite.pieceIdentite, 'Pièce d\'identité', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                                {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-pro w-100'}}) }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <button type="submit" class="btn-pro btn-pro-primary w-100 justify-content-center py-2 mt-4">
+                                        <i class="fas fa-calendar-check"></i>Confirmer la réservation
+                                    </button>
+                                {{ form_end(formVisite) }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="empty-pro">
+                            <i class="fas fa-calendar-times"></i>
+                            <div class="title">Formulaire indisponible</div>
+                            <div class="sub">Le formulaire de visite n'est pas accessible</div>
+                        </div>
+                    {% endif %}
+                </div>
 
-    </div> {# fin container #}
+                {# ═══════════════════════════════════════
+                   ONGLET 5 : STATISTIQUES
+                ═══════════════════════════════════════ #}
+                <div class="tab-pane fade" id="stats-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-chart-line"></i>Analyse de consommation</h5>
+                            <small>Articles les plus sollicités par les services</small>
+                        </div>
+                    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Auto‑dismiss des alertes flash
-            const alerts = document.querySelectorAll('.alert-dismissible');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                }, 5000);
-            });
+                    <div class="row g-4">
+                        <div class="col-md-7">
+                            <div class="table-responsive">
+                                <table class="table table-pro">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:60px;">Rang</th>
+                                            <th>Article</th>
+                                            <th class="text-center" style="width:120px;">Occurrences</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% set counts = {} %}
+                                        {% for d in demandes %}
+                                            {% set counts = counts|merge({ (d.materiel): (counts[d.materiel]|default(0) + 1) }) %}
+                                        {% endfor %}
+                                        {% set rank = 1 %}
+                                        {% for mat, count in counts|sort|reverse %}
+                                            {% if rank <= 5 %}
+                                                <tr>
+                                                    <td class="cell-strong text-muted">#{{ rank }}</td>
+                                                    <td class="cell-strong">{{ mat }}</td>
+                                                    <td class="text-center">
+                                                        <span class="tag tag-accent">{{ count }}</span>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                            {% set rank = rank + 1 %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="3">
+                                                    <div class="empty-pro">
+                                                        <i class="fas fa-chart-simple"></i>
+                                                        <div class="title">Données insuffisantes</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="p-4 h-100 d-flex flex-column justify-content-center" style="background:var(--ink-50);border:1px solid var(--ink-200);border-radius:var(--radius);">
+                                <i class="fas fa-lightbulb mb-3" style="font-size:1.75rem;color:var(--accent);"></i>
+                                <h6 class="fw-semibold mb-2" style="font-size:0.9rem;color:var(--ink-900);">Indicateur de flux</h6>
+                                <p class="text-muted small mb-0" style="line-height:1.6;">
+                                    Ces statistiques permettent de prévoir les futures lignes budgétaires à accorder en priorité, afin d'éviter les ruptures critiques de stock au dépôt.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            // Persistance de l'onglet devis après filtrage
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('date_debut') || urlParams.has('date_fin')) {
-                const devisTab = document.querySelector('#devis-tab');
-                if (devisTab) {
-                    bootstrap.Tab.getOrCreateInstance(devisTab).show();
-                }
-            }
+            </div> {# fin tab-content #}
+        </div> {# fin card-pro-body #}
+    </div> {# fin card-pro #}
 
-            // Bouton pour afficher les caractéristiques techniques (optionnel)
-            const btn = document.getElementById('show-attributs-btn');
-            if (btn) {
-                btn.addEventListener('click', function() {
-                    const attributsRow = document.querySelector('.attributs-row');
-                    if (attributsRow) {
-                        attributsRow.style.display = attributsRow.style.display === 'none' ? 'block' : 'none';
-                    }
-                });
-            }
+    {# Footer #}
+    <div class="text-center py-4" style="color:var(--ink-400);font-size:0.8rem;">
+        Dispromalt — Espace Comptabilité &copy; {{ 'now'|date('Y') }}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Auto-dismiss des alertes flash
+        document.querySelectorAll('.alert-dismissible').forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 400);
+            }, 5000);
         });
-    </script>
+
+        // Persistance onglet devis après filtrage
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('date_debut') || urlParams.has('date_fin')) {
+            const devisTab = document.querySelector('#devis-tab');
+            if (devisTab) bootstrap.Tab.getOrCreateInstance(devisTab).show();
+        }
+
+        // Bouton attributs
+        const btn = document.getElementById('show-attributs-btn');
+        if (btn) {
+            btn.addEventListener('click', function () {
+                const row = document.querySelector('.attributs-row');
+                if (row) row.style.display = row.style.display === 'none' ? 'block' : 'none';
+            });
+        }
+    });
+</script>
 </body>
 </html>

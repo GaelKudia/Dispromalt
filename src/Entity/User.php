@@ -190,4 +190,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
         return $this;
     }
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+private bool $isChefComptable = false;
+
+public function isChefComptable(): bool { return $this->isChefComptable; }
+
+public function setIsChefComptable(bool $isChefComptable): static {
+    $this->isChefComptable = $isChefComptable;
+    return $this;
+}
 }

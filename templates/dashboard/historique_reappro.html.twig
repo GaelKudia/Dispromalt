@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Historique des Réapprovisionnements - Dispromalt</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        .navbar-brand span.text-primary { color: #0d6efd !important; }
+        .card-modern {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .table-modern thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #495057;
+            padding: 1rem 0.75rem;
+            white-space: nowrap;
+        }
+        .table-modern tbody td {
+            vertical-align: middle;
+            padding: 0.85rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        .table-modern tbody tr {
+            transition: background 0.15s ease;
+        }
+        .table-modern tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.03);
+        }
+        .badge-action {
+            font-weight: 600;
+            padding: 0.4rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+        }
+        .badge-action i { margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    {# NAVBAR #}
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold fs-4" href="{{ path('app_dashboard') }}">
+                Dispro<span class="text-primary">malt</span>
+                <span class="fw-light fs-5 text-muted">| Historique Réappro</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="{{ path('app_dashboard') }}" class="btn btn-primary btn-sm fw-bold px-3 rounded-pill">
+                    <i class="fas fa-arrow-left me-1"></i> Retour au tableau de bord
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    {# MAIN #}
+    <div class="container-fluid py-4 px-4">
+
+        {# En-tête #}
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h1 class="fw-bold text-dark mb-1" style="font-size: 1.8rem;">
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Historique des Réapprovisionnements
+                </h1>
+                <p class="text-muted m-0">
+                    Traçabilité complète des alertes stock et actions de réapprovisionnement.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">
+                    <i class="fas fa-list me-1"></i> {{ historique|length }} événement(s)
+                </span>
+                <button onclick="window.print()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="fas fa-print me-1"></i> Imprimer
+                </button>
+            </div>
+        </div>
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-4" role="alert">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Carte principale #}
+        <div class="card card-modern">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover m-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-3">Date</th>
+                                <th>Article</th>
+                                <th>Action</th>
+                                <th class="text-center">Stock / Seuil</th>
+                                <th>Ancienne date</th>
+                                <th>Nouvelle date</th>
+                                <th>Effectué par</th>
+                                <th>Commentaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in historique %}
+                                <tr>
+                                    <td class="ps-3 text-muted small font-monospace">
+                                        {{ h.dateAction ? h.dateAction|date('d/m/Y H:i') : '—' }}
+                                    </td>
+                                    <td class="fw-bold text-dark">
+                                        <i class="fas fa-box text-secondary me-2"></i>
+                                        {{ h.article ? h.article.nom : '—' }}
+                                    </td>
+                                    <td>
+                                        {% if h.typeAction == 'ALERTE_DECLENCHEE' %}
+                                            <span class="badge-action bg-danger bg-opacity-10 text-danger">
+                                                <i class="fas fa-exclamation-triangle"></i> Alerte déclenchée
+                                            </span>
+                                        {% elseif h.typeAction == 'ALERTE_LEVEE' %}
+                                            <span class="badge-action bg-success bg-opacity-10 text-success">
+                                                <i class="fas fa-check"></i> Alerte levée
+                                            </span>
+                                        {% elseif h.typeAction == 'DATE_MODIFIEE' %}
+                                            <span class="badge-action bg-info bg-opacity-10 text-info">
+                                                <i class="fas fa-calendar-edit"></i> Date modifiée
+                                            </span>
+                                        {% elseif h.typeAction == 'REAPPRO_LANCE' %}
+                                            <span class="badge-action bg-primary bg-opacity-10 text-primary">
+                                                <i class="fas fa-truck-loading"></i> Réappro lancé
+                                            </span>
+                                        {% elseif h.typeAction == 'REAPPRO_TERMINE' %}
+                                            <span class="badge-action bg-success bg-opacity-10 text-success">
+                                                <i class="fas fa-check-double"></i> Réappro terminé
+                                            </span>
+                                        {% else %}
+                                            <span class="badge-action bg-secondary bg-opacity-10 text-secondary">
+                                                {{ h.typeAction }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-light text-dark border">
+                                            {{ h.quantiteAuMoment }} / {{ h.seuilAuMoment }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small">
+                                        {{ h.ancienneDateReappro ? h.ancienneDateReappro|date('d/m/Y') : '—' }}
+                                    </td>
+                                    <td class="text-primary small fw-bold">
+                                        {{ h.nouvelleDateReappro ? h.nouvelleDateReappro|date('d/m/Y') : '—' }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border">
+                                            <i class="fas fa-user me-1"></i>
+                                            {{ h.effectuePar ? h.effectuePar.userIdentifier : 'Système' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-muted small" style="max-width: 300px;">
+                                        {{ h.commentaire|default('—') }}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8">
+                                        <div class="text-center py-5">
+                                            <i class="fas fa-inbox fa-3x text-muted mb-3 d-block" style="opacity: 0.4;"></i>
+                                            <h5 class="fw-bold text-muted">Aucun historique disponible</h5>
+                                            <p class="text-muted small mb-0">
+                                                Les alertes de stock et actions de réappro apparaîtront ici.
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {# Légende #}
+        <div class="card card-modern mt-4">
+            <div class="card-body p-3">
+                <h6 class="fw-bold text-secondary mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Légende des actions
+                </h6>
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <span class="badge-action bg-danger bg-opacity-10 text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Alerte déclenchée
+                        </span>
+                        <small class="d-block text-muted mt-1">Le stock est passé sous le seuil</small>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge-action bg-success bg-opacity-10 text-success">
+                            <i class="fas fa-check"></i> Alerte levée
+                        </span>
+                        <small class="d-block text-muted mt-1">Le stock est remonté au-dessus</small>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge-action bg-primary bg-opacity-10 text-primary">
+                            <i class="fas fa-truck-loading"></i> Réappro lancé
+                        </span>
+                        <small class="d-block text-muted mt-1">Le comptable a initié le réappro</small>
+                    </div>
+                    <div class="col-md-3">
+                        <span class="badge-action bg-info bg-opacity-10 text-info">
+                            <i class="fas fa-calendar-edit"></i> Date modifiée
+                        </span>
+                        <small class="d-block text-muted mt-1">Date prévisionnelle changée</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center text-muted small mt-4 py-3">
+            <i class="fas fa-shield-alt me-1"></i>
+            Console de supervision — Dispromalt {{ 'now'|date('Y') }}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

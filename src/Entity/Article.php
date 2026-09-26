@@ -87,4 +87,68 @@ class Article
         }
         return $this;
     }
+
+
+    // Ajoutez ces propriétés dans la classe Article
+
+#[ORM\Column(type: 'boolean', options: ['default' => false])]
+private bool $alerteDeclenchee = false;
+
+#[ORM\Column(type: 'datetime', nullable: true)]
+private ?\DateTimeInterface $dateReapprovisionnement = null;
+
+#[ORM\Column(type: 'boolean', options: ['default' => false])]
+private bool $reapprovisionnementEnCours = false;
+
+#[ORM\Column(type: 'datetime', nullable: true)]
+private ?\DateTimeInterface $dateSignalementAlerte = null;
+
+// ===== GETTERS / SETTERS =====
+
+public function isAlerteDeclenchee(): bool
+{
+    return $this->alerteDeclenchee;
+}
+
+public function setAlerteDeclenchee(bool $alerteDeclenchee): self
+{
+    $this->alerteDeclenchee = $alerteDeclenchee;
+    if ($alerteDeclenchee && $this->dateSignalementAlerte === null) {
+        $this->dateSignalementAlerte = new \DateTime();
+    }
+    return $this;
+}
+
+public function getDateReapprovisionnement(): ?\DateTimeInterface
+{
+    return $this->dateReapprovisionnement;
+}
+
+public function setDateReapprovisionnement(?\DateTimeInterface $date): self
+{
+    $this->dateReapprovisionnement = $date;
+    return $this;
+}
+
+public function isReapprovisionnementEnCours(): bool
+{
+    return $this->reapprovisionnementEnCours;
+}
+
+public function setReapprovisionnementEnCours(bool $enCours): self
+{
+    $this->reapprovisionnementEnCours = $enCours;
+    return $this;
+}
+
+public function getDateSignalementAlerte(): ?\DateTimeInterface
+{
+    return $this->dateSignalementAlerte;
+}
+
+public function setDateSignalementAlerte(?\DateTimeInterface $date): self
+{
+    $this->dateSignalementAlerte = $date;
+    return $this;
+}
 }

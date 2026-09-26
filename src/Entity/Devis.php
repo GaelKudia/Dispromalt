@@ -11,15 +11,19 @@ class Devis
     // ============================================================
     // WORKFLOW : ÉTAPES DE VALIDATION
     // ============================================================
-    public const STATUT_ATTENTE_CHEF            = 'ATTENTE_CHEF_COMPTA';
-    public const STATUT_VALIDE_CHEF             = 'VALIDÉ_CHEF_SERVICE';
-    public const STATUT_VALIDE_COORDON          = 'VALIDÉ_COORDON';
-    public const STATUT_ATTENTE_COMPTA          = 'ATTENTE_COMPTA';
-    public const STATUT_ATTENTE_CHEF_COMPTABLE  = 'ATTENTE_CHEF_COMPTABLE';
-    public const STATUT_ATTENTE_DIR             = 'ATTENTE_DIRECTEUR';
-    public const STATUT_ATTENTE_CAISSE          = 'ATTENTE_CAISSE';
-    public const STATUT_DECAISSE                = 'DECAISSE';
-    public const STATUT_REJETE                  = 'REJETE';
+    // ============================================================
+// WORKFLOW : ÉTAPES DE VALIDATION
+// ============================================================
+public const STATUT_ATTENTE_CHEF            = 'ATTENTE_CHEF_COMPTA';
+public const STATUT_VALIDE_CHEF             = 'VALIDÉ_CHEF_SERVICE';
+public const STATUT_VALIDE_COORDON          = 'VALIDÉ_COORDON';
+public const STATUT_ATTENTE_COMPTA          = 'ATTENTE_COMPTA';
+public const STATUT_ATTENTE_CHEF_COMPTABLE  = 'ATTENTE_CHEF_COMPTABLE';
+public const STATUT_ATTENTE_DIR             = 'ATTENTE_DIRECTEUR';
+public const STATUT_ATTENTE_CAISSE          = 'ATTENTE_CAISSE';
+public const STATUT_ATTENTE_DECAISSEMENT    = 'ATTENTE_DECAISSEMENT';   // 🆕 retour DG → Compta
+public const STATUT_DECAISSE                = 'DECAISSE';
+public const STATUT_REJETE                  = 'REJETE';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

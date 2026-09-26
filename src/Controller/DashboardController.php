@@ -76,6 +76,10 @@ class DashboardController extends AbstractController
             'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
         ];
 
+        // 🚨 ALERTES STOCK
+$articlesEnAlerte = $em->getRepository(Article::class)->findArticlesEnAlerte();
+$nbAlertesStock = count($articlesEnAlerte);
+
         // FILTRES DATES
         $dateDebutFiltre = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
         $dateFinFiltre = $request->query->get('date_fin', (new \DateTime('today'))->format('Y-m-d'));
@@ -101,24 +105,59 @@ class DashboardController extends AbstractController
         }
 
         // REDIRECTION CAISSIER
-        if ($this->isGranted('ROLE_CAISSIER')) {
-            return $this->render('dashboard/caisse/index.html.twig', [
-                'devisListe'    => $devisListe,
-                'totalDevisUSD' => $totalDevisUSD,
-                'totalDevisCDF' => $totalDevisCDF,
-                'date_debut'    => $dateDebutFiltre,
-                'date_fin'      => $dateFinFiltre,
-                'stats'         => $stats,
-                'userRole'      => $roleLabel
-            ]);
-        }
+        // ============================================================
+// REDIRECTION CAISSIER — ne voit QUE le cas 2 + ses décaissements
+// ============================================================
+if ($this->isGranted('ROLE_CAISSIER')) {
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
 
-        // Déterminer le département de l'utilisateur
+    $devisCaisse = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->where('d.statut = :attente')
+        ->orWhere('(d.statut = :decaisse AND d.decaissePar = :user)')
+        ->setParameter('attente',  Devis::STATUT_ATTENTE_CAISSE)
+        ->setParameter('decaisse', Devis::STATUT_DECAISSE)
+        ->setParameter('user',     $currentUser)
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // Totaux sur ses propres décaissements uniquement
+    $totalDevisUSD = 0;
+    $totalDevisCDF = 0;
+    foreach ($devisCaisse as $d) {
+        if ($d->getStatut() === Devis::STATUT_DECAISSE && $d->getDecaissePar() === $currentUser) {
+            if ($d->getDevise() === 'CDF') {
+                $totalDevisCDF += (float) $d->getMontant();
+            } else {
+                $totalDevisUSD += (float) $d->getMontant();
+            }
+        }
+    }
+
+
+
+    
+    
+
+    return $this->render('dashboard/caisse/index.html.twig', [
+        'devisListe'    => $devisCaisse,
+        'totalDevisUSD' => $totalDevisUSD,
+        'totalDevisCDF' => $totalDevisCDF,
+        'date_debut'    => $dateDebutFiltre,
+        'date_fin'      => $dateFinFiltre,
+        'stats'         => $stats,
+        'userRole'      => $roleLabel,
+    ]);
+}
+
+        // ============================================================
+        // DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
+        // ============================================================
         $userDept = 'Impression';
         if ($currentUser->getService()) {
             $userDept = $currentUser->getService()->getNom();
         }
-
         // ============================================================
         // INITIALISATION DES VARIABLES
         // ============================================================
@@ -127,6 +166,7 @@ class DashboardController extends AbstractController
         $visites = [];
         $rapportGlobal = [];
         $articles = [];
+        $demandes = [];
         $attributs = [];
         $categories = [];
         $subCategories = [];
@@ -676,6 +716,8 @@ if ($this->isGranted('ROLE_COORDON')) {
         'date_fin'       => $dateFinFiltre,
         'rapportGlobal'  => $rapportGlobal,
         'formVisite'     => $formVisiteView,
+            'articlesEnAlerte' => $articlesEnAlerte,   // ✅ AJOUT
+            'nbAlertesStock'   => $nbAlertesStock,     // ✅ AJOUT
     ]);
 }
 // ============================================================
@@ -694,35 +736,45 @@ if ($this->isGranted('ROLE_COMPTA')) {
         ->getResult();
 
     // 🎯 Construire les compteurs à partir de la liste
-    $devisA_Aiguiller = [];
-    $devisPretsADecaisser = [];
-    $mesDecaissements = [];
+    $devisA_Aiguiller      = [];
+$devisPretsADecaisser  = [];   // 🆕 cas 1 & 3 : le COMPTABLE décaisse
+$devisEnAttenteCaisse  = [];   // 🆕 cas 2 : suivi visuel mais action = caisse
+$mesDecaissements      = [];
 
-    foreach ($devisListe as $d) {
-        $statut = $d->getStatut();
-        
-        if ($statut === 'ATTENTE_COMPTA' || $statut === Devis::STATUT_ATTENTE_COMPTA) {
-            $devisA_Aiguiller[] = $d;
-        }
-        if ($statut === 'ATTENTE_CAISSE' || $statut === Devis::STATUT_ATTENTE_CAISSE) {
-            $devisPretsADecaisser[] = $d;
-        }
-        if ($statut === 'DECAISSE' && $d->getDecaissePar() === $currentUser) {
-            $mesDecaissements[] = $d;
-        }
+foreach ($devisListe as $d) {
+    $statut = $d->getStatut();
+
+    // 🔹 Devis à aiguiller (entrée dans le circuit)
+    if ($statut === Devis::STATUT_ATTENTE_COMPTA) {
+        $devisA_Aiguiller[] = $d;
     }
 
-    // 💰 Totaux sur MES décaissements uniquement
-    $totalDevisUSD = 0;
-    $totalDevisCDF = 0;
-    foreach ($mesDecaissements as $d) {
-        if ($d->getDevise() === 'CDF') {
-            $totalDevisCDF += (float) $d->getMontant();
-        } else {
-            $totalDevisUSD += (float) $d->getMontant();
-        }
+    // 🔹 Retour du DG → le COMPTABLE décaisse lui-même (cas 1)
+    if ($statut === Devis::STATUT_ATTENTE_DECAISSEMENT) {
+        $devisPretsADecaisser[] = $d;
     }
 
+    // 🔹 En attente de la Caisse (cas 2) — suivi passif, pas d'action côté Compta
+    if ($statut === Devis::STATUT_ATTENTE_CAISSE) {
+        $devisEnAttenteCaisse[] = $d;
+    }
+
+    // 🔹 Décaissements effectués PAR le comptable (cas 1 & 3)
+    if ($statut === Devis::STATUT_DECAISSE && $d->getDecaissePar() === $currentUser) {
+        $mesDecaissements[] = $d;
+    }
+}
+
+// 💰 Totaux : uniquement MES décaissements (cas 1 & 3)
+$totalDevisUSD = 0;
+$totalDevisCDF = 0;
+foreach ($mesDecaissements as $d) {
+    if ($d->getDevise() === 'CDF') {
+        $totalDevisCDF += (float) $d->getMontant();
+    } else {
+        $totalDevisUSD += (float) $d->getMontant();
+    }
+}
     return $this->render('dashboard/compta.html.twig', [
     'demandes'              => $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']),
     'rapportGlobal'         => $rapportGlobal,
@@ -730,6 +782,7 @@ if ($this->isGranted('ROLE_COMPTA')) {
     'mesDecaissements'      => $mesDecaissements,
     'devisA_Aiguiller'      => $devisA_Aiguiller,
     'devisPretsADecaisser'  => $devisPretsADecaisser,
+    'devisEnAttenteCaisse' => $devisEnAttenteCaisse,   // 🆕 pour affichage passif'devisEnAttenteCaisse' => $devisEnAttenteCaisse,   // 🆕 pour affichage passif
     'totalDevisUSD'         => $totalDevisUSD,
     'totalDevisCDF'         => $totalDevisCDF,
     'userRole'              => $roleLabel,
@@ -743,6 +796,8 @@ if ($this->isGranted('ROLE_COMPTA')) {
     'selectedCategory'      => $selectedCategory,
     'selectedSubCategory'   => $selectedSubCategory,
     'attributs'             => $attributs,
+        'articlesEnAlerte'      => $articlesEnAlerte,   // ✅ AJOUT
+        'nbAlertesStock'        => $nbAlertesStock,      // ✅ AJOUT
 ]);
 }
 
@@ -778,6 +833,9 @@ if ($this->isGranted('ROLE_COMPTA')) {
                 'stats'         => $stats,
                 'date_debut'    => $dateDebutFiltre,
                 'date_fin'      => $dateFinFiltre,
+                    'articlesEnAlerte' => $articlesEnAlerte,   // ✅ AJOUT
+                            'nbAlertesStock'        => $nbAlertesStock,      // ✅ AJOUT
+
             ]);
         }
 
@@ -801,6 +859,89 @@ if ($this->isGranted('ROLE_COMPTA')) {
         ]);
     }
 
+    #[Route('/dashboard/compta/article/reappro/{id}', name: 'app_article_reappro', methods: ['POST'])]
+#[IsGranted('ROLE_COMPTA')]
+public function updateReapprovisionnement(
+    Request $request,
+    Article $article,
+    EntityManagerInterface $em
+): Response {
+    $dateReappro = $request->request->get('date_reapprovisionnement');
+    $enCours = $request->request->get('reapprovisionnement_en_cours');
+    $ancienneDate = $article->getDateReapprovisionnement();
+    $ancienStatut = $article->isReapprovisionnementEnCours();
+
+    if (!empty($dateReappro)) {
+        $article->setDateReapprovisionnement(new \DateTime($dateReappro));
+    } else {
+        $article->setDateReapprovisionnement(null);
+    }
+    $article->setReapprovisionnementEnCours($enCours === '1');
+
+    // 📝 Journalisation
+    if ($ancienneDate != $article->getDateReapprovisionnement()) {
+        $h = new \App\Entity\HistoriqueReapprovisionnement();
+        $h->setArticle($article);
+        $h->setTypeAction('DATE_MODIFIEE');
+        $h->setAncienneDateReappro($ancienneDate);
+        $h->setNouvelleDateReappro($article->getDateReapprovisionnement());
+        $h->setDateAction(new \DateTime());
+        $h->setEffectuePar($this->getUser());
+        $h->setQuantiteAuMoment($article->getQuantite());
+        $h->setSeuilAuMoment($article->getSeuilAlerte());
+        $h->setCommentaire('Date de réapprovisionnement mise à jour.');
+        $em->persist($h);
+    }
+
+    if ($ancienStatut !== $article->isReapprovisionnementEnCours()) {
+        $h = new \App\Entity\HistoriqueReapprovisionnement();
+        $h->setArticle($article);
+        $h->setTypeAction($article->isReapprovisionnementEnCours() ? 'REAPPRO_LANCE' : 'REAPPRO_TERMINE');
+        $h->setDateAction(new \DateTime());
+        $h->setEffectuePar($this->getUser());
+        $h->setQuantiteAuMoment($article->getQuantite());
+        $h->setSeuilAuMoment($article->getSeuilAlerte());
+        $h->setCommentaire($article->isReapprovisionnementEnCours()
+            ? 'Réapprovisionnement lancé.'
+            : 'Réapprovisionnement terminé.');
+        $em->persist($h);
+    }
+
+    if (!$article->isReapprovisionnementEnCours() && $article->getQuantite() > $article->getSeuilAlerte()) {
+        $article->setAlerteDeclenchee(false);
+    }
+
+    $em->flush();
+    $this->addFlash('success', '✅ Réapprovisionnement mis à jour.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+#[Route('/dashboard/compta/article/alerte-toggle/{id}', name: 'app_article_alerte_toggle', methods: ['POST'])]
+#[IsGranted('ROLE_COMPTA')]
+public function toggleAlerte(Article $article, EntityManagerInterface $em): Response
+{
+    $article->setAlerteDeclenchee(!$article->isAlerteDeclenchee());
+    if (!$article->isAlerteDeclenchee()) {
+        $article->setDateSignalementAlerte(null);
+    }
+    $em->flush();
+    return $this->redirectToRoute('app_dashboard');
+}
+
+
+#[Route('/dashboard/historique-reappro', name: 'app_historique_reappro')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]   // ← juste authentifié
+public function historiqueReappro(
+    \App\Repository\HistoriqueReapprovisionnementRepository $repo
+): Response {
+    if (!$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_DG')) {
+        throw $this->createAccessDeniedException('Accès réservé au Comptable et à la DG.');
+    }
+
+    return $this->render('dashboard/historique_reappro.html.twig', [
+        'historique' => $repo->findAllOrdered(),
+    ]);
+}
     // ============================================================
     // ROUTES POUR LES VISITES
     // ============================================================
@@ -1009,30 +1150,35 @@ public function traiterDemandeChefService(Request $request, Demande $demande, En
     // ============================================================
 // VALIDATION DEVIS PAR LE COORDONNATEUR
 // ============================================================
+// ============================================================
+// VALIDATION DEVIS PAR LE COORDONNATEUR
+// → Envoie au COMPTABLE (pas au DG !)
+// ============================================================
 #[Route('/dashboard/coordonnateur/valider-devis/{id}', name: 'app_coordonnateur_valider_devis', methods: ['POST'])]
 #[IsGranted('ROLE_COORDON')]
 public function validerDevisCoordon(Request $request, Devis $devis, EntityManagerInterface $em): Response
 {
-    // Seuls les devis validés par le chef peuvent être traités
     if ($devis->getStatut() !== 'VALIDÉ_CHEF_SERVICE') {
         $this->addFlash('danger', '❌ Ce devis ne peut pas être validé à cette étape.');
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Récupérer le nouveau montant
+    // Le coordonnateur peut ajuster le montant avant transmission
     $nouveauMontant = $request->request->get('nouveau_montant');
-    if ($nouveauMontant !== null && $nouveauMontant !== '') {
+    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+        if ($devis->getMontantInitial() === null) {
+            $devis->setMontantInitial((string) $devis->getMontant());
+        }
         $devis->setMontant((float) $nouveauMontant);
     }
 
-    // Passer au statut DG
-    $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
+    // ⚠️ CORRECTION : envoyer au COMPTABLE, pas au DG
+    $devis->setStatut(Devis::STATUT_ATTENTE_COMPTA);
     $em->flush();
 
-    $this->addFlash('success', '🖋️ Devis validé par le Coordonnateur et transmis à la Direction Générale.');
+    $this->addFlash('success', '📤 Devis transmis au Comptable pour aiguillage.');
     return $this->redirectToRoute('app_dashboard');
 }
-
 #[Route('/dashboard/coordonnateur/rejeter-devis/{id}', name: 'app_coordonnateur_rejeter_devis', methods: ['POST'])]
 #[IsGranted('ROLE_COORDON')]
 public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): Response
@@ -1048,6 +1194,8 @@ public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): R
     $this->addFlash('warning', '❌ Le devis a été rejeté par le Coordonnateur.');
     return $this->redirectToRoute('app_dashboard');
 }
+
+
 
     // ============================================================
     // RECHERCHE API ARTICLE
@@ -1120,6 +1268,169 @@ public function rechercheArticle(Request $request, EntityManagerInterface $em): 
         ], 500);
     }
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ ÉTAPE 1 : VISA DU CHEF COMPTABLE (transmet au DG)
+// ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// ✅ VISA DU CHEF COMPTABLE (transmet au Directeur)
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ VISA DU CHEF COMPTABLE (transmet au DG)
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
+#[IsGranted('ROLE_COMPTA')]
+public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
+{
+
+            
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // Le chef comptable peut ajuster le montant
+    $nouveauMontant = $request->request->get('nouveau_montant');
+    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+        if ($devis->getMontantInitial() === null) {
+            $devis->setMontantInitial((string) $devis->getMontant());
+        }
+        $devis->setMontant((float) $nouveauMontant);
+    }
+
+    $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
+    $em->flush();
+
+    $this->addFlash('success', '📤 Devis #' . $devis->getId() . ' visé et transmis à la Direction Générale.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+#[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
+#[IsGranted('ROLE_DG')]
+public function validerDevisDirecteur(
+    Request $request,
+    Devis $devis,
+    EntityManagerInterface $em
+): Response {
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DIR) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas en attente d\'arbitrage de la Direction.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $nouveauMontant = $request->request->get('nouveau_montant');
+    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+        if ($devis->getMontantInitial() === null) {
+            $devis->setMontantInitial((string) $devis->getMontant());
+        }
+        $devis->setMontant((float) $nouveauMontant);
+    }
+
+    // ⚠️ CORRECTION : retour au COMPTABLE (pas à la caisse)
+    $devis->setStatut(Devis::STATUT_ATTENTE_DECAISSEMENT);
+    $em->flush();
+
+    $this->addFlash('success', '✍️ Devis #' . $devis->getId() . ' validé par la Direction — retourné à la Comptabilité pour décaissement.');
+    return $this->redirectToRoute('app_dashboard');
+}// ═══════════════════════════════════════════════════════════════
+// ✅ REJET PAR LE CHEF COMPTABLE
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/rejeter-chef-comptable/{id}', name: 'app_devis_rejeter_chef_comptable', methods: ['POST'])]
+#[IsGranted('ROLE_CHEF_COMPTA')]
+public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
+        $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $devis->setStatut(Devis::STATUT_REJETE);
+    $em->flush();
+
+    $this->addFlash('warning', '❌ Le devis #' . $devis->getId() . ' a été rejeté par le Chef Comptable.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DÉCAISSEMENT PAR LA COMPTABILITÉ
+// → Cas 1 (circuit complet après DG) et Cas 3 (décaissement direct)
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/decaisser-compta/{id}', name: 'app_devis_compta_decaisser', methods: ['POST'])]
+#[IsGranted('ROLE_COMPTA')]
+public function decaisserDevisCompta(Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DECAISSEMENT) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement Comptabilité.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
+
+    $devis->setStatut(Devis::STATUT_DECAISSE);
+    $devis->setDecaissePar($currentUser);
+    $devis->setDateDecaissementPar(new \DateTime());
+    $devis->setDateDecaissement(new \DateTime());
+    $em->flush();
+
+    $this->addFlash('success', '💰 Décaissement effectué par la Comptabilité pour le devis #' . $devis->getId() . '.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DÉCAISSEMENT PAR LA CAISSE
+// → Cas 2 UNIQUEMENT (bon de caisse)
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/decaisser-caisse/{id}', name: 'app_devis_caisse_decaisser', methods: ['POST'])]
+#[IsGranted('ROLE_CAISSIER')]
+public function decaisserDevisCaisse(Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CAISSE) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement Caisse.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
+
+    $devis->setStatut(Devis::STATUT_DECAISSE);
+    $devis->setDecaissePar($currentUser);
+    $devis->setDateDecaissementPar(new \DateTime());
+    $devis->setDateDecaissement(new \DateTime());
+    $em->flush();
+
+    $this->addFlash('success', '💰 Décaissement effectué par la Caisse pour le devis #' . $devis->getId() . '.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ ÉTAPE 2 : VALIDATION DU DIRECTEUR GÉNÉRAL (fixe le montant, envoie à la caisse)
+// ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ REJET PAR LE DIRECTEUR GÉNÉRAL
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/rejeter-dg/{id}', name: 'app_devis_rejeter_dg', methods: ['POST'])]
+#[IsGranted('ROLE_DG')]
+public function rejeterDevisDirecteur(Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DIR) {
+        $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $devis->setStatut(Devis::STATUT_REJETE);
+    $em->flush();
+
+    $this->addFlash('warning', '❌ Le devis #' . $devis->getId() . ' a été rejeté par la Direction Générale.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ ÉTAPE 3 : DÉCAISSEMENT (CAISSE / COMPTA / DG)
+// ═══════════════════════════════════════════════════════════════
+
+
 
 // ============================================================
 // VALIDATION DEVIS PAR LE CHEF DE SERVICE
