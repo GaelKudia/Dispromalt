@@ -1,3 +1,39 @@
 pwa:
     image_processor: 'pwa.image_processor.gd'
-    asset_compiler: false
+
+    manifest:
+        enabled: true
+        name: 'Gestion Digitale Dispromalt'
+        short_name: 'Dispromalt'
+        description: "Application de gestion de stock et bons de sortie pour l'imprimerie"
+        start_url: '/'
+        scope: '/'
+        display: 'standalone'
+        orientation: 'portrait'
+        background_color: '#ffffff'
+        theme_color: '#317EFB'
+        lang: 'fr'
+        icons:
+            - src: 'images/icons/32.png'
+              sizes: [32]
+              type: 'image/png'
+            - src: 'images/icons/192.png'
+              sizes: [192]
+              type: 'image/png'
+              purpose: 'any'
+            - src: 'images/icons/512.png'
+              sizes: [512]
+              type: 'image/png'
+              purpose: 'any maskable'
+
+    favicons:
+        enabled: true
+        default:
+            src: 'images/icons/512.png'
+
+    serviceworker:
+        enabled: true
+        src: 'sw.js'
+        skip_waiting: true
+        workbox:
+            enabled: true
