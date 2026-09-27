@@ -284,33 +284,54 @@ if ($this->isGranted('ROLE_STOCK')) {
     $formStock->handleRequest($request);
     
     if ($formStock->isSubmitted() && $formStock->isValid()) {
-        // 🎯 Vérifier si un article avec le même nom existe déjà
-        $nomArticle = $article->getNom();
-        $quantiteAjoutee = $article->getQuantite() ?? 0;
-        
-        $articleExistant = $em->getRepository(Article::class)->findOneBy(['nom' => $nomArticle]);
-        
-        if ($articleExistant) {
-            // 🅰️ Article existant → AUGMENTER la quantité
-            $nouvelleQuantite = $articleExistant->getQuantite() + $quantiteAjoutee;
-            $articleExistant->setQuantite($nouvelleQuantite);
-            
-            // Mettre à jour le seuil d'alerte si fourni
-            if ($article->getSeuilAlerte()) {
-                $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
-            }
-            
-            $em->flush();
-            $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' » — Stock incrémenté de ' . $quantiteAjoutee . ' (total : ' . $nouvelleQuantite . ')');
-        } else {
-            // 🅱️ Nouvel article → CRÉER
-            $em->persist($article);
-            $em->flush();
-            $this->addFlash('success', '📥 Nouvel article « ' . $nomArticle . ' » enregistré.');
+    $nomArticle      = $article->getNom();
+    $quantiteAjoutee = $article->getQuantite() ?? 0;
+
+    $articleExistant = $em->getRepository(Article::class)->findOneBy(['nom' => $nomArticle]);
+
+    if ($articleExistant) {
+        // 🅰️ Article existant → augmenter la quantité
+        $articleExistant->setQuantite($articleExistant->getQuantite() + $quantiteAjoutee);
+        if ($article->getSeuilAlerte()) {
+            $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
         }
-        
-        return $this->redirectToRoute('app_dashboard');
+
+        // ✅ S'assurer qu'il a au moins un attribut pour apparaître dans l'inventaire
+        if ($articleExistant->getAttributs()->isEmpty()) {
+            $attr = new \App\Entity\ArticleAttribut();
+            $attr->setArticle($articleExistant);
+            $attr->setCouleur('Standard');
+            if (method_exists($attr, 'setQuantite')) {
+                $attr->setQuantite($articleExistant->getQuantite());
+            }
+            $em->persist($attr);
+        }
+
+        $em->flush();
+        $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' » — Stock incrémenté de ' . $quantiteAjoutee . ' (total : ' . $articleExistant->getQuantite() . ')');
+
+    } else {
+        // 🅱️ Nouvel article → créer
+        $em->persist($article);
+        $em->flush();  // flush pour avoir l'ID
+
+        // ✅ Créer un attribut "Standard" si aucun n'a été saisi
+        if ($article->getAttributs()->isEmpty()) {
+            $attr = new \App\Entity\ArticleAttribut();
+            $attr->setArticle($article);
+            $attr->setCouleur('Standard');
+            if (method_exists($attr, 'setQuantite')) {
+                $attr->setQuantite($article->getQuantite());
+            }
+            $em->persist($attr);
+            $em->flush();
+        }
+
+        $this->addFlash('success', '📥 Nouvel article « ' . $nomArticle . ' » enregistré.');
     }
+
+    return $this->redirectToRoute('app_dashboard');
+}
     $formStockView = $formStock->createView();
 }
         // 3. FORMULAIRE BON DE SORTIE
@@ -997,13 +1018,48 @@ public function historiqueReappro(
     // ROUTES POUR LES RAPPORTS
     // ============================================================
     #[Route('/rapport/pdf', name: 'app_rapport_pdf')]
-    public function rapportPdf(Request $request): Response
-    {
-        $dateDebut = $request->query->get('date_debut');
-        $dateFin = $request->query->get('date_fin');
-        return new Response("Génération du PDF du $dateDebut au $dateFin");
-    }
+public function rapportPdf(Request $request, DemandeRepository $demandeRepository): Response
+{
+    // 1. Récupérer les dates
+    $dateDebut = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
+    $dateFin   = $request->query->get('date_fin',   (new \DateTime('today'))->format('Y-m-d'));
 
+    // 2. Requête : récupérer les flux de la période
+    $rapportGlobal = $demandeRepository->createQueryBuilder('d')
+        ->where('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+        ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
+        ->orderBy('d.createdAt', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // 3. Rendre le template Twig en HTML
+    $html = $this->renderView('dashboard/rapport_pdf.html.twig', [
+        'rapportGlobal' => $rapportGlobal,
+        'date_debut'    => $dateDebut,
+        'date_fin'      => $dateFin,
+    ]);
+
+    // 4. Générer le PDF avec Dompdf
+    $dompdf = new \Dompdf\Dompdf([
+        'isRemoteEnabled' => true,
+        'defaultFont'     => 'Helvetica',
+    ]);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'landscape'); // paysage, plus lisible pour un tableau
+    $dompdf->render();
+
+    // 5. Retourner la réponse PDF (affichage inline dans le navigateur)
+    return new Response(
+    $dompdf->output(),
+    200,
+    [
+        'Content-Type'        => 'application/pdf',
+        'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.pdf"',
+        //                       ^^^^^^^^^^ ← c'est ce mot qui change tout
+    ]
+);
+}
     #[Route('/rapport/excel', name: 'app_rapport_excel')]
     public function rapportExcel(Request $request): Response
     {

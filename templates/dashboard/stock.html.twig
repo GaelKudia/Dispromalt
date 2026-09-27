@@ -6,60 +6,237 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * { transition: all 0.2s ease; }
-        body { background: #f4f7fc; font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .navbar { background: #0b1a2f !important; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-        .navbar-brand span.text-primary { color: #4b9eff !important; }
-        .bg-opacity-20 { background: rgba(255,255,255,0.05); }
-        .badge-role { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
-
-        .stat-card { background: #fff; border-radius: 20px; padding: 1.5rem 1.2rem; box-shadow: 0 8px 18px rgba(0,20,40,0.04); border-left: 5px solid; transition: 0.15s; }
-        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(0,20,40,0.07); }
-        .stat-card .icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 14px; }
-
-        .nav-tabs .nav-link { border: none; color: #5a6d7e; font-weight: 600; padding: 0.9rem 1.6rem; background: transparent; border-radius: 30px 30px 0 0; }
-        .nav-tabs .nav-link i { margin-right: 8px; }
-        .nav-tabs .nav-link.active { background: #ffffff; color: #0b1a2f !important; border-bottom: 3px solid #4b9eff; box-shadow: 0 -4px 12px rgba(0,0,0,0.02); }
-        .card-tabs { border-radius: 24px; overflow: hidden; border: none; box-shadow: 0 12px 30px rgba(0,0,0,0.04); }
-        .tab-pane { padding: 1.8rem 0.2rem; }
-
-        .form-container { max-width: 620px; margin: 0 auto; }
-        .card-form { border-radius: 28px; background: #ffffff; padding: 2rem 2rem; box-shadow: 0 6px 18px rgba(0,0,0,0.02); }
-
-        .table thead th { background: #f0f4fa; color: #1f2a3f; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; border-bottom: 2px solid #e1e9f2; }
-        .table tbody tr { border-bottom: 1px solid #edf2f8; }
-        .table tbody tr:last-child { border-bottom: 0; }
-
-        .btn-outline-primary { border-color: #d0ddee; color: #1f3a5f; }
-        .btn-outline-primary:hover { background: #eef4fd; border-color: #4b9eff; }
-
-        .alert-critique { border-radius: 18px; background: #fff7f0; border-left: 6px solid #f97316; }
-        .alert-ok { border-radius: 18px; background: #ecfdf3; border-left: 6px solid #0b9b5e; }
-
-        @media (max-width: 768px) {
-            .nav-tabs .nav-link { padding: 0.7rem 0.9rem; font-size: 0.85rem; }
+        :root {
+            --brand-900: #0a1729; --brand-800: #0e2138; --brand-700: #142c4a;
+            --brand-500: #2563eb; --brand-400: #3b82f6; --accent: #4b9eff;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --info: #06b6d4;
+            --ink-900: #0f172a; --ink-700: #334155; --ink-500: #64748b; --ink-400: #94a3b8;
+            --line: #e5eaf2; --bg: #f5f8fd; --card: #ffffff;
+            --radius-lg: 22px; --radius-md: 16px; --radius-sm: 12px;
+            --shadow-sm: 0 2px 6px rgba(15,23,42,.04);
+            --shadow-md: 0 8px 24px rgba(15,23,42,.06);
+            --shadow-lg: 0 20px 40px rgba(15,23,42,.10);
         }
+        * { transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .25s ease, transform .25s ease; }
+        html, body { height: 100%; }
+        body {
+            background: radial-gradient(1200px 500px at 100% -10%, #e6efff 0%, transparent 60%),
+                        radial-gradient(900px 400px at -10% 10%, #eaf3ff 0%, transparent 55%),
+                        var(--bg);
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+            color: var(--ink-700);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* NAVBAR */
+        .navbar { background: linear-gradient(120deg, var(--brand-900) 0%, var(--brand-800) 55%, var(--brand-700) 100%) !important; box-shadow: 0 10px 30px rgba(10,23,41,.25); padding: 1rem 0; }
+        .navbar-brand { font-weight: 800; letter-spacing: -.4px; font-size: 1.35rem; }
+        .navbar-brand .text-primary { color: var(--accent) !important; }
+        .badge-role { background: rgba(255,255,255,.08); color: #e6eefc; border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(6px); padding: .5rem .9rem; font-size: .8rem; }
+        .badge-role strong { color: #fff; }
+        .btn-logout { background: linear-gradient(135deg, var(--accent), var(--brand-500)); border: none; color: #fff; border-radius: 999px; padding: .55rem 1.2rem; font-weight: 600; box-shadow: 0 6px 18px rgba(75,158,255,.35); }
+        .btn-logout:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(75,158,255,.5); color: #fff; }
+
+        /* HEADER */
+        .page-header h1 { font-weight: 800; font-size: 1.9rem; letter-spacing: -.5px; color: var(--ink-900); }
+        .page-header p { color: var(--ink-500); }
+
+        /* STATS */
+        .stat-card { background: var(--card); border-radius: var(--radius-lg); padding: 1.5rem 1.4rem; box-shadow: var(--shadow-md); border: 1px solid var(--line); position: relative; overflow: hidden; }
+        .stat-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 6px; background: var(--accent); }
+        .stat-card.border-warning::before { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+        .stat-card.border-primary::before { background: linear-gradient(180deg, var(--brand-400), var(--brand-500)); }
+        .stat-card.border-success::before { background: linear-gradient(180deg, #34d399, #10b981); }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .stat-card h6 { font-size: .72rem; letter-spacing: .8px; font-weight: 700; color: var(--ink-500) !important; }
+        .stat-card h3 { font-weight: 800; letter-spacing: -.5px; color: var(--ink-900); }
+        .stat-card .icon { width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 16px; font-size: 1.1rem; }
+        .stat-card .icon.bg-warning { background: #fef3c7 !important; color: #b45309 !important; }
+        .stat-card .icon.bg-primary { background: #dbeafe !important; color: var(--brand-500) !important; }
+        .stat-card .icon.bg-success { background: #d1fae5 !important; color: #047857 !important; }
+
+        /* TABS */
+        .card-tabs { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--line); box-shadow: var(--shadow-md); overflow: hidden; }
+        .nav-tabs { border-bottom: 1px solid var(--line) !important; background: linear-gradient(180deg, #fbfdff, #f4f8ff); padding: .6rem .8rem 0 .8rem !important; gap: .25rem; }
+        .nav-tabs .nav-link { border: none; color: var(--ink-500); font-weight: 600; padding: .8rem 1.15rem; border-radius: 14px 14px 0 0; font-size: .92rem; position: relative; }
+        .nav-tabs .nav-link i { margin-right: 8px; }
+        .nav-tabs .nav-link:hover { color: var(--ink-900); background: rgba(37,99,235,.05); }
+        .nav-tabs .nav-link.active { background: #fff; color: var(--ink-900) !important; box-shadow: 0 -8px 20px rgba(37,99,235,.06); }
+        .nav-tabs .nav-link.active::after { content: ""; position: absolute; left: 12%; right: 12%; bottom: -1px; height: 3px; border-radius: 3px; background: linear-gradient(90deg, var(--accent), var(--brand-500)); }
+        .tab-pane { padding: 1.8rem 1.6rem; }
+
+        /* FORMS */
+        .form-container { max-width: 760px; margin: 0 auto; }
+        .card-form { background: linear-gradient(180deg, #ffffff, #fbfdff); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 2.2rem; box-shadow: var(--shadow-sm); }
+        .form-label { color: var(--ink-700); font-weight: 600; font-size: .82rem; letter-spacing: .2px; margin-bottom: .35rem; }
+        .form-control, .form-select { border-radius: 12px; border: 1.5px solid #e2e8f2; padding: .65rem .9rem; background: #fff; color: var(--ink-900); font-weight: 500; box-shadow: none; }
+        .form-control:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(75,158,255,.15); }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent), var(--brand-500)); border: none; border-radius: 999px; font-weight: 600; padding: .7rem 1.4rem; box-shadow: 0 8px 20px rgba(75,158,255,.28); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(75,158,255,.45); background: linear-gradient(135deg, var(--brand-400), var(--brand-500)); }
+        .btn-outline-primary, .btn-outline-secondary, .btn-outline-success, .btn-outline-danger { border-radius: 999px; font-weight: 600; border-width: 1.5px; }
+        .btn-outline-primary { border-color: #c7dcf7; color: var(--brand-500); }
+        .btn-outline-primary:hover { background: #eef5ff; border-color: var(--accent); color: var(--brand-500); }
+
+        .optional-badge { display: inline-block; margin-left: .4rem; padding: .1rem .5rem; font-size: .62rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--ink-500); background: #eef2f8; border: 1px solid #dde5ef; border-radius: 6px; vertical-align: middle; }
+        .optional-badge.hidden { display: none !important; }
+
+        .form-header-icon { width: 64px; height: 64px; display: inline-flex; align-items: center; justify-content: center; border-radius: 20px; background: linear-gradient(135deg, #e0edff, #c9e0ff); color: var(--brand-500); font-size: 1.5rem; margin-bottom: 1rem; box-shadow: 0 10px 24px rgba(37,99,235,.15); }
+        .form-header-title { font-weight: 800; color: var(--ink-900); letter-spacing: -.3px; margin: 0; }
+        .form-header-sub { color: var(--ink-500); font-size: .88rem; margin: .35rem 0 0; }
+
+        .form-section { padding: 1.2rem 1.2rem 1.4rem; background: #fbfdff; border: 1px solid var(--line); border-radius: 16px; margin-bottom: 1rem; }
+        .form-section-label { display: flex; align-items: center; gap: .6rem; font-size: .82rem; font-weight: 700; color: var(--ink-700); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 1rem; }
+        .step-dot { width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--brand-500)); color: #fff; font-size: .75rem; font-weight: 800; box-shadow: 0 4px 10px rgba(75,158,255,.35); }
+
+        /* ============================================
+           CHAMP MACHINE — DESIGN PREMIUM
+        ============================================ */
+        .machine-field {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding: 1.1rem 1.2rem;
+            background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+            border: 1.5px dashed #bcd4f2;
+            border-radius: 16px;
+            align-items: flex-start;
+            position: relative;
+            overflow: hidden;
+        }
+        .machine-field::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--accent), var(--brand-500));
+            border-radius: 16px 0 0 16px;
+        }
+        .machine-field:hover {
+            border-color: var(--accent);
+            border-style: solid;
+            box-shadow: 0 8px 22px rgba(75,158,255,.12);
+        }
+        .machine-field-icon {
+            flex-shrink: 0;
+            width: 46px; height: 46px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--brand-500));
+            color: #fff;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 16px rgba(75,158,255,.35);
+        }
+        .machine-field-body { flex: 1; min-width: 0; }
+        .machine-field-head {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: .5rem;
+        }
+        .machine-field-label {
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin: 0;
+        }
+        .machine-field-hint {
+            display: flex;
+            align-items: center;
+            gap: .35rem;
+            margin-top: .5rem;
+            font-size: .74rem;
+            color: var(--ink-500);
+            font-weight: 500;
+        }
+        .machine-field-hint i { color: var(--accent); }
+        .machine-field-hint strong { color: var(--ink-700); font-weight: 700; }
+        .machine-field .form-select {
+            border-radius: 10px !important;
+            background-color: #fff !important;
+            font-size: .9rem;
+        }
+
+        /* ATTRIBUTS */
+        .attr-panel { background: linear-gradient(180deg, #f6faff 0%, #eef4ff 100%); border: 1.5px dashed #bcd4f2; border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
+        .attr-panel-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .8rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(37,99,235,.1); }
+        .attr-panel-title { display: flex; align-items: center; gap: .75rem; }
+        .attr-panel-title h6 { font-weight: 700; color: var(--ink-900); font-size: .95rem; }
+        .attr-panel-title small { color: var(--ink-500); font-size: .78rem; }
+        .attr-panel-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: linear-gradient(135deg, var(--accent), var(--brand-500)); color: #fff; box-shadow: 0 6px 14px rgba(75,158,255,.35); }
+        .btn-add-attr { display: inline-flex; align-items: center; gap: .5rem; padding: .55rem 1rem; border: none; border-radius: 999px; background: #fff; color: var(--brand-500); font-weight: 600; font-size: .85rem; box-shadow: 0 4px 12px rgba(37,99,235,.12); }
+        .btn-add-attr:hover { background: var(--brand-500); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 18px rgba(37,99,235,.28); }
+
+        .attr-container { display: flex; flex-direction: column; gap: .75rem; }
+        .attr-row { position: relative; display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 1rem 1rem 2.6rem; background: #fff; border: 1px solid #e2ecf9; border-radius: 14px; box-shadow: 0 2px 8px rgba(37,99,235,.04); animation: attrSlide .25s ease; }
+        @keyframes attrSlide { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .attr-row:hover { border-color: #bcd4f2; box-shadow: 0 8px 20px rgba(37,99,235,.10); }
+        .attr-badge { position: absolute; top: 1rem; left: -12px; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: linear-gradient(135deg, var(--brand-400), var(--brand-500)); color: #fff; font-size: .72rem; font-weight: 800; box-shadow: 0 4px 10px rgba(37,99,235,.35); }
+        .attr-fields { flex: 1; display: grid; grid-template-columns: repeat(5, 1fr); gap: .85rem; }
+        .attr-field { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+        .attr-label { display: flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 700; color: var(--ink-500); text-transform: uppercase; letter-spacing: .4px; }
+        .attr-label i { font-size: .7rem; color: var(--accent); }
+        .attr-input { width: 100%; padding: .55rem .75rem; border: 1.5px solid #e2e8f2; border-radius: 10px; background: #fbfdff; font-size: .85rem; font-weight: 500; color: var(--ink-900); }
+        .attr-input:focus { outline: none; border-color: var(--accent); background: #fff; box-shadow: 0 0 0 4px rgba(75,158,255,.15); }
+        .attr-remove { flex-shrink: 0; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: #fff1f2; color: #e11d48; font-size: .8rem; align-self: flex-end; }
+        .attr-remove:hover { background: #e11d48; color: #fff; transform: scale(1.05); box-shadow: 0 6px 14px rgba(225,29,72,.3); }
+        .attr-empty { text-align: center; padding: 1.8rem 1rem; color: var(--ink-500); }
+        .attr-empty i { font-size: 1.8rem; color: #bcd4f2; margin-bottom: .5rem; display: block; }
+
+        .toggle-attr-btn { display: inline-flex; align-items: center; gap: .55rem; padding: .7rem 1.4rem; border: 1.5px dashed #bcd4f2; border-radius: 999px; background: #fff; color: var(--brand-500); font-weight: 600; font-size: .88rem; }
+        .toggle-attr-btn:hover { background: #f0f7ff; border-color: var(--accent); border-style: solid; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(75,158,255,.18); }
+        .toggle-attr-btn.active { background: linear-gradient(135deg, var(--accent), var(--brand-500)); color: #fff; border: 1.5px solid transparent; box-shadow: 0 10px 22px rgba(75,158,255,.3); }
+
+        /* TABLES */
+        .table { --bs-table-bg: transparent; margin-bottom: 0; color: var(--ink-700); }
+        .table thead th { background: #f4f7fd !important; color: var(--ink-700) !important; font-weight: 700; text-transform: uppercase; font-size: .72rem; letter-spacing: .6px; border-bottom: 1px solid var(--line) !important; padding: .9rem 1rem; }
+        .table tbody td { padding: .9rem 1rem; border-color: var(--line); vertical-align: middle; font-size: .92rem; }
+        .table-hover tbody tr:hover { background: #f6faff; }
+
+        .badge { font-weight: 600; letter-spacing: .2px; padding: .45rem .7rem; border-radius: 8px; }
+        .badge.bg-light { background: #f1f5fb !important; color: var(--ink-700) !important; }
+
+        .alert { border-radius: var(--radius-md); border: 1px solid var(--line); padding: 1rem 1.2rem; box-shadow: var(--shadow-sm); }
+        .alert-ok { background: #ecfdf3; border-left: 5px solid var(--success); color: #065f46; }
+
+        @media (max-width: 992px) { .attr-fields { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) {
+            .nav-tabs { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+            .nav-tabs::-webkit-scrollbar { display: none; }
+            .nav-tabs .nav-link { white-space: nowrap; padding: .65rem .9rem; font-size: .82rem; }
+            .tab-pane { padding: 1.2rem .9rem; }
+            .page-header h1 { font-size: 1.45rem; }
+            .attr-row { padding: 1rem .9rem 1rem 2.4rem; }
+            .attr-fields { grid-template-columns: repeat(2, 1fr); }
+            .attr-panel-head { flex-direction: column; align-items: flex-start; }
+            .btn-add-attr { width: 100%; justify-content: center; }
+            .machine-field { flex-direction: column; gap: .75rem; }
+        }
+        @media (max-width: 480px) { .attr-fields { grid-template-columns: 1fr; } .attr-badge { left: -8px; } }
     </style>
 </head>
 <body>
 
     {# ========== NAVBAR ========== #}
-    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3">
+    <nav class="navbar navbar-expand-lg navbar-dark py-3">
         <div class="container-fluid px-4">
-            <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
-    <img src="{{ asset('images/logo.png') }}"
-         alt="Logo Dispromalt"
-         style="height: 40px; width: auto; margin-right: 10px;">
-    Dispro<span class="text-primary">malt</span>
-    <span class="fw-light fs-6 text-white-50 ms-2">| Espace Opérationnel</span>
-</a>
+            <a class="navbar-brand text-white d-flex align-items-center" href="#">
+                <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
+                Dispro<span class="text-primary">malt</span>
+                <span class="fw-light fs-6 text-white-50 ms-2 d-none d-md-inline">| Espace Opérationnel</span>
+            </a>
             <div class="d-flex align-items-center">
-                <div class="badge-role px-3 py-1.5 rounded-pill me-3 small">
+                <div class="badge-role rounded-pill me-3 small d-none d-md-inline-block">
                     <i class="fas fa-warehouse text-warning me-2"></i>Rôle : <strong>{{ userRole }}</strong>
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-4 shadow-sm">
+                <a href="/logout" class="btn btn-logout btn-sm">
                     <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
                 </a>
             </div>
@@ -68,197 +245,244 @@
 
     {# ========== MAIN ========== #}
     <div class="container-fluid py-4 px-4">
-        
-        {# HEADER #}
-        <div class="mb-4 pb-2">
-            <h1 class="fw-bold text-dark" style="font-size: 1.9rem;">📦 Gestion des Stocks (Dépôt)</h1>
-            <p class="text-muted m-0">Ajustez l'inventaire, fixez les couplages de colis (ex: Gilets par 25) et extrayez les rapports par commune.</p>
+
+        <div class="page-header mb-4 pb-2">
+            <h1>📦 Gestion des Stocks <span class="text-muted fw-normal fs-5">· Dépôt</span></h1>
+            <p class="m-0">Ajustez l'inventaire, fixez les couplages de colis (ex: Gilets par 25) et extrayez les rapports par commune.</p>
         </div>
 
-        {# FLASH #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-ok alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <div class="alert alert-ok alert-dismissible fade show mb-4" role="alert">
                     <i class="fas fa-check-circle me-2"></i> {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        {# ========== STATS ========== #}
+        {# STATS #}
         <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <div class="stat-card border-warning">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Demandes en attente</h6>
-                            <h3 class="fw-bold m-0 text-warning">{{ stats.demandes_attente }}</h3>
-                        </div>
-                        <div class="icon bg-warning bg-opacity-10 text-warning"><i class="fas fa-clock fa-2x"></i></div>
+                        <div><h6 class="text-uppercase small fw-bold mb-1">Demandes en attente</h6><h3 class="m-0">{{ stats.demandes_attente }}</h3></div>
+                        <div class="icon bg-warning"><i class="fas fa-clock fa-lg"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card border-primary">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons à signer (Coordon)</h6>
-                            <h3 class="fw-bold m-0 text-primary">{{ stats.bons_a_valider }}</h3>
-                        </div>
-                        <div class="icon bg-primary bg-opacity-10 text-primary"><i class="fas fa-pen-nib fa-2x"></i></div>
+                        <div><h6 class="text-uppercase small fw-bold mb-1">Bons à signer (Coordon)</h6><h3 class="m-0">{{ stats.bons_a_valider }}</h3></div>
+                        <div class="icon bg-primary"><i class="fas fa-pen-nib fa-lg"></i></div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card border-success">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons validés Guérite</h6>
-                            <h3 class="fw-bold m-0 text-success">{{ stats.bons_guerite }}</h3>
-                        </div>
-                        <div class="icon bg-success bg-opacity-10 text-success"><i class="fas fa-shield-alt fa-2x"></i></div>
+                        <div><h6 class="text-uppercase small fw-bold mb-1">Bons validés Guérite</h6><h3 class="m-0">{{ stats.bons_guerite }}</h3></div>
+                        <div class="icon bg-success"><i class="fas fa-shield-alt fa-lg"></i></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        {# ========== TABS ========== #}
+        {# TABS #}
         <div class="row g-4">
             <div class="col-12">
                 <div class="card-tabs">
-                    <div class="card-header bg-white p-0 border-0">
-                        <ul class="nav nav-tabs m-0 border-bottom-0 px-2 pt-2" id="stockTab" role="tablist">
-                            <li class="nav-item"><button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button"><i class="fas fa-plus-circle text-primary"></i>Entrée & Seuils</button></li>
-                            <li class="nav-item"><button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button"><i class="fas fa-list text-success"></i>Inventaire</button></li>
-                            <li class="nav-item"><button class="nav-link" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button"><i class="fas fa-calendar-day text-warning"></i>Suivi (Matin)</button></li>
-                            <li class="nav-item"><button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button"><i class="fas fa-file-invoice text-info"></i>Rapport Hist.</button></li>
-                            <li class="nav-item"><button class="nav-link" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert-pane" type="button"><i class="fas fa-exclamation-triangle text-danger"></i>Alertes</button></li>
-                        </ul>
-                    </div>
+                    <ul class="nav nav-tabs m-0" id="stockTab" role="tablist">
+                        <li class="nav-item"><button class="nav-link active" id="input-tab" data-bs-toggle="tab" data-bs-target="#input-pane" type="button"><i class="fas fa-plus-circle text-primary"></i>Entrée & Seuils</button></li>
+                        <li class="nav-item"><button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list-pane" type="button"><i class="fas fa-list text-success"></i>Inventaire</button></li>
+                        <li class="nav-item"><button class="nav-link" id="dem-tab" data-bs-toggle="tab" data-bs-target="#dem-pane" type="button"><i class="fas fa-calendar-day text-warning"></i>Suivi (Matin)</button></li>
+                        <li class="nav-item"><button class="nav-link" id="report-tab" data-bs-toggle="tab" data-bs-target="#report-pane" type="button"><i class="fas fa-file-invoice text-info"></i>Rapport Hist.</button></li>
+                        <li class="nav-item"><button class="nav-link" id="alert-tab" data-bs-toggle="tab" data-bs-target="#alert-pane" type="button"><i class="fas fa-exclamation-triangle text-danger"></i>Alertes</button></li>
+                    </ul>
 
-                    <div class="card-body tab-content bg-white rounded-bottom-4" id="stockTabContent">
+                    <div class="tab-content" id="stockTabContent">
 
                         {# ===== ONGLET 1 : FORMULAIRE ===== #}
-                                                {# ===== ONGLET 1 : FORMULAIRE D'ENTRÉE (VERSION CORRIGÉE) ===== #}
                         <div class="tab-pane fade show active" id="input-pane" role="tabpanel">
-                            <div class="form-container py-3">
+                            <div class="form-container">
                                 <div class="card-form">
-                                    <div class="text-center mb-4">
-                                        <i class="fas fa-magic text-primary fa-2x mb-2"></i>
-                                        <h5 class="fw-bold text-dark m-0">Réceptionner du matériel</h5>
-                                        <p class="text-muted small">Sélectionnez la catégorie puis la sous-catégorie pour charger les détails</p>
+
+                                    <div class="form-header text-center mb-4">
+                                        <div class="form-header-icon"><i class="fas fa-box-open"></i></div>
+                                        <h5 class="form-header-title">Réceptionner du matériel</h5>
+                                        <p class="form-header-sub">Remplissez les champs ci-dessous — les classifications sont ajustées automatiquement</p>
                                     </div>
-                                    
+
                                     {{ form_start(formStock, {'attr': {'id': 'stock-form'}}) }}
-                                        
-                                        {# Ligne 1 : Catégorie et Sous-catégorie côte à côte #}
-                                        <div class="row g-3 mb-3">
-                                            <div class="col-md-6">
-                                                {{ form_label(formStock.category, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                                                {{ form_widget(formStock.category, {'attr': {'class': 'form-select py-2'}}) }}
-                                            </div>
-                                            <div class="col-md-6">
-                                                {{ form_label(formStock.subCategory, null, {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                                                {{ form_widget(formStock.subCategory, {'attr': {'class': 'form-select py-2 sub-category-select'}}) }}
-                                            </div>
-                                        </div>
 
-                                        {# Ligne 2 : Nom, Quantité, Seuil #}
-                                        <div class="row g-3 mb-3">
-                                            <div class="col-md-6">
-                                                {{ form_label(formStock.nom, 'Nom article', {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                                                {{ form_widget(formStock.nom, {'attr': {'class': 'form-control py-2'}}) }}
+                                        {# ---------- SECTION 1 : CLASSIFICATION ---------- #}
+                                        <div class="form-section">
+                                            <div class="form-section-label">
+                                                <span class="step-dot">1</span>
+                                                Classification de l'article
+                                                <span class="optional-badge hidden" id="optional-badge-1">Facultatif</span>
                                             </div>
-                                            <div class="col-md-3">
-                                                {{ form_label(formStock.quantite, 'Quantité', {'label_attr': {'class': 'form-label small fw-bold'}}) }}
-                                                {{ form_widget(formStock.quantite, {'attr': {'class': 'form-control py-2'}}) }}
-                                            </div>
-                                            <div class="col-md-3">
-                                                {{ form_label(formStock.seuilAlerte, 'Seuil d\'alerte', {'label_attr': {'class': 'form-label small fw-bold text-danger'}}) }}
-                                                {{ form_widget(formStock.seuilAlerte, {'attr': {'class': 'form-control py-2'}}) }}
-                                            </div>
-                                        </div>
-
-                                        {# Ligne 3 : Machine (visible seulement pour les encres) #}
-                                        <div class="mb-4" id="machine-container">
-                                            {{ form_label(formStock.machine, 'Machine associée (pour encre/solvant)', {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                            {{ form_widget(formStock.machine, {'attr': {'class': 'form-select py-2'}}) }}
-                                        </div>
-
-                                        {# ===== SECTION ATTRIBUTS (CACHÉE PAR DÉFAUT) ===== #}
-                                                                {# ===== SECTION ATTRIBUTS - DESIGN MODERNISÉ ===== #}
-                        <div id="attributs-wrapper" style="display: none;">
-                            <div class="card border-0 bg-light-subtle rounded-4 p-3 mb-3" style="background: #f8faff;">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div>
-                                        <h6 class="fw-bold text-dark mb-0">
-                                            <i class="fas fa-sliders-h text-primary me-2"></i>Caractéristiques techniques
-                                        </h6>
-                                        <small class="text-muted">Renseignez les détails spécifiques à cet article</small>
-                                    </div>
-                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" id="add-attribut">
-                                        <i class="fas fa-plus-circle me-1"></i> Ajouter
-                                    </button>
-                                </div>
-                                
-                                <div id="attributs-container" data-prototype="{{ form_widget(formStock.attributs.vars.prototype)|e('html_attr') }}">
-                                    {# Les attributs existants seront rendus ici #}
-                                    {% if formStock.attributs|length > 0 %}
-                                        {% for attribut in formStock.attributs %}
-                                            <div class="attr-row card border-0 shadow-sm p-3 mb-2 rounded-3" style="background: #ffffff;">
-                                                <div class="row g-2 align-items-end">
-                                                    <div class="col-md-2">
-                                                        {{ form_label(attribut.dimension, 'Dimension', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
-                                                        {{ form_widget(attribut.dimension, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 120x80'}}) }}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        {{ form_label(attribut.grammage, 'Grammage', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
-                                                        {{ form_widget(attribut.grammage, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 180g'}}) }}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        {{ form_label(attribut.couleur, 'Couleur', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
-                                                        {{ form_widget(attribut.couleur, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: Rouge'}}) }}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        {{ form_label(attribut.longueur, 'Longueur', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
-                                                        {{ form_widget(attribut.longueur, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 150m'}}) }}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        {{ form_label(attribut.kilogramme, 'Poids (kg)', {'label_attr': {'class': 'form-label small fw-semibold text-secondary mb-1'}}) }}
-                                                        {{ form_widget(attribut.kilogramme, {'attr': {'class': 'form-control form-control-sm py-1.5', 'placeholder': 'ex: 2.5'}}) }}
-                                                    </div>
-                                                    <div class="col-md-1">
-                                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-circle p-0 remove-attribut" style="width: 32px; height: 32px; line-height: 1;" title="Supprimer cette ligne">
-                                                            <i class="fas fa-times"></i>
-                                                        </button>
-                                                    </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    {{ form_label(formStock.category, null, {'label_attr': {'class': 'form-label'}}) }}
+                                                    {{ form_widget(formStock.category, {'attr': {
+                                                        'class': 'form-select sub-category-source',
+                                                        'id': 'stock_category',
+                                                        'required': 'required'
+                                                    }}) }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {{ form_label(formStock.subCategory, null, {'label_attr': {'class': 'form-label'}}) }}
+                                                    {{ form_widget(formStock.subCategory, {'attr': {
+                                                        'class': 'form-select',
+                                                        'id': 'stock_subCategory',
+                                                        'required': 'required'
+                                                    }}) }}
                                                 </div>
                                             </div>
-                                        {% endfor %}
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                                                {# BOUTON POUR AFFICHER LA SECTION ATTRIBUTS #}
-                        <div class="text-center mb-3">
-                            <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2" id="show-attributs-btn">
-                                <i class="fas fa-cog me-2"></i> Ajouter des caractéristiques techniques
-                            </button>
-                            <small class="d-block text-muted mt-1">(Optionnel - pour les articles avec des spécificités)</small>
-                        </div>
-                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 rounded-pill shadow-sm mt-2">
+                                        </div>
+
+                                        {# ---------- SECTION 2 : IDENTIFICATION ---------- #}
+                                        <div class="form-section">
+                                            <div class="form-section-label">
+                                                <span class="step-dot">2</span>
+                                                Informations & quantités
+                                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    {{ form_label(formStock.nom, 'Nom article', {'label_attr': {'class': 'form-label'}}) }}
+                                                    {{ form_widget(formStock.nom, {'attr': {
+                                                        'class': 'form-control',
+                                                        'id': 'stock_nom',
+                                                        'placeholder': 'Ex: Gilet haute visibilité'
+                                                    }}) }}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {{ form_label(formStock.quantite, 'Quantité', {'label_attr': {'class': 'form-label'}}) }}
+                                                    {{ form_widget(formStock.quantite, {'attr': {'class': 'form-control', 'placeholder': '0'}}) }}
+                                                </div>
+                                                <div class="col-md-3">
+                                                    {{ form_label(formStock.seuilAlerte, 'Seuil d\'alerte', {'label_attr': {'class': 'form-label text-danger'}}) }}
+                                                    {{ form_widget(formStock.seuilAlerte, {'attr': {'class': 'form-control', 'placeholder': '0'}}) }}
+                                                </div>
+                                            </div>
+
+                                            {# ---------- MACHINE ASSOCIÉE — BLOC PREMIUM ---------- #}
+                                            <div class="machine-field">
+                                                <div class="machine-field-icon">
+                                                    <i class="fas fa-cogs"></i>
+                                                </div>
+                                                <div class="machine-field-body">
+                                                    <div class="machine-field-head">
+                                                        <label for="{{ formStock.machine.vars.id }}" class="machine-field-label">
+                                                            Machine associée
+                                                        </label>
+                                                        <span class="optional-badge">Optionnel</span>
+                                                    </div>
+                                                    {{ form_widget(formStock.machine, {'attr': {
+                                                        'class': 'form-select',
+                                                        'id': 'stock_machine',
+                                                        'required': false
+                                                    }}) }}
+                                                    <small class="machine-field-hint">
+                                                        <i class="fas fa-info-circle"></i>
+                                                        À renseigner uniquement pour les <strong>encres</strong> et <strong>solvants</strong>.
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {# ============================================
+                                           SECTION ATTRIBUTS
+                                        ============================================= #}
+                                        <div id="attributs-wrapper" style="display:none;">
+                                            <div class="attr-panel">
+                                                <div class="attr-panel-head">
+                                                    <div class="attr-panel-title">
+                                                        <div class="attr-panel-icon"><i class="fas fa-sliders-h"></i></div>
+                                                        <div>
+                                                            <h6 class="mb-0">Caractéristiques techniques</h6>
+                                                            <small>Renseignez les détails spécifiques à cet article</small>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" class="btn-add-attr" id="add-attribut">
+                                                        <i class="fas fa-plus"></i>
+                                                        <span>Ajouter une ligne</span>
+                                                    </button>
+                                                </div>
+
+                                                <div id="attributs-container"
+                                                     class="attr-container"
+                                                     data-prototype="{{ form_widget(formStock.attributs.vars.prototype)|e('html_attr') }}">
+
+                                                    {% for attribut in formStock.attributs %}
+                                                        <div class="attr-row">
+                                                            <div class="attr-badge">#{{ loop.index }}</div>
+                                                            <div class="attr-fields">
+                                                                <div class="attr-field">
+                                                                    <label class="attr-label"><i class="fas fa-ruler-combined"></i> Dimension</label>
+                                                                    {{ form_widget(attribut.dimension, {'attr': {'class': 'attr-input', 'placeholder': '120 x 80', 'required': false}}) }}
+                                                                </div>
+                                                                <div class="attr-field">
+                                                                    <label class="attr-label"><i class="fas fa-weight-hanging"></i> Grammage</label>
+                                                                    {{ form_widget(attribut.grammage, {'attr': {'class': 'attr-input', 'placeholder': '180 g', 'required': false}}) }}
+                                                                </div>
+                                                                <div class="attr-field">
+                                                                    <label class="attr-label"><i class="fas fa-palette"></i> Couleur</label>
+                                                                    {{ form_widget(attribut.couleur, {'attr': {'class': 'attr-input', 'placeholder': 'Rouge', 'required': false}}) }}
+                                                                </div>
+                                                                <div class="attr-field">
+                                                                    <label class="attr-label"><i class="fas fa-ruler-horizontal"></i> Longueur</label>
+                                                                    {{ form_widget(attribut.longueur, {'attr': {'class': 'attr-input', 'placeholder': '150 m', 'required': false}}) }}
+                                                                </div>
+                                                                <div class="attr-field">
+                                                                    <label class="attr-label"><i class="fas fa-weight-scale"></i> Poids (kg)</label>
+                                                                    {{ form_widget(attribut.kilogramme, {'attr': {'class': 'attr-input', 'placeholder': '2.5', 'required': false}}) }}
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" class="attr-remove remove-attribut" title="Supprimer cette ligne">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+
+                                                <div class="attr-empty" id="attr-empty-state" style="display:none;">
+                                                    <i class="fas fa-inbox"></i>
+                                                    <p>Aucune caractéristique ajoutée.</p>
+                                                    <small>Cliquez sur « Ajouter une ligne » pour commencer.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {# BOUTON DÉCLENCHEUR #}
+                                        <div class="text-center my-4">
+                                            <button type="button" class="toggle-attr-btn" id="show-attributs-btn">
+                                                <i class="fas fa-cog"></i>
+                                                <span>Ajouter des caractéristiques techniques</span>
+                                            </button>
+                                            <small class="d-block text-muted mt-2" style="font-size:.75rem;">
+                                                Optionnel — pour les articles avec des spécificités
+                                            </small>
+                                        </div>
+
+                                        {# SUBMIT #}
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-3 mt-2 rounded-pill">
                                             <i class="fas fa-save me-2"></i> Enregistrer dans le stock
                                         </button>
+
                                     {{ form_end(formStock) }}
                                 </div>
                             </div>
-                        </div>{# ===== ONGLET 2 : INVENTAIRE ===== #}
+                        </div>
+
+                        {# ===== ONGLET 2 : INVENTAIRE ===== #}
                         <div class="tab-pane fade" id="list-pane" role="tabpanel">
                             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
                                 <h5 class="fw-bold text-secondary m-0"><i class="fas fa-warehouse text-success me-2"></i>État Actuel</h5>
                                 <div>
-                                    <button class="btn btn-outline-primary btn-sm me-1" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
-                                    <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Exporter</button>
+                                    <button class="btn btn-outline-primary btn-sm me-1" onclick="window.print()"><i class="fas fa-print me-1"></i> Imprimer</button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel me-1"></i> Exporter</button>
                                 </div>
                             </div>
                             <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
@@ -294,31 +518,57 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for attr in attributs %}
-                                        <tr>
-                                            <td><strong>{{ attr.article.nom }}</strong></td>
-                                            <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
-                                            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
-                                                <td>{{ attr.longueur ?: '-' }}</td>
-                                                <td>{{ attr.grammage ?: '-' }}</td>
-                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-                                            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
-                                                <td>{{ attr.dimension ?: '-' }}</td>
-                                                <td>{{ attr.longueur ?: '-' }}</td>
-                                                <td>{{ attr.grammage ?: '-' }}</td>
-                                            {% else %}
-                                                <td>{{ attr.grammage ?: '-' }}</td>
-                                                <td>{{ attr.longueur ?: '-' }}</td>
-                                                <td>{{ attr.dimension ?: '-' }}</td>
-                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-                                            {% endif %}
-                                            <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
-                                            <td>{% if attr.article.quantite <= attr.article.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
-                                        </tr>
-                                        {% else %}
-                                        <tr><td colspan="10" class="text-center text-muted py-4">Aucun article trouvé.</td></tr>
-                                        {% endfor %}
-                                    </tbody>
+    {% set hasAttributs = attributs|length > 0 %}
+    {% set rows = hasAttributs ? attributs : [] %}
+
+    {# 1️⃣ Articles AVEC attributs #}
+    {% for attr in attributs %}
+        <tr>
+            <td><strong>{{ attr.article.nom }}</strong></td>
+            <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                <td>{{ attr.longueur ?: '-' }}</td>
+                <td>{{ attr.grammage ?: '-' }}</td>
+                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                <td>{{ attr.dimension ?: '-' }}</td>
+                <td>{{ attr.longueur ?: '-' }}</td>
+                <td>{{ attr.grammage ?: '-' }}</td>
+            {% else %}
+                <td>{{ attr.grammage ?: '-' }}</td>
+                <td>{{ attr.longueur ?: '-' }}</td>
+                <td>{{ attr.dimension ?: '-' }}</td>
+                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+            {% endif %}
+            <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
+            <td>{% if attr.article.quantite <= attr.article.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
+        </tr>
+    {% endfor %}
+
+    {# 2️⃣ Articles SANS attributs (comme "Gilet" simple) — pour ne pas les perdre #}
+    {% for art in articles %}
+        {% if art.attributs is empty %}
+            <tr>
+                <td><strong>{{ art.nom }}</strong></td>
+                <td><span class="text-muted">-</span></td>
+                {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                    <td>-</td><td>-</td><td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
+                {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                    <td>-</td><td>-</td><td>-</td>
+                {% else %}
+                    <td>-</td><td>-</td><td>-</td>
+                    <td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
+                {% endif %}
+                <td><span class="fw-bold">{{ art.quantite }}</span></td>
+                <td>{% if art.quantite <= art.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+
+    {% if attributs|length == 0 and articles|length == 0 %}
+        <tr><td colspan="10" class="text-center text-muted py-4">Aucun article trouvé.</td></tr>
+    {% endif %}
+</tbody>
                                 </table>
                             </div>
                         </div>
@@ -330,8 +580,8 @@
                                 <span class="badge bg-dark px-3 py-2">{{ "now"|date("d/m/Y") }}</span>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle border">
-                                    <thead class="table-light small text-uppercase fw-bold text-secondary">
+                                <table class="table table-hover align-middle">
+                                    <thead>
                                         <tr><th>Heure</th><th>Département</th><th>Origine</th><th>Matériel</th><th class="text-center">Quantité</th><th>Destination</th><th>Statut</th><th class="text-center">Action</th></tr>
                                     </thead>
                                     <tbody>
@@ -347,9 +597,7 @@
                                                     {% set r_dem = d.quantite % 25 %}
                                                     <span>{{ p_dem }} pqt(s) {% if r_dem > 0 %}{{ r_dem }} u{% endif %}</span>
                                                     <br><small class="text-muted" style="font-size:11px;">({{ d.quantite }} u)</small>
-                                                {% else %}
-                                                    {{ d.quantite|default('1') }}
-                                                {% endif %}
+                                                {% else %}{{ d.quantite|default('1') }}{% endif %}
                                             </td>
                                             <td><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ d.destination|default('Non spécifiée')|upper }}</td>
                                             <td>
@@ -361,12 +609,12 @@
                                             <td class="text-center">
                                                 {% if d.statut == 'Validé Compta' %}
                                                     <form action="{{ path('app_demande_livrer', {'id': d.id}) }}" method="POST" class="d-inline">
-                                                        <button class="btn btn-sm btn-success fw-bold shadow-sm"><i class="fas fa-truck me-1"></i> Livrer</button>
+                                                        <button class="btn btn-sm btn-success fw-bold shadow-sm rounded-pill px-3"><i class="fas fa-truck me-1"></i> Livrer</button>
                                                     </form>
                                                 {% elseif d.statut == 'En attente' %}
-                                                    <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-lock me-1"></i> Attente</button>
+                                                    <button class="btn btn-sm btn-light text-muted fw-bold rounded-pill" disabled><i class="fas fa-lock me-1"></i> Attente</button>
                                                 {% else %}
-                                                    <button class="btn btn-sm btn-light text-muted fw-bold" disabled><i class="fas fa-check me-1"></i> Traité</button>
+                                                    <button class="btn btn-sm btn-light text-muted fw-bold rounded-pill" disabled><i class="fas fa-check me-1"></i> Traité</button>
                                                 {% endif %}
                                             </td>
                                         </tr>
@@ -381,18 +629,18 @@
                         {# ===== ONGLET 4 : RAPPORT HISTORIQUE ===== #}
                         <div class="tab-pane fade" id="report-pane" role="tabpanel">
                             <div class="d-flex flex-wrap gap-2 mb-3">
-                                <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
-                                <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
+                                <a href="{{ path('app_rapport_pdf', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-danger btn-sm rounded-pill px-3"><i class="fas fa-file-pdf me-1"></i> PDF</a>
+                                <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}" class="btn btn-success btn-sm rounded-pill px-3"><i class="fas fa-file-excel me-1"></i> Excel</a>
                             </div>
                             <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-alt text-info me-2"></i>Rapport Historique Général</h5>
-                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded border shadow-sm mb-4">
+                            <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 bg-white p-3 rounded-4 border shadow-sm mb-4">
                                 <div class="col-md-4"><label class="form-label small fw-bold">Du</label><input type="date" name="date_debut" class="form-control" value="{{ date_debut }}"></div>
                                 <div class="col-md-4"><label class="form-label small fw-bold">Au</label><input type="date" name="date_fin" class="form-control" value="{{ date_fin }}"></div>
-                                <div class="col-md-4 d-flex align-items-end"><button type="submit" class="btn btn-info text-white fw-bold w-100"><i class="fas fa-filter me-2"></i>Filtrer</button></div>
+                                <div class="col-md-4 d-flex align-items-end"><button type="submit" class="btn btn-primary fw-bold w-100"><i class="fas fa-filter me-2"></i>Filtrer</button></div>
                             </form>
                             <div class="table-responsive">
-                                <table class="table table-hover table-striped align-middle border">
-                                    <thead class="table-dark small text-uppercase">
+                                <table class="table table-hover align-middle">
+                                    <thead>
                                         <tr><th>Date</th><th>Département</th><th>Origine</th><th>Article</th><th class="text-center">Qté</th><th>Destination</th><th class="text-center">État</th></tr>
                                     </thead>
                                     <tbody>
@@ -407,9 +655,7 @@
                                                     {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
                                                     {% set r_rep = rg.quantite % 25 %}
                                                     <span class="text-success">{{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}</span>
-                                                {% else %}
-                                                    {{ rg.quantite }}
-                                                {% endif %}
+                                                {% else %}{{ rg.quantite }}{% endif %}
                                             </td>
                                             <td><i class="fas fa-map-marked-alt text-primary me-1"></i> {{ rg.destination|default('Dépôt central')|upper }}</td>
                                             <td class="text-center">{% if rg.statut == 'Livré par le Stock' %}<span class="badge bg-success"><i class="fas fa-check me-1"></i> Livré</span>{% else %}<span class="badge bg-secondary">{{ rg.statut }}</span>{% endif %}</td>
@@ -442,7 +688,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="col-lg-6">
-                                    <div class="card border p-3 bg-white shadow-sm">
+                                    <div class="card border rounded-4 p-3 bg-white shadow-sm">
                                         <h6 class="fw-bold text-dark mb-3 text-center"><i class="fas fa-chart-bar text-primary me-2"></i>Graphique (unités)</h6>
                                         <div style="position:relative; height:220px;"><canvas id="stockChart"></canvas></div>
                                     </div>
@@ -450,211 +696,223 @@
                             </div>
                         </div>
 
-                    </div> {# fin tab-content #}
-                </div> {# fin card-tabs #}
+                    </div>
+                </div>
             </div>
         </div>
-    </div> {# fin container #}
+    </div>
 
-    {# ========== SCRIPTS ========== #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+
         // ============================================================
         // 1. GRAPHIQUE CHART.JS
         // ============================================================
-        const ctx = document.getElementById('stockChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: [{% for art in articles %}"{{ art.nom }}",{% endfor %}],
-                    datasets: [{
-                        label: 'Quantité (unités)',
-                        data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
-                        backgroundColor: [
-                            {% for art in articles %}
-                                {% if art.quantite <= 0 %}'#dc3545'
-                                {% elseif art.quantite <= art.seuilAlerte %}'#ffc107'
-                                {% else %}'#0d6efd'{% endif %},
-                            {% endfor %}
-                        ],
-                        borderRadius: 6
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    scales: { y: { beginAtZero: true } } 
-                }
-            });
-        }
-
-        // ============================================================
-        // 2. AUTO-SWITCH VERS L'ONGLET RAPPORT SI FILTRE DATE PRÉSENT
-        // ============================================================
-        if (new URLSearchParams(window.location.search).has('date_debut')) {
-            const reportTab = document.querySelector('#report-tab');
-            if (reportTab) {
-                new bootstrap.Tab(reportTab).show();
+        const canvas = document.getElementById('stockChart');
+        if (canvas) {
+            const labels = [{% for art in articles %}"{{ art.nom }}",{% endfor %}];
+            if (labels.length > 0) {
+                new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Quantité (unités)',
+                            data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
+                            backgroundColor: [
+                                {% for art in articles %}
+                                    {% if art.quantite <= 0 %}'#ef4444'
+                                    {% elseif art.quantite <= art.seuilAlerte %}'#f59e0b'
+                                    {% else %}'#3b82f6'{% endif %},
+                                {% endfor %}
+                            ],
+                            borderRadius: 8,
+                            maxBarThickness: 42
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#eef2f8' }, ticks: { color: '#64748b' } },
+                            x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                        }
+                    }
+                });
             }
         }
 
         // ============================================================
-        // 3. GESTION DES ATTRIBUTS DYNAMIQUES (VERSION MODERNISÉE)
+        // 2. AUTO-SWITCH VERS L'ONGLET RAPPORT SI FILTRE DATE
         // ============================================================
-        const subSelect = document.querySelector('.sub-category-select');
+        if (new URLSearchParams(window.location.search).has('date_debut')) {
+            const reportTab = document.querySelector('#report-tab');
+            if (reportTab) new bootstrap.Tab(reportTab).show();
+        }
+
+        // ============================================================
+        // 3. GESTION DES ATTRIBUTS DYNAMIQUES
+        // ============================================================
         const attributsWrapper = document.getElementById('attributs-wrapper');
         const container = document.getElementById('attributs-container');
         const addBtn = document.getElementById('add-attribut');
         const showBtn = document.getElementById('show-attributs-btn');
-        const machineContainer = document.getElementById('machine-container');
 
-        // 3.1 Afficher/masquer la section attributs sur clic du bouton
         if (showBtn) {
             showBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                if (attributsWrapper.style.display === 'none') {
+                const isHidden = attributsWrapper.style.display === 'none' || attributsWrapper.style.display === '';
+                if (isHidden) {
                     attributsWrapper.style.display = 'block';
-                    showBtn.innerHTML = '<i class="fas fa-chevron-up me-2"></i> Masquer les caractéristiques';
-                    showBtn.classList.remove('btn-outline-secondary');
-                    showBtn.classList.add('btn-outline-primary');
+                    showBtn.classList.add('active');
+                    showBtn.querySelector('span').textContent = 'Masquer les caractéristiques';
+                    showBtn.querySelector('i').className = 'fas fa-chevron-up';
                 } else {
                     attributsWrapper.style.display = 'none';
-                    showBtn.innerHTML = '<i class="fas fa-cog me-2"></i> Ajouter des caractéristiques techniques';
-                    showBtn.classList.remove('btn-outline-primary');
-                    showBtn.classList.add('btn-outline-secondary');
+                    showBtn.classList.remove('active');
+                    showBtn.querySelector('span').textContent = 'Ajouter des caractéristiques techniques';
+                    showBtn.querySelector('i').className = 'fas fa-cog';
                 }
             });
         }
 
-        // 3.2 Afficher/masquer la machine selon la sous-catégorie
-        function toggleMachine() {
-            if (!subSelect) return;
-            const selectedOption = subSelect.options[subSelect.selectedIndex];
-            const selectedText = selectedOption ? selectedOption.text.toLowerCase() : '';
-            const isEncre = selectedText.includes('encre') || selectedText.includes('solvant');
-            if (machineContainer) {
-                machineContainer.style.display = isEncre ? 'block' : 'none';
-            }
-        }
-
-        // 3.3 Ajouter une ligne d'attribut
         function ajouterLigneAttribut() {
             if (!container) return;
-            
             let idx = parseInt(container.dataset.index) || container.querySelectorAll('.attr-row').length;
             let proto = container.dataset.prototype;
-            
-            if (!proto) {
-                console.warn('Prototype non trouvé');
-                return;
-            }
-            
-            let html = proto.replace(/__name__/g, idx);
-            let div = document.createElement('div');
-            div.className = 'attr-row card border-0 shadow-sm p-3 mb-2 rounded-3';
-            div.style.background = '#ffffff';
-            div.innerHTML = html;
-            
-            // Ajouter le bouton de suppression
+            if (!proto) { console.warn('Prototype manquant'); return; }
+
+            const html = proto.replace(/__name__/g, idx);
+
+            const row = document.createElement('div');
+            row.className = 'attr-row';
+
+            const badge = document.createElement('div');
+            badge.className = 'attr-badge';
+            badge.textContent = '#' + (container.querySelectorAll('.attr-row').length + 1);
+
+            const fieldsWrap = document.createElement('div');
+            fieldsWrap.className = 'attr-fields';
+            fieldsWrap.innerHTML = html;
+
+            const inputs = fieldsWrap.querySelectorAll('input, select, textarea');
+            fieldsWrap.querySelectorAll('label').forEach(l => l.remove());
+
+            const meta = [
+                { label: 'Dimension',  icon: 'fa-ruler-combined',   ph: '120 x 80' },
+                { label: 'Grammage',   icon: 'fa-weight-hanging',   ph: '180 g' },
+                { label: 'Couleur',    icon: 'fa-palette',          ph: 'Rouge' },
+                { label: 'Longueur',   icon: 'fa-ruler-horizontal', ph: '150 m' },
+                { label: 'Poids (kg)', icon: 'fa-weight-scale',     ph: '2.5' },
+            ];
+
+            inputs.forEach((input, i) => {
+                const m = meta[i] || { label: 'Champ', icon: 'fa-tag', ph: '' };
+                const field = document.createElement('div');
+                field.className = 'attr-field';
+
+                const lbl = document.createElement('label');
+                lbl.className = 'attr-label';
+                lbl.innerHTML = `<i class="fas ${m.icon}"></i> ${m.label}`;
+
+                input.classList.add('attr-input');
+                if (!input.placeholder) input.placeholder = m.ph;
+                input.required = false;
+
+                field.appendChild(lbl);
+                field.appendChild(input);
+                fieldsWrap.appendChild(field);
+            });
+
             const removeBtn = document.createElement('button');
             removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-outline-danger btn-sm rounded-circle p-0 remove-attribut';
-            removeBtn.style.width = '32px';
-            removeBtn.style.height = '32px';
-            removeBtn.style.lineHeight = '1';
-            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-            removeBtn.title = 'Supprimer cette ligne';
+            removeBtn.className = 'attr-remove remove-attribut';
+            removeBtn.title = 'Supprimer';
+            removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
             removeBtn.onclick = function(e) {
                 e.preventDefault();
-                if (container.querySelectorAll('.attr-row').length > 1) {
-                    div.remove();
-                } else {
-                    alert('Vous devez conserver au moins une ligne de caractéristiques.');
-                }
+                row.remove();
+                reindexAttrRows();
             };
-            
-            // Ajouter le bouton dans la dernière colonne
-            const lastCol = div.querySelector('.row:last-child .col-md-1');
-            if (lastCol) {
-                lastCol.innerHTML = '';
-                lastCol.className = 'col-md-1 d-flex align-items-end justify-content-end';
-                lastCol.appendChild(removeBtn);
-            }
-            
-            container.appendChild(div);
+
+            row.appendChild(badge);
+            row.appendChild(fieldsWrap);
+            row.appendChild(removeBtn);
+            container.appendChild(row);
             container.dataset.index = idx + 1;
+            updateEmptyState();
         }
 
-        // 3.4 Événements
-        if (subSelect) {
-            subSelect.addEventListener('change', toggleMachine);
-            setTimeout(toggleMachine, 100);
-        }
-
-        if (addBtn) {
-            addBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                ajouterLigneAttribut();
+        function reindexAttrRows() {
+            if (!container) return;
+            container.querySelectorAll('.attr-row').forEach((row, i) => {
+                const b = row.querySelector('.attr-badge');
+                if (b) b.textContent = '#' + (i + 1);
             });
+            updateEmptyState();
         }
 
-        // 3.5 Suppression des lignes existantes via boutons
+        function updateEmptyState() {
+            const empty = document.getElementById('attr-empty-state');
+            if (!empty || !container) return;
+            empty.style.display = container.querySelectorAll('.attr-row').length === 0 ? 'block' : 'none';
+        }
+
+        if (addBtn) addBtn.addEventListener('click', e => { e.preventDefault(); ajouterLigneAttribut(); });
+
         document.querySelectorAll('.remove-attribut').forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const row = this.closest('.attr-row');
-                if (row && container.querySelectorAll('.attr-row').length > 1) {
-                    row.remove();
-                } else {
-                    alert('Vous devez conserver au moins une ligne de caractéristiques.');
-                }
+                if (row) { row.remove(); reindexAttrRows(); }
             });
         });
 
+        updateEmptyState();
+
         // ============================================================
-        // 4. FONCTION D'EXPORT EXCEL
+        // 4. EXPORT EXCEL
         // ============================================================
         window.exportToExcel = function() {
             alert('Export Excel simulé – connectez votre logique backend.');
         };
 
         // ============================================================
-// 1. GRAPHIQUE CHART.JS
-// ============================================================
-const canvas = document.getElementById('stockChart');
-if (canvas) {
-    // On vérifie qu'il y a des labels (données non vides)
-    const labels = [{% for art in articles %}"{{ art.nom }}",{% endfor %}];
-    if (labels.length > 0) {
-        new Chart(canvas.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Quantité (unités)',
-                    data: [{% for art in articles %}{{ art.quantite }},{% endfor %}],
-                    backgroundColor: [
-                        {% for art in articles %}
-                            {% if art.quantite <= 0 %}'#dc3545'
-                            {% elseif art.quantite <= art.seuilAlerte %}'#ffc107'
-                            {% else %}'#0d6efd'{% endif %},
-                        {% endfor %}
-                    ],
-                    borderRadius: 6
-                }]
-            },
-            options: { 
-                responsive: true, 
-                maintainAspectRatio: false, 
-                scales: { y: { beginAtZero: true } } 
-            }
-        });
-    }
-}
+        // 5. CATÉGORIE / SOUS-CATÉGORIE FACULTATIVES SI "GILET"
+        // ============================================================
+        const nomInput          = document.getElementById('stock_nom');
+        const categorySelect    = document.getElementById('stock_category');
+        const subCategorySelect = document.getElementById('stock_subCategory');
+        const optionalBadge     = document.getElementById('optional-badge-1');
 
-    }); // Fin DOMContentLoaded
-</script>
+        function updateRequiredByNom() {
+            if (!nomInput) return;
+
+            const value   = (nomInput.value || '').toLowerCase().trim();
+            const isGilet = value.includes('gilet');
+
+            [categorySelect, subCategorySelect].forEach(field => {
+                if (!field) return;
+                if (isGilet) {
+                    field.removeAttribute('required');
+                } else {
+                    field.setAttribute('required', 'required');
+                }
+            });
+
+            if (optionalBadge) {
+                optionalBadge.classList.toggle('hidden', !isGilet);
+            }
+        }
+
+        if (nomInput) {
+            nomInput.addEventListener('input',  updateRequiredByNom);
+            nomInput.addEventListener('change', updateRequiredByNom);
+            updateRequiredByNom();
+        }
+
+    }); // fin DOMContentLoaded
+    </script>
 </body>
 </html>

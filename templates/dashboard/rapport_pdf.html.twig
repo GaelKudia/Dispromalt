@@ -12,10 +12,11 @@
         th { background-color: #f8fafc; font-weight: bold; color: #475569; text-transform: uppercase; font-size: 10px; }
         .text-end { text-align: right; }
         .font-mono { font-family: 'Courier New', monospace; font-weight: bold; }
+        .footer { margin-top: 30px; text-align: center; font-size: 9px; color: #94a3b8; }
     </style>
 </head>
 <body>
-dedd
+
     <h1>Rapport Général des Flux & Registre Logistique</h1>
     <div class="periode">Période du {{ date_debut }} au {{ date_fin }}</div>
 
@@ -32,7 +33,6 @@ dedd
             </tr>
         </thead>
         <tbody>
-            {# 🔍 CORRECTION : Utilisation de rapportGlobal à la place de donnees #}
             {% for rg in rapportGlobal %}
                 <tr>
                     <td>{{ rg.createdAt|date('d/m/Y H:i') }}</td>
@@ -40,11 +40,10 @@ dedd
                     <td>{{ rg.localisation|default('Direction')|upper }}</td>
                     <td><strong>{{ rg.materiel }}</strong></td>
                     <td class="text-end font-mono">
-                        {# Gestion du formatage des paquets de gilets si applicable #}
                         {% if rg.materiel|lower == 'gilet' or rg.materiel|lower == 'gilets' %}
                             {% set p_rep = (rg.quantite / 25)|round(0, 'floor') %}
                             {% set r_rep = rg.quantite % 25 %}
-                            {{ p_rep }} pqt(s) {% if r_rep > 0 %}{{ r_rep }} u{% endif %}
+                            {{ p_rep }} pqt(s){% if r_rep > 0 %} {{ r_rep }} u{% endif %}
                         {% else %}
                             {{ rg.quantite }}
                         {% endif %}
@@ -61,6 +60,10 @@ dedd
             {% endfor %}
         </tbody>
     </table>
+
+    <div class="footer">
+        Rapport généré automatiquement le {{ "now"|date("d/m/Y à H:i") }}
+    </div>
 
 </body>
 </html>
