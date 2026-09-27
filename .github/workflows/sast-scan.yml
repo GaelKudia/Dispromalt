@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload Semgrep SARIF
         if: always() && hashFiles('semgrep.sarif') != ''
-        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e
+        uses: github/codeql-action/upload-sarif@662472013eb021940d7b8ec52bdfbc5b66dee6ab # tag: v3.28.10
         with:
           sarif_file: semgrep.sarif
           category: semgrep
@@ -164,7 +164,7 @@ jobs:
 
       - name: Upload Trivy SARIF
         if: always() && hashFiles('trivy.sarif') != ''
-        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e
+        uses: github/codeql-action/upload-sarif@662472013eb021940d7b8ec52bdfbc5b66dee6ab # tag: v3.28.10
         with:
           sarif_file: trivy.sarif
           category: trivy
