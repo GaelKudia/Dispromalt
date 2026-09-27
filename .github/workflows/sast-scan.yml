@@ -1,183 +1,121 @@
 # ============================================================
 # SAST SECURITY SCAN
-#
-# Outils :
-#   - Semgrep  : SAST
-#   - Gitleaks : détection de secrets
-#   - Trivy    : vulnérabilités / secrets
-#
-# Le Security Gate bloque le pipeline si un scan échoue.
 # ============================================================
 
 name: SAST Security Scan
-
-# ============================================================
-# TRIGGERS
-# ============================================================
 
 on:
   push:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
 
-# ============================================================
-# PERMISSIONS PAR DEFAUT
-# ============================================================
-
 permissions: {}
-
-# ============================================================
-# CONCURRENCY
-# ============================================================
 
 concurrency:
   group: sast-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-# ============================================================
-# JOBS
-# ============================================================
 
 jobs:
 
   # ==========================================================
   # 1. SEMGREP
   # ==========================================================
-
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
-
     steps:
-
-      # --------------------------------------------------------
-      # CHECKOUT
-      # --------------------------------------------------------
-
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4
         with:
           persist-credentials: false
           fetch-depth: 1
 
-      # --------------------------------------------------------
-      # INSTALL SEMGREP
-      # --------------------------------------------------------
-
       - name: Install Semgrep
         run: |
           set -euo pipefail
-
           python3 -m pip install --upgrade pip
           python3 -m pip install semgrep==1.99.0
-
-      # --------------------------------------------------------
-      # RUN SEMGREP
-      # --------------------------------------------------------
 
       - name: Run Semgrep
         run: |
           set -euo pipefail
-
-          semgrep scan \
-            --config auto \
-            --error \
-            .
+          semgrep scan --config auto --error .
 
   # ==========================================================
   # 2. GITLEAKS
   # ==========================================================
-
   gitleaks:
     name: Gitleaks Secret Scan
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
-
     steps:
-
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4
         with:
           persist-credentials: false
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@9936e743d6f8393ec329877b0f0ee197330efd97 # tag: v2.3.0
+        uses: gitleaks/gitleaks-action@6522e81725b74ef2fc6bf11433215264878a1bc1 # tag: v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ==========================================================
   # 3. TRIVY
   # ==========================================================
-
   trivy:
     name: Trivy Security Scan
     runs-on: ubuntu-24.04
-
     permissions:
       contents: read
-
     steps:
-
       - name: Checkout repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # tag: v4
         with:
           persist-credentials: false
           fetch-depth: 1
 
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@18f25102526840e539962a792437651a243d463b # tag: 0.29.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # tag: 0.29.0
         with:
-          scan-type: fs
-          scan-ref: .
-          scanners: vuln,secret
-          severity: HIGH,CRITICAL
+          scan-type: 'fs'
+          scan-ref: '.'
+          scanners: 'vuln,secret'
+          severity: 'HIGH,CRITICAL'
           ignore-unfixed: true
-          exit-code: "1"
+          exit-code: '1'
 
   # ==========================================================
   # 4. SECURITY GATE
   # ==========================================================
-
   security-gate:
     name: Security Gate
-
     runs-on: ubuntu-24.04
-
     needs:
       - semgrep
       - gitleaks
       - trivy
-
     if: always()
-
     permissions: {}
-
     steps:
-
       - name: Verify security results
         env:
           SEMGREP_RESULT: ${{ needs.semgrep.result }}
           GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
           TRIVY_RESULT: ${{ needs.trivy.result }}
-
         run: |
           set -euo pipefail
 
           echo "=========================================="
           echo "          SECURITY GATE"
           echo "=========================================="
-
           echo "Semgrep  : $SEMGREP_RESULT"
           echo "Gitleaks : $GITLEAKS_RESULT"
           echo "Trivy    : $TRIVY_RESULT"

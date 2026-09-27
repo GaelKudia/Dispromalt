@@ -1,0 +1,21 @@
+# ============================================================
+# .semgrepignore - Configuration des exclusions Semgrep
+# ============================================================
+
+# Dépendances et dossiers internes Symfony
+/vendor/
+/var/
+/public/bundles/
+/public/build/
+
+# Migrations et Fixtures (données de test et hashs fictifs)
+/migrations/
+/src/DataFixtures/
+
+# Fichiers d'environnement locaux
+.env.local
+.env.*.local
+
+# Tests et documentation éventuelle
+/tests/_output/
+/tests/_support/_generated/
