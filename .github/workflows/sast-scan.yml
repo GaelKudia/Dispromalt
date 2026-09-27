@@ -112,7 +112,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@652260c114107e5c9b7811d7f465a3c914b434cb # tag: v2.3.0
+        uses: gitleaks/gitleaks-action@9936e743d6f8393ec329877b0f0ee197330efd97 # tag: v2.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -136,7 +136,7 @@ jobs:
           fetch-depth: 1
 
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@7b66230f3680327f310f63b15a6b0938a16db8a2 # tag: 0.29.0
+        uses: aquasecurity/trivy-action@18f25102526840e539962a792437651a243d463b # tag: 0.29.0
         with:
           scan-type: fs
           scan-ref: .
