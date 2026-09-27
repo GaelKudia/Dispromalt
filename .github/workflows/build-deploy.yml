@@ -1,27 +1,32 @@
-```yaml
 # ============================================================
 # BUILD + SECURITY SCAN + DEPLOY
 #
-# SAST
-#   ↓
-# Docker Build
-#   ↓
-# Trivy Container Scan
-#   ↓
-# Push GHCR
-#   ↓
-# Coolify
+# PIPELINE :
 #
-# Le déploiement est impossible si le scan échoue.
+# SAST Security Scan
+#        ↓
+# Checkout du commit testé
+#        ↓
+# Docker Build
+#        ↓
+# Trivy Container Scan
+#        ↓
+# Push GHCR
+#        ↓
+# Coolify Deployment
+#
+# RÈGLE :
+# Le déploiement est IMPOSSIBLE si le SAST ou Trivy échoue.
 # ============================================================
 
 name: Build and Deploy to Coolify
 
 
 # ============================================================
-# WORKFLOW_RUN
+# DÉCLENCHEMENT
 #
-# Ce workflow attend la réussite du workflow SAST.
+# Ce workflow démarre uniquement après :
+# "SAST Security Scan"
 # ============================================================
 
 on:
@@ -29,20 +34,20 @@ on:
   workflow_run:
 
     workflows:
-
       - "SAST Security Scan"
 
     types:
-
       - completed
 
     branches:
-
       - main
 
 
 # ============================================================
 # ZERO TRUST
+#
+# Aucun droit par défaut.
+# Les permissions sont définies uniquement au niveau du job.
 # ============================================================
 
 permissions: {}
@@ -50,6 +55,8 @@ permissions: {}
 
 # ============================================================
 # CONCURRENCY
+#
+# Évite plusieurs déploiements simultanés sur main.
 # ============================================================
 
 concurrency:
@@ -58,6 +65,10 @@ concurrency:
 
   cancel-in-progress: true
 
+
+# ============================================================
+# JOB
+# ============================================================
 
 jobs:
 
@@ -68,6 +79,14 @@ jobs:
 
     # ========================================================
     # CONDITIONS DE SÉCURITÉ
+    #
+    # 1. Le workflow SAST doit réussir.
+    # 2. Il doit avoir été déclenché par un push.
+    # 3. Le commit doit être sur main.
+    # 4. Le workflow doit appartenir au même repository.
+    #
+    # Cela empêche notamment un workflow provenant d'un fork
+    # de déclencher ce déploiement privilégié.
     # ========================================================
 
     if: >
@@ -76,6 +95,10 @@ jobs:
       github.event.workflow_run.head_branch == 'main' &&
       github.event.workflow_run.head_repository.full_name == github.repository
 
+
+    # ========================================================
+    # RUNNER
+    # ========================================================
 
     runs-on: ubuntu-24.04
 
@@ -93,15 +116,26 @@ jobs:
       security-events: write
 
 
+    # ========================================================
+    # ÉTAPES
+    # ========================================================
+
     steps:
 
+
       # ======================================================
-      # CHECKOUT DU MÊME COMMIT QUE LE SAST
+      # 1. CHECKOUT DU MÊME COMMIT TESTÉ PAR LE SAST
+      #
+      # IMPORTANT :
+      # On ne checkout PAS simplement main.
+      #
+      # On checkout exactement le SHA testé par le workflow
+      # SAST.
       # ======================================================
 
       - name: Checkout tested commit
 
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@v4
 
         with:
 
@@ -113,7 +147,39 @@ jobs:
 
 
       # ======================================================
-      # IMAGE VARIABLES
+      # 2. VÉRIFICATION DU COMMIT
+      #
+      # On affiche le SHA réellement utilisé.
+      # ======================================================
+
+      - name: Verify tested commit
+
+        env:
+
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+
+        run: |
+
+          set -euo pipefail
+
+          ACTUAL_SHA="$(git rev-parse HEAD)"
+
+          echo "Expected SHA : $EXPECTED_SHA"
+          echo "Actual SHA   : $ACTUAL_SHA"
+
+          if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
+
+            echo "ERROR: Checked out commit does not match SAST commit."
+
+            exit 1
+
+          fi
+
+          echo "Commit verification: OK"
+
+
+      # ======================================================
+      # 3. VARIABLES IMAGE DOCKER
       # ======================================================
 
       - name: Set image variables
@@ -134,31 +200,41 @@ jobs:
 
           IMAGE_REF="$IMAGE_NAME:$IMAGE_TAG"
 
+
           echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
 
           echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
 
           echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
 
-          echo "Image: $IMAGE_REF"
+
+          echo "============================================"
+
+          echo "Docker image"
+
+          echo "$IMAGE_REF"
+
+          echo "============================================"
 
 
       # ======================================================
-      # DOCKER BUILDX
+      # 4. DOCKER BUILDX
       # ======================================================
 
       - name: Set up Docker Buildx
 
-        uses: docker/setup-buildx-action@bb5f1c9e4c2d7b9f0a6e8c3d1f4b7a2c5e9d6f0b # v4.x
+        uses: docker/setup-buildx-action@v3
 
 
       # ======================================================
-      # GHCR LOGIN
+      # 5. LOGIN GHCR
+      #
+      # Le token GitHub est utilisé uniquement pour GHCR.
       # ======================================================
 
       - name: Login to GHCR
 
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@v3
 
         with:
 
@@ -170,7 +246,11 @@ jobs:
 
 
       # ======================================================
-      # BUILD
+      # 6. BUILD DOCKER IMAGE
+      #
+      # L'image reste locale.
+      #
+      # Elle n'est PAS encore poussée vers GHCR.
       # ======================================================
 
       - name: Build Docker image
@@ -186,15 +266,43 @@ jobs:
 
 
       # ======================================================
-      # TRIVY CONTAINER SCAN
+      # 7. VÉRIFICATION IMAGE
+      # ======================================================
+
+      - name: Verify Docker image
+
+        run: |
+
+          set -euo pipefail
+
+          echo "Image construite : $IMAGE_REF"
+
+          docker image inspect "$IMAGE_REF" > /dev/null
+
+          echo "Docker image verification: OK"
+
+
+      # ======================================================
+      # 8. TRIVY CONTAINER SECURITY SCAN
+      #
+      # Scan :
+      #
+      # HIGH
+      # CRITICAL
+      #
+      # Si une vulnérabilité HIGH ou CRITICAL est trouvée :
+      #
+      # exit-code = 1
+      #
+      # donc le job échoue.
       #
       # IMPORTANT :
-      # L'image n'est PAS publiée avant ce scan.
+      # Le push GHCR est APRÈS cette étape.
       # ======================================================
 
       - name: Trivy Container Security Scan
 
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
 
         env:
 
@@ -208,7 +316,7 @@ jobs:
 
           output: trivy-container.sarif
 
-          severity: CRITICAL,HIGH
+          severity: HIGH,CRITICAL
 
           scanners: vuln
 
@@ -216,18 +324,21 @@ jobs:
 
           ignore-unfixed: true
 
-          skip-setup-trivy: true
-
 
       # ======================================================
-      # UPLOAD SECURITY REPORT
+      # 9. UPLOAD DU RAPPORT TRIVY
+      #
+      # Même si Trivy échoue, on essaie de publier le rapport.
+      #
+      # Cette étape ne peut PAS transformer un échec Trivy
+      # en succès du job.
       # ======================================================
 
       - name: Upload Trivy container SARIF
 
         if: always() && hashFiles('trivy-container.sarif') != ''
 
-        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e # v4.38.2
+        uses: github/codeql-action/upload-sarif@v3
 
         with:
 
@@ -237,9 +348,18 @@ jobs:
 
 
       # ======================================================
-      # PUSH
+      # 10. PUSH GHCR
       #
-      # Cette étape n'est atteinte que si Trivy retourne 0.
+      # Cette étape n'est exécutée QUE si toutes les étapes
+      # précédentes ont réussi.
+      #
+      # Donc :
+      #
+      # SAST FAIL   → PAS DE PUSH
+      #
+      # Trivy FAIL  → PAS DE PUSH
+      #
+      # Trivy PASS  → PUSH
       # ======================================================
 
       - name: Push immutable Docker image
@@ -252,7 +372,33 @@ jobs:
 
 
       # ======================================================
-      # COOLIFY
+      # 11. VÉRIFICATION DU PUSH
+      #
+      # On vérifie que l'image existe bien dans GHCR.
+      # ======================================================
+
+      - name: Verify pushed image
+
+        run: |
+
+          set -euo pipefail
+
+          docker pull "$IMAGE_REF"
+
+          docker image inspect "$IMAGE_REF" > /dev/null
+
+          echo "GHCR image verification: OK"
+
+
+      # ======================================================
+      # 12. TRIGGER COOLIFY
+      #
+      # Le déploiement Coolify ne se produit qu'après :
+      #
+      # SAST       = PASS
+      # Docker     = PASS
+      # Trivy      = PASS
+      # GHCR Push  = PASS
       # ======================================================
 
       - name: Trigger Coolify Deployment
@@ -267,21 +413,47 @@ jobs:
 
           set -euo pipefail
 
+
+          # --------------------------------------------------
+          # Vérification secrets
+          # --------------------------------------------------
+
           if [ -z "$COOLIFY_WEBHOOK" ]; then
-            echo "❌ COOLIFY_WEBHOOK is not configured."
+
+            echo "ERROR: COOLIFY_WEBHOOK is not configured."
+
             exit 1
+
           fi
 
+
           if [ -z "$COOLIFY_TOKEN" ]; then
-            echo "❌ COOLIFY_TOKEN is not configured."
+
+            echo "ERROR: COOLIFY_TOKEN is not configured."
+
             exit 1
+
           fi
+
+
+          # --------------------------------------------------
+          # Déploiement
+          # --------------------------------------------------
 
           curl \
             --silent \
             --show-error \
             --fail-with-body \
             --request GET \
+            --max-time 30 \
             "$COOLIFY_WEBHOOK" \
             --header "Authorization: Bearer $COOLIFY_TOKEN"
-```
+
+
+          echo "============================================"
+
+          echo "Coolify deployment triggered successfully."
+
+          echo "Image: $IMAGE_REF"
+
+          echo "============================================"
