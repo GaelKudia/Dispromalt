@@ -1,181 +1,171 @@
+```yaml
 # ============================================================
-# SAST SECURITY SCAN
+# SECURITY SCAN - DISPROMALT
 #
-# Outils :
-#   - Semgrep  : SAST
-#   - Gitleaks : détection de secrets
-#   - Trivy    : vulnérabilités / secrets
+# Contrôles :
+#   1. Semgrep  -> SAST
+#   2. Gitleaks -> secrets
+#   3. Trivy    -> vulnérabilités fichiers/dépendances
 #
-# Le Security Gate bloque le pipeline si un scan échoue.
+# Si un contrôle de sécurité échoue :
+#   -> le workflow échoue
+#   -> le déploiement ne doit pas être lancé
+#
 # ============================================================
 
 name: SAST Security Scan
-
-# ============================================================
-# TRIGGERS
-# ============================================================
 
 on:
   push:
     branches:
       - main
-      - develop
 
   pull_request:
     branches:
       - main
 
-# ============================================================
-# PERMISSIONS PAR DEFAUT
-# ============================================================
+  workflow_dispatch:
 
-permissions: {}
-
-# ============================================================
-# CONCURRENCY
-# ============================================================
-
-concurrency:
-  group: sast-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-# ============================================================
-# JOBS
-# ============================================================
+# Permissions minimales nécessaires
+permissions:
+  contents: read
+  security-events: write
 
 jobs:
 
   # ==========================================================
-  # 1. SEMGREP
+  # 1. SEMGREP - SAST
   # ==========================================================
-
   semgrep:
     name: Semgrep SAST
     runs-on: ubuntu-24.04
 
-    permissions:
-      contents: read
-      security-events: write
-
-    steps:
-
-      # --------------------------------------------------------
-      # CHECKOUT
-      # --------------------------------------------------------
-
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 1
-
-      # --------------------------------------------------------
-      # INSTALL SEMGREP
-      # --------------------------------------------------------
-
-      - name: Install Semgrep
-        run: |
-          set -euo pipefail
-
-          python3 -m pip install --upgrade pip
-          python3 -m pip install semgrep==1.99.0
-
-      # --------------------------------------------------------
-      # RUN SEMGREP
-      # --------------------------------------------------------
-
-      - name: Run Semgrep
-        run: |
-          set -euo pipefail
-
-          semgrep scan \
-            --config auto \
-            --error \
-            --sarif \
-            --output semgrep.sarif \
-            .
-
-      # --------------------------------------------------------
-      # UPLOAD SARIF
-      # --------------------------------------------------------
-
-      - name: Upload Semgrep SARIF
-        if: always() && hashFiles('semgrep.sarif') != ''
-        uses: github/codeql-action/upload-sarif@662472013eb021940d7b8ec52bdfbc5b66dee6ab # tag: v3.28.10
-        with:
-          sarif_file: semgrep.sarif
-          category: semgrep
-
-  # ==========================================================
-  # 2. GITLEAKS
-  # ==========================================================
-
-  gitleaks:
-    name: Gitleaks Secret Scan
-    runs-on: ubuntu-24.04
-
-    permissions:
-      contents: read
-
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v6
         with:
-          persist-credentials: false
           fetch-depth: 0
 
+      # ------------------------------------------------------
+      # Installation Semgrep
+      # ------------------------------------------------------
+      - name: Install Semgrep
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install semgrep
+
+      # ------------------------------------------------------
+      # Scan SAST
+      #
+      # --config auto :
+      # Semgrep sélectionne automatiquement les règles
+      #
+      # --sarif :
+      # Génère un rapport compatible GitHub Security
+      # ------------------------------------------------------
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --sarif \
+            --output semgrep-results.sarif \
+            --error
+
+      # ------------------------------------------------------
+      # Upload du rapport
+      #
+      # IMPORTANT :
+      # On utilise @v4 et PAS un faux SHA.
+      # ------------------------------------------------------
+      - name: Upload Semgrep SARIF
+        if: always() && hashFiles('semgrep-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: semgrep-results.sarif
+
+
+  # ==========================================================
+  # 2. GITLEAKS - SECRETS
+  # ==========================================================
+  gitleaks:
+    name: Gitleaks Secrets Scan
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      # ------------------------------------------------------
+      # Recherche :
+      #   - API keys
+      #   - passwords
+      #   - tokens
+      #   - secrets
+      # ------------------------------------------------------
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # ==========================================================
-  # 3. TRIVY
-  # ==========================================================
 
+  # ==========================================================
+  # 3. TRIVY - DEPENDENCIES / FILESYSTEM
+  # ==========================================================
   trivy:
-    name: Trivy Security Scan
+    name: Trivy Vulnerability Scan
     runs-on: ubuntu-24.04
-
-    permissions:
-      contents: read
-      security-events: write
 
     steps:
 
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 1
+        uses: actions/checkout@v6
 
-      - name: Run Trivy
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+      # ------------------------------------------------------
+      # Scan du filesystem du projet
+      #
+      # Détecte notamment les vulnérabilités présentes
+      # dans les dépendances.
+      # ------------------------------------------------------
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
-          scanners: vuln,secret
-          severity: HIGH,CRITICAL
-          ignore-unfixed: true
           format: sarif
-          output: trivy.sarif
+          output: trivy-results.sarif
+
+          # Bloque sur HIGH et CRITICAL
+          severity: HIGH,CRITICAL
+
+          # Les vulnérabilités sans correctif disponible
+          # ne bloquent pas le pipeline.
+          ignore-unfixed: true
+
+          # Une vulnérabilité HIGH/CRITICAL fait échouer
+          # le job.
           exit-code: "1"
 
+      # ------------------------------------------------------
+      # Upload rapport Trivy
+      # ------------------------------------------------------
       - name: Upload Trivy SARIF
-        if: always() && hashFiles('trivy.sarif') != ''
-        uses: github/codeql-action/upload-sarif@662472013eb021940d7b8ec52bdfbc5b66dee6ab # tag: v3.28.10
+        if: always() && hashFiles('trivy-results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: trivy.sarif
-          category: trivy
+          sarif_file: trivy-results.sarif
+
 
   # ==========================================================
   # 4. SECURITY GATE
+  #
+  # Ce job vérifie que les 3 contrôles sont passés.
   # ==========================================================
-
   security-gate:
     name: Security Gate
-
     runs-on: ubuntu-24.04
 
     needs:
@@ -183,44 +173,40 @@ jobs:
       - gitleaks
       - trivy
 
+    # Le gate doit toujours s'exécuter afin d'afficher
+    # clairement le résultat des différents scanners.
     if: always()
-
-    permissions: {}
 
     steps:
 
-      - name: Verify security results
-        env:
-          SEMGREP_RESULT: ${{ needs.semgrep.result }}
-          GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
-          TRIVY_RESULT: ${{ needs.trivy.result }}
-
+      - name: Security Gate
         run: |
-          set -euo pipefail
-
           echo "=========================================="
           echo "          SECURITY GATE"
           echo "=========================================="
 
-          echo "Semgrep  : $SEMGREP_RESULT"
-          echo "Gitleaks : $GITLEAKS_RESULT"
-          echo "Trivy    : $TRIVY_RESULT"
+          echo ""
+          echo "Semgrep  : ${{ needs.semgrep.result }}"
+          echo "Gitleaks : ${{ needs.gitleaks.result }}"
+          echo "Trivy    : ${{ needs.trivy.result }}"
+          echo ""
 
-          if [ "$SEMGREP_RESULT" != "success" ]; then
+          if [ "${{ needs.semgrep.result }}" != "success" ]; then
             echo "❌ Semgrep failed."
             exit 1
           fi
 
-          if [ "$GITLEAKS_RESULT" != "success" ]; then
+          if [ "${{ needs.gitleaks.result }}" != "success" ]; then
             echo "❌ Gitleaks failed."
             exit 1
           fi
 
-          if [ "$TRIVY_RESULT" != "success" ]; then
+          if [ "${{ needs.trivy.result }}" != "success" ]; then
             echo "❌ Trivy failed."
             exit 1
           fi
 
           echo "=========================================="
-          echo "✅ SECURITY GATE PASSED"
+          echo "✅ ALL SECURITY CHECKS PASSED"
           echo "=========================================="
+```
