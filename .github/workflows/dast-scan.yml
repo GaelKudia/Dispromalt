@@ -1,0 +1,109 @@
+# ============================================================
+# DAST Security Scan
+# Analyse dynamique APRÈS déploiement (OWASP ZAP Baseline).
+# Peut être déclenché manuellement OU par Coolify après un deploy réussi.
+# ============================================================
+name: DAST Security Scan
+
+on:
+  # Déclenchement manuel depuis l'UI GitHub
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "URL de l'application à scanner (doit être autorisée)"
+        required: false
+        default: 'https://votre-app.example.com'
+        type: string
+  # Déclenchement automatique par Coolify après un déploiement réussi
+  repository_dispatch:
+    types: [coolify-deploy-success]
+
+# Permissions minimales
+permissions:
+  contents: read
+  issues: write
+  actions: read
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # ── Validation de l'URL cible ──
+      # Bloque toute URL qui ne fait pas partie des domaines autorisés.
+      - name: Validate and set target URL
+        id: target
+        env:
+          # Priorité : input manuel > payload Coolify > défaut
+          INPUT_URL: ${{ github.event.inputs.target_url }}
+          PAYLOAD_URL: ${{ github.event.client_payload.url }}
+          ALLOWED_HOSTS: "votre-app.example.com,staging.example.com"
+        run: |
+          set -euo pipefail
+
+          # Détermine l'URL à utiliser
+          if [ -n "${INPUT_URL:-}" ]; then
+            URL="$INPUT_URL"
+          elif [ -n "${PAYLOAD_URL:-}" ]; then
+            URL="$PAYLOAD_URL"
+          else
+            URL="https://votre-app.example.com"
+          fi
+
+          # Vérifie le format (http/https uniquement)
+          if [[ ! "$URL" =~ ^https?:// ]]; then
+            echo "❌ URL invalide : format non supporté"
+            exit 1
+          fi
+
+          # Vérifie que l'hôte est dans la liste blanche
+          HOST=$(echo "$URL" | sed -E 's|^https?://([^/]+).*|\1|')
+          IFS=',' read -ra HOSTS <<< "$ALLOWED_HOSTS"
+          ALLOWED=false
+          for h in "${HOSTS[@]}"; do
+            if [ "$HOST" = "$h" ]; then
+              ALLOWED=true
+              break
+            fi
+          done
+
+          if [ "$ALLOWED" != "true" ]; then
+            echo "❌ Hôte non autorisé : $HOST"
+            exit 1
+          fi
+
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "✅ URL validée : $URL"
+
+      # ── Scan ZAP Baseline ──
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.14.0
+        with:
+          target: ${{ steps.target.outputs.url }}
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j -T 10'
+          allow_issue_writing: false
+          fail_action: false # ne bloque pas le workflow (DAST = alerte)
+
+      # ── Vérifie que le rapport a bien été généré ──
+      - name: Check report exists
+        id: check_report
+        if: always()
+        run: |
+          if [ -f report_html.html ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Upload du rapport (uniquement s'il existe) ──
+      - name: Upload ZAP Report
+        if: steps.check_report.outputs.exists == 'true'
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: zap-baseline-report-${{ github.run_id }}
+          path: report_html.html
+          retention-days: 7

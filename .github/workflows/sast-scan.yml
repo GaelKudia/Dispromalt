@@ -1,0 +1,226 @@
+# ============================================================
+# SAST SECURITY SCAN
+#
+# Outils :
+#   - Semgrep  : SAST
+#   - Gitleaks : détection de secrets
+#   - Trivy    : vulnérabilités / secrets
+#
+# Le Security Gate bloque le pipeline si un scan échoue.
+# ============================================================
+
+name: SAST Security Scan
+
+# ============================================================
+# TRIGGERS
+# ============================================================
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+
+# ============================================================
+# PERMISSIONS PAR DEFAUT
+# ============================================================
+
+permissions: {}
+
+# ============================================================
+# CONCURRENCY
+# ============================================================
+
+concurrency:
+  group: sast-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ============================================================
+# JOBS
+# ============================================================
+
+jobs:
+
+  # ==========================================================
+  # 1. SEMGREP
+  # ==========================================================
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+
+      # --------------------------------------------------------
+      # CHECKOUT
+      # --------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      # --------------------------------------------------------
+      # INSTALL SEMGREP
+      # --------------------------------------------------------
+
+      - name: Install Semgrep
+        run: |
+          set -euo pipefail
+
+          python3 -m pip install --upgrade pip
+          python3 -m pip install semgrep==1.99.0
+
+      # --------------------------------------------------------
+      # RUN SEMGREP
+      # --------------------------------------------------------
+
+      - name: Run Semgrep
+        run: |
+          set -euo pipefail
+
+          semgrep scan \
+            --config auto \
+            --error \
+            --sarif \
+            --output semgrep.sarif \
+            .
+
+      # --------------------------------------------------------
+      # UPLOAD SARIF
+      # --------------------------------------------------------
+
+      - name: Upload Semgrep SARIF
+        if: always() && hashFiles('semgrep.sarif') != ''
+        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep
+
+  # ==========================================================
+  # 2. GITLEAKS
+  # ==========================================================
+
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ==========================================================
+  # 3. TRIVY
+  # ==========================================================
+
+  trivy:
+    name: Trivy Security Scan
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          format: sarif
+          output: trivy.sarif
+          exit-code: "1"
+
+      - name: Upload Trivy SARIF
+        if: always() && hashFiles('trivy.sarif') != ''
+        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e
+        with:
+          sarif_file: trivy.sarif
+          category: trivy
+
+  # ==========================================================
+  # 4. SECURITY GATE
+  # ==========================================================
+
+  security-gate:
+    name: Security Gate
+
+    runs-on: ubuntu-24.04
+
+    needs:
+      - semgrep
+      - gitleaks
+      - trivy
+
+    if: always()
+
+    permissions: {}
+
+    steps:
+
+      - name: Verify security results
+        env:
+          SEMGREP_RESULT: ${{ needs.semgrep.result }}
+          GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
+          TRIVY_RESULT: ${{ needs.trivy.result }}
+
+        run: |
+          set -euo pipefail
+
+          echo "=========================================="
+          echo "          SECURITY GATE"
+          echo "=========================================="
+
+          echo "Semgrep  : $SEMGREP_RESULT"
+          echo "Gitleaks : $GITLEAKS_RESULT"
+          echo "Trivy    : $TRIVY_RESULT"
+
+          if [ "$SEMGREP_RESULT" != "success" ]; then
+            echo "❌ Semgrep failed."
+            exit 1
+          fi
+
+          if [ "$GITLEAKS_RESULT" != "success" ]; then
+            echo "❌ Gitleaks failed."
+            exit 1
+          fi
+
+          if [ "$TRIVY_RESULT" != "success" ]; then
+            echo "❌ Trivy failed."
+            exit 1
+          fi
+
+          echo "=========================================="
+          echo "✅ SECURITY GATE PASSED"
+          echo "=========================================="

@@ -1,0 +1,287 @@
+```yaml
+# ============================================================
+# BUILD + SECURITY SCAN + DEPLOY
+#
+# SAST
+#   ↓
+# Docker Build
+#   ↓
+# Trivy Container Scan
+#   ↓
+# Push GHCR
+#   ↓
+# Coolify
+#
+# Le déploiement est impossible si le scan échoue.
+# ============================================================
+
+name: Build and Deploy to Coolify
+
+
+# ============================================================
+# WORKFLOW_RUN
+#
+# Ce workflow attend la réussite du workflow SAST.
+# ============================================================
+
+on:
+
+  workflow_run:
+
+    workflows:
+
+      - "SAST Security Scan"
+
+    types:
+
+      - completed
+
+    branches:
+
+      - main
+
+
+# ============================================================
+# ZERO TRUST
+# ============================================================
+
+permissions: {}
+
+
+# ============================================================
+# CONCURRENCY
+# ============================================================
+
+concurrency:
+
+  group: deploy-main
+
+  cancel-in-progress: true
+
+
+jobs:
+
+  build-deploy:
+
+    name: Secure Build and Deploy
+
+
+    # ========================================================
+    # CONDITIONS DE SÉCURITÉ
+    # ========================================================
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+
+
+    runs-on: ubuntu-24.04
+
+
+    # ========================================================
+    # PERMISSIONS MINIMALES
+    # ========================================================
+
+    permissions:
+
+      contents: read
+
+      packages: write
+
+      security-events: write
+
+
+    steps:
+
+      # ======================================================
+      # CHECKOUT DU MÊME COMMIT QUE LE SAST
+      # ======================================================
+
+      - name: Checkout tested commit
+
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+        with:
+
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+          persist-credentials: false
+
+          fetch-depth: 1
+
+
+      # ======================================================
+      # IMAGE VARIABLES
+      # ======================================================
+
+      - name: Set image variables
+
+        env:
+
+          REPOSITORY: ${{ github.repository }}
+
+          COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
+
+        run: |
+
+          set -euo pipefail
+
+          IMAGE_NAME="ghcr.io/${REPOSITORY,,}"
+
+          IMAGE_TAG="$COMMIT_SHA"
+
+          IMAGE_REF="$IMAGE_NAME:$IMAGE_TAG"
+
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+
+          echo "IMAGE_REF=$IMAGE_REF" >> "$GITHUB_ENV"
+
+          echo "Image: $IMAGE_REF"
+
+
+      # ======================================================
+      # DOCKER BUILDX
+      # ======================================================
+
+      - name: Set up Docker Buildx
+
+        uses: docker/setup-buildx-action@bb5f1c9e4c2d7b9f0a6e8c3d1f4b7a2c5e9d6f0b # v4.x
+
+
+      # ======================================================
+      # GHCR LOGIN
+      # ======================================================
+
+      - name: Login to GHCR
+
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+
+        with:
+
+          registry: ghcr.io
+
+          username: ${{ github.actor }}
+
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+
+      # ======================================================
+      # BUILD
+      # ======================================================
+
+      - name: Build Docker image
+
+        run: |
+
+          set -euo pipefail
+
+          docker build \
+            --pull \
+            --tag "$IMAGE_REF" \
+            .
+
+
+      # ======================================================
+      # TRIVY CONTAINER SCAN
+      #
+      # IMPORTANT :
+      # L'image n'est PAS publiée avant ce scan.
+      # ======================================================
+
+      - name: Trivy Container Security Scan
+
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+
+        env:
+
+          TRIVY_SKIP_VERSION_CHECK: "true"
+
+        with:
+
+          image-ref: ${{ env.IMAGE_REF }}
+
+          format: sarif
+
+          output: trivy-container.sarif
+
+          severity: CRITICAL,HIGH
+
+          scanners: vuln
+
+          exit-code: "1"
+
+          ignore-unfixed: true
+
+          skip-setup-trivy: true
+
+
+      # ======================================================
+      # UPLOAD SECURITY REPORT
+      # ======================================================
+
+      - name: Upload Trivy container SARIF
+
+        if: always() && hashFiles('trivy-container.sarif') != ''
+
+        uses: github/codeql-action/upload-sarif@2892aa5f0f3d2e7c1a2d1c4b6a6f3e9d4b7c8a1e # v4.38.2
+
+        with:
+
+          sarif_file: trivy-container.sarif
+
+          category: trivy-container
+
+
+      # ======================================================
+      # PUSH
+      #
+      # Cette étape n'est atteinte que si Trivy retourne 0.
+      # ======================================================
+
+      - name: Push immutable Docker image
+
+        run: |
+
+          set -euo pipefail
+
+          docker push "$IMAGE_REF"
+
+
+      # ======================================================
+      # COOLIFY
+      # ======================================================
+
+      - name: Trigger Coolify Deployment
+
+        env:
+
+          COOLIFY_WEBHOOK: ${{ secrets.COOLIFY_WEBHOOK }}
+
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+
+        run: |
+
+          set -euo pipefail
+
+          if [ -z "$COOLIFY_WEBHOOK" ]; then
+            echo "❌ COOLIFY_WEBHOOK is not configured."
+            exit 1
+          fi
+
+          if [ -z "$COOLIFY_TOKEN" ]; then
+            echo "❌ COOLIFY_TOKEN is not configured."
+            exit 1
+          fi
+
+          curl \
+            --silent \
+            --show-error \
+            --fail-with-body \
+            --request GET \
+            "$COOLIFY_WEBHOOK" \
+            --header "Authorization: Bearer $COOLIFY_TOKEN"
+```
