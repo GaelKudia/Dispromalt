@@ -2,318 +2,1389 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Espace Accueil - Dispromalt</title>
+    <title>Espace Accueil · Dispromalt</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        .nav-tabs .nav-link.active { border-bottom: 3px solid #0d6efd !important; font-weight: bold; color: #0d6efd !important; }
-        .nav-tabs .nav-link { color: #6c757d; }
-        .badge-statut { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
-        .visitor-card { transition: all 0.3s ease; }
-        .visitor-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        /* ============================================================
+           DESIGN SYSTEM
+        ============================================================ */
+        :root {
+            --ink-950: #050810;
+            --ink-900: #0a0f1e;
+            --ink-800: #111827;
+            --ink-700: #1e293b;
+            --ink-500: #475569;
+            --ink-400: #64748b;
+            --ink-300: #94a3b8;
+            --line:    #e5eaf2;
+            --line-2:  #eef2f8;
+            --bg:      #f4f6fb;
+            --card:    #ffffff;
+
+            --indigo:  #6366f1;
+            --indigo-2: #818cf8;
+            --violet:  #8b5cf6;
+            --cyan:    #06b6d4;
+            --emerald: #10b981;
+            --amber:   #f59e0b;
+            --rose:    #f43f5e;
+
+            --grad-indigo:  linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --grad-cyan:    linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            --grad-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --grad-amber:   linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --grad-dark:    linear-gradient(135deg, #0a0f1e 0%, #1e1b4b 50%, #312e81 100%);
+
+            --r-sm: 10px;
+            --r-md: 14px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --r-2xl: 36px;
+
+            --sh-sm: 0 1px 2px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.04);
+            --sh-md: 0 4px 12px rgba(15,23,42,.06), 0 12px 32px rgba(15,23,42,.06);
+            --sh-lg: 0 12px 32px rgba(15,23,42,.10), 0 24px 60px rgba(15,23,42,.08);
+            --sh-glow-indigo: 0 12px 32px rgba(99,102,241,.35);
+            --sh-glow-emerald: 0 12px 32px rgba(16,185,129,.35);
+        }
+
+        * { transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .3s ease, transform .3s ease; }
+
+        html, body {
+            height: 100%; margin: 0; padding: 0; width: 100%;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--ink-700);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                radial-gradient(ellipse 800px 600px at 10% 0%, rgba(99,102,241,.10), transparent 60%),
+                radial-gradient(ellipse 700px 500px at 100% 20%, rgba(6,182,212,.08), transparent 60%),
+                radial-gradient(ellipse 900px 700px at 50% 100%, rgba(139,92,246,.06), transparent 60%);
+            pointer-events: none;
+        }
+
+        /* ============================================================
+           NAVBAR
+        ============================================================ */
+        .navbar-glass {
+            background: linear-gradient(135deg, rgba(5,8,16,.95) 0%, rgba(30,27,75,.95) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255,255,255,.06);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 30px rgba(0,0,0,.15);
+        }
+
+        /* ============================================================
+           LOGO ENTREPRISE
+        ============================================ */
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+            text-decoration: none;
+        }
+        .brand-logo-img {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.12);
+            padding: 4px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.30);
+            flex-shrink: 0;
+        }
+        .brand-logo-img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 28px rgba(99,102,241,.45);
+        }
+        .brand-logo-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));
+        }
+        .brand-text {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #fff;
+            letter-spacing: -.4px;
+            line-height: 1;
+        }
+        .brand-text .accent {
+            background: linear-gradient(135deg, var(--indigo-2), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .brand-tag {
+            font-size: .72rem;
+            color: rgba(255,255,255,.5);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .role-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .55rem;
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.10);
+            color: rgba(255,255,255,.9);
+            padding: .5rem 1rem;
+            border-radius: 999px;
+            font-size: .8rem;
+            backdrop-filter: blur(10px);
+        }
+        .role-chip i { color: var(--amber); }
+        .role-chip strong { color: #fff; font-weight: 700; }
+
+        .btn-logout-glass {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .5rem 1.1rem;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--rose), #e11d48);
+            color: #fff;
+            font-weight: 600;
+            font-size: .82rem;
+            box-shadow: 0 6px 16px rgba(244,63,94,.35);
+            text-decoration: none;
+        }
+        .btn-logout-glass:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(244,63,94,.5);
+            color: #fff;
+        }
+
+        /* ============================================================
+           LAYOUT
+        ============================================================ */
+        .app-shell {
+            width: 100%;
+            min-height: calc(100vh - 84px);
+            padding: clamp(1.2rem, 2.5vw, 2.5rem);
+            box-sizing: border-box;
+        }
+
+        /* ============================================================
+           HERO
+        ============================================================ */
+        .hero {
+            position: relative;
+            border-radius: var(--r-2xl);
+            background: var(--grad-dark);
+            padding: clamp(1.75rem, 3vw, 2.5rem);
+            overflow: hidden;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 20px 60px rgba(10,15,30,.28);
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: -50%; right: -10%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(99,102,241,.35) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            bottom: -60%; left: -5%;
+            width: 450px; height: 450px;
+            background: radial-gradient(circle, rgba(6,182,212,.28) 0%, transparent 65%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-inner {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .hero-title {
+            font-weight: 900;
+            font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+            letter-spacing: -1px;
+            margin: 0 0 .35rem;
+            color: #fff;
+            line-height: 1.1;
+        }
+        .hero-subtitle {
+            font-size: .95rem;
+            color: rgba(255,255,255,.65);
+            margin: 0;
+            max-width: 600px;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            background: rgba(99,102,241,.18);
+            border: 1px solid rgba(99,102,241,.35);
+            color: #c7d2fe;
+            padding: .4rem .9rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: .9rem;
+        }
+        .hero-badge .dot {
+            width: 7px; height: 7px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(74,222,128,.25);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .6; transform: scale(1.15); }
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.14);
+            backdrop-filter: blur(12px);
+            padding: .9rem 1.25rem;
+            border-radius: var(--r-md);
+            min-width: 130px;
+        }
+        .hero-stat-label {
+            font-size: .7rem;
+            color: rgba(255,255,255,.55);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: .35rem;
+        }
+        .hero-stat-value {
+            display: flex;
+            align-items: baseline;
+            gap: .35rem;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -.5px;
+            line-height: 1;
+        }
+        .hero-stat-value small {
+            font-size: .8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,.5);
+        }
+        .hero-stat-value i {
+            font-size: 1rem;
+            color: var(--cyan);
+        }
+
+        /* ============================================================
+           FLASH
+        ============================================================ */
+        .flash-msg {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--r-md);
+            margin-bottom: 1rem;
+            font-size: .9rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+            animation: slideDown .35s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .flash-ok {
+            background: rgba(16,185,129,.08);
+            border-color: rgba(16,185,129,.20);
+            color: #065f46;
+        }
+        .flash-danger {
+            background: rgba(244,63,94,.08);
+            border-color: rgba(244,63,94,.20);
+            color: #9f1239;
+        }
+        .flash-msg .btn-close { margin-left: auto; }
+
+        /* ============================================================
+           WORKSPACE
+        ============================================================ */
+        .workspace {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* SIDEBAR */
+        .side-nav {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r-xl);
+            padding: .75rem;
+            box-shadow: var(--sh-md);
+            position: sticky;
+            top: 100px;
+        }
+        .side-nav-header {
+            padding: .75rem 1rem .5rem;
+            font-size: .68rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            color: var(--ink-300);
+        }
+        .side-tab {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            width: 100%;
+            padding: .85rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: var(--r-md);
+            font-weight: 600;
+            font-size: .88rem;
+            color: var(--ink-500);
+            text-align: left;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: .25rem;
+        }
+        .side-tab-icon {
+            width: 38px; height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            background: var(--line-2);
+            color: var(--ink-500);
+            font-size: .9rem;
+            flex-shrink: 0;
+        }
+        .side-tab-text { flex: 1; }
+        .side-tab-count {
+            background: var(--line-2);
+            color: var(--ink-500);
+            padding: .15rem .55rem;
+            border-radius: 999px;
+            font-size: .7rem;
+            font-weight: 800;
+        }
+        .side-tab:hover {
+            background: #f8faff;
+            color: var(--ink-900);
+        }
+        .side-tab.active {
+            background: var(--grad-indigo);
+            color: #fff;
+            box-shadow: var(--sh-glow-indigo);
+        }
+        .side-tab.active .side-tab-icon {
+            background: rgba(255,255,255,.20);
+            color: #fff;
+        }
+        .side-tab.active .side-tab-count {
+            background: rgba(255,255,255,.22);
+            color: #fff;
+        }
+
+        /* CONTENU */
+        .content-area {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--r-xl);
+            padding: clamp(1.25rem, 2vw, 2rem);
+            box-shadow: var(--sh-md);
+            min-height: 500px;
+        }
+
+        /* ============================================================
+           SECTION HEADER
+        ============================================================ */
+        .sec-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.1rem;
+            border-bottom: 1px dashed var(--line);
+        }
+        .sec-head-left {
+            display: flex;
+            align-items: center;
+            gap: .9rem;
+        }
+        .sec-head-icon {
+            width: 48px; height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+        .sec-head-icon.grad-cyan { background: var(--grad-cyan); box-shadow: 0 8px 20px rgba(6,182,212,.30); }
+        .sec-head-icon.grad-emerald { background: var(--grad-emerald); box-shadow: 0 8px 20px rgba(16,185,129,.30); }
+        .sec-head-icon.grad-indigo { background: var(--grad-indigo); box-shadow: 0 8px 20px rgba(99,102,241,.30); }
+        .sec-head-icon.grad-amber { background: var(--grad-amber); box-shadow: 0 8px 20px rgba(245,158,11,.30); }
+        .sec-head-title {
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--ink-900);
+            margin: 0;
+            letter-spacing: -.3px;
+        }
+        .sec-head-sub {
+            font-size: .82rem;
+            color: var(--ink-400);
+            margin: .15rem 0 0;
+        }
+        .chip-count {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .45rem .9rem;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 700;
+            background: var(--line-2);
+            color: var(--ink-700);
+        }
+        .chip-count.grad {
+            background: var(--grad-indigo);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(99,102,241,.28);
+        }
+
+        /* ============================================================
+           VISITOR CARDS
+        ============================================================ */
+        .visitor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        .v-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            padding: 1.25rem;
+            box-shadow: var(--sh-sm);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .v-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--grad-cyan);
+        }
+        .v-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--sh-lg);
+            border-color: rgba(99,102,241,.25);
+        }
+        .v-card-head {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: .85rem;
+        }
+        .v-avatar {
+            width: 44px; height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            background: var(--grad-cyan);
+            color: #fff;
+            font-weight: 800;
+            font-size: .95rem;
+            flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(6,182,212,.30);
+        }
+        .v-name {
+            font-weight: 700;
+            color: var(--ink-900);
+            font-size: .95rem;
+            letter-spacing: -.2px;
+            line-height: 1.2;
+        }
+        .v-dept {
+            font-size: .72rem;
+            color: var(--ink-400);
+            font-weight: 600;
+            letter-spacing: .3px;
+            margin-top: .1rem;
+        }
+        .v-status {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .3rem .65rem;
+            border-radius: 999px;
+            font-size: .68rem;
+            font-weight: 800;
+            background: rgba(16,185,129,.12);
+            color: #047857;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+        }
+        .v-status .dot {
+            width: 6px; height: 6px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(16,185,129,.20);
+        }
+        .v-body {
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+            font-size: .82rem;
+            color: var(--ink-500);
+            margin-bottom: 1rem;
+            flex: 1;
+        }
+        .v-body .row-info {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .v-body .row-info i {
+            color: var(--indigo-2);
+            width: 14px;
+            text-align: center;
+        }
+        .btn-depart {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            width: 100%;
+            padding: .65rem 1rem;
+            border: none;
+            border-radius: var(--r-md);
+            background: var(--ink-900);
+            color: #fff;
+            font-weight: 700;
+            font-size: .82rem;
+            letter-spacing: .2px;
+            box-shadow: 0 4px 12px rgba(10,15,30,.20);
+        }
+        .btn-depart:hover {
+            background: var(--grad-indigo);
+            transform: translateY(-2px);
+            box-shadow: var(--sh-glow-indigo);
+            color: #fff;
+        }
+
+        /* ============================================================
+           EMPTY STATE
+        ============================================================ */
+        .empty-box {
+            text-align: center;
+            padding: clamp(3rem, 6vw, 5rem) 1rem;
+        }
+        .empty-illustration {
+            width: 100px; height: 100px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 28px;
+            background: var(--grad-indigo);
+            color: #fff;
+            font-size: 2.2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 16px 40px rgba(99,102,241,.30);
+            position: relative;
+        }
+        .empty-illustration::after {
+            content: "";
+            position: absolute;
+            inset: -8px;
+            border-radius: 36px;
+            border: 2px dashed rgba(99,102,241,.25);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .empty-box h4 {
+            font-weight: 800;
+            color: var(--ink-900);
+            margin-bottom: .5rem;
+            letter-spacing: -.3px;
+        }
+        .empty-box p {
+            color: var(--ink-400);
+            font-size: .9rem;
+            margin: 0 auto;
+            max-width: 400px;
+        }
+
+        /* ============================================================
+           FORMULAIRES
+        ============================================================ */
+        .form-wrap { max-width: 680px; margin: 0 auto; }
+
+        .form-hero {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-hero-icon {
+            width: 68px; height: 68px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            font-size: 1.6rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            box-shadow: 0 14px 34px rgba(16,185,129,.32);
+        }
+        .form-hero-icon.grad-emerald { background: var(--grad-emerald); }
+        .form-hero-icon.grad-indigo  { background: var(--grad-indigo); box-shadow: 0 14px 34px rgba(99,102,241,.32); }
+        .form-hero h4 {
+            font-weight: 800;
+            color: var(--ink-900);
+            letter-spacing: -.4px;
+            margin: 0;
+        }
+        .form-hero p {
+            color: var(--ink-400);
+            font-size: .9rem;
+            margin: .35rem 0 0;
+        }
+
+        .field { margin-bottom: 1.1rem; }
+        .field-label {
+            display: block;
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--ink-700);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-bottom: .5rem;
+        }
+        .field-label i { color: var(--indigo); margin-right: .3rem; }
+        .field-label .req { color: var(--rose); }
+
+        .form-wrap .form-control,
+        .form-wrap .form-select {
+            width: 100%;
+            padding: .75rem 1rem;
+            border: 1.5px solid var(--line);
+            border-radius: var(--r-md);
+            background: #fff;
+            font-size: .9rem;
+            font-weight: 500;
+            color: var(--ink-900);
+            box-shadow: none;
+        }
+        .form-wrap .form-control:focus,
+        .form-wrap .form-select:focus {
+            outline: none;
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+        }
+        .form-wrap .form-control::placeholder { color: var(--ink-300); font-weight: 400; }
+
+        .btn-form-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .6rem;
+            width: 100%;
+            padding: .95rem 1.5rem;
+            border: none;
+            border-radius: var(--r-md);
+            background: var(--grad-emerald);
+            color: #fff;
+            font-weight: 700;
+            font-size: .92rem;
+            letter-spacing: .2px;
+            box-shadow: 0 10px 26px rgba(16,185,129,.32);
+            margin-top: .5rem;
+        }
+        .btn-form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 32px rgba(16,185,129,.45);
+            color: #fff;
+        }
+        .btn-form-submit.grad-indigo { background: var(--grad-indigo); box-shadow: 0 10px 26px rgba(99,102,241,.32); }
+        .btn-form-submit.grad-indigo:hover { box-shadow: 0 14px 32px rgba(99,102,241,.45); }
+
+        /* ============================================================
+           TABLEAU
+        ============================================================ */
+        .table-wrap {
+            border: 1px solid var(--line);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            background: #fff;
+        }
+        .table-mod {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+        }
+        .table-mod thead th {
+            background: #f8fafc;
+            color: var(--ink-700);
+            font-size: .72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            padding: 1rem 1.1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+        .table-mod tbody td {
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid var(--line-2);
+            vertical-align: middle;
+            font-size: .88rem;
+        }
+        .table-mod tbody tr:last-child td { border-bottom: none; }
+        .table-mod tbody tr:hover { background: #f8faff; }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .3rem .65rem;
+            border-radius: 8px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        .tag-cyan { background: rgba(6,182,212,.10); color: #0e7490; }
+        .tag-amber { background: rgba(245,158,11,.12); color: #b45309; }
+        .tag-emerald { background: rgba(16,185,129,.12); color: #047857; }
+
+        .btn-accept {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .5rem 1rem;
+            border: none;
+            border-radius: var(--r-sm);
+            background: var(--grad-emerald);
+            color: #fff;
+            font-weight: 700;
+            font-size: .78rem;
+            box-shadow: 0 4px 12px rgba(16,185,129,.28);
+        }
+        .btn-accept:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16,185,129,.40);
+            color: #fff;
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+        @media (max-width: 992px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .side-nav {
+                position: static;
+                display: flex;
+                overflow-x: auto;
+                gap: .35rem;
+                padding: .5rem;
+                scrollbar-width: none;
+            }
+            .side-nav::-webkit-scrollbar { display: none; }
+            .side-nav-header { display: none; }
+            .side-tab {
+                flex-shrink: 0;
+                width: auto;
+                padding: .65rem .9rem;
+                margin: 0;
+            }
+            .side-tab-text { white-space: nowrap; font-size: .82rem; }
+            .side-tab-icon { width: 32px; height: 32px; font-size: .78rem; }
+        }
+        @media (max-width: 768px) {
+            .hero-inner { flex-direction: column; align-items: flex-start; }
+            .hero-stats { width: 100%; }
+            .hero-stat { flex: 1; min-width: 0; }
+            .brand-text { font-size: 1.05rem; }
+            .brand-logo-img { width: 44px; height: 44px; }
+            .brand-tag { font-size: .65rem; letter-spacing: 1px; }
+            .role-chip { display: none; }
+            .visitor-grid { grid-template-columns: 1fr; }
+            .form-hero-icon { width: 56px; height: 56px; font-size: 1.3rem; }
+        }
+        @media (max-width: 480px) {
+            .app-shell { padding: 1rem .75rem; }
+            .hero { padding: 1.35rem; border-radius: var(--r-lg); }
+            .content-area { padding: 1rem; }
+            .brand-text { font-size: .95rem; }
+            .brand-logo-img { width: 38px; height: 38px; }
+            .brand-tag { display: none; }
+        }
     </style>
 </head>
-<body class="bg-light text-dark">
+<body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="#">
-                Dispro<span class="text-primary">malt</span> <span class="fw-light fs-5 text-muted">| Accueil</span>
-            </a>
-            <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-concierge-bell text-warning me-2"></i>Rôle actif : <strong>{{ userRole }}</strong>
+    {# ============================================
+       NAVBAR
+    ============================================ #}
+    <nav class="navbar-glass">
+        <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+            <a href="#" class="brand-wrap">
+                <div class="brand-logo-img">
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt">
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
-                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                <div>
+                    <div class="brand-text">Dispro<span class="accent">malt</span></div>
+                    <div class="brand-tag">Espace Accueil</div>
+                </div>
+            </a>
+
+            <div class="d-flex align-items-center gap-3">
+                <div class="role-chip d-none d-md-inline-flex">
+                    <i class="fas fa-concierge-bell"></i>
+                    <span>Connecté ·</span>
+                    <strong>{{ userRole }}</strong>
+                </div>
+                <a href="/logout" class="btn-logout-glass">
+                    <i class="fas fa-power-off"></i>
+                    <span class="d-none d-sm-inline">Déconnexion</span>
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="container py-5">
-        <div class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="fw-bold"><i class="fas fa-desktop text-info me-2"></i>Espace Opérationnel - Accueil</h1>
-                <p class="text-muted m-0">Gérez le registre des présences, planifiez des visites et créez des bons de sortie de matériel.</p>
-            </div>
-            <div class="d-flex gap-2">
-                <span class="badge bg-info bg-opacity-10 text-info border border-info py-2 px-3">
-                    <i class="fas fa-users me-1"></i> {{ visites|length }} présent(s)
-                </span>
-                <span class="badge bg-success bg-opacity-10 text-success border border-success py-2 px-3">
-                    <i class="fas fa-calendar-check me-1"></i> {{ rdvReserves|default([])|length }} réservations
-                </span>
-            </div>
-        </div>
+    {# ============================================
+       SHELL
+    ============================================ #}
+    <div class="app-shell">
 
-        {# Messages Flash #}
+        {# HERO #}
+        <section class="hero">
+            <div class="hero-inner">
+                <div>
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        Système actif
+                    </div>
+                    <h1 class="hero-title">Bienvenue à l'Accueil</h1>
+                    <p class="hero-subtitle">
+                        Gérez le registre des présences, planifiez des visites et créez des bons de sortie de matériel — tout en un seul endroit.
+                    </p>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">
+                            <i class="fas fa-users me-1"></i> Présents
+                        </div>
+                        <div class="hero-stat-value">
+                            <i class="fas fa-user-check"></i>
+                            {{ visites|length }}
+                            <small>visiteur(s)</small>
+                        </div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">
+                            <i class="fas fa-calendar me-1"></i> Réservations
+                        </div>
+                        <div class="hero-stat-value">
+                            <i class="fas fa-calendar-check"></i>
+                            {{ rdvReserves|default([])|length }}
+                            <small>RDV</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {# FLASH #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{% if label == 'danger' %}danger{% else %}info{% endif %} alert-dismissible fade show shadow-sm mb-4" role="alert">
-                    <i class="fas {% if label == 'danger' %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %} me-2"></i> {{ message }}
+                <div class="flash-msg {% if label == 'danger' %}flash-danger{% else %}flash-ok{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="fas {% if label == 'danger' %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white p-0 border-bottom">
-                <ul class="nav nav-tabs card-header-tabs m-0 border-bottom-0" id="accueilTab" role="tablist">
-                    <li class="nav-item">
-                        <button class="nav-link active py-3 px-4 fw-bold border-0" id="registre-tab" data-bs-toggle="tab" data-bs-target="#registre-pane" type="button" role="tab">
-                            <i class="fas fa-users text-info me-2"></i>Visiteurs Présents
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-3 px-4 fw-bold border-0" id="visite-tab" data-bs-toggle="tab" data-bs-target="#visite-pane" type="button" role="tab">
-                            <i class="fas fa-calendar-plus text-success me-2"></i>Enregistrer une Visite
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-3 px-4 fw-bold border-0" id="rdv-tab" data-bs-toggle="tab" data-bs-target="#rdv-pane" type="button" role="tab">
-                            <i class="fas fa-calendar-check text-primary me-2"></i>Rendez-vous Réservés
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link py-3 px-4 fw-bold border-0" id="bon-tab" data-bs-toggle="tab" data-bs-target="#bon-pane" type="button" role="tab">
-                            <i class="fas fa-ticket-alt text-primary me-2"></i>Créer un Bon de Sortie
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            
-            <div class="card-body p-4">
-                <div class="tab-content">
-                    
+        {# ============================================
+           WORKSPACE
+        ============================================ #}
+        <div class="workspace">
+
+            {# --- SIDEBAR TABS --- #}
+            <nav class="side-nav" id="accueilTabs" role="tablist" aria-orientation="vertical">
+                <div class="side-nav-header">Navigation</div>
+
+                <button class="side-tab active"
+                        id="registre-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#registre-pane"
+                        type="button"
+                        role="tab"
+                        aria-controls="registre-pane"
+                        aria-selected="true">
+                    <span class="side-tab-icon"><i class="fas fa-users"></i></span>
+                    <span class="side-tab-text">Visiteurs présents</span>
+                    <span class="side-tab-count">{{ visites|length }}</span>
+                </button>
+
+                <button class="side-tab"
+                        id="visite-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#visite-pane"
+                        type="button"
+                        role="tab"
+                        aria-controls="visite-pane"
+                        aria-selected="false">
+                    <span class="side-tab-icon"><i class="fas fa-calendar-plus"></i></span>
+                    <span class="side-tab-text">Enregistrer visite</span>
+                </button>
+
+                <button class="side-tab"
+                        id="rdv-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#rdv-pane"
+                        type="button"
+                        role="tab"
+                        aria-controls="rdv-pane"
+                        aria-selected="false">
+                    <span class="side-tab-icon"><i class="fas fa-calendar-check"></i></span>
+                    <span class="side-tab-text">Rendez-vous</span>
+                    <span class="side-tab-count">{{ rdvReserves|default([])|length }}</span>
+                </button>
+
+                <button class="side-tab"
+                        id="bon-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#bon-pane"
+                        type="button"
+                        role="tab"
+                        aria-controls="bon-pane"
+                        aria-selected="false">
+                    <span class="side-tab-icon"><i class="fas fa-ticket-alt"></i></span>
+                    <span class="side-tab-text">Bon de sortie</span>
+                </button>
+            </nav>
+
+            {# --- CONTENU DES ONGLETS --- #}
+            <main class="content-area">
+                <div class="tab-content" id="accueilTabContent">
+
                     {# ============================================================
-                    ONGLET 1 : REGISTRE DES VISITEURS PRÉSENTS
+                       ONGLET 1 : VISITEURS PRÉSENTS
                     ============================================================ #}
-                    <div class="tab-pane fade show active" id="registre-pane" role="tabpanel">
+                    <div class="tab-pane fade show active"
+                         id="registre-pane"
+                         role="tabpanel"
+                         aria-labelledby="registre-tab"
+                         tabindex="0">
+
+                        <div class="sec-head">
+                            <div class="sec-head-left">
+                                <div class="sec-head-icon grad-cyan">
+                                    <i class="fas fa-user-check"></i>
+                                </div>
+                                <div>
+                                    <h3 class="sec-head-title">Registre des visiteurs</h3>
+                                    <p class="sec-head-sub">Visiteurs actuellement présents dans l'enceinte</p>
+                                </div>
+                            </div>
+                            <span class="chip-count grad">
+                                <i class="fas fa-circle" style="font-size:.5rem;"></i>
+                                {{ visites|length }} présent(s)
+                            </span>
+                        </div>
+
                         {% if visites|length > 0 %}
-                            <div class="row g-3 mb-3">
+                            <div class="visitor-grid">
                                 {% for v in visites %}
-                                    <div class="col-md-6 col-lg-4">
-                                        <div class="card visitor-card border-0 shadow-sm h-100">
-                                            <div class="card-body">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <h6 class="fw-bold text-dark mb-1">
-                                                            <i class="fas fa-user-circle text-info me-1"></i>
-                                                            {{ v.nomVisiteur }}
-                                                        </h6>
-                                                        <span class="badge bg-info bg-opacity-10 text-info border border-info px-2 py-1">
-                                                            {{ v.departement }}
-                                                        </span>
-                                                    </div>
-                                                    <span class="badge bg-success badge-statut">
-                                                        <i class="fas fa-check-circle me-1"></i>Présent
-                                                    </span>
-                                                </div>
-                                                <p class="text-muted small mt-2 mb-0">
-                                                    <i class="fas fa-info-circle me-1"></i> {{ v.motif }}
-                                                </p>
-                                                <p class="text-muted small mb-2">
-                                                    <i class="fas fa-clock me-1"></i> 
-                                                    Arrivée: {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}
-                                                </p>
-                                                <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST" class="mt-2">
-                                                    <button type="submit" class="btn btn-outline-dark btn-sm w-100 fw-bold">
-                                                        <i class="fas fa-door-open me-1"></i> Signaler le Départ
-                                                    </button>
-                                                </form>
+                                    <article class="v-card">
+                                        <div class="v-card-head">
+                                            <div class="v-avatar">
+                                                {{ v.nomVisiteur|first|upper }}
+                                            </div>
+                                            <div style="min-width:0; flex:1;">
+                                                <div class="v-name text-truncate">{{ v.nomVisiteur }}</div>
+                                                <div class="v-dept text-truncate">{{ v.departement }}</div>
+                                            </div>
+                                            <span class="v-status">
+                                                <span class="dot"></span> Présent
+                                            </span>
+                                        </div>
+
+                                        <div class="v-body">
+                                            <div class="row-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <span>{{ v.motif }}</span>
+                                            </div>
+                                            <div class="row-info">
+                                                <i class="fas fa-clock"></i>
+                                                <span>Arrivée à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span>
                                             </div>
                                         </div>
-                                    </div>
+
+                                        <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST">
+                                            <button type="submit" class="btn-depart">
+                                                <i class="fas fa-door-open"></i>
+                                                Signaler le départ
+                                            </button>
+                                        </form>
+                                    </article>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="text-center py-5 text-muted">
-                                <i class="fas fa-user-clock fa-3x mb-3 text-muted opacity-50 d-block"></i>
-                                <h5>Aucun visiteur présent à l'accueil</h5>
-                                <p class="small">Les visiteurs enregistrés par la guérite apparaîtront ici.</p>
+                            <div class="empty-box">
+                                <div class="empty-illustration">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <h4>Aucun visiteur présent</h4>
+                                <p>Les visiteurs enregistrés par la guérite apparaîtront ici automatiquement.</p>
                             </div>
                         {% endif %}
                     </div>
 
                     {# ============================================================
-                    ONGLET 2 : FORMULAIRE DE RÉSERVATION DE VISITE
+                       ONGLET 2 : FORMULAIRE VISITE
                     ============================================================ #}
-                    <div class="tab-pane fade" id="visite-pane" role="tabpanel">
-    <div class="d-flex justify-content-center py-2">
-        <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 600px; border-radius: 12px;">
-            <div class="text-center mb-4">
-                <i class="fas fa-id-card text-success fa-2x mb-2"></i>
-                <h5 class="fw-bold text-dark m-0">Nouvelle Fiche Visiteur</h5>
-                <small class="text-muted">Planifier l'accès d'un tiers dans l'imprimerie</small>
-            </div>
+                    <div class="tab-pane fade"
+                         id="visite-pane"
+                         role="tabpanel"
+                         aria-labelledby="visite-tab"
+                         tabindex="0">
+                        <div class="form-wrap">
 
-            {% if formVisite is defined and formVisite is not null %}
-                {{ form_start(formVisite) }}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-user me-1"></i>Nom & Prénom <span class="text-danger">*</span>
-                            </label>
-                            {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control py-2', 'placeholder': 'Ex: Jean Dupont'}}) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-building me-1"></i>Département <span class="text-danger">*</span>
-                            </label>
-                            {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control py-2', 'placeholder': 'Ex: Production'}}) }}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-info-circle me-1"></i>Motif <span class="text-danger">*</span>
-                            </label>
-                            {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control py-2', 'rows': '2', 'placeholder': 'Raison de la visite'}}) }}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-phone me-1"></i>Téléphone
-                            </label>
-                            {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control py-2', 'placeholder': 'Numéro de téléphone'}}) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-envelope me-1"></i>Email
-                            </label>
-                            {{ form_widget(formVisite.email, {'attr': {'class': 'form-control py-2', 'placeholder': 'email@exemple.com'}}) }}
-                        </div>
-                    </div>
-
-                    {# --- AJOUT DU CHAMP PIÈCE D'IDENTITÉ --- #}
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label small fw-bold text-secondary">
-                                <i class="fas fa-id-card me-1"></i>Pièce d'identité
-                            </label>
-                            {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control py-2', 'placeholder': 'CIN, Passeport, etc.'}}) }}
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-success w-100 fw-bold py-2 mt-2">
-                        <i class="fas fa-save me-2"></i>Enregistrer et Réserver
-                    </button>
-                {{ form_end(formVisite) }}
-            {% else %}
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Le formulaire de visite n'est pas disponible.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-                    {# ============================================================
-                    ONGLET 3 : RENDEZ-VOUS RÉSERVÉS
-                    ============================================================ #}
-                    <div class="tab-pane fade" id="rdv-pane" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="fw-bold text-dark m-0">
-                                <i class="fas fa-calendar-alt text-primary me-2"></i>Rendez-vous Réservés
-                            </h5>
-                            <span class="badge bg-primary">{{ rdvReserves|default([])|length }} réservation(s)</span>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle m-0">
-                                <thead class="table-light small text-uppercase fw-bold text-secondary">
-                                    <tr>
-                                        <th>Visiteur</th>
-                                        <th>Département</th>
-                                        <th>Motif</th>
-                                        <th>Date réservation</th>
-                                        <th>Statut</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="small">
-                                    {% for rdv in rdvReserves|default([]) %}
-                                        <tr>
-                                            <td class="fw-bold text-dark">{{ rdv.nomVisiteur }}</td>
-                                            <td><span class="badge bg-info bg-opacity-10 text-info border px-2 py-1">{{ rdv.departement }}</span></td>
-                                            <td class="text-muted">{{ rdv.motif }}</td>
-                                            <td class="text-muted">{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '-' }}</td>
-                                            <td>
-                                                <span class="badge bg-warning text-dark badge-statut">
-                                                    <i class="fas fa-clock me-1"></i>En attente
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <form action="{{ path('app_visite_valider_guerite', {'id': rdv.id}) }}" method="POST" class="d-inline">
-                                                    <button type="submit" class="btn btn-sm btn-success fw-bold px-3">
-                                                        <i class="fas fa-check me-1"></i> Accueillir
-                                                    </button>
-                                                </form>
-                                            </td>
-                                        </tr>
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="6" class="text-center py-5 text-muted">
-                                                <i class="fas fa-calendar-times fa-2x mb-3 d-block text-muted opacity-50"></i>
-                                                Aucun rendez-vous réservé.
-                                            </td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {# ============================================================
-                    ONGLET 4 : FORMULAIRE DE BON DE SORTIE (CORRIGÉ)
-                    ============================================================ #}
-                    <div class="tab-pane fade" id="bon-pane" role="tabpanel">
-                        <div class="d-flex justify-content-center py-2">
-                            <div class="card border p-4 shadow-sm bg-white" style="width: 100%; max-width: 600px; border-radius: 12px;">
-                                <div class="text-center mb-4">
-                                    <i class="fas fa-exchange-alt text-primary fa-2x mb-2"></i>
-                                    <h5 class="fw-bold text-dark m-0">Créer un Bon de Sortie</h5>
-                                    <small class="text-muted">Déclarer la sortie physique d'un matériel ou équipement</small>
+                            <div class="form-hero">
+                                <div class="form-hero-icon grad-emerald">
+                                    <i class="fas fa-id-card"></i>
                                 </div>
-                                
-                                {% if formBon is defined and formBon is not null %}
-                                    {{ form_start(formBon) }}
-                                        {# On affiche les champs un par un pour éviter le double rendu #}
-                                        <div class="mb-3">
-                                            {{ form_label(formBon.nomEmploye, 'Agent responsable', {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                            {{ form_widget(formBon.nomEmploye, {'attr': {'class': 'form-control py-2', 'readonly': true}}) }}
+                                <h4>Nouvelle fiche visiteur</h4>
+                                <p>Planifier l'accès d'un tiers dans l'imprimerie</p>
+                            </div>
+
+                            {% if formVisite is defined and formVisite is not null %}
+                                {{ form_start(formVisite) }}
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="field-label">
+                                                <i class="fas fa-user"></i>Nom & Prénom <span class="req">*</span>
+                                            </label>
+                                            {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
                                         </div>
-                                        <div class="mb-3">
-                                            {{ form_label(formBon.departement, 'Département', {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                            {{ form_widget(formBon.departement, {'attr': {'class': 'form-control py-2'}}) }}
+                                        <div class="col-md-6">
+                                            <label class="field-label">
+                                                <i class="fas fa-building"></i>Département <span class="req">*</span>
+                                            </label>
+                                            {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production'}}) }}
                                         </div>
-                                        {# Ajoute ici les autres champs du formulaire BonSortie si besoin (ex: materiel, quantite) #}
-                                        {# Ne pas utiliser {{ form_widget(formBon) }} pour éviter les doublons #}
-                                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">
-                                            <i class="fas fa-paper-plane me-2"></i>Transmettre pour Signature
-                                        </button>
-                                    {{ form_end(formBon) }}
-                                {% else %}
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        Le formulaire de Bon de Sortie n'est pas disponible.
+                                        <div class="col-12">
+                                            <label class="field-label">
+                                                <i class="fas fa-info-circle"></i>Motif <span class="req">*</span>
+                                            </label>
+                                            {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'rows': '2', 'placeholder': 'Raison de la visite'}}) }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="field-label">
+                                                <i class="fas fa-phone"></i>Téléphone
+                                            </label>
+                                            {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="field-label">
+                                                <i class="fas fa-envelope"></i>Email
+                                            </label>
+                                            {{ form_widget(formVisite.email, {'attr': {'class': 'form-control', 'placeholder': 'email@exemple.com'}}) }}
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="field-label">
+                                                <i class="fas fa-id-card"></i>Pièce d'identité
+                                            </label>
+                                            {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control', 'placeholder': 'CIN, Passeport, etc.'}}) }}
+                                        </div>
                                     </div>
-                                {% endif %}
+
+                                    <button type="submit" class="btn-form-submit">
+                                        <i class="fas fa-check-circle"></i>
+                                        Enregistrer et réserver
+                                    </button>
+                                {{ form_end(formVisite) }}
+                            {% else %}
+                                <div class="alert alert-warning rounded-3 border-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Le formulaire de visite n'est pas disponible.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {# ============================================================
+                       ONGLET 3 : RENDEZ-VOUS
+                    ============================================================ #}
+                    <div class="tab-pane fade"
+                         id="rdv-pane"
+                         role="tabpanel"
+                         aria-labelledby="rdv-tab"
+                         tabindex="0">
+
+                        <div class="sec-head">
+                            <div class="sec-head-left">
+                                <div class="sec-head-icon grad-indigo">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div>
+                                    <h3 class="sec-head-title">Rendez-vous réservés</h3>
+                                    <p class="sec-head-sub">Réservations planifiées en attente d'accueil</p>
+                                </div>
+                            </div>
+                            <span class="chip-count grad">
+                                <i class="fas fa-calendar-check"></i>
+                                {{ rdvReserves|default([])|length }} RDV
+                            </span>
+                        </div>
+
+                        <div class="table-wrap">
+                            <div class="table-responsive">
+                                <table class="table-mod">
+                                    <thead>
+                                        <tr>
+                                            <th>Visiteur</th>
+                                            <th>Département</th>
+                                            <th>Motif</th>
+                                            <th>Date</th>
+                                            <th>Statut</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for rdv in rdvReserves|default([]) %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="v-avatar" style="width:36px;height:36px;font-size:.8rem;border-radius:10px;">
+                                                            {{ rdv.nomVisiteur|first|upper }}
+                                                        </div>
+                                                        <strong style="color:var(--ink-900);">{{ rdv.nomVisiteur }}</strong>
+                                                    </div>
+                                                </td>
+                                                <td><span class="tag tag-cyan">{{ rdv.departement }}</span></td>
+                                                <td style="color: var(--ink-500);">{{ rdv.motif }}</td>
+                                                <td style="color: var(--ink-500); font-size:.82rem;">
+                                                    {{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '-' }}
+                                                </td>
+                                                <td>
+                                                    <span class="tag tag-amber">
+                                                        <i class="fas fa-clock"></i> En attente
+                                                    </span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <form action="{{ path('app_visite_valider_guerite', {'id': rdv.id}) }}" method="POST" class="d-inline">
+                                                        <button type="submit" class="btn-accept">
+                                                            <i class="fas fa-check"></i> Accueillir
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="6">
+                                                    <div class="empty-box" style="padding: 3rem 1rem;">
+                                                        <div class="empty-illustration" style="width:80px;height:80px;font-size:1.8rem;">
+                                                            <i class="fas fa-calendar-times"></i>
+                                                        </div>
+                                                        <h4 style="font-size:1.05rem;">Aucun rendez-vous réservé</h4>
+                                                        <p style="font-size:.85rem;">Les rendez-vous planifiés apparaîtront ici.</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
 
+                    {# ============================================================
+                       ONGLET 4 : BON DE SORTIE
+                    ============================================================ #}
+                    <div class="tab-pane fade"
+                         id="bon-pane"
+                         role="tabpanel"
+                         aria-labelledby="bon-tab"
+                         tabindex="0">
+                        <div class="form-wrap">
+
+                            <div class="form-hero">
+                                <div class="form-hero-icon grad-indigo">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <h4>Créer un bon de sortie</h4>
+                                <p>Déclarer la sortie physique d'un matériel ou équipement</p>
+                            </div>
+
+                            {% if formBon is defined and formBon is not null %}
+                                {{ form_start(formBon) }}
+                                    <div class="field">
+                                        <label class="field-label">
+                                            <i class="fas fa-user"></i>Agent responsable
+                                        </label>
+                                        {{ form_widget(formBon.nomEmploye, {'attr': {'class': 'form-control', 'readonly': true}}) }}
+                                    </div>
+                                    <div class="field">
+                                        <label class="field-label">
+                                            <i class="fas fa-building"></i>Département
+                                        </label>
+                                        {{ form_widget(formBon.departement, {'attr': {'class': 'form-control'}}) }}
+                                    </div>
+
+                                    <button type="submit" class="btn-form-submit grad-indigo">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Transmettre pour signature
+                                    </button>
+                                {{ form_end(formBon) }}
+                            {% else %}
+                                <div class="alert alert-warning rounded-3 border-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Le formulaire de bon de sortie n'est pas disponible.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
                 </div>
-            </div>
+            </main>
+
         </div>
     </div>
 
+    {# ============================================
+       SCRIPTS
+    ============================================ #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // ============================================================
+        // 1. INITIALISATION BOOTSTRAP DES ONGLETS
+        // ============================================================
+        const tabButtons = document.querySelectorAll('.side-tab[data-bs-toggle="tab"]');
+        const panes = document.querySelectorAll('.tab-content .tab-pane');
+
+        tabButtons.forEach(btn => {
+            new bootstrap.Tab(btn);
+        });
+
+        // ============================================================
+        // 2. FALLBACK MANUEL
+        // ============================================================
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('data-bs-target');
+                if (!targetId) return;
+
+                tabButtons.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-selected', 'false');
+                });
+
+                panes.forEach(p => {
+                    p.classList.remove('show', 'active');
+                });
+
+                this.classList.add('active');
+                this.setAttribute('aria-selected', 'true');
+
+                const targetPane = document.querySelector(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('show', 'active');
+                }
+            });
+        });
+
+        // ============================================================
+        // 3. MÉMORISATION DE L'ONGLET ACTIF
+        // ============================================================
+        const urlHash = window.location.hash;
+        if (urlHash) {
+            const trigger = document.querySelector(`.side-tab[data-bs-target="${urlHash}"]`);
+            if (trigger) {
+                document.querySelectorAll('.side-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+
+                trigger.classList.add('active');
+                const target = document.querySelector(urlHash);
+                if (target) target.classList.add('show', 'active');
+            }
+        }
+
+        tabButtons.forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function (e) {
+                const target = this.getAttribute('data-bs-target');
+                if (target) {
+                    history.replaceState(null, null, target);
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

@@ -252,52 +252,71 @@ class AdminController extends AbstractController
     }
 
     #[Route('/admin/user/{id}/modifier', name: 'app_admin_user_edit', methods: ['GET', 'POST'])]
-    public function editUser(Request $request, User $user, EntityManagerInterface $em, UserPasswordHasherInterface $hasher,ServiceRepository $serviceRepository): Response
-    {
-        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+public function editUser(
+    Request $request,
+    User $user,
+    EntityManagerInterface $em,
+    UserPasswordHasherInterface $hasher,
+    ServiceRepository $serviceRepository,
+    UserRepository $userRepository
+): Response {
+    $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $form = $this->createForm(UserType::class, $user, [
-            'is_edit' => true
-        ]);
-        $form->handleRequest($request);
+    $form = $this->createForm(UserType::class, $user, [
+        'is_edit' => true,
+    ]);
+    $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            // 1. Gestion du mot de passe
-            $plainPassword = $form->get('password')->getData();
-            if (!empty($plainPassword)) {
-                $user->setPassword($hasher->hashPassword($user, $plainPassword));
-            }
+    if ($form->isSubmitted() && $form->isValid()) {
 
-            // 2. Gestion de l'attachement au service selon le rôle
-            $roles = $user->getRoles();
-            
-            // Si l'utilisateur a le rôle utilisateur standard (ou n'a pas de rôle admin/comptable exclusif)
-            // Tu peux ajuster la condition selon ton, par exemple s'il a 'ROLE_USER'
-            if (in_array('ROLE_USER', $roles)) {
-                // Le service est déjà lié automatiquement par le formulaire si le champ y est présent.
-                // Tu peux ajouter ici une validation spécifique si le service est obligatoire pour un simple utilisateur :
-                if (!$user->getService()) {
-                    $this->addFlash('warning', '⚠️ Un utilisateur standard devrait idéalement être rattaché à un service.');
-                }
-            } else {
-                // Optionnel : Si l'utilisateur n'est plus un utilisateur standard (ex: admin pur), 
-                // tu peux décider de détacher le service si nécessaire :
-                // $user->setService(null);
-            }
+        // ============================================================
+        // 1. VÉRIFIER L'UNICITÉ DE L'EMAIL
+        // ============================================================
+        $emailSaisi = $user->getEmail();
+        $userExistant = $userRepository->findOneBy(['email' => $emailSaisi]);
 
-            $em->flush();
-            $this->addFlash('success', '📝 Le compte de ' . $user->getEmail() . ' a bien été mis à jour.');
-            return $this->redirectToRoute('app_admin_dashboard');
+        if ($userExistant && $userExistant->getId() !== $user->getId()) {
+            $this->addFlash('danger', '❌ Cet email est déjà utilisé par un autre compte (' . $emailSaisi . ').');
+            return $this->render('admin/edit_user.html.twig', [
+                'user'     => $user,
+                'services' => $serviceRepository->findAll(),
+                'form'     => $form->createView(),
+            ]);
         }
 
-        return $this->render('admin/edit_user.html.twig', [
-            'user' => $user,
-            'services' => $serviceRepository->findAll(),
-            'form' => $form->createView()
+        // ============================================================
+        // 2. GESTION DU MOT DE PASSE (uniquement si rempli)
+        // ============================================================
+        $plainPassword = $form->get('password')->getData();
+        if (!empty($plainPassword)) {
+            $user->setPassword($hasher->hashPassword($user, $plainPassword));
+            $this->addFlash('success', '🔑 Mot de passe mis à jour.');
+        }
 
-        ]);
-    }   
-    #[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
+        // ============================================================
+        // 3. GESTION DU SERVICE
+        // ============================================================
+        $roles = $user->getRoles();
+        if (!in_array('ROLE_ADMIN', $roles)) {
+            if (!$user->getService()) {
+                $this->addFlash('warning', '⚠️ Aucun service rattaché — pensez à en attribuer un.');
+            }
+        }
+
+        // ============================================================
+        // 4. SAUVEGARDE
+        // ============================================================
+        $em->flush();
+        $this->addFlash('success', '📝 Le compte de ' . $user->getEmail() . ' a bien été mis à jour.');
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+    return $this->render('admin/edit_user.html.twig', [
+        'user'     => $user,
+        'services' => $serviceRepository->findAll(),
+        'form'     => $form->createView(),
+    ]);
+}#[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
