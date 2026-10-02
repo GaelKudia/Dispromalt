@@ -112,9 +112,7 @@
         }
 
         /* ============ PAGE HEADER ============ */
-        .page-header {
-            padding: 1.75rem 0 1.25rem;
-        }
+        .page-header { padding: 1.75rem 0 1.25rem; }
         .page-header h1 {
             font-size: 1.55rem;
             font-weight: 700;
@@ -122,11 +120,7 @@
             letter-spacing: -0.4px;
             margin: 0 0 0.35rem;
         }
-        .page-header p {
-            color: var(--ink-500);
-            font-size: 0.9rem;
-            margin: 0;
-        }
+        .page-header p { color: var(--ink-500); font-size: 0.9rem; margin: 0; }
 
         /* ============ STAT CARDS ============ */
         .stat-tile {
@@ -254,10 +248,7 @@
         .tabs-pro .nav-link.active i { opacity: 1; color: var(--accent); }
 
         /* ============ TABLE ============ */
-        .table-pro {
-            margin: 0;
-            font-size: 0.87rem;
-        }
+        .table-pro { margin: 0; font-size: 0.87rem; }
         .table-pro thead th {
             background: var(--ink-50);
             color: var(--ink-500);
@@ -280,7 +271,7 @@
         .table-pro .cell-strong { font-weight: 600; color: var(--ink-900); }
         .table-pro .cell-muted { color: var(--ink-400); font-size: 0.8rem; }
 
-        /* ============ BADGES (subtils) ============ */
+        /* ============ BADGES ============ */
         .tag {
             display: inline-flex;
             align-items: center;
@@ -316,32 +307,13 @@
             align-items: center;
             gap: 0.4rem;
         }
-        .btn-pro-primary {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
+        .btn-pro-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
         .btn-pro-primary:hover { background: #4338ca; color: #fff; }
-
-        .btn-pro-success {
-            background: var(--success);
-            color: #fff;
-            border-color: var(--success);
-        }
+        .btn-pro-success { background: var(--success); color: #fff; border-color: var(--success); }
         .btn-pro-success:hover { background: #047857; color: #fff; }
-
-        .btn-pro-ghost {
-            background: #fff;
-            color: var(--ink-700);
-            border-color: var(--ink-200);
-        }
+        .btn-pro-ghost { background: #fff; color: var(--ink-700); border-color: var(--ink-200); }
         .btn-pro-ghost:hover { background: var(--ink-50); color: var(--ink-900); }
-
-        .btn-pro-sm {
-            padding: 0.3rem 0.75rem;
-            font-size: 0.78rem;
-            border-radius: 6px;
-        }
+        .btn-pro-sm { padding: 0.3rem 0.75rem; font-size: 0.78rem; border-radius: 6px; }
 
         /* ============ FORM CONTROLS ============ */
         .form-pro {
@@ -388,26 +360,15 @@
         }
 
         /* ============ EMPTY STATE ============ */
-        .empty-pro {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--ink-400);
-        }
+        .empty-pro { text-align: center; padding: 3rem 1rem; color: var(--ink-400); }
         .empty-pro i {
             font-size: 2.5rem;
             color: var(--ink-200);
             margin-bottom: 0.85rem;
             display: block;
         }
-        .empty-pro .title {
-            font-weight: 600;
-            color: var(--ink-500);
-            font-size: 0.95rem;
-        }
-        .empty-pro .sub {
-            font-size: 0.82rem;
-            color: var(--ink-400);
-        }
+        .empty-pro .title { font-weight: 600; color: var(--ink-500); font-size: 0.95rem; }
+        .empty-pro .sub { font-size: 0.82rem; color: var(--ink-400); }
 
         /* ============ SECTION HEADING ============ */
         .section-heading {
@@ -451,23 +412,17 @@
 <nav class="navbar-pro">
     <div class="container-fluid px-4">
         <div class="d-flex justify-content-between align-items-center w-100">
-            {# Brand #}
             <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
-    <img src="{{ asset('images/logo.png') }}"
-         alt="Logo Dispromalt"
-         style="height: 40px; width: auto; margin-right: 10px;">
-    Dispro<span class="text-primary">malt</span>
-    <span class="fw-light fs-6 text-white-50 ms-2">| Comptabilité</span>
-</a>
+                <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
+                Dispro<span class="text-primary">malt</span>
+                <span class="fw-light fs-6 text-white-50 ms-2">| Comptabilité</span>
+            </a>
 
-            {# Right side #}
             <div class="d-flex align-items-center gap-2">
-                {# Historique #}
                 <a href="{{ path('app_historique_reappro') }}" class="btn-ghost-light text-decoration-none d-none d-md-inline-flex align-items-center">
                     <i class="fas fa-history me-2"></i>Historique
                 </a>
 
-                {# Notifications #}
                 <div class="dropdown">
                     <button class="notif-btn" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-bell"></i>
@@ -523,13 +478,11 @@
                     </ul>
                 </div>
 
-                {# Rôle #}
                 <div class="nav-pill d-none d-lg-flex align-items-center">
                     <span class="text-white-50 me-2" style="font-size:0.75rem;">Rôle</span>
                     <strong>{{ userRole }}</strong>
                 </div>
 
-                {# Logout #}
                 <a href="/logout" class="btn-logout text-decoration-none d-inline-flex align-items-center">
                     <i class="fas fa-sign-out-alt me-1"></i>
                 </a>
@@ -543,7 +496,6 @@
 ═══════════════════════════════════════════════ #}
 <div class="container-fluid px-4" style="max-width: 1600px;">
 
-    {# Page header #}
     <div class="page-header">
         <h1>Espace Financier & Logistique</h1>
         <p>Gestion des engagements budgétaires, alertes de stock et suivi des consommables.</p>
@@ -647,10 +599,7 @@
                             </td>
                             <td>
                                 <form action="{{ path('app_article_reappro', {'id': art.id}) }}" method="POST" class="d-flex gap-2 align-items-center flex-wrap">
-                                    <input type="date"
-                                           name="date_reapprovisionnement"
-                                           class="form-pro"
-                                           style="max-width: 160px;"
+                                    <input type="date" name="date_reapprovisionnement" class="form-pro" style="max-width: 160px;"
                                            value="{{ art.dateReapprovisionnement ? art.dateReapprovisionnement|date('Y-m-d') : '' }}"
                                            min="{{ 'now'|date('Y-m-d') }}">
                                     <select name="reapprovisionnement_en_cours" class="form-pro form-select" style="max-width: 140px;">
@@ -683,6 +632,12 @@
             <li class="nav-item">
                 <button class="nav-link" id="devis-tab" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button">
                     <i class="fas fa-file-invoice-dollar"></i>Workflow devis
+                </button>
+            </li>
+            {# ✅ AJOUT : onglet Trésorerie bien placé ici, dans la barre d'onglets #}
+            <li class="nav-item">
+                <button class="nav-link" id="tresorerie-tab" data-bs-toggle="tab" data-bs-target="#tresorerie-pane" type="button">
+                    <i class="fas fa-vault"></i>Trésorerie
                 </button>
             </li>
             <li class="nav-item">
@@ -787,6 +742,153 @@
                 </div>
 
                 {# ═══════════════════════════════════════
+                   ONGLET : TRÉSORERIE (Entrées de fonds)
+                ═══════════════════════════════════════ #}
+                <div class="tab-pane fade" id="tresorerie-pane" role="tabpanel">
+
+                    {# ─── Soldes actuels ─── #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="stat-tile is-success">
+                                <div class="stat-label">Solde USD disponible</div>
+                                <div class="stat-value">
+                                    {{ soldeUSD|default(0)|number_format(2, ',', ' ') }}
+                                    <small style="font-size:1rem;color:var(--ink-400);font-weight:500;">$</small>
+                                </div>
+                                <div class="stat-hint">Total entrées − sorties en USD</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-tile is-accent">
+                                <div class="stat-label">Solde CDF disponible</div>
+                                <div class="stat-value">
+                                    {{ soldeCDF|default(0)|number_format(0, ',', ' ') }}
+                                    <small style="font-size:1rem;color:var(--ink-400);font-weight:500;">FC</small>
+                                </div>
+                                <div class="stat-hint">Total entrées − sorties en CDF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ─── Formulaire d'entrée ─── #}
+                    <div class="card-pro mb-4">
+                        <div class="card-pro-body">
+                            <div class="section-heading">
+                                <div>
+                                    <h5><i class="fas fa-hand-holding-usd" style="color:var(--success);"></i>Nouvelle entrée de fonds</h5>
+                                    <small>Enregistrez une entrée (vente, subvention, recouvrement…)</small>
+                                </div>
+                            </div>
+
+                            {{ form_start(formEntree) }}
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        {{ form_label(formEntree.montant, 'Montant', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.montant, {'attr': {'class': 'form-pro w-100'}}) }}
+                                        {{ form_errors(formEntree.montant) }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        {{ form_label(formEntree.devise, 'Devise', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.devise, {'attr': {'class': 'form-pro form-select w-100'}}) }}
+                                        {{ form_errors(formEntree.devise) }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {{ form_label(formEntree.provenance, 'Libellé / Provenance', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.provenance, {'attr': {'class': 'form-pro w-100'}}) }}
+                                        {{ form_errors(formEntree.provenance) }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_label(formEntree.reference, 'Référence', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.reference, {'attr': {'class': 'form-pro w-100'}}) }}
+                                        {{ form_errors(formEntree.reference) }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_label(formEntree.categorie, 'Catégorie', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.categorie, {'attr': {'class': 'form-pro form-select w-100'}}) }}
+                                        {{ form_errors(formEntree.categorie) }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        {{ form_label(formEntree.dateMouvement, 'Date', {'label_attr': {'class': 'form-label small fw-semibold text-secondary'}}) }}
+                                        {{ form_widget(formEntree.dateMouvement, {'attr': {'class': 'form-pro w-100'}}) }}
+                                        {{ form_errors(formEntree.dateMouvement) }}
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button type="submit" class="btn-pro btn-pro-success">
+                                        <i class="fas fa-save"></i>Enregistrer l'entrée
+                                    </button>
+                                </div>
+                            {{ form_end(formEntree) }}
+                        </div>
+                    </div>
+
+                    {# ─── Historique des mouvements ─── #}
+                    <div class="card-pro">
+                        <div class="card-pro-body">
+                            <div class="section-heading">
+                                <div>
+                                    <h5><i class="fas fa-list"></i>Historique des mouvements</h5>
+                                    <small>Entrées et sorties de la caisse</small>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-pro">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Montant</th>
+                                            <th>Provenance / Motif</th>
+                                            <th>Catégorie</th>
+                                            <th>Par</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for m in mouvements|default([]) %}
+                                            <tr>
+                                                <td class="cell-muted">{{ m.dateMouvement ? m.dateMouvement|date('d/m/Y') : '—' }}</td>
+                                                <td>
+                                                    {% if m.type == 'ENTREE' %}
+                                                        <span class="tag tag-success"><i class="fas fa-arrow-down"></i>Entrée</span>
+                                                    {% else %}
+                                                        <span class="tag tag-danger"><i class="fas fa-arrow-up"></i>Sortie</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="cell-strong">
+                                                    {{ m.montant|number_format(2, ',', ' ') }}
+                                                    <span class="cell-muted">{{ m.devise }}</span>
+                                                </td>
+                                                <td>{{ m.provenance }}</td>
+                                                <td><span class="tag tag-neutral">{{ m.categorie ?: '—' }}</span></td>
+                                                <td class="cell-muted">
+                                                    {% if m.effectuePar %}
+                                                        {{ m.effectuePar.userIdentifier|split('@')|first }}
+                                                    {% else %}
+                                                        —
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="6">
+                                                    <div class="empty-pro">
+                                                        <i class="fas fa-vault"></i>
+                                                        <div class="title">Aucun mouvement enregistré</div>
+                                                        <div class="sub">Commencez par ajouter une entrée de fonds</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {# ═══════════════════════════════════════
                    ONGLET 2 : WORKFLOW DEVIS
                 ═══════════════════════════════════════ #}
                 <div class="tab-pane fade" id="devis-pane" role="tabpanel">
@@ -807,7 +909,6 @@
                         </div>
                     </div>
 
-                    {# Filtres #}
                     <form method="GET" action="{{ path('app_dashboard') }}" class="row g-2 align-items-end mb-4 p-3" style="background:var(--ink-50);border:1px solid var(--ink-200);border-radius:10px;">
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold text-secondary mb-1">Du</label>
@@ -873,11 +974,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-end">
-                                            <td class="text-end">
-
-                                            {# ═══════════════════════════════════════════════════════════
-                                               1️⃣ COMPTABLE aiguille (ATTENTE_COMPTA) → choix du flux
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 1️⃣ COMPTABLE aiguille #}
                                             {% if devis.statut == 'ATTENTE_COMPTA' and is_granted('ROLE_COMPTA') %}
                                                 <form method="POST" action="{{ path('app_devis_aiguiller', {'id': devis.id}) }}" class="d-flex gap-2 justify-content-end">
                                                     <select name="choix_procedure" class="form-pro form-select form-select-sm" style="max-width: 200px;" required>
@@ -891,9 +988,7 @@
                                                     </button>
                                                 </form>
 
-                                            {# ═══════════════════════════════════════════════════════════
-                                               2️⃣ CHEF COMPTABLE vise → DG
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 2️⃣ CHEF COMPTABLE vise → DG #}
                                             {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and is_granted('ROLE_COMPTA') %}
                                                 <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" class="d-inline"
                                                       onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');">
@@ -902,9 +997,7 @@
                                                     </button>
                                                 </form>
 
-                                            {# ═══════════════════════════════════════════════════════════
-                                               3️⃣ DG fixe le montant → retourne au COMPTABLE
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 3️⃣ DG fixe le montant → retourne au COMPTABLE #}
                                             {% elseif devis.statut == 'ATTENTE_DIR' and is_granted('ROLE_DG') %}
                                                 <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}" class="d-flex gap-2 justify-content-end">
                                                     <input type="number" step="0.01" name="nouveau_montant" class="form-pro"
@@ -914,9 +1007,7 @@
                                                     </button>
                                                 </form>
 
-                                            {# ═══════════════════════════════════════════════════════════
-                                               4️⃣ RETOUR DU DG → LE COMPTABLE DÉCAISSE LUI-MÊME (cas 1)
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 4️⃣ RETOUR DU DG → COMPTABLE DÉCAISSE #}
                                             {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' and is_granted('ROLE_COMPTA') %}
                                                 <form method="POST" action="{{ path('app_devis_compta_decaisser', {'id': devis.id}) }}" class="d-inline"
                                                       onsubmit="return confirm('Confirmer le décaissement de ce devis ?');">
@@ -925,17 +1016,13 @@
                                                     </button>
                                                 </form>
 
-                                            {# ═══════════════════════════════════════════════════════════
-                                               5️⃣ CAS 2 : En attente de la CAISSE — lecture seule côté Compta
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 5️⃣ CAS 2 : En attente CAISSE #}
                                             {% elseif devis.statut == 'ATTENTE_CAISSE' %}
                                                 <span class="tag tag-neutral">
                                                     <i class="fas fa-hourglass-half"></i>En attente Caisse
                                                 </span>
 
-                                            {# ═══════════════════════════════════════════════════════════
-                                               6️⃣ DÉCAISSÉ (final)
-                                            ═══════════════════════════════════════════════════════════ #}
+                                            {# 6️⃣ DÉCAISSÉ (final) #}
                                             {% elseif devis.statut == 'DECAISSE' %}
                                                 <span class="tag tag-success">
                                                     <i class="fas fa-check-double"></i>Décaissé
@@ -965,7 +1052,9 @@
                     </div>
                 </div>
 
-               
+                {# ═══════════════════════════════════════
+                   ONGLET 3 : INVENTAIRE
+                ═══════════════════════════════════════ #}
                 <div class="tab-pane fade" id="inventaire-pane" role="tabpanel">
                     <div class="section-heading">
                         <div>
@@ -982,7 +1071,6 @@
                         </div>
                     </div>
 
-                    {# Filtres #}
                     <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
                         <select name="category" class="form-pro form-select" style="max-width:220px;" onchange="this.form.submit()">
                             <option value="">Toutes les catégories</option>
@@ -1060,7 +1148,6 @@
                         </table>
                     </div>
 
-                    {# Formulaire ajout article #}
                     {% if formStock is defined and formStock is not null %}
                         <div class="mt-4 p-4" style="background:var(--ink-50);border:1px solid var(--ink-200);border-radius:var(--radius);">
                             <h6 class="fw-semibold mb-3" style="font-size:0.9rem;color:var(--ink-900);">
@@ -1215,7 +1302,6 @@
         </div> {# fin card-pro-body #}
     </div> {# fin card-pro #}
 
-    {# Footer #}
     <div class="text-center py-4" style="color:var(--ink-400);font-size:0.8rem;">
         Dispromalt — Espace Comptabilité &copy; {{ 'now'|date('Y') }}
     </div>
@@ -1224,7 +1310,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Auto-dismiss des alertes flash
         document.querySelectorAll('.alert-dismissible').forEach(alert => {
             setTimeout(() => {
                 alert.style.opacity = '0';
@@ -1232,14 +1317,12 @@
             }, 5000);
         });
 
-        // Persistance onglet devis après filtrage
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('date_debut') || urlParams.has('date_fin')) {
             const devisTab = document.querySelector('#devis-tab');
             if (devisTab) bootstrap.Tab.getOrCreateInstance(devisTab).show();
         }
 
-        // Bouton attributs
         const btn = document.getElementById('show-attributs-btn');
         if (btn) {
             btn.addEventListener('click', function () {

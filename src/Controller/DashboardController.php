@@ -11,6 +11,10 @@ use App\Entity\Machine;
 use App\Entity\User;
 use App\Entity\Service;
 
+use App\Entity\MouvementCaisse;
+use App\Repository\MouvementCaisseRepository;
+use App\Form\MouvementCaisseType;
+
 use App\Form\DemandeType;
 use App\Form\BonSortieType;
 use App\Form\VisiteType;
@@ -53,7 +57,8 @@ class DashboardController extends AbstractController
         CategoryRepository $categoryRepo,
         DevisRepository $devisRepository,
         ArticleAttributRepository $attributRepo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        MouvementCaisseRepository $mouvementRepo
     ): Response {
         // 1. UTILISATEUR CONNECTÉ
         $currentUser = $this->getUser();
@@ -758,6 +763,34 @@ if ($this->isGranted('ROLE_COORDON')) {
             'nbAlertesStock'   => $nbAlertesStock,     // ✅ AJOUT
     ]);
 }
+
+// ═══════════════════════════════════════════════════════════
+// FORMULAIRE D'ENTRÉE DE FONDS (accessible au comptable)
+// ═══════════════════════════════════════════════════════════
+$mouvement = new MouvementCaisse();
+$mouvement->setType(MouvementCaisse::TYPE_ENTREE);
+$mouvement->setEffectuePar($currentUser);
+
+$formEntree = $this->createForm(MouvementCaisseType::class, $mouvement);
+$formEntree->handleRequest($request);
+
+if ($formEntree->isSubmitted() && $formEntree->isValid()) {
+    $em->persist($mouvement);
+    $em->flush();
+
+    $this->addFlash('success', sprintf(
+        '✅ Entrée enregistrée : %s %s — %s',
+        number_format((float) $mouvement->getMontant(), 2, ',', ' '),
+        $mouvement->getDevise(),
+        $mouvement->getProvenance()
+    ));
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// Soldes + historique
+$soldeUSD     = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
+$soldeCDF     = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
+$mouvements   = $mouvementRepo->findAllOrdered();
 // ============================================================
 // COMPTABLE — Voit TOUS les devis + ses décaissements
 // ============================================================
@@ -766,6 +799,28 @@ if ($this->isGranted('ROLE_COMPTA')) {
     $currentUser = $this->getUser();
 
     // 🎯 TOUS les devis SANS filtre de date
+$mouvement = new MouvementCaisse();
+    $mouvement->setType(MouvementCaisse::TYPE_ENTREE);
+    $mouvement->setEffectuePar($currentUser);
+
+    $formEntree = $this->createForm(MouvementCaisseType::class, $mouvement);
+    $formEntree->handleRequest($request);
+
+    if ($formEntree->isSubmitted() && $formEntree->isValid()) {
+        $em->persist($mouvement);
+        $em->flush();
+        $this->addFlash('success', sprintf(
+            '✅ Entrée enregistrée : %s %s — %s',
+            number_format((float) $mouvement->getMontant(), 2, ',', ' '),
+            $mouvement->getDevise(),
+            $mouvement->getProvenance()
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $soldeUSD   = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
+    $soldeCDF   = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
+    $mouvements = $mouvementRepo->findAllOrdered();
 
 
     $devisListe = $em->getRepository(Devis::class)->createQueryBuilder('d')
@@ -839,8 +894,18 @@ foreach ($mesDecaissements as $d) {
     'selectedCategory'      => $selectedCategory,
     'selectedSubCategory'   => $selectedSubCategory,
     'attributs'             => $attributs,
-        'articlesEnAlerte'      => $articlesEnAlerte,   // ✅ AJOUT
-        'nbAlertesStock'        => $nbAlertesStock,      // ✅ AJOUT
+    'articlesEnAlerte'      => $articlesEnAlerte,   
+    'nbAlertesStock'        => $nbAlertesStock, 
+    'formEntree' => $formEntree->createView(),
+    'mouvements' => $mouvements,
+    'soldeUSD' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
+    'soldeCDF' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF), 
+    'formEntree' => $formEntree->createView(),
+    'mouvements' => $mouvements,
+
+    'soldeUSD' => $soldeUSD,
+    'soldeCDF' => $soldeCDF,
+        
 ]);
 }
 
@@ -876,8 +941,10 @@ foreach ($mesDecaissements as $d) {
                 'stats'         => $stats,
                 'date_debut'    => $dateDebutFiltre,
                 'date_fin'      => $dateFinFiltre,
-                    'articlesEnAlerte' => $articlesEnAlerte,   // ✅ AJOUT
-                            'nbAlertesStock'        => $nbAlertesStock,      // ✅ AJOUT
+                'articlesEnAlerte' => $articlesEnAlerte,   // ✅ AJOUT
+                'nbAlertesStock'        => $nbAlertesStock,
+                'soldeUSD' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
+                'soldeCDF' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),      
 
             ]);
         }
@@ -1074,7 +1141,7 @@ public function rapportPdf(Request $request, DemandeRepository $demandeRepositor
 
     #[Route('/dashboard/compta/devis/aiguiller/{id}', name: 'app_devis_aiguiller', methods: ['POST'])]
 #[IsGranted('ROLE_COMPTA')]
-public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInterface $em): Response
+public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInterface $em, MouvementCaisseRepository $mouvementRepo): Response
 {
     if ($devis->getStatut() !== Devis::STATUT_ATTENTE_COMPTA) {
         $this->addFlash('danger', '❌ Ce devis n\'est pas prêt à être aiguillé.');
@@ -1095,15 +1162,21 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
             break;
 
         case 'decaisser_direct':
-            $devis->setStatut(Devis::STATUT_DECAISSE);
-            $devis->setDecaissePar($this->getUser());
-            $devis->setDateDecaissementPar(new \DateTime());
-            $this->addFlash('success', '✅ Décaissement direct effectué.');
-            break;
+    $devise  = $devis->getDevise();
+    $montant = (float) $devis->getMontant();
 
-        default:
-            $this->addFlash('danger', '❌ Choix invalide.');
-            return $this->redirectToRoute('app_dashboard');
+    // 🔒 VÉRIFICATION DU SOLDE
+    if (!$mouvementRepo->peutDecaisser($devise, $montant)) {
+        $solde = $mouvementRepo->getSolde($devise);
+        $this->addFlash('danger', sprintf(
+            '🛑 Décaissement refusé. Solde %s insuffisant : disponible %s, demandé %s.',
+            $devise,
+            number_format($solde, 2, ',', ' '),
+            number_format($montant, 2, ',', ' ')
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+
     }
 
     $em->flush();
@@ -1275,6 +1348,9 @@ public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): R
 
 
 
+
+
+
     // ============================================================
     // RECHERCHE API ARTICLE
     // ============================================================
@@ -1435,12 +1511,42 @@ public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $
 // ═══════════════════════════════════════════════════════════════
 #[Route('/dashboard/devis/decaisser-compta/{id}', name: 'app_devis_compta_decaisser', methods: ['POST'])]
 #[IsGranted('ROLE_COMPTA')]
-public function decaisserDevisCompta(Devis $devis, EntityManagerInterface $em): Response
-{
+public function decaisserDevisCompta(
+    Devis $devis,
+    EntityManagerInterface $em,
+    MouvementCaisseRepository $mouvementRepo    // ← injection
+): Response {
     if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DECAISSEMENT) {
-        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement Comptabilité.');
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement.');
         return $this->redirectToRoute('app_dashboard');
     }
+
+    $devise  = $devis->getDevise();
+    $montant = (float) $devis->getMontant();
+
+    // 🔒 VÉRIFICATION DU SOLDE
+    if (!$mouvementRepo->peutDecaisser($devise, $montant)) {
+        $solde = $mouvementRepo->getSolde($devise);
+        $this->addFlash('danger', sprintf(
+            '🛑 Décaissement refusé. Solde %s insuffisant : disponible %s, demandé %s.',
+            $devise,
+            number_format($solde, 2, ',', ' '),
+            number_format($montant, 2, ',', ' ')
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // ✅ Enregistrer le mouvement SORTIE
+    $mouvement = new MouvementCaisse();
+    $mouvement->setType(MouvementCaisse::TYPE_SORTIE);
+    $mouvement->setMontant((string) $montant);
+    $mouvement->setDevise($devise);
+    $mouvement->setProvenance('Décaissement compta — devis #' . $devis->getId());
+    $mouvement->setCategorie('DEVIS');
+    $mouvement->setDevis($devis);
+    $mouvement->setEffectuePar($this->getUser());
+    $mouvement->setDateMouvement(new \DateTime());
+    $em->persist($mouvement);
 
     /** @var User $currentUser */
     $currentUser = $this->getUser();
@@ -1449,24 +1555,50 @@ public function decaisserDevisCompta(Devis $devis, EntityManagerInterface $em): 
     $devis->setDecaissePar($currentUser);
     $devis->setDateDecaissementPar(new \DateTime());
     $devis->setDateDecaissement(new \DateTime());
-    $em->flush();
 
-    $this->addFlash('success', '💰 Décaissement effectué par la Comptabilité pour le devis #' . $devis->getId() . '.');
+    $em->flush();
+    $this->addFlash('success', '💰 Décaissement effectué — devis #' . $devis->getId() . '.');
     return $this->redirectToRoute('app_dashboard');
 }
-
 // ═══════════════════════════════════════════════════════════════
 // DÉCAISSEMENT PAR LA CAISSE
 // → Cas 2 UNIQUEMENT (bon de caisse)
 // ═══════════════════════════════════════════════════════════════
 #[Route('/dashboard/devis/decaisser-caisse/{id}', name: 'app_devis_caisse_decaisser', methods: ['POST'])]
 #[IsGranted('ROLE_CAISSIER')]
-public function decaisserDevisCaisse(Devis $devis, EntityManagerInterface $em): Response
+public function decaisserDevisCaisse(Devis $devis, EntityManagerInterface $em, MouvementCaisseRepository $mouvementRepo): Response
 {
     if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CAISSE) {
         $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement Caisse.');
         return $this->redirectToRoute('app_dashboard');
     }
+
+    $devise  = $devis->getDevise();
+    $montant = (float) $devis->getMontant();
+
+    // 🔒 VÉRIFICATION DU SOLDE (manquant !)
+    if (!$mouvementRepo->peutDecaisser($devise, $montant)) {
+        $solde = $mouvementRepo->getSolde($devise);
+        $this->addFlash('danger', sprintf(
+            '🛑 Décaissement refusé. Solde %s insuffisant : disponible %s, demandé %s.',
+            $devise,
+            number_format($solde, 2, ',', ' '),
+            number_format($montant, 2, ',', ' ')
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // ✅ Enregistrer le mouvement SORTIE
+    $mouvement = new MouvementCaisse();
+    $mouvement->setType(MouvementCaisse::TYPE_SORTIE);
+    $mouvement->setMontant((string) $montant);
+    $mouvement->setDevise($devise);
+    $mouvement->setProvenance('Décaissement caisse — devis #' . $devis->getId());
+    $mouvement->setCategorie('DEVIS');
+    $mouvement->setDevis($devis);
+    $mouvement->setEffectuePar($this->getUser());
+    $mouvement->setDateMouvement(new \DateTime());
+    $em->persist($mouvement);
 
     /** @var User $currentUser */
     $currentUser = $this->getUser();
@@ -1480,6 +1612,25 @@ public function decaisserDevisCaisse(Devis $devis, EntityManagerInterface $em): 
     $this->addFlash('success', '💰 Décaissement effectué par la Caisse pour le devis #' . $devis->getId() . '.');
     return $this->redirectToRoute('app_dashboard');
 }
+
+private function verifierSoldeOuRefuser(
+    MouvementCaisseRepository $repo,
+    string $devise,
+    float $montant
+): ?Response {
+    if (!$repo->peutDecaisser($devise, $montant)) {
+        $solde = $repo->getSolde($devise);
+        $this->addFlash('danger', sprintf(
+            '🛑 Solde %s insuffisant. Disponible : %s | Demandé : %s.',
+            $devise,
+            number_format($solde, 2, ',', ' '),
+            number_format($montant, 2, ',', ' ')
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+    return null;
+}
+   
 
 // ═══════════════════════════════════════════════════════════════
 // ✅ ÉTAPE 2 : VALIDATION DU DIRECTEUR GÉNÉRAL (fixe le montant, envoie à la caisse)

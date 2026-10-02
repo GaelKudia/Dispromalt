@@ -21,6 +21,12 @@
 
         * { transition: all 0.25s ease; }
 
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #f0f2f7;
@@ -36,6 +42,9 @@
             backdrop-filter: blur(12px);
             border-bottom: 3px solid transparent;
             border-image: var(--gradient-gold) 1;
+            width: 100%;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
         }
         .navbar-brand-modern { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
         .role-pill {
@@ -171,6 +180,46 @@
         .stat-trend-up   { background: rgba(67, 233, 123, 0.15); color: #059669; }
         .stat-trend-info { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
 
+        /* ========= BANDEAU TRÉSORERIE ========= */
+        .treso-card {
+            border-radius: 18px;
+            padding: 1.15rem 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+        }
+        .treso-card .treso-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.35rem;
+        }
+        .treso-card .treso-value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        .treso-card .treso-icon {
+            font-size: 2rem;
+            opacity: 0.25;
+        }
+        .treso-usd {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid rgba(5, 150, 105, 0.25);
+        }
+        .treso-usd .treso-label { color: #065f46; }
+        .treso-usd .treso-value { color: #059669; }
+        .treso-cdf {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid rgba(37, 99, 235, 0.25);
+        }
+        .treso-cdf .treso-label { color: #1e40af; }
+        .treso-cdf .treso-value { color: #2563eb; }
+
         /* ========= MAIN CARD & TABS ========= */
         .main-card {
             border: none;
@@ -178,6 +227,7 @@
             box-shadow: var(--shadow-soft);
             background: #fff;
             overflow: hidden;
+            width: 100%;
         }
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
@@ -212,7 +262,8 @@
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
         /* ========= TABLE ========= */
-        .table-modern { margin: 0; }
+        .table-responsive { width: 100%; }
+        .table-modern { margin: 0; width: 100% !important; }
         .table-modern thead th {
             background: #f8fafc;
             color: #475569;
@@ -279,7 +330,7 @@
             box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.10);
         }
 
-        /* ========= KPI GRID DANS ONGLETS ========= */
+        /* ========= KPI GRID ========= */
         .kpi-mini {
             background: #f8fafc;
             border: 1px solid #eef2f7;
@@ -317,20 +368,6 @@
             color: #cbd5e1;
             margin-bottom: 1rem;
             display: block;
-        }
-
-        /* ========= PAGE HEADER ========= */
-        .page-title {
-            font-weight: 800;
-            font-size: 1.85rem;
-            letter-spacing: -0.5px;
-            color: var(--dg-primary);
-            margin: 0;
-        }
-        .page-subtitle {
-            color: #64748b;
-            font-size: 0.95rem;
-            margin: 0;
         }
 
         /* ========= BOUTON EXPORT ========= */
@@ -372,6 +409,102 @@
             margin-right: 0.4rem;
         }
 
+        /* ═══════════════════════════════════════════════
+           ✅ PLEINE LARGEUR RESPONSIVE — tous écrans
+        ═══════════════════════════════════════════════ */
+
+        .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Très grands écrans (> 1920px) */
+        @media (min-width: 1920px) {
+            .container-fluid {
+                padding-left: 3rem !important;
+                padding-right: 3rem !important;
+            }
+        }
+
+        /* Tablettes (768px - 1200px) */
+        @media (max-width: 1200px) {
+            .container-fluid {
+                padding-left: 1.5rem !important;
+                padding-right: 1.5rem !important;
+            }
+            .dg-hero { padding: 1.75rem 1.5rem; }
+            .dg-hero h1 { font-size: 1.6rem; }
+        }
+
+        /* Petits écrans (576px - 768px) */
+        @media (max-width: 768px) {
+            .container-fluid {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            .navbar-modern {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+            .navbar-brand-modern { font-size: 1rem; }
+            .navbar-brand-modern img { height: 32px !important; }
+            .dg-hero {
+                padding: 1.25rem 1.15rem;
+                border-radius: 18px;
+            }
+            .dg-hero h1 { font-size: 1.35rem; }
+            .dg-hero p { font-size: 0.85rem; }
+            .dg-hero-meta { gap: 0.75rem; }
+            .dg-hero-meta-item { font-size: 0.78rem; }
+            .stat-card { padding: 1.1rem; }
+            .stat-card h3 { font-size: 1.6rem !important; }
+            .stat-icon { width: 46px; height: 46px; font-size: 1.2rem; }
+            .treso-card { padding: 1rem 1.15rem; }
+            .treso-card .treso-value { font-size: 1.35rem; }
+            .nav-tabs-modern .nav-link { font-size: 0.82rem; padding: 0.85rem 0.75rem; }
+            .nav-tabs-modern .nav-link i { margin-right: 0.3rem; }
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 0.75rem 0.6rem;
+                font-size: 0.82rem;
+            }
+            .kpi-mini { padding: 0.85rem 0.75rem; }
+            .kpi-mini .kpi-value { font-size: 1.35rem; }
+            .kpi-mini .kpi-label { font-size: 0.65rem; }
+            .main-card { border-radius: 16px; }
+            .main-card > .p-4 { padding: 1rem !important; }
+        }
+
+        /* Très petits écrans (< 576px) */
+        @media (max-width: 576px) {
+            .container-fluid {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            .dg-hero { padding: 1rem 1rem; }
+            .dg-hero h1 { font-size: 1.15rem; }
+            .dg-hero-badge { font-size: 0.65rem; padding: 0.3rem 0.75rem; }
+            .dg-hero-meta { flex-direction: column; gap: 0.5rem; }
+            .stat-card h3 { font-size: 1.4rem !important; }
+            .stat-card h6 { font-size: 0.62rem !important; }
+            .treso-card { flex-direction: column; align-items: flex-start !important; gap: 0.5rem; }
+            .treso-card .treso-icon { display: none; }
+            .treso-card .treso-value { font-size: 1.2rem; }
+            .nav-tabs-modern { padding: 0 0.5rem; }
+            .nav-tabs-modern .nav-link { font-size: 0.75rem; padding: 0.75rem 0.6rem; }
+            .nav-tabs-modern .nav-link i { display: none; }
+            .nav-tabs-modern .nav-link.active::after { left: 0.4rem; right: 0.4rem; }
+            .filter-bar { padding: 0.75rem; }
+            .table-modern thead th,
+            .table-modern tbody td {
+                padding: 0.6rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            .badge-soft { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .stat-icon { width: 38px; height: 38px; font-size: 1rem; }
+        }
+
         /* ========= PRINT ========= */
         @media print {
             .navbar-modern, .nav-tabs-modern, .filter-bar, .btn-export, .no-print { display: none !important; }
@@ -389,22 +522,19 @@
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
-    <img src="{{ asset('images/logo.png') }}"
-         alt="Logo Dispromalt"
-         style="height: 40px; width: auto; margin-right: 10px;">
-    Dispro<span class="text-primary">malt</span>
-    <span class="fw-light fs-6 text-white-50 ms-2">| Direction Générale</span>
-</a>
+            <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
+            Dispro<span class="text-primary">malt</span>
+            <span class="fw-light fs-6 text-white-50 ms-2">| Direction Générale</span>
+        </a>
         <div class="d-flex align-items-center gap-3">
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-crown me-2"></i>
                 <span>{{ userRole }}</span>
             </div>
 
-             <a href="{{ path('app_historique_reappro') }}" 
-       class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
-        <i class="fas fa-history me-1"></i> Historique Réappro
-    </a>
+            <a href="{{ path('app_historique_reappro') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
+                <i class="fas fa-history me-1"></i> Historique Réappro
+            </a>
             <button onclick="window.print()" class="btn btn-outline-light btn-sm rounded-pill px-3 d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-print me-1"></i> Imprimer
             </button>
@@ -416,9 +546,9 @@
 </nav>
 
 {# ============================================
-   MAIN CONTAINER
+   MAIN CONTAINER — PLEINE LARGEUR
 ============================================ #}
-<div class="container-fluid py-4 px-4" style="max-width: 1600px;">
+<div class="container-fluid py-4" style="max-width: 100%; padding-left: 2rem; padding-right: 2rem;">
 
     {# ============ HERO DG ============ #}
     <div class="dg-hero">
@@ -442,7 +572,39 @@
         </div>
     </div>
 
-   
+    {# ============================================
+       BANDEAU TRÉSORERIE (solde comptabilité)
+    ============================================ #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="treso-card treso-usd">
+                <div>
+                    <div class="treso-label">
+                        <i class="fas fa-hand-holding-usd me-1"></i>Solde USD — Comptabilité
+                    </div>
+                    <div class="treso-value">
+                        {{ soldeUSD|default(0)|number_format(2, ',', ' ') }}
+                        <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">$</small>
+                    </div>
+                </div>
+                <i class="fas fa-dollar-sign treso-icon"></i>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="treso-card treso-cdf">
+                <div>
+                    <div class="treso-label">
+                        <i class="fas fa-money-bill-wave me-1"></i>Solde CDF — Comptabilité
+                    </div>
+                    <div class="treso-value">
+                        {{ soldeCDF|default(0)|number_format(0, ',', ' ') }}
+                        <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">FC</small>
+                    </div>
+                </div>
+                <i class="fas fa-coins treso-icon"></i>
+            </div>
+        </div>
+    </div>
 
     {# ============ FLASH MESSAGES ============ #}
     {% for label, messages in app.flashes %}
@@ -537,7 +699,6 @@
     ============================================ #}
     <div class="main-card">
 
-        {# Barre d'onglets #}
         <ul class="nav nav-tabs nav-tabs-modern" id="dgTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab">
@@ -561,7 +722,6 @@
             </li>
         </ul>
 
-        {# Contenu des onglets #}
         <div class="p-4">
             <div class="tab-content">
 
@@ -584,25 +744,19 @@
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-warning">
-                                <div class="kpi-value text-warning">
-                                    {{ stats.demandes_attente|default(0) }}
-                                </div>
+                                <div class="kpi-value text-warning">{{ stats.demandes_attente|default(0) }}</div>
                                 <div class="kpi-label">En attente</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-primary">
-                                <div class="kpi-value text-primary">
-                                    {{ stats.bons_a_valider|default(0) }}
-                                </div>
+                                <div class="kpi-value text-primary">{{ stats.bons_a_valider|default(0) }}</div>
                                 <div class="kpi-label">Bons à signer</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-success">
-                                <div class="kpi-value text-success">
-                                    {{ stats.bons_guerite|default(0) }}
-                                </div>
+                                <div class="kpi-value text-success">{{ stats.bons_guerite|default(0) }}</div>
                                 <div class="kpi-label">Bons validés guérite</div>
                             </div>
                         </div>
@@ -616,10 +770,10 @@
                         </div>
                     </div>
 
-                    {# Répartition des statuts de demandes #}
+                    {# RÉPARTITION + PERFORMANCE + TRÉSORERIE #}
                     <div class="row g-3">
-                        <div class="col-lg-6">
-                            <div class="p-3 bg-light rounded-3 border">
+                        <div class="col-lg-4">
+                            <div class="p-3 bg-light rounded-3 border h-100">
                                 <h6 class="fw-bold text-dark mb-3">
                                     <i class="fas fa-chart-bar text-primary me-2"></i>Répartition des demandes
                                 </h6>
@@ -640,7 +794,7 @@
 
                                 {% if nb_total > 0 %}
                                     <div class="d-flex justify-content-between mb-2 small fw-bold">
-                                        <span><span class="legend-dot" style="background: #fa709a;"></span>En attente : {{ nb_attente }}</span>
+                                        <span><span class="legend-dot" style="background: #fa709a;"></span>Attente : {{ nb_attente }}</span>
                                         <span><span class="legend-dot" style="background: #4facfe;"></span>Validées : {{ nb_valide }}</span>
                                         <span><span class="legend-dot" style="background: #43e97b;"></span>Livrées : {{ nb_livre }}</span>
                                     </div>
@@ -655,8 +809,8 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
-                            <div class="p-3 bg-light rounded-3 border">
+                        <div class="col-lg-4">
+                            <div class="p-3 bg-light rounded-3 border h-100">
                                 <h6 class="fw-bold text-dark mb-3">
                                     <i class="fas fa-coins text-warning me-2"></i>Performance financière
                                 </h6>
@@ -674,58 +828,87 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-    {# ============================================
-   🚨 ALERTES STOCK — VISION DIRECTION
-============================================ #}
-{% if nbAlertesStock|default(0) > 0 %}
-<div class="p-3 rounded-3 border mb-4" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <h6 class="fw-bold text-danger mb-0">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            Alertes de Stock Critiques — {{ nbAlertesStock }} article(s)
-        </h6>
-        <span class="badge badge-soft badge-soft-danger px-3 py-2">Action comptable en cours</span>
-    </div>
-    <div class="row g-3">
-        {% for art in articlesEnAlerte %}
-            <div class="col-md-6 col-xl-4">
-                <div class="p-3 bg-white rounded-3 border h-100">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div class="fw-bold text-dark">
-                            <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                        </div>
-                        <span class="badge bg-danger">{{ art.quantite }} / {{ art.seuilAlerte }}</span>
-                    </div>
-                    <div class="small text-muted mb-2">
-                        <i class="fas fa-info-circle me-1"></i>Stock sous le seuil critique
-                    </div>
-                    {% if art.reapprovisionnementEnCours %}
-                        <span class="badge badge-soft badge-soft-primary">
-                            <i class="fas fa-truck-loading me-1"></i>Réappro en cours
-                        </span>
-                        {% if art.dateReapprovisionnement %}
-                            <div class="small text-muted mt-2">
-                                Prévision : <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
-                            </div>
-                        {% endif %}
-                    {% else %}
-                        <span class="badge badge-soft badge-soft-secondary">
-                            <i class="fas fa-hourglass-start me-1"></i>Non lancé
-                        </span>
-                    {% endif %}
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}<div class="col-6 col-md-3">
-    <div class="kpi-mini kpi-warning" style="background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.15);">
-        <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
-        <div class="kpi-label">Alertes stock</div>
-    </div>
-</div>
 
+                        <div class="col-lg-4">
+                            <div class="p-3 rounded-3 border h-100" style="background: linear-gradient(135deg, #fef9e7 0%, #fdf2d0 100%); border-color: rgba(212, 175, 55, 0.3) !important;">
+                                <h6 class="fw-bold mb-3" style="color: #8b6508;">
+                                    <i class="fas fa-vault me-2"></i>Trésorerie (Comptabilité)
+                                </h6>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-semibold">Solde USD</span>
+                                    <span class="fw-bold" style="color: #059669; font-size: 1.15rem;">
+                                        {{ soldeUSD|default(0)|number_format(2, ',', ' ') }} <small class="text-muted">$</small>
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="small text-muted fw-semibold">Solde CDF</span>
+                                    <span class="fw-bold" style="color: #2563eb; font-size: 1.15rem;">
+                                        {{ soldeCDF|default(0)|number_format(0, ',', ' ') }} <small class="text-muted">FC</small>
+                                    </span>
+                                </div>
+
+                                <hr class="my-2" style="opacity: 0.2;">
+                                <div class="d-flex align-items-center gap-2 small text-muted">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Solde = Σ entrées − Σ sorties</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ALERTES STOCK #}
+                    {% if nbAlertesStock|default(0) > 0 %}
+                    <div class="p-3 rounded-3 border mb-4 mt-4" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h6 class="fw-bold text-danger mb-0">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Alertes de Stock Critiques — {{ nbAlertesStock }} article(s)
+                            </h6>
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2">Action comptable en cours</span>
+                        </div>
+                        <div class="row g-3">
+                            {% for art in articlesEnAlerte %}
+                                <div class="col-md-6 col-xl-4">
+                                    <div class="p-3 bg-white rounded-3 border h-100">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="fw-bold text-dark">
+                                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                                            </div>
+                                            <span class="badge bg-danger">{{ art.quantite }} / {{ art.seuilAlerte }}</span>
+                                        </div>
+                                        <div class="small text-muted mb-2">
+                                            <i class="fas fa-info-circle me-1"></i>Stock sous le seuil critique
+                                        </div>
+                                        {% if art.reapprovisionnementEnCours %}
+                                            <span class="badge badge-soft badge-soft-primary">
+                                                <i class="fas fa-truck-loading me-1"></i>Réappro en cours
+                                            </span>
+                                            {% if art.dateReapprovisionnement %}
+                                                <div class="small text-muted mt-2">
+                                                    Prévision : <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge badge-soft badge-soft-secondary">
+                                                <i class="fas fa-hourglass-start me-1"></i>Non lancé
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3 mt-2">
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini" style="background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.15);">
+                                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
+                                <div class="kpi-label">Alertes stock</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {# ============================================================
@@ -740,7 +923,6 @@
                         </div>
                     </div>
 
-                    {# Barre de filtres #}
                     <form method="get" class="filter-bar no-print">
                         <div>
                             <label class="form-label">Du</label>
@@ -785,11 +967,7 @@
                                 {% for d in rapportGlobal|default(demandes) %}
                                     <tr>
                                         <td class="fw-bold text-secondary">#{{ d.id }}</td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                {{ d.departement }}
-                                            </span>
-                                        </td>
+                                        <td><span class="badge badge-soft badge-soft-secondary">{{ d.departement }}</span></td>
                                         <td>
                                             {% if d.localisation == 'sedwe' %}
                                                 <span class="badge badge-soft badge-soft-primary"><i class="fas fa-map-marker-alt me-1"></i>SEDWE</span>
@@ -867,9 +1045,7 @@
                                         <td class="fw-semibold text-dark">
                                             <i class="fas fa-user-circle text-muted me-2"></i>{{ b.nomEmploye }}
                                         </td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">{{ b.departement }}</span>
-                                        </td>
+                                        <td><span class="badge badge-soft badge-soft-secondary">{{ b.departement }}</span></td>
                                         <td class="text-muted small">
                                             {{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '-' }}
                                         </td>
@@ -938,11 +1114,11 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-    <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
-        <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
-        <div class="kpi-label">Alertes stock</div>
-    </div>
-</div>
+                            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
+                                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
+                                <div class="kpi-label">Alertes stock</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="table-responsive">
@@ -954,8 +1130,8 @@
                                     <th>Demandeur</th>
                                     <th>Description</th>
                                     <th>Statut</th>
-<th class="text-end">Montant</th>
-<th class="text-center" style="min-width: 240px;">Action DG</th>
+                                    <th class="text-end">Montant</th>
+                                    <th class="text-center" style="min-width: 240px;">Action DG</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -985,74 +1161,61 @@
                                             {{ devis.montant|number_format(2, ',', ' ') }}
                                             <span class="small text-muted">{{ devis.devise }}</span>
                                         </td>
-                                        {# ═══════════════════════════════════════════════════════════
-   ✅ ACTION DG — Arbitrage budgétaire
-═══════════════════════════════════════════════════════════ #}
-<td class="text-center">
+                                        <td class="text-center">
+                                            {% if devis.statut == 'ATTENTE_DIRECTEUR' %}
+                                                <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}"
+                                                      class="d-inline-flex gap-2 justify-content-center align-items-center mb-1">
+                                                    <div class="input-group input-group-sm" style="max-width: 140px;">
+                                                        <input type="number" step="0.01" name="nouveau_montant"
+                                                               class="form-control text-end fw-bold"
+                                                               value="{{ devis.montant }}" required>
+                                                        <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">
+                                                            {{ devis.devise }}
+                                                        </span>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
+                                                        <i class="fas fa-check me-1"></i> Valider
+                                                    </button>
+                                                </form>
 
-    {# 1️⃣ Devis en attente d'arbitrage DG → boutons Valider / Rejeter #}
-    {% if devis.statut == 'ATTENTE_DIRECTEUR' %}
+                                                <form method="POST" action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 mt-1">
+                                                        <i class="fas fa-ban"></i> Rejeter
+                                                    </button>
+                                                </form>
 
-        <form method="POST"
-              action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}"
-              class="d-inline-flex gap-2 justify-content-center align-items-center mb-1">
-            <div class="input-group input-group-sm" style="max-width: 140px;">
-                <input type="number" step="0.01" name="nouveau_montant"
-                       class="form-control text-end fw-bold"
-                       value="{{ devis.montant }}" required>
-                <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">
-                    {{ devis.devise }}
-                </span>
-            </div>
-            <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                <i class="fas fa-check me-1"></i> Valider
-            </button>
-        </form>
+                                            {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
+                                                <span class="badge badge-soft badge-soft-info">
+                                                    <i class="fas fa-check-circle me-1"></i>Validé — chez la Compta
+                                                </span>
 
-        <form method="POST"
-              action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}"
-              class="d-inline"
-              onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
-            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 mt-1">
-                <i class="fas fa-ban"></i> Rejeter
-            </button>
-        </form>
+                                            {% elseif devis.statut == 'DECAISSE' %}
+                                                <span class="badge badge-soft badge-soft-success">
+                                                    <i class="fas fa-check-double me-1"></i>Décaissé
+                                                    {% if devis.decaissePar %}
+                                                        <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">
+                                                            par {{ devis.decaissePar.userIdentifier|split('@')|first }}
+                                                        </span>
+                                                    {% endif %}
+                                                </span>
 
-    {# 2️⃣ Déjà validé par le DG (retourné à la Compta) #}
-    {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
-        <span class="badge badge-soft badge-soft-info">
-            <i class="fas fa-check-circle me-1"></i>Validé — chez la Compta
-        </span>
+                                            {% elseif devis.statut == 'REJETE' %}
+                                                <span class="badge badge-soft badge-soft-danger">
+                                                    <i class="fas fa-ban me-1"></i>Rejeté
+                                                </span>
 
-    {# 3️⃣ Décaissé (fin du circuit) #}
-    {% elseif devis.statut == 'DECAISSE' %}
-        <span class="badge badge-soft badge-soft-success">
-            <i class="fas fa-check-double me-1"></i>Décaissé
-            {% if devis.decaissePar %}
-                <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">
-                    par {{ devis.decaissePar.userIdentifier|split('@')|first }}
-                </span>
-            {% endif %}
-        </span>
-
-    {# 4️⃣ Rejeté #}
-    {% elseif devis.statut == 'REJETE' %}
-        <span class="badge badge-soft badge-soft-danger">
-            <i class="fas fa-ban me-1"></i>Rejeté
-        </span>
-
-    {# 5️⃣ Encore dans le circuit bas (avant arrivée au DG) #}
-    {% else %}
-        <span class="text-muted small">
-            <i class="fas fa-hourglass-half me-1"></i>En cours de traitement
-        </span>
-    {% endif %}
-
-</td>
+                                            {% else %}
+                                                <span class="text-muted small">
+                                                    <i class="fas fa-hourglass-half me-1"></i>En cours de traitement
+                                                </span>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% else %}
                                     <tr>
-                                        <td colspan="6">
+                                        <td colspan="7">
                                             <div class="empty-state">
                                                 <i class="fas fa-file-invoice-dollar"></i>
                                                 <div class="fw-bold">Aucun devis sur cette période</div>
@@ -1079,13 +1242,9 @@
     </div>
 </div>
 
-{# ============================================
-   SCRIPTS
-============================================ #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Mémorisation de l'onglet actif via l'URL
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
