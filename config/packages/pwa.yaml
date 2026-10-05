@@ -6,13 +6,16 @@ pwa:
         name: 'Gestion Digitale Dispromalt'
         short_name: 'Dispromalt'
         description: "Application de gestion de stock et bons de sortie pour l'imprimerie"
-        start_url: '/'
-        scope: '/'
+        start_url: '/'                                  # ✅ OK — relatif, fonctionne avec n'importe quel domaine
+        scope: '/'                                       # ✅ OK — reste dans ton domaine
+        id: '/'                                          # ✅ Recommandé
         display: 'standalone'
-        orientation: 'portrait'
+        orientation: 'any'                               # ⚠️ 'portrait' bloque la rotation sur tablette desktop
         background_color: '#ffffff'
         theme_color: '#317EFB'
         lang: 'fr'
+        dir: 'ltr'
+        categories: ['business', 'productivity']         # ✅ Bonus SEO
         icons:
             - src: 'images/icons/32.png'
               sizes: [32]
@@ -24,7 +27,11 @@ pwa:
             - src: 'images/icons/512.png'
               sizes: [512]
               type: 'image/png'
-              purpose: 'any maskable'
+              purpose: 'any maskable'                    # ✅ Recommandé
+            - src: 'images/icons/512.png'
+              sizes: [512]
+              type: 'image/png'
+              purpose: 'maskable'                        # ✅ Ajout — améliore l'affichage Android
 
     favicons:
         enabled: true

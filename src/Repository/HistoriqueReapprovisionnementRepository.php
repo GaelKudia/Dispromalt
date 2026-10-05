@@ -32,4 +32,20 @@ class HistoriqueReapprovisionnementRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+ * Retourne le dernier lancement de réappro pour un article donné.
+ */
+public function findDernierLancement(int $articleId): ?HistoriqueReapprovisionnement
+{
+    return $this->createQueryBuilder('h')
+        ->where('h.article = :articleId')
+        ->andWhere('h.typeAction = :action')
+        ->setParameter('articleId', $articleId)
+        ->setParameter('action', 'REAPPRO_LANCE')
+        ->orderBy('h.dateAction', 'DESC')
+        ->setMaxResults(1)
+        ->getQuery()
+        ->getOneOrNullResult();
+}
 }

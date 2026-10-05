@@ -7,7 +7,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         :root {
             --dg-primary: #1e293b;
@@ -33,7 +33,6 @@
             min-height: 100vh;
         }
 
-        /* ========= NAVBAR ========= */
         .navbar-modern {
             background: rgba(30, 41, 59, 0.98);
             backdrop-filter: blur(12px);
@@ -49,7 +48,6 @@
             font-size: 0.85rem;
         }
 
-        /* ========= STAT CARDS ========= */
         .stat-card {
             border: none;
             border-radius: 18px;
@@ -84,7 +82,6 @@
         .stat-icon-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
         .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
 
-        /* ========= MAIN CARD & TABS ========= */
         .main-card {
             border: none;
             border-radius: 20px;
@@ -124,7 +121,6 @@
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
-        /* ========= TABLE ========= */
         .table-modern { margin: 0; }
         .table-modern thead th {
             background: #f8fafc;
@@ -158,7 +154,6 @@
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
 
-        /* ========= FORM CARDS ========= */
         .form-card {
             border: none;
             border-radius: 16px;
@@ -217,7 +212,6 @@
         .page-title { font-weight: 800; font-size: 1.85rem; letter-spacing: -0.5px; color: var(--dg-primary); margin: 0; }
         .page-subtitle { color: #64748b; font-size: 0.95rem; margin: 0; }
 
-        /* ========= USER LIST ========= */
         .user-item {
             display: flex;
             justify-content: space-between;
@@ -229,7 +223,6 @@
         .user-item:hover { background: #f8fafc; }
         .user-item:last-child { border-bottom: none; }
 
-        /* Fix purple color */
         .text-purple { color: #9333ea !important; }
         .bg-purple-soft { background: rgba(168, 85, 247, 0.12) !important; }
     </style>
@@ -241,13 +234,11 @@
 ============================================ #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
-            <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
-    <img src="{{ asset('images/logo.png') }}"
-         alt="Logo Dispromalt"
-         style="height: 40px; width: auto; margin-right: 10px;">
-    Dispro<span class="text-primary">malt</span>
-    <span class="fw-light fs-6 text-white-50 ms-2">|Gérant imprimerie </span>
-</a>
+        <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
+            <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
+            Dispro<span class="text-primary">malt</span>
+            <span class="fw-light fs-6 text-white-50 ms-2">| Gérant imprimerie</span>
+        </a>
         <div class="d-flex align-items-center gap-3">
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-user-shield text-warning me-2"></i>
@@ -339,7 +330,6 @@
     ============================================ #}
     <div class="main-card">
 
-        {# Barre d'onglets #}
         <ul class="nav nav-tabs nav-tabs-modern" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
@@ -371,9 +361,13 @@
                     <i class="fas fa-cogs text-secondary"></i>Machines
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#pane-stock" type="button" role="tab">
+                    <i class="fas fa-warehouse text-success"></i>État du Stock
+                </button>
+            </li>
         </ul>
 
-        {# Contenu des onglets #}
         <div class="p-4">
             <div class="tab-content">
 
@@ -528,7 +522,6 @@
                 {# ============ ONGLET 3 : COMPTES AGENTS ============ #}
                 <div class="tab-pane fade" id="pane-agents" role="tabpanel">
                     <div class="row g-4">
-                        {# Colonne gauche : formulaire de création #}
                         <div class="col-lg-5">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -566,7 +559,6 @@
                             </div>
                         </div>
 
-                        {# Colonne droite : liste des comptes #}
                         <div class="col-lg-7">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
@@ -786,10 +778,9 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 5 : CATÉGORIES & SOUS-CATÉGORIES ============ #}
+                {# ============ ONGLET 5 : CATÉGORIES ============ #}
                 <div class="tab-pane fade" id="pane-structure" role="tabpanel">
                     <div class="row g-4">
-                        {# Formulaire catégorie #}
                         <div class="col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -812,7 +803,6 @@
                             </div>
                         </div>
 
-                        {# Formulaire sous-catégorie #}
                         <div class="col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -838,7 +828,6 @@
                             </div>
                         </div>
 
-                        {# Liste des catégories #}
                         <div class="col-lg-6">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
@@ -868,7 +857,6 @@
                             </div>
                         </div>
 
-                        {# Liste des sous-catégories #}
                         <div class="col-lg-6">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
@@ -919,7 +907,6 @@
                 {# ============ ONGLET 6 : MACHINES ============ #}
                 <div class="tab-pane fade" id="pane-machines" role="tabpanel">
                     <div class="row g-4">
-                        {# Formulaire #}
                         <div class="col-lg-5">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -945,7 +932,6 @@
                             </div>
                         </div>
 
-                        {# Liste des machines #}
                         <div class="col-lg-7">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
@@ -996,6 +982,262 @@
                     </div>
                 </div>
 
+                {# ============ ONGLET 7 : ÉTAT DU STOCK ============ #}
+                <div class="tab-pane fade" id="pane-stock" role="tabpanel">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0">
+                                <i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock
+                            </h5>
+                            <small class="text-muted">Vue synthétique de l'inventaire en temps réel.</small>
+                        </div>
+                    </div>
+
+                    {# KPI Stock #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-primary">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">Articles référencés</h6>
+                                        <h3 class="fw-bold m-0 text-dark" style="font-size: 1.8rem;">{{ articlesStock|default([])|length }}</h3>
+                                    </div>
+                                    <div class="stat-icon stat-icon-primary"><i class="fas fa-boxes"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-success">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">Quantité totale</h6>
+                                        <h3 class="fw-bold m-0 text-dark" style="font-size: 1.8rem;">
+                                            {{ totalQuantiteStock|default(0)|number_format(0, ',', ' ') }}
+                                        </h3>
+                                    </div>
+                                    <div class="stat-icon stat-icon-success"><i class="fas fa-cubes"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-purple">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">Catégories</h6>
+                                        <h3 class="fw-bold m-0 text-dark" style="font-size: 1.8rem;">{{ articlesParCategorie|default([])|length }}</h3>
+                                    </div>
+                                    <div class="stat-icon stat-icon-purple"><i class="fas fa-tags"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-warning">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">Alertes critiques</h6>
+                                        <h3 class="fw-bold m-0 text-danger" style="font-size: 1.8rem;">{{ nbAlertesStock|default(0) }}</h3>
+                                    </div>
+                                    <div class="stat-icon stat-icon-warning"><i class="fas fa-exclamation-triangle"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ALERTES CRITIQUES PERSISTANTES #}
+                    {% if nbAlertesStock|default(0) > 0 %}
+                    <div class="form-card mb-4" style="background: rgba(220, 38, 38, 0.03); border-color: rgba(220, 38, 38, 0.15);">
+                        <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
+                            <div class="form-card-icon form-card-icon-red">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-danger">Articles sous le seuil critique</h5>
+                                <small class="text-muted">{{ nbAlertesStock }} article(s) nécessitent une action</small>
+                            </div>
+                            {% set nbNonLances = 0 %}
+                            {% for art in articlesEnAlerte %}
+                                {% if not art.reapprovisionnementEnCours %}{% set nbNonLances = nbNonLances + 1 %}{% endif %}
+                            {% endfor %}
+                            {% if nbNonLances > 0 %}
+                                <span class="badge badge-soft badge-soft-danger px-3 py-2">
+                                    <i class="fas fa-bell me-1"></i>{{ nbNonLances }} non traité(s)
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Article</th>
+                                        <th class="text-center">Stock actuel</th>
+                                        <th class="text-center">Seuil</th>
+                                        <th class="text-center">Écart</th>
+                                        <th>Statut Réappro</th>
+                                        <th>Lancé par</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for art in articlesEnAlerte %}
+                                        {% set detail = alerteDetails[art.id]|default({'lanceur': null, 'dateLancement': null}) %}
+                                        <tr>
+                                            <td>
+                                                <div class="fw-semibold text-dark">
+                                                    <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                                                    {% if art.reapprovisionnementEnCours %}
+                                                        <span class="badge badge-soft badge-soft-primary ms-2" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-truck-loading me-1"></i>En cours
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge badge-soft badge-soft-danger ms-2" style="font-size: 0.65rem;">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>Non traité
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-soft badge-soft-danger">{{ art.quantite }}</span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-soft badge-soft-warning">{{ art.seuilAlerte }}</span>
+                                            </td>
+                                            <td class="text-center fw-bold text-danger">
+                                                -{{ art.seuilAlerte - art.quantite }}
+                                            </td>
+                                            <td>
+                                                {% if art.reapprovisionnementEnCours %}
+                                                    <span class="badge badge-soft badge-soft-primary">
+                                                        <i class="fas fa-truck-loading me-1"></i>En cours
+                                                    </span>
+                                                    {% if art.dateReapprovisionnement %}
+                                                        <div class="small text-muted mt-1">
+                                                            <i class="fas fa-calendar-check me-1"></i>Prévu :
+                                                            <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
+                                                        </div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-secondary">
+                                                        <i class="fas fa-hourglass-start me-1"></i>Non lancé
+                                                    </span>
+                                                    <div class="small text-muted mt-1">Action comptable requise</div>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if art.reapprovisionnementEnCours and detail.lanceur %}
+                                                    <div class="small fw-semibold text-dark">
+                                                        <i class="fas fa-user-circle me-1"></i>
+                                                        {{ detail.lanceur.userIdentifier|split('@')|first }}
+                                                    </div>
+                                                    {% if detail.dateLancement %}
+                                                        <div class="small text-muted">
+                                                            <i class="far fa-clock me-1"></i>
+                                                            {{ detail.dateLancement|date('d/m/Y H:i') }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% elseif art.reapprovisionnementEnCours %}
+                                                    <span class="text-muted small">En cours (info non dispo)</span>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {# Graphiques #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-lg-7">
+                            <div class="form-card h-100">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-blue"><i class="fas fa-chart-bar"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Top 10 articles (par quantité)</h5>
+                                        <small class="text-muted">Articles les plus stockés</small>
+                                    </div>
+                                </div>
+                                <div style="position: relative; height: 320px;">
+                                    <canvas id="chartTopArticlesAdmin"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="form-card h-100">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-green"><i class="fas fa-chart-pie"></i></div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Répartition par catégorie</h5>
+                                        <small class="text-muted">Volume par catégorie</small>
+                                    </div>
+                                </div>
+                                <div style="position: relative; height: 320px;">
+                                    <canvas id="chartCategoriesAdmin"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Synthèse par catégorie #}
+                    <div class="form-card mb-4">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list"></i></div>
+                            <div>
+                                <h5 class="fw-bold m-0 text-dark">Synthèse par catégorie</h5>
+                                <small class="text-muted">Répartition détaillée du stock</small>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Catégorie</th>
+                                        <th class="text-center">Nb articles</th>
+                                        <th class="text-center">Quantité totale</th>
+                                        <th class="text-center">Part</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set totalGlobal = totalQuantiteStock|default(0) > 0 ? totalQuantiteStock : 1 %}
+                                    {% for cat, data in articlesParCategorie|default({})|sort((a, b) => b.quantite <=> a.quantite) %}
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="fas fa-tag text-muted me-2"></i>{{ cat }}
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-soft badge-soft-secondary">{{ data.count }}</span>
+                                            </td>
+                                            <td class="text-center fw-bold text-dark">
+                                                {{ data.quantite|number_format(0, ',', ' ') }}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center gap-2 justify-content-center">
+                                                    <div class="progress" style="width: 80px; height: 6px;">
+                                                        <div class="progress-bar bg-success"
+                                                             style="width: {{ (data.quantite / totalGlobal * 100)|round }}%;"></div>
+                                                    </div>
+                                                    <span class="small text-muted fw-bold">
+                                                        {{ (data.quantite / totalGlobal * 100)|round(1) }}%
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-4">Aucune catégorie enregistrée.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
     </div>
@@ -1015,6 +1257,83 @@
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
             });
         });
+
+        // ═══════════════════════════════════════════════════════
+        // Graphiques Stock (Admin)
+        // ═══════════════════════════════════════════════════════
+        const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
+        const canvasTA = document.getElementById('chartTopArticlesAdmin');
+
+        if (canvasTA && topArticlesAdmin.length > 0) {
+            new Chart(canvasTA, {
+                type: 'bar',
+                data: {
+                    labels: topArticlesAdmin.map(a => a.nom.length > 18 ? a.nom.substring(0, 18) + '…' : a.nom),
+                    datasets: [{
+                        label: 'Quantité',
+                        data: topArticlesAdmin.map(a => a.quantite),
+                        backgroundColor: topArticlesAdmin.map(a =>
+                            a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'
+                        ),
+                        borderColor: topArticlesAdmin.map(a =>
+                            a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const art = topArticlesAdmin[context.dataIndex];
+                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
+                                }
+                            }
+                        }
+                    },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                }
+            });
+        }
+
+        const catLabelsAdmin = {{ categoriesLabels|default([])|json_encode|raw }};
+        const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
+        const canvasCA = document.getElementById('chartCategoriesAdmin');
+
+        if (canvasCA && catLabelsAdmin.length > 0) {
+            const palette = [
+                '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
+                '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
+                '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
+            ];
+            new Chart(canvasCA, {
+                type: 'doughnut',
+                data: {
+                    labels: catLabelsAdmin,
+                    datasets: [{
+                        data: catQuantitesAdmin,
+                        backgroundColor: catLabelsAdmin.map((_, i) => palette[i % palette.length]),
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 </body>

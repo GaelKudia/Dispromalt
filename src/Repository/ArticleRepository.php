@@ -19,15 +19,16 @@ class ArticleRepository extends ServiceEntityRepository
     /**
      * 🚨 Articles sous seuil SANS réappro en cours → vraies alertes
      */
-    public function findArticlesEnAlerte(): array
-    {
-        return $this->createQueryBuilder('a')
-            ->where('a.quantite <= a.seuilAlerte')
-            ->andWhere('a.reapprovisionnementEnCours = false OR a.reapprovisionnementEnCours IS NULL')
-            ->orderBy('a.quantite', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
+   public function findArticlesEnAlerte(): array
+{
+    return $this->createQueryBuilder('a')
+        ->where('a.quantite <= a.seuilAlerte')
+        // ✅ On garde AUSSI les articles en réappro en cours
+        ->orderBy('a.reapprovisionnementEnCours', 'ASC')  // Non lancés d'abord
+        ->addOrderBy('a.quantite', 'ASC')                  // Les plus critiques ensuite
+        ->getQuery()
+        ->getResult();
+}
 
     /**
      * 📋 Tous les articles sous seuil (même en réappro) → pour la vue comptable

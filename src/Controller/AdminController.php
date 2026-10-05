@@ -23,6 +23,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
 use App\Repository\SubCategoryRepository;
+use App\Repository\HistoriqueReapprovisionnementRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,33 +41,35 @@ class AdminController extends AbstractController
         DemandeRepository $demandeRepository,
         BonSortieRepository $bonSortieRepository,
         UserRepository $userRepository,
-        ServiceRepository $serviceRepository, // 👈 AJOUTÉ ICI pour corriger l'erreur de variable indéfinie
+        ServiceRepository $serviceRepository,
         EntityManagerInterface $em,
-        UserPasswordHasherInterface $hasher
+        UserPasswordHasherInterface $hasher,
+        HistoriqueReapprovisionnementRepository $historiqueRepo
     ): Response {
-        // Sécurité globale sur la page d'administration
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
-        
-        // Gestion du formulaire de création de Service
+
+        // ═══════════════════════════════════════════════════════
+        // FORMULAIRE : Créer un Service
+        // ═══════════════════════════════════════════════════════
         $service = new Service();
         $formService = $this->createForm(ServiceType::class, $service);
         $formService->handleRequest($request);
 
         if ($formService->isSubmitted() && $formService->isValid()) {
-            $em->persist($service); // 👈 Corrigé de $entityManager à $em
+            $em->persist($service);
             $em->flush();
-
             $this->addFlash('success', 'Le service a été créé avec succès.');
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // Récupérations des données d'origine pour l'admin
+        // ═══════════════════════════════════════════════════════
+        // DONNÉES GÉNÉRALES
+        // ═══════════════════════════════════════════════════════
         $allDemandes = $demandeRepository->findBy([], ['id' => 'DESC']);
         $allBons = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
         $articles = $em->getRepository(Article::class)->findAll();
 
-        // Filtrage spécifique pour la sélection des agents comptables
         $listeComptables = [];
         foreach ($allUsers as $u) {
             if (in_array('ROLE_COMPTA', $u->getRoles()) && !in_array('ROLE_CHEF_COMPTA', $u->getRoles())) {
@@ -74,7 +77,9 @@ class AdminController extends AbstractController
             }
         }
 
-        // Logique du Rapport Général Historique
+        // ═══════════════════════════════════════════════════════
+        // RAPPORT GLOBAL (filtres dates)
+        // ═══════════════════════════════════════════════════════
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui = new \DateTime('today 23:59:59');
 
@@ -97,21 +102,20 @@ class AdminController extends AbstractController
                                   ->getQuery()
                                   ->getResult();
 
-        // Gestion du formulaire de création d'utilisateur
+        // ═══════════════════════════════════════════════════════
+        // FORMULAIRE : Créer un utilisateur
+        // ═══════════════════════════════════════════════════════
         $newUser = new User();
         $form = $this->createForm(UserType::class, $newUser);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $plainPassword = $form->get('password')->getData();
-            //$plainPassword = $newUser->getPassword();
 
-            // Vérifier si un mot de passe a été fourni
             if (!empty($plainPassword)) {
                 $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
                 $newUser->setPassword($hashedPassword);
             } else {
-                // Optionnel : Définir un mot de passe temporaire par défaut si vide
                 $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
                 $newUser->setPassword($hashedPassword);
             }
@@ -126,7 +130,9 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // Gestion du formulaire de catégorie
+        // ═══════════════════════════════════════════════════════
+        // FORMULAIRE : Catégorie
+        // ═══════════════════════════════════════════════════════
         $category = new Category();
         $formCategory = $this->createForm(CategoryType::class, $category);
         $formCategory->handleRequest($request);
@@ -138,7 +144,9 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // Gestion du formulaire de SOUS-CATÉGORIE
+        // ═══════════════════════════════════════════════════════
+        // FORMULAIRE : Sous-catégorie
+        // ═══════════════════════════════════════════════════════
         $subCategory = new SubCategory();
         $formSubCategory = $this->createForm(SubCategoryType::class, $subCategory);
         $formSubCategory->handleRequest($request);
@@ -150,7 +158,9 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // Gestion du formulaire d'ajout de machine 
+        // ═══════════════════════════════════════════════════════
+        // FORMULAIRE : Machine
+        // ═══════════════════════════════════════════════════════
         $machine = new Machine();
         $formMachine = $this->createForm(MachineType::class, $machine);
         $formMachine->handleRequest($request);
@@ -162,6 +172,86 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
+        // ═══════════════════════════════════════════════════════
+        // ✅ SYNTHÈSE STOCK POUR L'ADMIN
+        // ═══════════════════════════════════════════════════════
+        $articlesStock = $em->getRepository(Article::class)->findAll();
+
+        $totalQuantiteStock = 0;
+        $articlesParCategorie = [];
+        $topArticles = [];
+
+        foreach ($articlesStock as $art) {
+            $qte = $art->getQuantite() ?? 0;
+            $totalQuantiteStock += $qte;
+
+            $catNom = 'Sans catégorie';
+            if (method_exists($art, 'getCategory') && $art->getCategory()) {
+                $catNom = $art->getCategory()->getNom();
+            } elseif (method_exists($art, 'getSubCategory') && $art->getSubCategory()) {
+                $catNom = $art->getSubCategory()->getNom();
+            }
+
+            if (!isset($articlesParCategorie[$catNom])) {
+                $articlesParCategorie[$catNom] = ['count' => 0, 'quantite' => 0];
+            }
+            $articlesParCategorie[$catNom]['count']++;
+            $articlesParCategorie[$catNom]['quantite'] += $qte;
+
+            $topArticles[] = [
+                'nom'       => $art->getNom(),
+                'quantite'  => $qte,
+                'seuil'     => method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0,
+                'categorie' => $catNom,
+            ];
+        }
+
+        usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
+        $topArticles = array_slice($topArticles, 0, 10);
+
+        $categoriesLabels = [];
+        $categoriesQuantites = [];
+        foreach ($articlesParCategorie as $cat => $data) {
+            $categoriesLabels[] = $cat;
+            $categoriesQuantites[] = $data['quantite'];
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ✅ ALERTES STOCK ENRICHIES (qui a lancé le réappro)
+        // ═══════════════════════════════════════════════════════
+        $articlesEnAlerte = $em->getRepository(Article::class)->findBy([], ['id' => 'DESC']);
+        $articlesEnAlerte = array_filter($articlesEnAlerte, function ($art) {
+            if (!method_exists($art, 'getSeuilAlerte') || !method_exists($art, 'getQuantite')) {
+                return false;
+            }
+            return $art->getQuantite() <= $art->getSeuilAlerte();
+        });
+
+        // Tri : non lancés d'abord, puis les plus critiques
+        usort($articlesEnAlerte, function ($a, $b) {
+            $aLance = method_exists($a, 'isReapprovisionnementEnCours') && $a->isReapprovisionnementEnCours();
+            $bLance = method_exists($b, 'isReapprovisionnementEnCours') && $b->isReapprovisionnementEnCours();
+            if ($aLance !== $bLance) return $aLance ? 1 : -1;
+            return $a->getQuantite() <=> $b->getQuantite();
+        });
+
+        $alerteDetails = [];
+        foreach ($articlesEnAlerte as $art) {
+            $detail = ['lanceur' => null, 'dateLancement' => null];
+            if (method_exists($art, 'isReapprovisionnementEnCours') && $art->isReapprovisionnementEnCours()) {
+                $dernier = $historiqueRepo->findDernierLancement($art->getId());
+                if ($dernier) {
+                    $detail['lanceur'] = $dernier->getEffectuePar();
+                    $detail['dateLancement'] = $dernier->getDateAction();
+                }
+            }
+            $alerteDetails[$art->getId()] = $detail;
+        }
+        $nbAlertesStock = count($articlesEnAlerte);
+
+        // ═══════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
@@ -169,7 +259,7 @@ class AdminController extends AbstractController
             'formService' => $formService->createView(),
             'services' => $serviceRepository->findAll(),
             'users' => $allUsers,
-            'tousLesUtilisateurs' => $allUsers, 
+            'tousLesUtilisateurs' => $allUsers,
             'listeComptables' => $listeComptables,
             'articles' => $articles,
             'rapportGlobal' => $rapportGlobal,
@@ -181,9 +271,23 @@ class AdminController extends AbstractController
             'subCategories' => $em->getRepository(SubCategory::class)->findAll(),
             'formMachine' => $formMachine->createView(),
             'machines' => $em->getRepository(Machine::class)->findAll(),
+
+            // ✅ NOUVELLES VARIABLES
+            'articlesStock'        => $articlesStock,
+            'totalQuantiteStock'   => $totalQuantiteStock,
+            'articlesParCategorie' => $articlesParCategorie,
+            'topArticles'          => $topArticles,
+            'categoriesLabels'     => $categoriesLabels,
+            'categoriesQuantites'  => $categoriesQuantites,
+            'articlesEnAlerte'     => $articlesEnAlerte,
+            'alerteDetails'        => $alerteDetails,
+            'nbAlertesStock'       => $nbAlertesStock,
         ]);
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // NOMINATIONS
+    // ═══════════════════════════════════════════════════════════
     #[Route('/admin/assigner-chef-compta', name: 'app_admin_assigner_chef_compta', methods: ['POST'])]
     #[IsGranted('ROLE_ADMIN')]
     public function assignerChefCompta(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
@@ -200,7 +304,6 @@ class AdminController extends AbstractController
         if (!in_array('ROLE_CHEF_COMPTA', $roles)) {
             $roles[] = 'ROLE_CHEF_COMPTA';
             $user->setRoles($roles);
-            
             $em->flush();
             $this->addFlash('success', sprintf('L\'utilisateur %s a bien été promu Chef Comptable.', $user->getEmail()));
         } else {
@@ -217,10 +320,8 @@ class AdminController extends AbstractController
         $user = $userRepository->find($id);
 
         if ($user) {
-            $roles = $user->getRoles();
-            $roles = array_diff($roles, ['ROLE_CHEF_COMPTA']);
+            $roles = array_diff($user->getRoles(), ['ROLE_CHEF_COMPTA']);
             $user->setRoles(array_values($roles));
-            
             $em->flush();
             $this->addFlash('success', sprintf('Le rôle de Chef Comptable a été retiré à %s.', $user->getEmail()));
         }
@@ -234,102 +335,81 @@ class AdminController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if ($user === $this->getUser()) {
-            $this->addFlash('danger', '🛑 Action impossible : Vous ne pouvez pas désactiver votre propre compte administrateur.');
+            $this->addFlash('danger', '🛑 Action impossible : Vous ne pouvez pas désactiver votre propre compte.');
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
         if (method_exists($user, 'isActif') && method_exists($user, 'setActif')) {
             $user->setActif(!$user->isActif());
             $em->flush();
-
-            $statut = $user->isActif() ? 'réactivé ✅' : 'désactivé et rendu inactif ❌';
+            $statut = $user->isActif() ? 'réactivé ✅' : 'désactivé ❌';
             $this->addFlash('success', 'Le compte de ' . $user->getEmail() . ' a été ' . $statut);
         } else {
-            $this->addFlash('danger', 'Le champ "actif" n\'existe pas encore sur votre entité User.');
+            $this->addFlash('danger', 'Le champ "actif" n\'existe pas sur l\'entité User.');
         }
 
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
     #[Route('/admin/user/{id}/modifier', name: 'app_admin_user_edit', methods: ['GET', 'POST'])]
-public function editUser(
-    Request $request,
-    User $user,
-    EntityManagerInterface $em,
-    UserPasswordHasherInterface $hasher,
-    ServiceRepository $serviceRepository,
-    UserRepository $userRepository
-): Response {
-    $this->denyAccessUnlessGranted('ROLE_ADMIN');
+    public function editUser(
+        Request $request,
+        User $user,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $hasher,
+        ServiceRepository $serviceRepository,
+        UserRepository $userRepository
+    ): Response {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-    $form = $this->createForm(UserType::class, $user, [
-        'is_edit' => true,
-    ]);
-    $form->handleRequest($request);
+        $form = $this->createForm(UserType::class, $user, ['is_edit' => true]);
+        $form->handleRequest($request);
 
-    if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
+            $emailSaisi = $user->getEmail();
+            $userExistant = $userRepository->findOneBy(['email' => $emailSaisi]);
 
-        // ============================================================
-        // 1. VÉRIFIER L'UNICITÉ DE L'EMAIL
-        // ============================================================
-        $emailSaisi = $user->getEmail();
-        $userExistant = $userRepository->findOneBy(['email' => $emailSaisi]);
-
-        if ($userExistant && $userExistant->getId() !== $user->getId()) {
-            $this->addFlash('danger', '❌ Cet email est déjà utilisé par un autre compte (' . $emailSaisi . ').');
-            return $this->render('admin/edit_user.html.twig', [
-                'user'     => $user,
-                'services' => $serviceRepository->findAll(),
-                'form'     => $form->createView(),
-            ]);
-        }
-
-        // ============================================================
-        // 2. GESTION DU MOT DE PASSE (uniquement si rempli)
-        // ============================================================
-        $plainPassword = $form->get('password')->getData();
-        if (!empty($plainPassword)) {
-            $user->setPassword($hasher->hashPassword($user, $plainPassword));
-            $this->addFlash('success', '🔑 Mot de passe mis à jour.');
-        }
-
-        // ============================================================
-        // 3. GESTION DU SERVICE
-        // ============================================================
-        $roles = $user->getRoles();
-        if (!in_array('ROLE_ADMIN', $roles)) {
-            if (!$user->getService()) {
-                $this->addFlash('warning', '⚠️ Aucun service rattaché — pensez à en attribuer un.');
+            if ($userExistant && $userExistant->getId() !== $user->getId()) {
+                $this->addFlash('danger', '❌ Cet email est déjà utilisé par un autre compte.');
+                return $this->render('admin/edit_user.html.twig', [
+                    'user'     => $user,
+                    'services' => $serviceRepository->findAll(),
+                    'form'     => $form->createView(),
+                ]);
             }
+
+            $plainPassword = $form->get('password')->getData();
+            if (!empty($plainPassword)) {
+                $user->setPassword($hasher->hashPassword($user, $plainPassword));
+                $this->addFlash('success', '🔑 Mot de passe mis à jour.');
+            }
+
+            $em->flush();
+            $this->addFlash('success', '📝 Le compte a été mis à jour.');
+            return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // ============================================================
-        // 4. SAUVEGARDE
-        // ============================================================
-        $em->flush();
-        $this->addFlash('success', '📝 Le compte de ' . $user->getEmail() . ' a bien été mis à jour.');
-        return $this->redirectToRoute('app_admin_dashboard');
+        return $this->render('admin/edit_user.html.twig', [
+            'user'     => $user,
+            'services' => $serviceRepository->findAll(),
+            'form'     => $form->createView(),
+        ]);
     }
 
-    return $this->render('admin/edit_user.html.twig', [
-        'user'     => $user,
-        'services' => $serviceRepository->findAll(),
-        'form'     => $form->createView(),
-    ]);
-}#[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
+    #[Route('/admin/user/{id}/supprimer', name: 'app_admin_user_delete', methods: ['POST'])]
     public function deleteUser(Request $request, User $user, EntityManagerInterface $em): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         if ($user === $this->getUser()) {
-            $this->addFlash('danger', '🛑 Action refusée : Vous ne pouvez pas supprimer votre propre compte en cours d\'utilisation.');
+            $this->addFlash('danger', '🛑 Action refusée : Vous ne pouvez pas supprimer votre propre compte.');
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
         if ($this->isCsrfTokenValid('delete_user_'.$user->getId(), $request->request->get('_token'))) {
             $em->remove($user);
             $em->flush();
-            $this->addFlash('success', '🗑️ Le compte utilisateur a été supprimé définitivement.');
+            $this->addFlash('success', '🗑️ Le compte a été supprimé.');
         }
 
         return $this->redirectToRoute('app_admin_dashboard');

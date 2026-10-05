@@ -513,6 +513,7 @@
             .tab-pane { page-break-inside: avoid; margin-bottom: 2rem; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -720,6 +721,11 @@
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
                 </button>
             </li>
+            <li class="nav-item" role="presentation">
+    <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#pane-stock" type="button" role="tab">
+        <i class="fas fa-warehouse text-success"></i>État du Stock
+    </button>
+</li>
         </ul>
 
         <div class="p-4">
@@ -1229,6 +1235,188 @@
                     </div>
                 </div>
 
+                {# ============================================================
+   ONGLET 5 : ÉTAT DU STOCK (synthèse pour la DG)
+============================================================ #}
+<div class="tab-pane fade" id="pane-stock" role="tabpanel">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h5 class="fw-bold text-dark m-0">
+                <i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock
+            </h5>
+            <small class="text-muted">Vue synthétique de l'inventaire pour la Direction Générale.</small>
+        </div>
+        <a href="{{ path('app_historique_reappro') }}" class="btn btn-export">
+            <i class="fas fa-history me-1"></i> Historique Réappro
+        </a>
+    </div>
+
+    {# KPI Stock #}
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-mini kpi-primary">
+                <div class="kpi-value text-primary">{{ articlesDG|length }}</div>
+                <div class="kpi-label">Articles référencés</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-mini kpi-success">
+                <div class="kpi-value text-success">
+                    {{ totalQuantiteStock|number_format(0, ',', ' ') }}
+                </div>
+                <div class="kpi-label">Quantité totale</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-mini kpi-warning">
+                <div class="kpi-value text-warning">{{ articlesParCategorie|length }}</div>
+                <div class="kpi-label">Catégories</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
+                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
+                <div class="kpi-label">Alertes critiques</div>
+            </div>
+        </div>
+    </div>
+
+    {# Graphiques #}
+    <div class="row g-3 mb-4">
+        <div class="col-lg-7">
+            <div class="p-3 bg-white rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>Top 10 articles (par quantité)
+                </h6>
+                <div style="position: relative; height: 320px;">
+                    <canvas id="chartTopArticles"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="p-3 bg-white rounded-3 border h-100">
+                <h6 class="fw-bold text-dark mb-3">
+                    <i class="fas fa-chart-pie text-success me-2"></i>Répartition par catégorie
+                </h6>
+                <div style="position: relative; height: 320px;">
+                    <canvas id="chartCategories"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tableau de synthèse par catégorie #}
+    <div class="p-3 bg-white rounded-3 border mb-4">
+        <h6 class="fw-bold text-dark mb-3">
+            <i class="fas fa-list text-secondary me-2"></i>Synthèse par catégorie
+        </h6>
+        <div class="table-responsive">
+            <table class="table table-modern table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Catégorie</th>
+                        <th class="text-center">Nb articles</th>
+                        <th class="text-center">Quantité totale</th>
+                        <th class="text-center">Part</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set totalGlobal = totalQuantiteStock > 0 ? totalQuantiteStock : 1 %}
+                    {% for cat, data in articlesParCategorie|sort((a, b) => b.quantite <=> a.quantite) %}
+                        <tr>
+                            <td class="fw-semibold text-dark">
+                                <i class="fas fa-tag text-muted me-2"></i>{{ cat }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-secondary">{{ data.count }}</span>
+                            </td>
+                            <td class="text-center fw-bold text-dark">
+                                {{ data.quantite|number_format(0, ',', ' ') }}
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex align-items-center gap-2 justify-content-center">
+                                    <div class="progress" style="width: 80px; height: 6px;">
+                                        <div class="progress-bar bg-success"
+                                             style="width: {{ (data.quantite / totalGlobal * 100)|round }}%;"></div>
+                                    </div>
+                                    <span class="small text-muted fw-bold">
+                                        {{ (data.quantite / totalGlobal * 100)|round(1) }}%
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">Aucune catégorie enregistrée.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Tableau des alertes critiques #}
+    {% if nbAlertesStock|default(0) > 0 %}
+    <div class="p-3 rounded-3 border" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h6 class="fw-bold text-danger mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>Articles sous le seuil critique
+            </h6>
+            <span class="badge badge-soft badge-soft-danger px-3 py-2">
+                {{ nbAlertesStock }} article(s)
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-modern table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th class="text-center">Stock actuel</th>
+                        <th class="text-center">Seuil</th>
+                        <th class="text-center">Écart</th>
+                        <th>Réappro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for art in articlesEnAlerte %}
+                        <tr>
+                            <td class="fw-semibold text-dark">
+                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-danger">{{ art.quantite }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-warning">{{ art.seuilAlerte }}</span>
+                            </td>
+                            <td class="text-center fw-bold text-danger">
+                                -{{ art.seuilAlerte - art.quantite }}
+                            </td>
+                            <td>
+                                {% if art.reapprovisionnementEnCours %}
+                                    <span class="badge badge-soft badge-soft-primary">
+                                        <i class="fas fa-truck-loading me-1"></i>En cours
+                                    </span>
+                                    {% if art.dateReapprovisionnement %}
+                                        <div class="small text-muted mt-1">
+                                            Prévu : <strong>{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-soft badge-soft-secondary">Non lancé</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
             </div>
         </div>
     </div>
@@ -1255,6 +1443,93 @@
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
             });
         });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // ═══════════════════════════════════════════════════════
+        // Graphique 1 : Top 10 articles (barres)
+        // ═══════════════════════════════════════════════════════
+        const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
+        const canvas1 = document.getElementById('chartTopArticles');
+
+        if (canvas1 && topArticlesData.length > 0) {
+            new Chart(canvas1, {
+                type: 'bar',
+                data: {
+                    labels: topArticlesData.map(a => a.nom.length > 18 ? a.nom.substring(0, 18) + '…' : a.nom),
+                    datasets: [{
+                        label: 'Quantité en stock',
+                        data: topArticlesData.map(a => a.quantite),
+                        backgroundColor: topArticlesData.map(a =>
+                            a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'
+                        ),
+                        borderColor: topArticlesData.map(a =>
+                            a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'
+                        ),
+                        borderWidth: 1,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const art = topArticlesData[context.dataIndex];
+                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } }
+                    }
+                }
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // Graphique 2 : Répartition par catégorie (doughnut)
+        // ═══════════════════════════════════════════════════════
+        const categoriesLabels   = {{ categoriesLabels|default([])|json_encode|raw }};
+        const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
+        const canvas2 = document.getElementById('chartCategories');
+
+        if (canvas2 && categoriesLabels.length > 0) {
+            const palette = [
+                '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
+                '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
+                '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
+            ];
+            new Chart(canvas2, {
+                type: 'doughnut',
+                data: {
+                    labels: categoriesLabels,
+                    datasets: [{
+                        data: categoriesQuantites,
+                        backgroundColor: categoriesLabels.map((_, i) => palette[i % palette.length]),
+                        borderWidth: 2,
+                        borderColor: '#fff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 </body>

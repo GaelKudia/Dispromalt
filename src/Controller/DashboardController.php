@@ -58,6 +58,7 @@ class DashboardController extends AbstractController
         DevisRepository $devisRepository,
         ArticleAttributRepository $attributRepo,
         EntityManagerInterface $em,
+        \App\Repository\HistoriqueReapprovisionnementRepository $histoRepo,
         MouvementCaisseRepository $mouvementRepo
     ): Response {
         // 1. UTILISATEUR CONNECTÉ
@@ -874,7 +875,12 @@ foreach ($mesDecaissements as $d) {
     }
 }
     return $this->render('dashboard/compta.html.twig', [
-    'demandes'              => $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']),
+    'demandes' => $demandeRepository->createQueryBuilder('d')
+    ->where('d.statut IN (:statuts)')
+    ->setParameter('statuts', ['En attente', 'Validé Chef'])
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult(),
     'rapportGlobal'         => $rapportGlobal,
     'devisListe'            => $devisListe,
     'mesDecaissements'      => $mesDecaissements,
@@ -930,25 +936,92 @@ foreach ($mesDecaissements as $d) {
         }
 
         // DG
-        if ($this->isGranted('ROLE_DG')) {
-            return $this->render('dashboard/directeur.html.twig', [
-                'demandes'      => $demandes,
-                'rapportGlobal' => $rapportGlobal,
-                'bonsSortie'    => $bonsSortie,
-                'articles'      => $articles,
-                'devisListe'    => $devisListe,
-                'userRole'      => $roleLabel,
-                'stats'         => $stats,
-                'date_debut'    => $dateDebutFiltre,
-                'date_fin'      => $dateFinFiltre,
-                'articlesEnAlerte' => $articlesEnAlerte,   // ✅ AJOUT
-                'nbAlertesStock'        => $nbAlertesStock,
-                'soldeUSD' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
-                'soldeCDF' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),      
+        // DG
+if ($this->isGranted('ROLE_DG')) {
+    // 🎯 Le DG ne voit QUE les devis qui sont passés par son circuit
+    $devisListeDG = $em->getRepository(Devis::class)->createQueryBuilder('d')
+        ->leftJoin('d.user', 'u')
+        ->addSelect('u')
+        ->where('d.passageDG = :oui')
+        ->andWhere('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('oui', true)
+        ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+        ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
+        ->orderBy('d.id', 'DESC')
+        ->getQuery()
+        ->getResult();
 
-            ]);
+            // ✅ SYNTHÈSE STOCK POUR LA DG
+    // ═══════════════════════════════════════════════════════
+    $articlesDG = $em->getRepository(Article::class)->findAll();
+
+    $totalQuantiteStock = 0;
+    $valeurStockUSD     = 0;   // si tu as un prix unitaire, sinon laisse 0
+    $articlesParCategorie = [];
+    $topArticles = [];
+
+    foreach ($articlesDG as $art) {
+        $qte = $art->getQuantite() ?? 0;
+        $totalQuantiteStock += $qte;
+
+        // Catégorie
+        $catNom = 'Sans catégorie';
+        if (method_exists($art, 'getCategory') && $art->getCategory()) {
+            $catNom = $art->getCategory()->getNom();
+        } elseif (method_exists($art, 'getSubCategory') && $art->getSubCategory()) {
+            $catNom = $art->getSubCategory()->getNom();
         }
 
+        if (!isset($articlesParCategorie[$catNom])) {
+            $articlesParCategorie[$catNom] = ['count' => 0, 'quantite' => 0];
+        }
+        $articlesParCategorie[$catNom]['count']++;
+        $articlesParCategorie[$catNom]['quantite'] += $qte;
+
+        // Top articles (à trier après)
+        $topArticles[] = [
+            'nom'       => $art->getNom(),
+            'quantite'  => $qte,
+            'seuil'     => $art->getSeuilAlerte() ?? 0,
+            'categorie' => $catNom,
+        ];
+    }
+
+    // Trier top articles par quantité décroissante et garder 10
+    usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
+    $topArticles = array_slice($topArticles, 0, 10);
+
+    // Stats par catégorie pour le graphique
+    $categoriesLabels = [];
+    $categoriesQuantites = [];
+    foreach ($articlesParCategorie as $cat => $data) {
+        $categoriesLabels[] = $cat;
+        $categoriesQuantites[] = $data['quantite'];
+    }
+
+    return $this->render('dashboard/directeur.html.twig', [
+        'demandes'         => $demandes,
+        'rapportGlobal'    => $rapportGlobal,
+        'bonsSortie'       => $bonsSortie,
+        'articles'         => $articles,
+        'devisListe'       => $devisListeDG,   // ← liste filtrée
+        'userRole'         => $roleLabel,
+        'stats'            => $stats,
+        'date_debut'       => $dateDebutFiltre,
+        'date_fin'         => $dateFinFiltre,
+        'articlesEnAlerte' => $articlesEnAlerte,
+        'nbAlertesStock'   => $nbAlertesStock,
+        'soldeUSD'         => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
+        'soldeCDF'         => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),
+
+        'articlesDG'           => $articlesDG,
+        'totalQuantiteStock'   => $totalQuantiteStock,
+        'articlesParCategorie' => $articlesParCategorie,
+        'topArticles'          => $topArticles,
+        'categoriesLabels'     => $categoriesLabels,
+        'categoriesQuantites'  => $categoriesQuantites,
+    ]);
+}
         // PAR DÉFAUT
         return $this->render('dashboard/membre.html.twig', [
             'demandes'       => $demandes,
@@ -1161,7 +1234,7 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
             $this->addFlash('success', '📤 Bon de demande transmis à la Caisse.');
             break;
 
-        case 'decaisser_direct':
+     case 'decaisser_direct':
     $devise  = $devis->getDevise();
     $montant = (float) $devis->getMontant();
 
@@ -1177,63 +1250,121 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // ✅ Enregistrer le mouvement SORTIE
+    $mouvement = new MouvementCaisse();
+    $mouvement->setType(MouvementCaisse::TYPE_SORTIE);
+    $mouvement->setMontant((string) $montant);
+    $mouvement->setDevise($devise);
+    $mouvement->setProvenance('Décaissement direct compta — devis #' . $devis->getId());
+    $mouvement->setCategorie('DEVIS');
+    $mouvement->setDevis($devis);
+    $mouvement->setEffectuePar($this->getUser());
+    $mouvement->setDateMouvement(new \DateTime());
+    $em->persist($mouvement);
+
+    // ✅ Finaliser le devis — il ne passe PAS par le DG
+    $devis->setStatut(Devis::STATUT_DECAISSE);
+    $devis->setDecaissePar($this->getUser());
+    $devis->setDateDecaissementPar(new \DateTime());
+    $devis->setDateDecaissement(new \DateTime());
+    $devis->setPassageDG(false);
+
+    $this->addFlash('success', '✅ Décaissement direct effectué — devis #' . $devis->getId() . '.');
+    break;
+
     }
 
     $em->flush();
     return $this->redirectToRoute('app_dashboard');
 }
-    #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
+#[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
 #[IsGranted('ROLE_COMPTA')]
 public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
 {
-    // 🎯 Accepte maintenant les demandes validées par le chef de service
-    if ($demande->getStatut() !== 'Validé Chef') {
-        $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape.');
+    // 🎯 Le comptable valide la demande, qu'elle soit :
+    //   - 'En attente' (créée par un membre, pas encore traitée)
+    //   - 'Validé Chef' (si un jour un chef de service intervient)
+    $statutsAcceptes = ['En attente', 'Validé Chef'];
+
+    if (!in_array($demande->getStatut(), $statutsAcceptes)) {
+        $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape (statut actuel : ' . $demande->getStatut() . ').');
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Vérifier le stock disponible
+    // 🔒 Vérifier le stock disponible
     $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
     $quantiteDemandee = $demande->getQuantite() ?? 1;
 
     if (!$article || $article->getQuantite() < $quantiteDemandee) {
-        $this->addFlash('danger', '🛑 Impossible de valider le budget. Stock insuffisant pour "' . $demande->getMateriel() . '".');
+        $this->addFlash('danger', '🛑 Impossible de valider. Stock insuffisant pour "' . $demande->getMateriel() . '".');
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // ✅ Valider la demande
     $demande->setStatut('Validé Compta');
     $em->flush();
-    $this->addFlash('success', '💰 Budget accordé. La demande est transmise au Stock pour livraison.');
+
+    $this->addFlash('success', '💰 Demande validée. Elle est transmise au dépôt pour livraison.');
     return $this->redirectToRoute('app_dashboard');
-}
-    #[Route('/dashboard/livrer/{id}', name: 'app_demande_livrer', methods: ['POST'])]
-    #[IsGranted('ROLE_STOCK')]
-    public function livrer(Demande $demande, EntityManagerInterface $em): Response
-    {
-        if ($demande->getStatut() !== 'Validé Compta') {
-            $this->addFlash('danger', '❌ Action interdite. La demande doit d\'abord être validée par la comptabilité.');
+}    #[Route('/dashboard/livrer/{id}', name: 'app_demande_livrer', methods: ['POST'])]
+#[IsGranted('ROLE_STOCK')]
+public function livrer(Demande $demande, EntityManagerInterface $em): Response
+{
+    if ($demande->getStatut() !== 'Validé Compta') {
+        $this->addFlash('danger', '❌ Action interdite. La demande doit d\'abord être validée par la comptabilité.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
+    if ($article) {
+        $em->refresh($article);
+        $quantiteDemandee = $demande->getQuantite() ?? 1;
+        $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee;
+
+        if ($nouvelleQuantite < 0) {
+            $this->addFlash('danger', '❌ Stock insuffisant au moment de la validation finale.');
             return $this->redirectToRoute('app_dashboard');
         }
 
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
-        if ($article) {
-            $em->refresh($article);
-            $quantiteDemandee = $demande->getQuantite() ?? 1;
-            $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee;
+        // 1️⃣ Déduire du stock
+        $article->setQuantite($nouvelleQuantite);
 
-            if ($nouvelleQuantite < 0) {
-                $this->addFlash('danger', '❌ Stock insuffisant au moment de la validation finale.');
-                return $this->redirectToRoute('app_dashboard');
+        // 2️⃣ Marquer la demande comme livrée
+        $demande->setStatut('Livré par le Stock');
+
+        // 3️⃣ ✅ CRÉER AUTOMATIQUEMENT UN BON DE SORTIE
+        $departementDemandeur = $demande->getDepartement() ?? 'Non renseigné';
+
+        // ⚠️ On ne crée PAS de bon pour la Direction (filtre demandé)
+        if (strtolower(trim($departementDemandeur)) !== 'direction') {
+            $bonSortie = new BonSortie();
+            $bonSortie->setNomEmploye($demande->getDemandeur() ? $demande->getDemandeur()->getUserIdentifier() : 'Demandeur inconnu');
+            $bonSortie->setDepartement($departementDemandeur);
+            $bonSortie->setDateCreation(new \DateTime());
+            $bonSortie->setStatut('Validé Coordon');   // Prêt pour sortie guérite
+
+            // Référence au matériel livré
+            $description = 'Sortie stock : ' . $demande->getMateriel() . ' (Qté: ' . $quantiteDemandee . ') — Demande #' . $demande->getId();
+            if (method_exists($bonSortie, 'setRaison')) {
+                $bonSortie->setRaison($description);
             }
 
-            $article->setQuantite($nouvelleQuantite);
-            $demande->setStatut('Livré par le Stock');
-            $em->flush();
-            $this->addFlash('success', '🚚 Matériel livré et déduit du stock.');
+            $em->persist($bonSortie);
         }
-        return $this->redirectToRoute('app_dashboard');
+
+        $em->flush();
+
+        if (strtolower(trim($departementDemandeur)) === 'direction') {
+            $this->addFlash('success', '🚚 Matériel livré et déduit du stock (Direction — pas de bon de sortie).');
+        } else {
+            $this->addFlash('success', '🚚 Matériel livré, déduit du stock et bon de sortie généré pour la guérite.');
+        }
+    } else {
+        $this->addFlash('warning', '⚠️ Article introuvable dans le stock.');
     }
 
+    return $this->redirectToRoute('app_dashboard');
+}
     #[Route('/dashboard/bon/valider/{id}', name: 'app_bon_valider', methods: ['POST'])]
     #[IsGranted('ROLE_COORDON')]
     public function validerBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
@@ -1437,14 +1568,11 @@ public function rechercheArticle(Request $request, EntityManagerInterface $em): 
 #[IsGranted('ROLE_COMPTA')]
 public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
 {
-
-            
     if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
         $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // Le chef comptable peut ajuster le montant
     $nouveauMontant = $request->request->get('nouveau_montant');
     if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
         if ($devis->getMontantInitial() === null) {
@@ -1453,14 +1581,15 @@ public function validerDevisChef(Request $request, Devis $devis, EntityManagerIn
         $devis->setMontant((float) $nouveauMontant);
     }
 
+    // ✅ Marquer que ce devis entre dans le circuit DG
+    $devis->setPassageDG(true);
+
     $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
     $em->flush();
 
     $this->addFlash('success', '📤 Devis #' . $devis->getId() . ' visé et transmis à la Direction Générale.');
     return $this->redirectToRoute('app_dashboard');
-}
-
-#[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
+}#[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
 #[IsGranted('ROLE_DG')]
 public function validerDevisDirecteur(
     Request $request,
@@ -1560,6 +1689,8 @@ public function decaisserDevisCompta(
     $this->addFlash('success', '💰 Décaissement effectué — devis #' . $devis->getId() . '.');
     return $this->redirectToRoute('app_dashboard');
 }
+
+
 // ═══════════════════════════════════════════════════════════════
 // DÉCAISSEMENT PAR LA CAISSE
 // → Cas 2 UNIQUEMENT (bon de caisse)

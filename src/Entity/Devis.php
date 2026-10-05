@@ -130,4 +130,18 @@ public const STATUT_REJETE                  = 'REJETE';
 
     public function getDateDecaissementPar(): ?\DateTimeInterface { return $this->dateDecaissementPar; }
     public function setDateDecaissementPar(?\DateTimeInterface $date): static { $this->dateDecaissementPar = $date; return $this; }
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+private bool $passageDG = false;
+
+public function isPassageDG(): bool
+{
+    return $this->passageDG;
+}
+
+public function setPassageDG(bool $passageDG): static
+{
+    $this->passageDG = $passageDG;
+    return $this;
+}
 }
