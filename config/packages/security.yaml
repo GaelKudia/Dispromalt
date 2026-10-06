@@ -1,34 +1,15 @@
 security:
 
     role_hierarchy:
-        ROLE_CAISSIER:
-            - ROLE_USER
-
-        ROLE_CHEF_COMPTA:
-            - ROLE_USER
-            - ROLE_COMPTA
-
-        ROLE_COORDON:
-            - ROLE_USER
-
-        ROLE_STOCK:
-            - ROLE_USER
-
-        ROLE_COMPTA:
-            - ROLE_USER
-
-        ROLE_GUERITE:
-            - ROLE_USER
-
-        ROLE_ACCUEIL:
-            - ROLE_USER
-
-        ROLE_RECEPTION:
-            - ROLE_USER
-
-        ROLE_DG:
-            - ROLE_USER
-
+        ROLE_CAISSIER:       ROLE_USER
+        ROLE_CHEF_COMPTA:    [ROLE_USER, ROLE_COMPTA]
+        ROLE_COORDON:        ROLE_USER
+        ROLE_STOCK:          ROLE_USER
+        ROLE_COMPTA:         ROLE_USER
+        ROLE_GUERITE:        ROLE_USER
+        ROLE_ACCUEIL:        ROLE_USER
+        ROLE_RECEPTION:      ROLE_USER
+        ROLE_DG:             ROLE_USER
         ROLE_ADMIN:
             - ROLE_DG
             - ROLE_COORDON
@@ -58,20 +39,28 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-
             custom_authenticator: App\Security\AppAuthenticator
-
             entry_point: App\Security\AppAuthenticator
 
             logout:
                 path: app_logout
                 target: app_login
+                invalidate_session: true
+                delete_cookies:
+                    PHPSESSID:
+                        path: /
+                        domain: null
+                    REMEMBERME:
+                        path: /
+                        domain: null
 
-            remember_me:
-                secret: '%kernel.secret%'
-                lifetime: 604800
-                path: /
-                always_remember_me: true
+            # ✅ remember_me totalement retiré pour éviter le bug
+            # Si tu veux le remettre plus tard, ajoute :
+            # remember_me:
+            #     secret: '%kernel.secret%'
+            #     lifetime: 604800
+            #     path: /
+            #     always_remember_me: false    # ← JAMAIS "true"
 
     access_control:
 
@@ -95,7 +84,6 @@ security:
           }
 
         - { path: ^/user, roles: PUBLIC_ACCESS }
-
         - { path: ^/admin, roles: PUBLIC_ACCESS }
 
 when@test:

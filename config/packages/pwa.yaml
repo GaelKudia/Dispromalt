@@ -39,7 +39,7 @@ pwa:
             src: 'images/icons/512.png'
 
     serviceworker:
-        enabled: true
+        enabled: false
         src: 'sw.js'
         skip_waiting: true
         workbox:

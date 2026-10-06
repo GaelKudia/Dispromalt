@@ -16,9 +16,6 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
-// 🚪 Ajoute cet import tout en haut s'il n'y est pas :
-use Symfony\Component\Security\Http\Logout\LogoutSuccessHandlerInterface;
-
 class AppAuthenticator extends AbstractLoginFormAuthenticator
 {
     use TargetPathTrait;
@@ -47,12 +44,19 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
-        // 1. Si l'utilisateur tentait d'accéder à une page précise avant d'être redirigé vers le login, on l'y renvoie
+        // ═══════════════════════════════════════════════════════════
+        // 🔥 LIGNE CRITIQUE — Régénère la session à chaque connexion
+        // ═══════════════════════════════════════════════════════════
+        if ($request->hasSession()) {
+            $request->getSession()->migrate(true);
+        }
+
+        // Redirection vers la page demandée avant le login
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }
 
-        // 2. Sinon, on le redirige automatiquement vers la route principale du Dashboard qui gère l'aiguillage des rôles
+        // Sinon, direction le Dashboard
         return new RedirectResponse($this->urlGenerator->generate('app_dashboard'));
     }
 
