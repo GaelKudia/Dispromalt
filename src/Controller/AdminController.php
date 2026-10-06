@@ -65,7 +65,23 @@ class AdminController extends AbstractController
         // ═══════════════════════════════════════════════════════
         // DONNÉES GÉNÉRALES
         // ═══════════════════════════════════════════════════════
-        $allDemandes = $demandeRepository->findBy([], ['id' => 'DESC']);
+        // ═══════════════════════════════════════════════════════
+// DEMANDES avec filtre de date
+// ═══════════════════════════════════════════════════════
+$dateDebutParam = $request->query->get('date_debut');
+$dateFinParam = $request->query->get('date_fin');
+
+$qbDemandes = $demandeRepository->createQueryBuilder('d');
+
+if ($dateDebutParam && $dateFinParam) {
+    $qbDemandes->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
+               ->setParameter('dateDebut', new \DateTime($dateDebutParam . ' 00:00:00'))
+               ->setParameter('dateFin', new \DateTime($dateFinParam . ' 23:59:59'));
+}
+
+$allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
+                          ->getQuery()
+                          ->getResult();
         $allBons = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
         $articles = $em->getRepository(Article::class)->findAll();
@@ -83,8 +99,16 @@ class AdminController extends AbstractController
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui = new \DateTime('today 23:59:59');
 
-        $dateDebutParam = $request->query->get('date_debut');
-        $dateFinParam = $request->query->get('date_fin');
+                        $dateDebutParam = $request->query->get('date_debut');
+            $dateFinParam = $request->query->get('date_fin');
+
+            // Valeurs par défaut si non fournies (affiche tout le mois en cours par exemple)
+            if (!$dateDebutParam) {
+                $dateDebutParam = (new \DateTime('first day of this month'))->format('Y-m-d');
+            }
+            if (!$dateFinParam) {
+                $dateFinParam = (new \DateTime('today'))->format('Y-m-d');
+            }
 
         $qbGlobal = $demandeRepository->createQueryBuilder('d');
 
@@ -442,5 +466,203 @@ class AdminController extends AbstractController
             $this->addFlash('success', 'Rôle Caissier retiré.');
         }
         return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+        // ═══════════════════════════════════════════════════════════
+    // CRUD : CATÉGORIES
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/category/{id}/edit', name: 'app_admin_category_edit', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function editCategory(Request $request, Category $category, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('edit_category_'.$category->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $nom = trim($request->getPayload()->getString('nom'));
+        if ($nom === '') {
+            $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $category->setNom($nom);
+        $em->flush();
+        $this->addFlash('success', '📝 Catégorie « '.$nom.' » mise à jour.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+    }
+
+    #[Route('/admin/category/{id}/delete', name: 'app_admin_category_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteCategory(Request $request, Category $category, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('delete_category_'.$category->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        // Vérifier les dépendances
+        if ($category->getSubCategories()->count() > 0) {
+            $this->addFlash('danger', '🛑 Impossible de supprimer « '.$category->getNom().' » : elle contient '.$category->getSubCategories()->count().' sous-catégorie(s).');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $nom = $category->getNom();
+        $em->remove($category);
+        $em->flush();
+        $this->addFlash('success', '🗑️ Catégorie « '.$nom.' » supprimée.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CRUD : SOUS-CATÉGORIES
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/sub-category/{id}/edit', name: 'app_admin_sub_category_edit', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function editSubCategory(Request $request, SubCategory $subCategory, EntityManagerInterface $em, CategoryRepository $categoryRepo): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('edit_sub_category_'.$subCategory->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $nom = trim($request->getPayload()->getString('nom'));
+        $categoryId = $request->getPayload()->getInt('category_id');
+
+        if ($nom === '') {
+            $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $subCategory->setNom($nom);
+        if ($categoryId) {
+            $category = $categoryRepo->find($categoryId);
+            if ($category) {
+                $subCategory->setCategory($category);
+            }
+        }
+
+        $em->flush();
+        $this->addFlash('success', '📝 Sous-catégorie mise à jour.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+    }
+
+    #[Route('/admin/sub-category/{id}/delete', name: 'app_admin_sub_category_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteSubCategory(Request $request, SubCategory $subCategory, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('delete_sub_category_'.$subCategory->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
+        $nom = $subCategory->getNom();
+        $em->remove($subCategory);
+        $em->flush();
+        $this->addFlash('success', '🗑️ Sous-catégorie « '.$nom.' » supprimée.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CRUD : MACHINES
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/machine/{id}/edit', name: 'app_admin_machine_edit', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function editMachine(Request $request, Machine $machine, EntityManagerInterface $em, SubCategoryRepository $subCatRepo): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('edit_machine_'.$machine->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+        }
+
+        $nom = trim($request->getPayload()->getString('nom'));
+        $subCatId = $request->getPayload()->getInt('sub_category_id');
+
+        if ($nom === '') {
+            $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+        }
+
+        $machine->setNom($nom);
+        if ($subCatId) {
+            $subCat = $subCatRepo->find($subCatId);
+            if ($subCat) {
+                $machine->setSubCategory($subCat);
+            }
+        }
+
+        $em->flush();
+        $this->addFlash('success', '📝 Machine mise à jour.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+    }
+
+    #[Route('/admin/machine/{id}/delete', name: 'app_admin_machine_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteMachine(Request $request, Machine $machine, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('delete_machine_'.$machine->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+        }
+
+        $nom = $machine->getNom();
+        $em->remove($machine);
+        $em->flush();
+        $this->addFlash('success', '🗑️ Machine « '.$nom.' » supprimée.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // CRUD : ARTICLES
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/article/{id}/edit', name: 'app_admin_article_edit', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function editArticle(Request $request, Article $article, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('edit_article_'.$article->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
+        }
+
+        $nom = trim($request->getPayload()->getString('nom'));
+        $quantite = $request->getPayload()->getInt('quantite');
+        $seuil = $request->getPayload()->getInt('seuil_alerte');
+
+        if ($nom === '') {
+            $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
+        }
+
+        $article->setNom($nom);
+        $article->setQuantite($quantite);
+        $article->setSeuilAlerte($seuil);
+
+        $em->flush();
+        $this->addFlash('success', '📝 Article « '.$nom.' » mis à jour.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
+    }
+
+    #[Route('/admin/article/{id}/delete', name: 'app_admin_article_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleteArticle(Request $request, Article $article, EntityManagerInterface $em): Response
+    {
+        $token = $request->getPayload()->getString('_token');
+        if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), $token)) {
+            $this->addFlash('danger', '❌ Token CSRF invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
+        }
+
+        $nom = $article->getNom();
+        $em->remove($article);
+        $em->flush();
+        $this->addFlash('success', '🗑️ Article « '.$nom.' » supprimé.');
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
     }
 }

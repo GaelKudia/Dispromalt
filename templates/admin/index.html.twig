@@ -381,12 +381,12 @@
                         <form method="get" class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold text-muted text-nowrap">Du :</span>
-                                <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}" style="width: 140px;">
-                            </div>
+        <input type="date" name="date_debut" class="form-control form-control-sm" 
+       value="{{ date_debut|default('') }}" style="width: 140px;">                              </div>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold text-muted text-nowrap">Au :</span>
-                                <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}" style="width: 140px;">
-                            </div>
+    <input type="date" name="date_fin" class="form-control form-control-sm" 
+       value="{{ date_fin|default('') }}" style="width: 140px;">                            </div>
                             <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" title="Filtrer">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -843,8 +843,29 @@
                                     <ul class="list-group list-group-flush">
                                         {% for category in categories %}
                                             <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom">
-                                                <span class="fw-bold text-dark"><i class="fas fa-folder text-primary me-2"></i>{{ category.nom }}</span>
-                                                <span class="badge badge-soft badge-soft-primary">{{ category.subCategories|default([])|length }} sous-cat.</span>
+                                                <span class="fw-bold text-dark">
+                                                    <i class="fas fa-folder text-primary me-2"></i>{{ category.nom }}
+                                                </span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="badge badge-soft badge-soft-primary">{{ category.subCategories|default([])|length }} sous-cat.</span>
+
+                                                    <button type="button" class="btn btn-light border btn-sm text-primary"
+                                                            data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                                                            data-id="{{ category.id }}"
+                                                            data-nom="{{ category.nom }}"
+                                                            data-token="{{ csrf_token('edit_category_' ~ category.id) }}"
+                                                            title="Modifier">
+                                                        <i class="fas fa-pen"></i>
+                                                    </button>
+
+                                                    <form action="{{ path('app_admin_category_delete', {id: category.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('⚠️ Supprimer la catégorie « {{ category.nom }} » ?');">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete_category_' ~ category.id) }}">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </li>
                                         {% else %}
                                             <li class="list-group-item text-center text-muted py-4 border-0">
@@ -874,6 +895,7 @@
                                             <tr>
                                                 <th>Sous-Catégorie</th>
                                                 <th>Catégorie Parent</th>
+                                                <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -885,10 +907,28 @@
                                                             <i class="fas fa-folder me-1"></i>{{ sub.category.nom }}
                                                         </span>
                                                     </td>
+                                                    <td class="text-end">
+                                                        <button type="button" class="btn btn-light border btn-sm text-primary"
+                                                                data-bs-toggle="modal" data-bs-target="#editSubCategoryModal"
+                                                                data-id="{{ sub.id }}"
+                                                                data-nom="{{ sub.nom }}"
+                                                                data-category-id="{{ sub.category.id }}"
+                                                                data-token="{{ csrf_token('edit_sub_category_' ~ sub.id) }}"
+                                                                title="Modifier">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <form action="{{ path('app_admin_sub_category_delete', {id: sub.id}) }}" method="POST" class="d-inline"
+                                                              onsubmit="return confirm('⚠️ Supprimer la sous-catégorie « {{ sub.nom }} » ?');">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_sub_category_' ~ sub.id) }}">
+                                                            <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
                                                 </tr>
                                             {% else %}
                                                 <tr>
-                                                    <td colspan="2">
+                                                    <td colspan="3">
                                                         <div class="empty-state">
                                                             <i class="fas fa-tags"></i>
                                                             <div class="fw-bold">Aucune sous-catégorie</div>
@@ -949,6 +989,7 @@
                                             <tr>
                                                 <th>Nom</th>
                                                 <th>Sous-catégorie</th>
+                                                <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -962,10 +1003,28 @@
                                                             <i class="fas fa-tag me-1"></i>{{ machine.subCategory.nom }}
                                                         </span>
                                                     </td>
+                                                    <td class="text-end">
+                                                        <button type="button" class="btn btn-light border btn-sm text-primary"
+                                                                data-bs-toggle="modal" data-bs-target="#editMachineModal"
+                                                                data-id="{{ machine.id }}"
+                                                                data-nom="{{ machine.nom }}"
+                                                                data-sub-category-id="{{ machine.subCategory.id }}"
+                                                                data-token="{{ csrf_token('edit_machine_' ~ machine.id) }}"
+                                                                title="Modifier">
+                                                            <i class="fas fa-pen"></i>
+                                                        </button>
+                                                        <form action="{{ path('app_admin_machine_delete', {id: machine.id}) }}" method="POST" class="d-inline"
+                                                              onsubmit="return confirm('⚠️ Supprimer la machine « {{ machine.nom }} » ?');">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_machine_' ~ machine.id) }}">
+                                                            <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
                                                 </tr>
                                             {% else %}
                                                 <tr>
-                                                    <td colspan="2">
+                                                    <td colspan="3">
                                                         <div class="empty-state">
                                                             <i class="fas fa-cogs"></i>
                                                             <div class="fw-bold">Aucune machine enregistrée</div>
@@ -1236,10 +1295,206 @@
                         </div>
                     </div>
 
+                    {# ═══════════════════════════════════════════════════════
+                       LISTE DES ARTICLES AVEC CRUD
+                    ═══════════════════════════════════════════════════════ #}
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-blue"><i class="fas fa-boxes"></i></div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-dark">Tous les articles</h5>
+                                <small class="text-muted">{{ articlesStock|default([])|length }} article(s) enregistré(s)</small>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th class="text-center">Seuil</th>
+                                        <th class="text-center">Statut</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for art in articlesStock|default([]) %}
+                                        <tr>
+                                            <td class="fw-bold text-dark">
+                                                <i class="fas fa-box text-secondary me-2"></i>{{ art.nom }}
+                                            </td>
+                                            <td class="text-center fw-bold">{{ art.quantite }}</td>
+                                            <td class="text-center">{{ art.seuilAlerte }}</td>
+                                            <td class="text-center">
+                                                {% if art.quantite <= art.seuilAlerte %}
+                                                    <span class="badge badge-soft badge-soft-danger">Bas</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-success">OK</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-light border btn-sm text-primary"
+                                                        data-bs-toggle="modal" data-bs-target="#editArticleModal"
+                                                        data-id="{{ art.id }}"
+                                                        data-nom="{{ art.nom }}"
+                                                        data-quantite="{{ art.quantite }}"
+                                                        data-seuil="{{ art.seuilAlerte }}"
+                                                        data-token="{{ csrf_token('edit_article_' ~ art.id) }}"
+                                                        title="Modifier">
+                                                    <i class="fas fa-pen"></i>
+                                                </button>
+                                                <form action="{{ path('app_admin_article_delete', {id: art.id}) }}" method="POST" class="d-inline"
+                                                      onsubmit="return confirm('⚠️ Supprimer l\'article « {{ art.nom }} » ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete_article_' ~ art.id) }}">
+                                                    <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">Aucun article enregistré.</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
         </div>
+    </div>
+</div>
+
+{# ═══════════════════════════════════════════════════════════════
+   MODALS DE MODIFICATION
+═══════════════════════════════════════════════════════════════ #}
+
+<!-- MODAL : Modifier une Catégorie -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editCategoryForm" class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title"><i class="fas fa-pen me-2"></i>Modifier la catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="_token" id="editCategoryToken">
+                <label class="form-label fw-bold">Nom de la catégorie</label>
+                <input type="text" name="nom" id="editCategoryNom" class="form-control" required>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <i class="fas fa-save me-1"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL : Modifier une Sous-Catégorie -->
+<div class="modal fade" id="editSubCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editSubCategoryForm" class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-success text-white border-0">
+                <h5 class="modal-title"><i class="fas fa-pen me-2"></i>Modifier la sous-catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="_token" id="editSubCategoryToken">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nom</label>
+                    <input type="text" name="nom" id="editSubCategoryNom" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Catégorie parente</label>
+                    <select name="category_id" id="editSubCategoryCategory" class="form-select" required>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-success rounded-pill px-4">
+                    <i class="fas fa-save me-1"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL : Modifier une Machine -->
+<div class="modal fade" id="editMachineModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editMachineForm" class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-warning text-dark border-0">
+                <h5 class="modal-title"><i class="fas fa-pen me-2"></i>Modifier la machine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="_token" id="editMachineToken">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nom de la machine</label>
+                    <input type="text" name="nom" id="editMachineNom" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sous-catégorie</label>
+                    <select name="sub_category_id" id="editMachineSubCategory" class="form-select" required>
+                        {% for sub in subCategories %}
+                            <option value="{{ sub.id }}">{{ sub.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-warning text-dark rounded-pill px-4">
+                    <i class="fas fa-save me-1"></i>Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL : Modifier un Article -->
+<div class="modal fade" id="editArticleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="editArticleForm" class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-info text-white border-0">
+                <h5 class="modal-title"><i class="fas fa-pen me-2"></i>Modifier l'article</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" name="_token" id="editArticleToken">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nom de l'article</label>
+                    <input type="text" name="nom" id="editArticleNom" class="form-control" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Quantité</label>
+                        <input type="number" name="quantite" id="editArticleQuantite" class="form-control" min="0" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Seuil d'alerte</label>
+                        <input type="number" name="seuil_alerte" id="editArticleSeuil" class="form-control" min="0" required>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-info text-white rounded-pill px-4">
+                    <i class="fas fa-save me-1"></i>Enregistrer
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -1255,6 +1510,50 @@
         document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+            });
+        });
+
+        // ═══════════════════════════════════════════════════════
+        // Peuplement des modals d'édition
+        // ═══════════════════════════════════════════════════════
+
+        // Catégorie
+        document.querySelectorAll('[data-bs-target="#editCategoryModal"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editCategoryForm').action = '/admin/category/' + btn.dataset.id + '/edit';
+                document.getElementById('editCategoryNom').value = btn.dataset.nom;
+                document.getElementById('editCategoryToken').value = btn.dataset.token;
+            });
+        });
+
+        // Sous-catégorie
+        document.querySelectorAll('[data-bs-target="#editSubCategoryModal"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editSubCategoryForm').action = '/admin/sub-category/' + btn.dataset.id + '/edit';
+                document.getElementById('editSubCategoryNom').value = btn.dataset.nom;
+                document.getElementById('editSubCategoryCategory').value = btn.dataset.categoryId;
+                document.getElementById('editSubCategoryToken').value = btn.dataset.token;
+            });
+        });
+
+        // Machine
+        document.querySelectorAll('[data-bs-target="#editMachineModal"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editMachineForm').action = '/admin/machine/' + btn.dataset.id + '/edit';
+                document.getElementById('editMachineNom').value = btn.dataset.nom;
+                document.getElementById('editMachineSubCategory').value = btn.dataset.subCategoryId;
+                document.getElementById('editMachineToken').value = btn.dataset.token;
+            });
+        });
+
+        // Article
+        document.querySelectorAll('[data-bs-target="#editArticleModal"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('editArticleForm').action = '/admin/article/' + btn.dataset.id + '/edit';
+                document.getElementById('editArticleNom').value = btn.dataset.nom;
+                document.getElementById('editArticleQuantite').value = btn.dataset.quantite;
+                document.getElementById('editArticleSeuil').value = btn.dataset.seuil;
+                document.getElementById('editArticleToken').value = btn.dataset.token;
             });
         });
 
