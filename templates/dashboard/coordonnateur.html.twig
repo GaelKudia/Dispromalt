@@ -368,18 +368,17 @@
                                         </td>
                                         <td class="fw-semibold text-dark">{{ devis.description }}</td>
                                         <td>
-                                            {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-hourglass-half me-1"></i>À arbitrer</span>
-                                            {% elseif devis.statut == 'ATTENTE_COMPTA' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-arrow-right me-1"></i>Chez le Comptable</span>
-                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-user-tie me-1"></i>Chez le Chef Compta</span>
-                                            {% elseif devis.statut == 'ATTENTE_DIR' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-gavel me-1"></i>Chez le DG</span>
-                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}<span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>Chez la Caisse</span>
-                                            {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-hand-holding-usd me-1"></i>À décaisser</span>
-                                            {% elseif devis.statut == 'DECAISSE' %}<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
-                                            {% elseif devis.statut == 'REJETE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
-                                            {% else %}<span class="badge badge-soft badge-soft-secondary">{{ devis.statut }}</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="text-end font-monospace fw-bold text-dark">{{ devis.montant|number_format(2, ',', ' ') }} <span class="small text-muted">{{ devis.devise }}</span></td>
+    {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-hourglass-half me-1"></i>À arbitrer</span>
+    {% elseif devis.statut == 'ATTENTE_COMPTA' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-arrow-right me-1"></i>Chez le Comptable</span>
+    {% elseif devis.statut == 'ATTENTE_CHEF_SERVICE' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-user-tie me-1"></i>Chez le Chef Compta</span>
+    {% elseif devis.statut == 'ATTENTE_DIR' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-gavel me-1"></i>Chez le DG</span>
+    {% elseif devis.statut == 'ATTENTE_CAISSE' %}<span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>Chez la Caisse</span>
+    {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-hand-holding-usd me-1"></i>À décaisser</span>
+    {% elseif devis.statut == 'DECAISSE' %}<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
+    {% elseif devis.statut == 'REJETE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+    {% else %}<span class="badge badge-soft badge-soft-secondary">{{ devis.statut }}</span>
+    {% endif %}
+</td><td class="text-end font-monospace fw-bold text-dark">{{ devis.montant|number_format(2, ',', ' ') }} <span class="small text-muted">{{ devis.devise }}</span></td>
                                         <td class="text-center">
                                             {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
                                                 <form action="{{ path('app_coordonnateur_valider_devis', {'id': devis.id}) }}" method="POST" class="d-flex gap-2 justify-content-center align-items-center flex-wrap">
