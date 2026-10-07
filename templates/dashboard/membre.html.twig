@@ -364,12 +364,13 @@
                     <i class="fas fa-boxes text-primary"></i>Demandes à valider
                 </button>
             </li>
+                        {% if is_granted('ROLE_STOCK') or is_granted('ROLE_COORDON') or is_granted('ROLE_GUERITE') or is_granted('ROLE_COMPTA') or is_granted('ROLE_DG') %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
                     <i class="fas fa-file-signature text-success"></i>Bons de Sortie
                 </button>
             </li>
-
+            {% endif %}
             <li class="nav-item" role="presentation">
     <button class="nav-link" id="tab-ma-demande" data-bs-toggle="tab" data-bs-target="#pane-ma-demande" type="button" role="tab">
         <i class="fas fa-plus-circle text-primary"></i>Ma Demande
@@ -382,11 +383,7 @@
                     <i class="fas fa-boxes text-primary"></i>Suivi des Demandes
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
-                    <i class="fas fa-file-signature text-success"></i>Bons de Sortie
-                </button>
-            </li>
+            
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-mes-devis" data-bs-toggle="tab" data-bs-target="#pane-mes-devis" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Mes Devis

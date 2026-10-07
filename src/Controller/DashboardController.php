@@ -690,11 +690,18 @@ if ($article) {
         }
 
         if ($this->isGranted('ROLE_GUERITE')) {
-            $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
-            $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
-        } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
-            $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
-        }
+    $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
+    $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
+} elseif (
+    $this->isGranted('ROLE_STOCK') ||
+    $this->isGranted('ROLE_COORDON')
+) {
+    // Seuls le Stock et le Coordonnateur ont besoin de voir les bons
+    $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+} else {
+    // ✅ Rôles standards → AUCUN bon de sortie
+    $bonsSortie = [];
+}
 
         // ============================================================
         // RENDU SELON LE RÔLE
