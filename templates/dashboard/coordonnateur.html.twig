@@ -155,7 +155,7 @@
             <div class="hero-badge"><i class="fas fa-tasks"></i>Supervision intermédiaire</div>
             <h1 class="fw-bold mb-1" style="font-size: 1.75rem; letter-spacing: -0.5px;">Espace de Coordination</h1>
             <p class="mb-0" style="color: rgba(255,255,255,0.75); font-size: 0.92rem;">
-                Validez les demandes, arbitrez les devis de tous les services et supervisez la logistique.
+                Validez les bons de sortie, arbitrez les devis de tous les services et supervisez la logistique.
             </p>
         </div>
     </div>
@@ -198,10 +198,10 @@
             <div class="stat-card stat-success">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis traités</h6>
-                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|filter(d => d.statut != 'VALIDÉ_CHEF_SERVICE')|length }}</h3>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons à valider</h6>
+                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ bonsSortie|filter(b => b.statut == 'Créé')|length }}</h3>
                     </div>
-                    <div class="stat-icon stat-icon-success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-icon stat-icon-success"><i class="fas fa-file-signature"></i></div>
                 </div>
             </div>
         </div>
@@ -283,9 +283,17 @@
 
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="validation-tab" data-bs-toggle="tab" data-bs-target="#validation-pane" type="button" role="tab">
-                    <i class="fas fa-tasks text-primary"></i>Validation des Demandes
+                    <i class="fas fa-eye text-primary"></i>Suivi des Demandes
                     {% set nb_dem_attente = demandes|filter(d => d.statut == 'Validé Chef')|length %}
                     {% if nb_dem_attente > 0 %}<span class="badge bg-warning text-dark ms-1">{{ nb_dem_attente }}</span>{% endif %}
+                </button>
+            </li>
+
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bons-tab" data-bs-toggle="tab" data-bs-target="#bons-pane" type="button" role="tab">
+                    <i class="fas fa-file-signature text-success"></i>Bons de Sortie
+                    {% set nb_bons = bonsSortie|filter(b => b.statut == 'Créé')|length %}
+                    {% if nb_bons > 0 %}<span class="badge bg-success ms-1">{{ nb_bons }}</span>{% endif %}
                 </button>
             </li>
 
@@ -312,7 +320,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-gavel text-danger me-2"></i>Dossiers budgétaires à arbitrer</h5>
-                            <small class="text-muted">Devis validés par les chefs de service. Vous pouvez ajuster le montant avant transmission à la DG.</small>
+                            <small class="text-muted">Devis validés par les chefs de service. Vous pouvez ajuster le montant avant transmission au Comptable.</small>
                         </div>
                         <div class="d-flex gap-2 flex-wrap">
                             <span class="badge badge-soft badge-soft-warning px-3 py-2"><i class="fas fa-dollar-sign me-1"></i>USD : {{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }}</span>
@@ -361,11 +369,13 @@
                                         <td class="fw-semibold text-dark">{{ devis.description }}</td>
                                         <td>
                                             {% if devis.statut == 'VALIDÉ_CHEF_SERVICE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-hourglass-half me-1"></i>À arbitrer</span>
-                                            {% elseif devis.statut == 'ATTENTE_DIRECTEUR' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-arrow-right me-1"></i>Chez le DG</span>
-                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}<span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>Chez la caisse</span>
+                                            {% elseif devis.statut == 'ATTENTE_COMPTA' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-arrow-right me-1"></i>Chez le Comptable</span>
+                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-user-tie me-1"></i>Chez le Chef Compta</span>
+                                            {% elseif devis.statut == 'ATTENTE_DIR' %}<span class="badge badge-soft badge-soft-primary"><i class="fas fa-gavel me-1"></i>Chez le DG</span>
+                                            {% elseif devis.statut == 'ATTENTE_CAISSE' %}<span class="badge badge-soft badge-soft-info"><i class="fas fa-cash-register me-1"></i>Chez la Caisse</span>
+                                            {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-hand-holding-usd me-1"></i>À décaisser</span>
                                             {% elseif devis.statut == 'DECAISSE' %}<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
                                             {% elseif devis.statut == 'REJETE' %}<span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
-                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTA' %}<span class="badge badge-soft badge-soft-warning"><i class="fas fa-user-tie me-1"></i>Chez le chef</span>
                                             {% else %}<span class="badge badge-soft badge-soft-secondary">{{ devis.statut }}</span>
                                             {% endif %}
                                         </td>
@@ -406,13 +416,13 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET 2 : VALIDATION DES DEMANDES
+                   ONGLET 2 : SUIVI DES DEMANDES (lecture seule)
                 ============================================================ #}
                 <div class="tab-pane fade" id="validation-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-tasks text-primary me-2"></i>Demandes de matériel à valider</h5>
-                            <small class="text-muted">Demandes validées par les chefs de service.</small>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-eye text-primary me-2"></i>Suivi des demandes validées</h5>
+                            <small class="text-muted">Demandes validées par les chefs de service et transmises à la comptabilité. Consultation uniquement.</small>
                         </div>
                     </div>
 
@@ -437,8 +447,13 @@
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th><th>Demandeur</th><th>Matériel</th>
-                                    <th class="text-center">Quantité</th><th>Département</th><th>Date</th><th class="text-end">Actions</th>
+                                    <th>ID</th>
+                                    <th>Demandeur</th>
+                                    <th>Matériel</th>
+                                    <th class="text-center">Quantité</th>
+                                    <th>Département</th>
+                                    <th>Date</th>
+                                    <th class="text-center">Statut actuel</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -448,22 +463,15 @@
                                         {% set hasPending = true %}
                                         <tr class="row-pending">
                                             <td class="fw-bold text-secondary">#{{ demande.id }}</td>
-                                            <td><span class="badge badge-soft badge-soft-secondary">{{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}</span></td>
+                                            <td><span class="badge badge-soft badge-soft-secondary">{{ demande.demandeur ? demande.demandeur.userIdentifier : 'Inconnu' }}</span></td>
                                             <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
                                             <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
                                             <td><span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span></td>
                                             <td class="text-muted small">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
-                                            <td class="text-end">
-                                                <div class="d-flex justify-content-end gap-1">
-                                                    <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline">
-                                                        <input type="hidden" name="action" value="valider">
-                                                        <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3"><i class="fas fa-check me-1"></i> Valider</button>
-                                                    </form>
-                                                    <form action="{{ path('app_coordonnateur_valider_demande', {'id': demande.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Voulez-vous vraiment rejeter cette demande ?');">
-                                                        <input type="hidden" name="action" value="rejeter">
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Rejeter"><i class="fas fa-ban"></i></button>
-                                                    </form>
-                                                </div>
+                                            <td class="text-center">
+                                                <span class="badge badge-soft badge-soft-primary">
+                                                    <i class="fas fa-hourglass-half me-1"></i>En attente de la comptabilité
+                                                </span>
                                             </td>
                                         </tr>
                                     {% endif %}
@@ -483,35 +491,119 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
 
-                    {# Historique #}
+                {# ============================================================
+                   ONGLET 3 : BONS DE SORTIE — ACTIONS DU COORDONNATEUR
+                ============================================================ #}
+                <div class="tab-pane fade" id="bons-pane" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-signature text-success me-2"></i>Bons de sortie à valider</h5>
+                            <small class="text-muted">Bons créés par les membres et le stock. Vous pouvez <strong>accorder</strong> ou <strong>rejeter</strong>.</small>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-modern table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Employé</th>
+                                    <th>Département</th>
+                                    <th>Motif</th>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th class="text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set hasBons = false %}
+                                {% for bon in bonsSortie %}
+                                    {% if bon.statut == 'Créé' %}
+                                        {% set hasBons = true %}
+                                        <tr class="row-pending">
+                                            <td class="fw-bold text-secondary">#{{ bon.id }}</td>
+                                            <td>
+                                                <span class="badge badge-soft badge-soft-secondary">
+                                                    <i class="fas fa-user me-1"></i>{{ bon.nomEmploye }}
+                                                </span>
+                                            </td>
+                                            <td><span class="badge badge-soft badge-soft-info">{{ bon.departement }}</span></td>
+                                            <td class="fw-semibold text-dark">
+                                                {{ bon.raison|default(bon.motif|default('—')) }}
+                                            </td>
+                                            <td class="text-muted small">{{ bon.dateCreation ? bon.dateCreation|date('d/m/Y H:i') : '—' }}</td>
+                                            <td>
+                                                <span class="badge badge-soft badge-soft-danger">
+                                                    <i class="fas fa-hourglass-half me-1"></i>En attente
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    {# ✅ ACCORDER #}
+                                                    <form action="{{ path('app_bon_valider', {'id': bon.id}) }}" method="post" class="d-inline"
+                                                          onsubmit="return confirm('Accorder ce bon de sortie ?');">
+                                                        <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
+                                                            <i class="fas fa-check me-1"></i>Accorder
+                                                        </button>
+                                                    </form>
+
+                                                    {# ❌ REJETER #}
+                                                    <form action="{{ path('app_bon_rejeter', {'id': bon.id}) }}" method="post" class="d-inline"
+                                                          onsubmit="return confirm('Rejeter ce bon de sortie ?');">
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                                            <i class="fas fa-ban me-1"></i>Rejeter
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if not hasBons %}
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-check-circle" style="color:#10b981;"></i>
+                                                <div class="fw-bold">Aucun bon de sortie en attente</div>
+                                                <small>Tous les bons ont été traités.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {# Historique des bons traités #}
                     <div class="mt-5">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Historique des demandes traitées</h6>
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-history me-2"></i>Historique des bons traités</h6>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover">
                                 <thead>
                                     <tr>
-                                        <th>ID</th><th>Demandeur</th><th>Matériel</th>
-                                        <th class="text-center">Qté</th><th>Département</th><th>Date</th><th>Statut final</th>
+                                        <th>ID</th><th>Employé</th><th>Département</th><th>Date</th><th>Statut final</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% set hasHistory = false %}
-                                    {% for demande in demandes %}
-                                        {% if demande.statut == 'Validé Coordon' or demande.statut == 'Rejeté Coordon' %}
+                                    {% for bon in bonsSortie %}
+                                        {% if bon.statut == 'Validé Coordon' or bon.statut == 'Rejeté Coordon' or bon.statut == 'Sortie effective' %}
                                             {% set hasHistory = true %}
                                             <tr>
-                                                <td class="fw-bold text-secondary">#{{ demande.id }}</td>
-                                                <td><span class="badge badge-soft badge-soft-secondary">{{ demande.user ? demande.user.userIdentifier : 'Inconnu' }}</span></td>
-                                                <td class="fw-semibold text-dark">{{ demande.materiel }}</td>
-                                                <td class="text-center fw-bold text-primary font-monospace">{{ demande.quantite ?? 1 }}</td>
-                                                <td><span class="badge badge-soft badge-soft-secondary">{{ demande.departement }}</span></td>
-                                                <td class="text-muted small">{{ demande.createdAt ? demande.createdAt|date('d/m/Y H:i') : '' }}</td>
+                                                <td class="fw-bold text-secondary">#{{ bon.id }}</td>
+                                                <td>{{ bon.nomEmploye }}</td>
+                                                <td><span class="badge badge-soft badge-soft-secondary">{{ bon.departement }}</span></td>
+                                                <td class="text-muted small">{{ bon.dateCreation ? bon.dateCreation|date('d/m/Y H:i') : '—' }}</td>
                                                 <td>
-                                                    {% if demande.statut == 'Validé Coordon' %}
-                                                        <span class="badge badge-soft badge-soft-success"><i class="fas fa-check me-1"></i>Validé</span>
-                                                    {% else %}
-                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-times me-1"></i>Rejeté</span>
+                                                    {% if bon.statut == 'Validé Coordon' %}
+                                                        <span class="badge badge-soft badge-soft-success"><i class="fas fa-check me-1"></i>Accordé</span>
+                                                    {% elseif bon.statut == 'Rejeté Coordon' %}
+                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                                    {% elseif bon.statut == 'Sortie effective' %}
+                                                        <span class="badge badge-soft badge-soft-primary"><i class="fas fa-truck me-1"></i>Sortie effective</span>
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -519,8 +611,8 @@
                                     {% endfor %}
                                     {% if not hasHistory %}
                                         <tr>
-                                            <td colspan="7">
-                                                <div class="empty-state"><i class="fas fa-inbox"></i><div class="fw-bold">Aucune demande traitée</div></div>
+                                            <td colspan="5">
+                                                <div class="empty-state"><i class="fas fa-inbox"></i><div class="fw-bold">Aucun bon traité</div></div>
                                             </td>
                                         </tr>
                                     {% endif %}
@@ -531,7 +623,7 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET 3 : HISTORIQUE & TRAÇABILITÉ
+                   ONGLET 4 : HISTORIQUE & TRAÇABILITÉ
                 ============================================================ #}
                 <div class="tab-pane fade" id="report-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -608,7 +700,7 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET 4 : VISITE
+                   ONGLET 5 : VISITE
                 ============================================================ #}
                 <div class="tab-pane fade" id="visite-pane" role="tabpanel">
                     {% if formVisite is defined and formVisite is not null %}

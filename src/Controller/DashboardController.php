@@ -823,48 +823,73 @@ $mouvement = new MouvementCaisse();
     $soldeCDF   = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
     $mouvements = $mouvementRepo->findAllOrdered();
 
+    // ═══════════════════════════════════════════════════════════════
+// ✅ 1) DEVIS ACTIFS — SANS filtre date (ils doivent TOUJOURS être visibles)
+// ═══════════════════════════════════════════════════════════════
+$statutsActifs = [
+    Devis::STATUT_ATTENTE_COMPTA,
+    Devis::STATUT_ATTENTE_CHEF_COMPTABLE,
+    Devis::STATUT_ATTENTE_DIR,
+    Devis::STATUT_ATTENTE_DECAISSEMENT,
+    Devis::STATUT_ATTENTE_CAISSE,
+];
 
-    $devisListe = $em->getRepository(Devis::class)->createQueryBuilder('d')
+$devisActifs = $em->getRepository(Devis::class)->createQueryBuilder('d')
     ->leftJoin('d.user', 'u')
     ->addSelect('u')
-    ->where('d.createdAt BETWEEN :start AND :end')            // ✅ ajout
+    ->where('d.statut IN (:actifs)')
+    ->setParameter('actifs', $statutsActifs)
+    ->orderBy('d.id', 'DESC')
+    ->getQuery()
+    ->getResult();
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ 2) HISTORIQUE — AVEC filtre date (décaissés + rejetés)
+// ═══════════════════════════════════════════════════════════════
+$devisHistorique = $em->getRepository(Devis::class)->createQueryBuilder('d')
+    ->leftJoin('d.user', 'u')
+    ->addSelect('u')
+    ->where('d.statut IN (:histo)')
+    ->andWhere('d.createdAt BETWEEN :start AND :end')
+    ->setParameter('histo', [Devis::STATUT_DECAISSE, Devis::STATUT_REJETE])
     ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
     ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
     ->orderBy('d.id', 'DESC')
     ->getQuery()
     ->getResult();
 
-    // 🎯 Construire les compteurs à partir de la liste
-    $devisA_Aiguiller      = [];
-$devisPretsADecaisser  = [];   // 🆕 cas 1 & 3 : le COMPTABLE décaisse
-$devisEnAttenteCaisse  = [];   // 🆕 cas 2 : suivi visuel mais action = caisse
+// Fusion pour affichage global
+$devisListe = array_merge($devisActifs, $devisHistorique);
+
+// ═══════════════════════════════════════════════════════════════
+// ✅ 3) Compteurs construits sur $devisActifs (pas $devisListe)
+// ═══════════════════════════════════════════════════════════════
+$devisA_Aiguiller      = [];
+$devisPretsADecaisser  = [];
+$devisEnAttenteCaisse  = [];
 $mesDecaissements      = [];
 
-foreach ($devisListe as $d) {
+foreach ($devisActifs as $d) {
     $statut = $d->getStatut();
 
-    // 🔹 Devis à aiguiller (entrée dans le circuit)
     if ($statut === Devis::STATUT_ATTENTE_COMPTA) {
         $devisA_Aiguiller[] = $d;
     }
-
-    // 🔹 Retour du DG → le COMPTABLE décaisse lui-même (cas 1)
     if ($statut === Devis::STATUT_ATTENTE_DECAISSEMENT) {
         $devisPretsADecaisser[] = $d;
     }
-
-    // 🔹 En attente de la Caisse (cas 2) — suivi passif, pas d'action côté Compta
     if ($statut === Devis::STATUT_ATTENTE_CAISSE) {
         $devisEnAttenteCaisse[] = $d;
     }
+}
 
-    // 🔹 Décaissements effectués PAR le comptable (cas 1 & 3)
-    if ($statut === Devis::STATUT_DECAISSE && $d->getDecaissePar() === $currentUser) {
+foreach ($devisHistorique as $d) {
+    if ($d->getStatut() === Devis::STATUT_DECAISSE && $d->getDecaissePar() === $currentUser) {
         $mesDecaissements[] = $d;
     }
 }
 
-// 💰 Totaux : uniquement MES décaissements (cas 1 & 3)
+// Totaux
 $totalDevisUSD = 0;
 $totalDevisCDF = 0;
 foreach ($mesDecaissements as $d) {
@@ -874,6 +899,7 @@ foreach ($mesDecaissements as $d) {
         $totalDevisUSD += (float) $d->getMontant();
     }
 }
+
     return $this->render('dashboard/compta.html.twig', [
     'demandes' => $demandeRepository->createQueryBuilder('d')
     ->where('d.statut IN (:statuts)')
@@ -906,11 +932,7 @@ foreach ($mesDecaissements as $d) {
     'mouvements' => $mouvements,
     'soldeUSD' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
     'soldeCDF' => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF), 
-    'formEntree' => $formEntree->createView(),
-    'mouvements' => $mouvements,
-
-    'soldeUSD' => $soldeUSD,
-    'soldeCDF' => $soldeCDF,
+    
         
 ]);
 }
@@ -1272,7 +1294,24 @@ public function aiguillerDevis(Request $request, Devis $devis, EntityManagerInte
     $this->addFlash('success', '✅ Décaissement direct effectué — devis #' . $devis->getId() . '.');
     break;
 
+     case 'rejeter_devis':
+            $devis->setStatut(Devis::STATUT_REJETE);
+            $em->flush();
+
+            $this->addFlash('warning', sprintf(
+                '❌ Devis #%d rejeté par la comptabilité (montant : %s %s).',
+                $devis->getId(),
+                number_format((float) $devis->getMontant(), 2, ',', ' '),
+                $devis->getDevise()
+            ));
+            return $this->redirectToRoute('app_dashboard');
+
+        default:
+            $this->addFlash('danger', '❌ Choix invalide.');
+            return $this->redirectToRoute('app_dashboard');
     }
+
+    
 
     $em->flush();
     return $this->redirectToRoute('app_dashboard');
@@ -1428,6 +1467,47 @@ public function traiterDemandeChefService(Request $request, Demande $demande, En
 
     return $this->redirectToRoute('app_dashboard');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// VALIDATION / REJET D'UNE DEMANDE PAR LE COORDONNATEUR
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/coordonnateur/traiter-demande/{id}', name: 'app_coordonnateur_valider_demande', methods: ['POST'])]
+#[IsGranted('ROLE_COORDON')]
+public function traiterDemandeCoordon(
+    Request $request,
+    Demande $demande,
+    EntityManagerInterface $em
+): Response {
+    // 🔒 Vérifier que la demande est bien au bon stade
+    if ($demande->getStatut() !== 'Validé Chef') {
+        $this->addFlash('danger', sprintf(
+            '❌ Cette demande ne peut pas être traitée à cette étape (statut actuel : %s).',
+            $demande->getStatut()
+        ));
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $action = $request->request->get('action');
+
+    if ($action === 'valider') {
+        // 🎯 On peut soit :
+        //    - passer au comptable (recommandé si circuit complet)
+        //    - passer directement à la caisse / dépôt
+        // Ici : on transmet à la comptabilité (cohérent avec le template)
+        $demande->setStatut('Validé Coordon');
+        $this->addFlash('success', '✅ Demande validée et transmise à la comptabilité.');
+    } elseif ($action === 'rejeter') {
+        $demande->setStatut('Rejeté Coordon');
+        $this->addFlash('warning', '❌ La demande a été rejetée par le Coordonnateur.');
+    } else {
+        $this->addFlash('danger', '❌ Action non reconnue.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $em->flush();
+
+    return $this->redirectToRoute('app_dashboard');
+}
     
     // ============================================================
 // VALIDATION DEVIS PAR LE COORDONNATEUR
@@ -1440,7 +1520,7 @@ public function traiterDemandeChefService(Request $request, Demande $demande, En
 #[IsGranted('ROLE_COORDON')]
 public function validerDevisCoordon(Request $request, Devis $devis, EntityManagerInterface $em): Response
 {
-    if ($devis->getStatut() !== 'VALIDÉ_CHEF_SERVICE') {
+    if ($devis->getStatut() !== Devis::STATUT_VALIDE_CHEF) {
         $this->addFlash('danger', '❌ Ce devis ne peut pas être validé à cette étape.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1465,7 +1545,7 @@ public function validerDevisCoordon(Request $request, Devis $devis, EntityManage
 #[IsGranted('ROLE_COORDON')]
 public function rejeterDevisCoordon(Devis $devis, EntityManagerInterface $em): Response
 {
-    if ($devis->getStatut() !== 'VALIDÉ_CHEF_SERVICE') {
+    if ($devis->getStatut() !== Devis::STATUT_VALIDE_CHEF) {
         $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1761,6 +1841,22 @@ private function verifierSoldeOuRefuser(
     }
     return null;
 }
+
+#[Route('/dashboard/bon/rejeter/{id}', name: 'app_bon_rejeter', methods: ['POST'])]
+#[IsGranted('ROLE_COORDON')]
+public function rejeterBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
+{
+    if ($bonSortie->getStatut() !== 'Créé') {
+        $this->addFlash('danger', '❌ Ce bon ne peut pas être rejeté à cette étape (statut actuel : ' . $bonSortie->getStatut() . ').');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $bonSortie->setStatut('Rejeté Coordon');
+    $em->flush();
+
+    $this->addFlash('warning', '❌ Le bon de sortie #' . $bonSortie->getId() . ' a été rejeté par le Coordonnateur.');
+    return $this->redirectToRoute('app_dashboard');
+}
    
 
 // ═══════════════════════════════════════════════════════════════
@@ -1815,7 +1911,7 @@ public function chefServiceValiderDevis(Request $request, Devis $devis, EntityMa
     }
 
     // 3. Vérifier le statut
-    if (!in_array($devis->getStatut(), ['ATTENTE_TRAITEMENT', 'ATTENTE_CHEF_COMPTA'])) {
+    if (!in_array($devis->getStatut(), [Devis::STATUT_ATTENTE_CHEF])) {
         $this->addFlash('danger', '❌ Ce devis ne peut plus être validé (statut : ' . $devis->getStatut() . ').');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1830,7 +1926,7 @@ public function chefServiceValiderDevis(Request $request, Devis $devis, EntityMa
     }
 
     // 5. Passer au statut validé par le chef
-    $devis->setStatut('VALIDÉ_CHEF_SERVICE');
+    $devis->setStatut(Devis::STATUT_VALIDE_CHEF);
     $em->flush();
 
     $this->addFlash('success', '✅ Devis validé et transmis au Coordonnateur.');
