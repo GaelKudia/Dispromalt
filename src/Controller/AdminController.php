@@ -129,31 +129,39 @@ $allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
         // ═══════════════════════════════════════════════════════
         // FORMULAIRE : Créer un utilisateur
         // ═══════════════════════════════════════════════════════
-        $newUser = new User();
-        $form = $this->createForm(UserType::class, $newUser);
-        $form->handleRequest($request);
+            // ═══════════════════════════════════════════════════════
+// FORMULAIRE : Créer un utilisateur
+// ═══════════════════════════════════════════════════════
+$newUser = new User();
+$form = $this->createForm(UserType::class, $newUser);
+$form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('password')->getData();
+if ($form->isSubmitted() && $form->isValid()) {
+    // 🔑 Récupérer le mot de passe SAISI par l'admin
+    $plainPassword = $form->get('password')->getData();
 
-            if (!empty($plainPassword)) {
-                $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
-                $newUser->setPassword($hashedPassword);
-            } else {
-                $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
-                $newUser->setPassword($hashedPassword);
-            }
+    if (!empty($plainPassword)) {
+        $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
+        $newUser->setPassword($hashedPassword);
+    } else {
+        // Sécurité : mot de passe par défaut si vide (ne devrait pas arriver car champ requis)
+        $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
+        $newUser->setPassword($hashedPassword);
+    }
 
-            if (method_exists($newUser, 'setActif')) {
-                $newUser->setActif(true);
-            }
-            $em->persist($newUser);
-            $em->flush();
+    // Activer le compte
+    if (method_exists($newUser, 'setActif')) {
+        $newUser->setActif(true);
+    } elseif (method_exists($newUser, 'setIsActif')) {
+        $newUser->setIsActif(true);
+    }
 
-            $this->addFlash('success', 'Nouvel identifiant créé avec succès !');
-            return $this->redirectToRoute('app_admin_dashboard');
-        }
+    $em->persist($newUser);
+    $em->flush();
 
+    $this->addFlash('success', '✅ Compte créé pour ' . $newUser->getEmail() . ' — mot de passe : ' . $plainPassword);
+    return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-agents']);
+}
         // ═══════════════════════════════════════════════════════
         // FORMULAIRE : Catégorie
         // ═══════════════════════════════════════════════════════
@@ -308,6 +316,19 @@ $allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
             'nbAlertesStock'       => $nbAlertesStock,
         ]);
     }
+
+        
+
+private function genererMotDePasseFort(int $longueur = 12): string
+{
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+    $pwd = '';
+    $max = strlen($chars) - 1;
+    for ($i = 0; $i < $longueur; $i++) {
+        $pwd .= $chars[random_int(0, $max)];
+    }
+    return $pwd;
+}
 
     // ═══════════════════════════════════════════════════════════
     // NOMINATIONS

@@ -36,14 +36,17 @@ class UserType extends AbstractType
                 'label' => 'Attribuer un rôle / Service',
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('password', PasswordType::class, [
-                'required' => !$options['is_edit'], // 👈 Le mot de passe n'est requis qu'à la création
-                'mapped' => false, // Recommandé si tu gères le hashage manuellement dans le contrôleur
-                'attr' => [
-                    'class' => 'form-control', 
-                    'placeholder' => $options['is_edit'] ? 'Laisser vide pour ne pas modifier' : 'Mot de passe temporaire'
-                ]
-            ])
+            // Dans UserType.php, dans la méthode buildForm()
+  ->add('password', PasswordType::class, [
+    'label' => 'Mot de passe provisoire',
+    'required' => true,
+    'mapped' => true,
+    'attr' => [
+        'class' => 'form-control',
+        'placeholder' => 'Saisissez le mot de passe à communiquer',
+        'autocomplete' => 'new-password',
+    ],
+])
             ->add('service', EntityType::class, [
                 'class' => Service::class,
                 'choice_label' => 'nom',

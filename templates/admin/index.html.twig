@@ -202,6 +202,19 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.10);
         }
 
+        /* Style des erreurs de formulaire */
+        .form-error-message,
+        ul.form-error-message li {
+            color: #dc2626;
+            font-size: 0.78rem;
+            font-weight: 500;
+            list-style: none;
+            padding-left: 0;
+            margin-top: 4px;
+            margin-bottom: 0;
+        }
+        .form-error-icon { display: none; }
+
         .empty-state {
             text-align: center;
             padding: 3rem 1rem;
@@ -381,12 +394,14 @@
                         <form method="get" class="d-flex align-items-center gap-2">
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold text-muted text-nowrap">Du :</span>
-        <input type="date" name="date_debut" class="form-control form-control-sm" 
-       value="{{ date_debut|default('') }}" style="width: 140px;">                              </div>
+                                <input type="date" name="date_debut" class="form-control form-control-sm"
+                                       value="{{ date_debut|default('') }}" style="width: 140px;">
+                            </div>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold text-muted text-nowrap">Au :</span>
-    <input type="date" name="date_fin" class="form-control form-control-sm" 
-       value="{{ date_fin|default('') }}" style="width: 140px;">                            </div>
+                                <input type="date" name="date_fin" class="form-control form-control-sm"
+                                       value="{{ date_fin|default('') }}" style="width: 140px;">
+                            </div>
                             <button type="submit" class="btn btn-primary btn-sm px-3 rounded-3" title="Filtrer">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -535,25 +550,64 @@
                                 </div>
 
                                 {{ form_start(form) }}
+
+                                    {# Affichage des erreurs globales #}
+                                    {% if form.vars.errors|length > 0 %}
+                                        <div class="alert alert-danger rounded-3 mb-3" style="font-size:0.85rem;">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Formulaire invalide :</strong>
+                                            <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                                {% for error in form.vars.errors %}
+                                                    <li>{{ error.message }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold text-secondary">Adresse Email de connexion</label>
+                                        <label class="form-label small fw-bold text-secondary">
+                                            Adresse Email de connexion <span class="text-danger">*</span>
+                                        </label>
                                         {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'agent.nom@imprimerie.com'}}) }}
+                                        {{ form_errors(form.email) }}
                                     </div>
+
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold text-secondary">Département d'affectation / Rôle</label>
+                                        <label class="form-label small fw-bold text-secondary">
+                                            Département d'affectation / Rôle <span class="text-danger">*</span>
+                                        </label>
                                         {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_errors(form.roles) }}
                                         <small class="text-muted" style="font-size: 11px;">Utilisez l'onglet Nominations pour promouvoir un agent.</small>
                                     </div>
+
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold text-secondary">Localisation géographique</label>
                                         {{ form_widget(form.localisation, {'attr': {'class': 'form-select'}}) }}
+                                        {{ form_errors(form.localisation) }}
                                     </div>
+
+                                    {# 🔑 Mot de passe SAISI par l'admin #}
                                     <div class="mb-3">
-                                        <label class="form-label small fw-bold text-secondary">Mot de passe provisoire</label>
-                                        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Mot de passe'}}) }}
+                                        <label class="form-label small fw-bold text-secondary">
+                                            Mot de passe provisoire <span class="text-danger">*</span>
+                                        </label>
+                                        {{ form_widget(form.password, {
+                                            'attr': {
+                                                'class': 'form-control',
+                                                'placeholder': 'Saisissez le mot de passe à communiquer',
+                                                'autocomplete': 'new-password'
+                                            }
+                                        }) }}
+                                        {{ form_errors(form.password) }}
+                                        <small class="text-muted d-block mt-1" style="font-size: 11px;">
+                                            <i class="fas fa-info-circle text-primary me-1"></i>
+                                            Ce mot de passe sera haché en base. Notez-le puis transmettez-le à l'agent.
+                                        </small>
                                     </div>
+
                                     <button type="submit" class="btn btn-modern w-100 text-white" style="background: var(--gradient-purple);">
-                                        <i class="fas fa-user-check me-2"></i>Générer et Activer l'Accès
+                                        <i class="fas fa-user-check me-2"></i>Créer le Compte
                                     </button>
                                 {{ form_end(form) }}
                             </div>
@@ -1295,9 +1349,7 @@
                         </div>
                     </div>
 
-                    {# ═══════════════════════════════════════════════════════
-                       LISTE DES ARTICLES AVEC CRUD
-                    ═══════════════════════════════════════════════════════ #}
+                    {# LISTE DES ARTICLES AVEC CRUD #}
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-boxes"></i></div>
@@ -1513,9 +1565,7 @@
             });
         });
 
-        // ═══════════════════════════════════════════════════════
         // Peuplement des modals d'édition
-        // ═══════════════════════════════════════════════════════
 
         // Catégorie
         document.querySelectorAll('[data-bs-target="#editCategoryModal"]').forEach(btn => {
@@ -1557,9 +1607,7 @@
             });
         });
 
-        // ═══════════════════════════════════════════════════════
         // Graphiques Stock (Admin)
-        // ═══════════════════════════════════════════════════════
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
 
