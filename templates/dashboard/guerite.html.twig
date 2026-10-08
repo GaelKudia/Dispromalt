@@ -7,166 +7,527 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
+        :root {
+            --ink-900: #0f172a;
+            --ink-700: #334155;
+            --ink-500: #64748b;
+            --ink-400: #94a3b8;
+            --ink-300: #cbd5e1;
+            --ink-200: #e2e8f0;
+            --ink-100: #f1f5f9;
+            --ink-50:  #f8fafc;
+
+            --accent:      #4f46e5;
+            --accent-dark: #4338ca;
+            --accent-soft: rgba(79, 70, 229, 0.08);
+
+            --ok:       #059669;
+            --ok-soft:  rgba(5, 150, 105, 0.08);
+            --warn:     #d97706;
+            --warn-soft:rgba(217, 119, 6, 0.10);
+            --danger:   #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.08);
+
+            --line: #e5eaf2;
+        }
+
         body {
             background-color: #f4f6f9;
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            color: var(--ink-700);
+            font-size: 0.92rem;
         }
 
+        /* ═══════════════════════════════════════════════════════
+           FILTRES
+        ═══════════════════════════════════════════════════════ */
         .filter-section {
             background: #ffffff;
             border-radius: 12px;
             padding: 1.25rem 1.5rem;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             margin-bottom: 1.5rem;
-            border: 1px solid #e9ecef;
+            border: 1px solid var(--line);
         }
         .filter-section .form-label {
             font-weight: 600;
-            font-size: 0.8rem;
-            color: #495057;
+            font-size: 0.78rem;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.35rem;
+        }
+        .filter-section .form-control-sm,
+        .filter-section .form-select-sm {
+            border-radius: 8px;
+            border: 1px solid var(--ink-200);
+            font-size: 0.85rem;
+            padding: 0.45rem 0.75rem;
+        }
+        .filter-section .form-control-sm:focus,
+        .filter-section .form-select-sm:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
         }
 
+        /* ═══════════════════════════════════════════════════════
+           STATISTIQUES — barre latérale fine, pas d'icône criarde
+        ═══════════════════════════════════════════════════════ */
         .stat-card {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-radius: 16px;
-            border: none;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+            position: relative;
+            overflow: hidden;
         }
         .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--ink-300);
+        }
+        .stat-card.border-warning::before { background: var(--warn); }
+        .stat-card.border-info::before    { background: var(--accent); }
+        .stat-card.border-success::before { background: var(--ok); }
+        .stat-card.border-danger::before  { background: var(--danger); }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.35rem;
+        }
+        .stat-card .stat-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--ink-900);
+            line-height: 1;
+            letter-spacing: -0.5px;
+            font-variant-numeric: tabular-nums;
         }
         .stat-card .stat-icon {
-            width: 48px;
-            height: 48px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.04);
+            border-radius: 9px;
+            background: var(--ink-100);
+            color: var(--ink-500);
+            font-size: 0.95rem;
+        }
+        .stat-card.border-warning .stat-icon { background: var(--warn-soft); color: var(--warn); }
+        .stat-card.border-info    .stat-icon { background: var(--accent-soft); color: var(--accent); }
+        .stat-card.border-success .stat-icon { background: var(--ok-soft); color: var(--ok); }
+        .stat-card.border-danger  .stat-icon { background: var(--danger-soft); color: var(--danger); }
+
+        /* Retirer les bordures bootstrap trop épaisses */
+        .stat-card.border-start.border-4 { border-left-width: 1px !important; border-left-color: var(--line) !important; }
+
+        /* ═══════════════════════════════════════════════════════
+           BOUTONS — 2 styles uniques, sobres
+        ═══════════════════════════════════════════════════════ */
+        .btn-app {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .btn-app:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+        .btn-app-primary {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .btn-app-primary:hover {
+            background: var(--accent-dark);
+            border-color: var(--accent-dark);
+            color: #fff;
+        }
+        .btn-app-ghost {
+            background: #fff;
+            color: var(--ink-700);
+            border-color: var(--ink-200);
+        }
+        .btn-app-ghost:hover {
+            background: var(--ink-50);
+            color: var(--ink-900);
+            border-color: var(--ink-300);
+        }
+        .btn-app-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.76rem;
+            border-radius: 6px;
         }
 
-        .badge-statut {
-            font-size: 0.7rem;
+        /* Bouton danger sobre (pour clôturer) */
+        .btn-app-danger-ghost {
+            background: #fff;
+            color: var(--danger);
+            border-color: rgba(220, 38, 38, 0.25);
+        }
+        .btn-app-danger-ghost:hover {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: rgba(220, 38, 38, 0.4);
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           CARDS / SECTIONS
+        ═══════════════════════════════════════════════════════ */
+        .section-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .section-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--ink-100);
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .section-head-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 0;
+        }
+        .section-head .section-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            background: var(--ink-100);
+            color: var(--ink-600);
+        }
+        .section-head .section-icon.icon-info   { background: var(--accent-soft); color: var(--accent); }
+        .section-head .section-icon.icon-warn   { background: var(--warn-soft); color: var(--warn); }
+        .section-head .section-icon.icon-ok     { background: var(--ok-soft); color: var(--ok); }
+        .section-head .section-icon.icon-danger { background: var(--danger-soft); color: var(--danger); }
+
+        .section-head .section-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin: 0;
+            letter-spacing: -0.2px;
+        }
+        .section-head .section-sub {
+            font-size: 0.78rem;
+            color: var(--ink-500);
+            margin: 0.15rem 0 0;
+        }
+
+        .section-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--ink-100);
+            color: var(--ink-700);
             padding: 0.35rem 0.75rem;
             border-radius: 50px;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-            transition: all 0.2s;
-        }
-
-        .fade-in-row {
-            opacity: 0;
-            animation: fadeInUp 0.4s ease forwards;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .card-hover {
-            transition: box-shadow 0.25s ease, transform 0.2s ease;
-        }
-        .card-hover:hover {
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
-            transform: translateY(-2px);
-        }
-
-        .btn-action {
-            border-radius: 50px;
-            padding: 0.35rem 1rem;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-        .btn-action:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
-        }
-
-        .flash-message {
-            transition: opacity 0.5s ease;
-        }
-
-        /* Badge type de sortie */
-        .badge-origine {
-            font-size: 0.65rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
+            font-size: 0.74rem;
             font-weight: 700;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
+            white-space: nowrap;
         }
-        .badge-origine-stock { background: rgba(14, 165, 233, 0.15); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.3); }
-        .badge-origine-agent { background: rgba(168, 85, 247, 0.15); color: #9333ea; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .section-count.count-info { background: var(--accent-soft); color: var(--accent-dark); }
+        .section-count.count-ok   { background: var(--ok-soft); color: var(--ok); }
+        .section-count.count-warn { background: var(--warn-soft); color: var(--warn); }
+        .section-count .pulse {
+            width: 6px;
+            height: 6px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: pulseDot 1.8s ease-in-out infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
 
-        /* Ligne sortie stock — légère teinte bleutée */
-        .row-stock { background: rgba(14, 165, 233, 0.03); }
-        .row-stock:hover { background: rgba(14, 165, 233, 0.07) !important; }
+        /* ═══════════════════════════════════════════════════════
+           TABLES — colonnes alignées
+        ═══════════════════════════════════════════════════════ */
+        .table-app {
+            width: 100%;
+            margin: 0;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .table-app thead th {
+            background: var(--ink-50);
+            color: var(--ink-500);
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--ink-200);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .table-app thead th.text-center { text-align: center; }
+        .table-app tbody td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--ink-100);
+            color: var(--ink-700);
+            vertical-align: middle;
+        }
+        .table-app tbody tr:last-child td { border-bottom: none; }
+        .table-app tbody tr:hover { background: var(--accent-soft); }
+
+        .table-app .cell-strong { font-weight: 600; color: var(--ink-900); }
+        .table-app .cell-muted { color: var(--ink-400); font-size: 0.78rem; }
+        .table-app .cell-detail { display: flex; flex-direction: column; gap: 2px; }
+        .table-app .cell-detail .name { font-weight: 600; color: var(--ink-900); }
+        .table-app .cell-detail .sub  { font-size: 0.74rem; color: var(--ink-400); }
+
+        /* Cellule d'action : toujours centrée, gap uniforme */
+        .table-app .cell-action {
+            text-align: center;
+            white-space: nowrap;
+        }
+        .table-app .cell-action > * { vertical-align: middle; }
+
+        /* ═══════════════════════════════════════════════════════
+           TAGS — un seul style sobre
+        ═══════════════════════════════════════════════════════ */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1;
+            background: var(--ink-100);
+            color: var(--ink-600);
+            white-space: nowrap;
+        }
+        .tag i { font-size: 0.68rem; }
+        .tag .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .tag-info    { background: var(--accent-soft); color: var(--accent-dark); }
+        .tag-ok      { background: var(--ok-soft); color: var(--ok); }
+        .tag-warn    { background: var(--warn-soft); color: var(--warn); }
+        .tag-danger  { background: var(--danger-soft); color: var(--danger); }
+        .tag-neutral { background: var(--ink-100); color: var(--ink-500); }
+
+        /* ═══════════════════════════════════════════════════════
+           SECTION PRIORITAIRE
+        ═══════════════════════════════════════════════════════ */
+        .section-card.priority {
+            border: 1px solid var(--ok);
+            border-left: 4px solid var(--ok);
+        }
+        .section-card.priority .section-head {
+            background: var(--ok-soft);
+            border-bottom-color: rgba(5, 150, 105, 0.15);
+        }
+        .section-card.priority .section-head .section-icon {
+            background: var(--ok);
+            color: #fff;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           EMPTY STATE
+        ═══════════════════════════════════════════════════════ */
+        .empty-pro {
+            text-align: center;
+            padding: 2.75rem 1rem;
+            color: var(--ink-400);
+        }
+        .empty-pro i {
+            font-size: 2.2rem;
+            color: var(--ink-200);
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+        .empty-pro .title { font-weight: 600; color: var(--ink-500); font-size: 0.9rem; }
+        .empty-pro .sub   { font-size: 0.8rem; color: var(--ink-400); margin-top: 4px; }
+
+        /* ═══════════════════════════════════════════════════════
+           FLASH
+        ═══════════════════════════════════════════════════════ */
+        .flash-pro {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 0.87rem;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+        .flash-pro.flash-ok {
+            background: var(--ok-soft);
+            border-color: rgba(5, 150, 105, 0.20);
+            color: #065f46;
+        }
+        .flash-pro.flash-danger {
+            background: var(--danger-soft);
+            border-color: rgba(220, 38, 38, 0.20);
+            color: #991b1b;
+        }
+        .flash-pro.flash-warning {
+            background: var(--warn-soft);
+            border-color: rgba(217, 119, 6, 0.20);
+            color: #92400e;
+        }
+        .flash-pro .btn-close { margin-left: auto; font-size: 0.7rem; }
+
+        /* ═══════════════════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .section-head { padding: 0.9rem 1rem; }
+            .table-app thead th,
+            .table-app tbody td { padding: 0.7rem 0.85rem; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- ============================================
-    NAVBAR
-    ============================================ -->
+    {# ═══ NAVBAR ═══ #}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm py-3">
         <div class="container-fluid px-4">
-            <a class="navbar-brand fw-bold fs-4" href="#">
+            <a class="navbar-brand fw-bold fs-5" href="#">
                 <i class="fas fa-shield-alt text-warning me-2"></i>Dispro<span class="text-primary">malt</span>
-                <span class="fw-light fs-5 text-muted">| Sécurité Guérite</span>
+                <span class="fw-light fs-6 text-muted ms-1">| Sécurité Guérite</span>
             </a>
-            <div class="d-flex align-items-center">
-                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1.5 rounded-pill me-3 small border border-secondary">
-                    <i class="fas fa-user-shield text-warning me-2"></i><strong>Agent de Sécurité</strong>
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-secondary bg-opacity-20 text-white px-3 py-1 rounded-pill small border border-secondary d-none d-md-inline-flex align-items-center">
+                    <span style="width:7px;height:7px;background:#10b981;border-radius:50%;margin-right:8px;"></span>
+                    <strong>Agent de sécurité</strong>
                 </div>
-                <a href="/logout" class="btn btn-primary btn-sm fw-bold px-3">
-                    <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
+                <a href="/logout" class="btn-app btn-app-ghost" style="background:transparent;border-color:rgba(255,255,255,.15);color:#cbd5e1;">
+                    <i class="fas fa-power-off"></i> Déconnexion
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- ============================================
-    MAIN CONTAINER
-    ============================================ -->
+    {# ═══ MAIN ═══ #}
     <div class="container py-4">
 
-        <!-- En-tête -->
-        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-2">
+        {# HEADER #}
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom flex-wrap gap-3">
             <div>
-                <h1 class="fw-bold text-dark m-0">Contrôle de Sécurité Entrées / Sorties</h1>
-                <p class="text-muted m-0">Gestion en temps réel des flux de matériel et des visiteurs de l'usine.</p>
+                <h1 class="fw-bold text-dark m-0" style="font-size:1.45rem;letter-spacing:-0.4px;">Contrôle de sécurité entrées / sorties</h1>
+                <p class="text-muted m-0 mt-1" style="font-size:0.87rem;">Gestion en temps réel des flux de matériel et des visiteurs.</p>
             </div>
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalVisiteur">
-                <i class="fas fa-user-plus me-2"></i>Enregistrer un Visiteur
+            <button class="btn-app btn-app-primary" data-bs-toggle="modal" data-bs-target="#modalVisiteur">
+                <i class="fas fa-user-plus"></i> Enregistrer un visiteur
             </button>
         </div>
 
-        <!-- Flash Messages -->
+        {# FLASH #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-4 flash-message" role="alert">
-                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i>
-                    {{ message }}
+                <div class="flash-pro flash-{{ label == 'danger' ? 'danger' : (label == 'warning' ? 'warning' : 'ok') }} alert-dismissible">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : (label == 'warning' ? 'fa-info-circle' : 'fa-check-circle') }}"></i>
+                    <span>{{ message }}</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
             {% endfor %}
         {% endfor %}
 
-        <!-- ============================================
-        SECTION FILTRAGE
-        ============================================ -->
+        {# ═══ STATISTIQUES ═══ #}
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card border-warning p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Bons de sortie</div>
+                            <div class="stat-value">{{ bonsSortie|length }}</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card border-info p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Visiteurs en attente</div>
+                            <div class="stat-value">{{ visites|length }}</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card border-success p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Rendez-vous réservés</div>
+                            <div class="stat-value">{{ rdvReserves|default([])|length }}</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card border-danger p-3 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="stat-label">Visites terminées</div>
+                            <div class="stat-value">{{ visitesTerminees|default(0) }}</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-check-double"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ═══ FILTRES ═══ #}
         <div class="filter-section">
             <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
                 <div class="col-md-3 col-sm-6">
-                    <label class="form-label"><i class="far fa-calendar me-1"></i>Date début</label>
+                    <label class="form-label">Date début</label>
                     <input type="date" name="filtre_date_debut" class="form-control form-control-sm" value="{{ filtre_date_debut }}">
                 </div>
                 <div class="col-md-3 col-sm-6">
-                    <label class="form-label"><i class="far fa-calendar me-1"></i>Date fin</label>
+                    <label class="form-label">Date fin</label>
                     <input type="date" name="filtre_date_fin" class="form-control form-control-sm" value="{{ filtre_date_fin }}">
                 </div>
                 <div class="col-md-3 col-sm-6">
-                    <label class="form-label"><i class="fas fa-filter me-1"></i>Type</label>
+                    <label class="form-label">Type</label>
                     <select name="filtre_type" class="form-select form-select-sm">
                         <option value="tous" {% if filtre_type == 'tous' %}selected{% endif %}>Tous</option>
                         <option value="visites" {% if filtre_type == 'visites' %}selected{% endif %}>Visites</option>
@@ -175,356 +536,430 @@
                     </select>
                 </div>
                 <div class="col-md-3 col-sm-6">
-                    <label class="form-label"><i class="fas fa-tag me-1"></i>Statut</label>
+                    <label class="form-label">Statut</label>
                     <select name="filtre_statut" class="form-select form-select-sm">
                         <option value="tous" {% if filtre_statut == 'tous' %}selected{% endif %}>Tous</option>
-                        <option value="A_L_ACCUEIL" {% if filtre_statut == 'A_L_ACCUEIL' %}selected{% endif %}>En attente accueil</option>
-                        <option value="RESERVE" {% if filtre_statut == 'RESERVE' %}selected{% endif %}>Réservé</option>
-                        <option value="VALIDE" {% if filtre_statut == 'VALIDE' %}selected{% endif %}>Validé</option>
-                        <option value="TERMINE" {% if filtre_statut == 'TERMINE' %}selected{% endif %}>Terminé</option>
-                        <option value="Créé" {% if filtre_statut == 'Créé' %}selected{% endif %}>Bon créé</option>
-                        <option value="Validé Coordon" {% if filtre_statut == 'Validé Coordon' %}selected{% endif %}>Bon validé</option>
-                        <option value="Sortie effective" {% if filtre_statut == 'Sortie effective' %}selected{% endif %}>Sortie effective</option>
+                        <optgroup label="Visites">
+                            <option value="A_L_ACCUEIL" {% if filtre_statut == 'A_L_ACCUEIL' %}selected{% endif %}>En attente accueil</option>
+                            <option value="RESERVE" {% if filtre_statut == 'RESERVE' %}selected{% endif %}>Réservé</option>
+                            <option value="VALIDE" {% if filtre_statut == 'VALIDE' %}selected{% endif %}>Validé</option>
+                            <option value="TERMINE" {% if filtre_statut == 'TERMINE' %}selected{% endif %}>Terminé</option>
+                        </optgroup>
+                        <optgroup label="Bons">
+                            <option value="Créé" {% if filtre_statut == 'Créé' %}selected{% endif %}>Créé</option>
+                            <option value="Validé Coordon" {% if filtre_statut == 'Validé Coordon' %}selected{% endif %}>Validé coordon</option>
+                            <option value="Validé Chef Service" {% if filtre_statut == 'Validé Chef Service' %}selected{% endif %}>Validé chef service</option>
+                            <option value="Sortie effective" {% if filtre_statut == 'Sortie effective' %}selected{% endif %}>Sortie effective</option>
+                            <option value="Rejeté Chef Service" {% if filtre_statut == 'Rejeté Chef Service' %}selected{% endif %}>Rejeté chef service</option>
+                        </optgroup>
                     </select>
                 </div>
-                <div class="col-md-12 text-end">
-                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">
-                        <i class="fas fa-search me-1"></i> Filtrer
+                <div class="col-md-12 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn-app btn-app-primary btn-app-sm">
+                        <i class="fas fa-search"></i> Filtrer
                     </button>
-                    <a href="{{ path('app_dashboard') }}" class="btn btn-secondary btn-sm rounded-pill px-4">
-                        <i class="fas fa-undo me-1"></i> Réinitialiser
+                    <a href="{{ path('app_dashboard') }}" class="btn-app btn-app-ghost btn-app-sm">
+                        <i class="fas fa-rotate"></i> Réinitialiser
                     </a>
                 </div>
             </form>
         </div>
 
-        <!-- ============================================
-        STATISTIQUES
-        ============================================ -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-3 col-sm-6">
-                <div class="card stat-card bg-white p-3 shadow-sm border-start border-warning border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Bons de sortie</h6>
-                            <h3 class="fw-bold m-0 text-warning">{{ bonsSortie|length }}</h3>
-                        </div>
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
-                            <i class="fas fa-file-invoice fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stat-card bg-white p-3 shadow-sm border-start border-info border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Visiteurs en attente</h6>
-                            <h3 class="fw-bold m-0 text-info">{{ visites|length }}</h3>
-                        </div>
-                        <div class="stat-icon bg-info bg-opacity-10 text-info">
-                            <i class="fas fa-user-check fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stat-card bg-white p-3 shadow-sm border-start border-success border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Rendez-vous réservés</h6>
-                            <h3 class="fw-bold m-0 text-success">{{ rdvReserves|default([])|length }}</h3>
-                        </div>
-                        <div class="stat-icon bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-calendar-check fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="card stat-card bg-white p-3 shadow-sm border-start border-danger border-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase small fw-bold">Visites terminées</h6>
-                            <h3 class="fw-bold m-0 text-danger">{{ visitesTerminees|default(0) }}</h3>
-                        </div>
-                        <div class="stat-icon bg-danger bg-opacity-10 text-danger">
-                            <i class="fas fa-check-double fa-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        {# ═══ 🎯 BONS PRÊTS POUR SORTIE ═══ #}
+        {% set bonsPrets = [] %}
+        {% for b in bonsSortie %}
+            {% if b.statut == 'Validé Chef Service' or b.statut == 'Validé Coordon' or b.statut == 'Validé Caisse' or b.statut == 'Validé Secrétariat' %}
+                {% set bonsPrets = bonsPrets|merge([b]) %}
+            {% endif %}
+        {% endfor %}
 
-        <!-- ============================================
-        LISTE DES VISITES EN ATTENTE
-        ============================================ -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 card-hover">
-            <div class="card-header bg-info bg-opacity-10 py-3 border-bottom border-info border-opacity-25">
-                <h4 class="card-title m-0 fw-bold text-dark">
-                    <i class="fas fa-users-viewfinder me-2 text-info"></i>Visiteurs en Attente d'Accueil
-                </h4>
+        {% if bonsPrets|length > 0 %}
+        <div class="section-card priority">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <div class="section-icon icon-ok">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">Bons prêts pour la sortie physique</h3>
+                        <p class="section-sub">Bons validés — en attente de confirmation par la guérite</p>
+                    </div>
+                </div>
+                <span class="section-count count-ok">
+                    <span class="pulse"></span>
+                    {{ bonsPrets|length }} à traiter
+                </span>
             </div>
-            <div class="card-body p-3">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+
+            <div class="table-responsive">
+                <table class="table-app">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Code</th>
+                            <th>Employé / Détail</th>
+                            <th style="width: 150px;">Département</th>
+                            <th style="width: 200px;">Validation</th>
+                            <th style="width: 170px;">Date création</th>
+                            <th style="width: 190px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bonsPrets %}
                             <tr>
-                                <th>ID</th>
-                                <th>Nom du Visiteur</th>
-                                <th>Département</th>
-                                <th>Motif</th>
-                                <th>Date arrivée</th>
-                                <th>Statut</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for v in visites %}
-                                <tr class="fade-in-row" style="animation-delay: {{ loop.index * 0.05 }}s;">
-                                    <td class="fw-bold text-secondary">#{{ v.id }}</td>
-                                    <td class="fw-semibold text-dark">{{ v.nomVisiteur }}</td>
-                                    <td><span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">{{ v.departement }}</span></td>
-                                    <td class="text-muted fw-light">{{ v.motif }}</td>
-                                    <td class="text-muted">{{ v.dateArrivee ? v.dateArrivee|date('d/m/Y H:i') : '-' }}</td>
-                                    <td>
-                                        <span class="badge-statut {% if v.statut == 'A_L_ACCUEIL' %}bg-warning text-dark{% elseif v.statut == 'RESERVE' %}bg-info{% elseif v.statut == 'VALIDE' %}bg-success{% else %}bg-secondary{% endif %}">
-                                            {{ v.statut }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        {% if v.statut == 'A_L_ACCUEIL' %}
-                                            <form action="{{ path('app_visite_valider_guerite', {'id': v.id}) }}" method="POST" class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-success btn-action px-3">
-                                                    <i class="fas fa-check me-1"></i> Valider
-                                                </button>
-                                            </form>
+                                <td class="cell-strong">#{{ b.id }}</td>
+                                <td>
+                                    <div class="cell-detail">
+                                        <span class="name">{{ b.nomEmploye }}</span>
+                                        {% if b.raison is defined and b.raison %}
+                                            <span class="sub">{{ b.raison }}</span>
                                         {% endif %}
-                                        {% if v.statut == 'VALIDE' or v.statut == 'RESERVE' %}
-                                            <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST" class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-danger btn-action px-3">
-                                                    <i class="fas fa-door-open me-1"></i> Clôturer
-                                                </button>
-                                            </form>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="fas fa-user-clock fa-2x mb-2 d-block"></i>
-                                        Aucun visiteur en attente.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </td>
+                                <td><span class="tag tag-neutral">{{ b.departement }}</span></td>
+                                <td>
+                                    <span class="tag tag-ok">
+                                        <i class="fas fa-check-circle"></i>{{ b.statut }}
+                                    </span>
+                                </td>
+                                <td class="cell-muted">{{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '—' }}</td>
+                                <td class="cell-action">
+                                    <form action="{{ path('app_guerite_sortie_bon', {'id': b.id}) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn-app btn-app-primary btn-app-sm"
+                                                onclick="return confirm('Confirmer la sortie physique du matériel pour le bon #{{ b.id }} ?')">
+                                            <i class="fas fa-door-open"></i> Confirmer la sortie
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+        {% endif %}
 
-        <!-- ============================================
-        RENDEZ-VOUS RÉSERVÉS
-        ============================================ -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5 card-hover">
-            <div class="card-header bg-primary bg-opacity-10 py-3 border-bottom border-primary border-opacity-25">
-                <h4 class="card-title m-0 fw-bold text-dark">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>Rendez-vous Réservés
-                </h4>
-            </div>
-            <div class="card-body p-3">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light small text-uppercase fw-bold text-secondary">
-                            <tr>
-                                <th>ID</th>
-                                <th>Visiteur</th>
-                                <th>Département</th>
-                                <th>Motif</th>
-                                <th>Date réservation</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for rdv in rdvReserves|default([]) %}
-                                <tr class="fade-in-row" style="animation-delay: {{ loop.index * 0.05 }}s;">
-                                    <td class="fw-bold text-secondary">#{{ rdv.id }}</td>
-                                    <td class="fw-semibold text-dark">{{ rdv.nomVisiteur }}</td>
-                                    <td><span class="badge bg-info bg-opacity-10 text-info border px-2 py-1">{{ rdv.departement }}</span></td>
-                                    <td class="text-muted fw-light">{{ rdv.motif }}</td>
-                                    <td class="text-muted">{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '-' }}</td>
-                                    <td>
-                                        <span class="badge-statut bg-primary text-white">{{ rdv.statut }}</span>
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
-                                        <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
-                                        Aucun rendez-vous réservé.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        {# ═══ VISITEURS EN ATTENTE ═══ #}
+        <div class="section-card">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <div class="section-icon icon-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">Visiteurs en attente d'accueil</h3>
+                        <p class="section-sub">Enregistrés par la guérite — en cours de traitement</p>
+                    </div>
                 </div>
+                <span class="section-count count-info">{{ visites|length }}</span>
             </div>
-        </div>
 
-        <!-- ============================================
-        REGISTRE DES BONS DE SORTIE (AGENTS + STOCK)
-        ============================================ -->
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden card-hover">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h4 class="card-title m-0 fw-bold text-dark">
-                    <i class="fas fa-list-check me-2 text-muted"></i>Registre des Bons de Sortie
-                </h4>
-                <div class="d-flex gap-2">
-                    <span class="badge-origine badge-origine-agent">
-                        <i class="fas fa-user me-1"></i>Bon Agent
-                    </span>
-                    <span class="badge-origine badge-origine-stock">
-                        <i class="fas fa-boxes me-1"></i>Sortie Stock
-                    </span>
-                </div>
-            </div>
-            <div class="card-body p-3">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle m-0">
-                        <thead class="table-light small text-uppercase fw-bold text-secondary">
+            <div class="table-responsive">
+                <table class="table-app">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Nom du visiteur</th>
+                            <th style="width: 150px;">Département</th>
+                            <th>Motif</th>
+                            <th style="width: 170px;">Arrivée</th>
+                            <th style="width: 160px;">Statut</th>
+                            <th style="width: 170px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for v in visites %}
                             <tr>
-                                <th>Code</th>
-                                <th>Origine</th>
-                                <th>Nom / Détail</th>
-                                <th>Département</th>
-                                <th>Date création</th>
-                                <th>Statut</th>
-                                <th class="text-center">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for b in bonsSortie %}
-                                {# Détection sortie stock via le champ raison ou description #}
-                                {% set isStock = false %}
-                                {% set detail = '' %}
-                                {% if b.raison is defined and b.raison %}
-                                    {% if 'Sortie stock' in b.raison %}
-                                        {% set isStock = true %}
-                                        {% set detail = b.raison %}
+                                <td class="cell-strong">#{{ v.id }}</td>
+                                <td class="cell-strong">{{ v.nomVisiteur }}</td>
+                                <td><span class="tag tag-neutral">{{ v.departement }}</span></td>
+                                <td class="cell-muted">{{ v.motif }}</td>
+                                <td class="cell-muted">{{ v.dateArrivee ? v.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
+                                <td>
+                                    {% if v.statut == 'A_L_ACCUEIL' %}
+                                        <span class="tag tag-warn"><i class="fas fa-clock"></i> En attente</span>
+                                    {% elseif v.statut == 'RESERVE' %}
+                                        <span class="tag tag-info"><i class="fas fa-calendar"></i> Réservé</span>
+                                    {% elseif v.statut == 'VALIDE' %}
+                                        <span class="tag tag-ok"><i class="fas fa-check"></i> Validé</span>
+                                    {% else %}
+                                        <span class="tag tag-neutral">{{ v.statut }}</span>
                                     {% endif %}
-                                {% endif %}
+                                </td>
+                                <td class="cell-action">
+                                    {% if v.statut == 'A_L_ACCUEIL' %}
+                                        <form action="{{ path('app_visite_valider_guerite', {'id': v.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn-app btn-app-primary btn-app-sm">
+                                                <i class="fas fa-check"></i> Valider
+                                            </button>
+                                        </form>
+                                    {% elseif v.statut == 'VALIDE' or v.statut == 'RESERVE' %}
+                                        <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn-app btn-app-danger-ghost btn-app-sm">
+                                                <i class="fas fa-door-open"></i> Clôturer
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <span class="cell-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-pro">
+                                        <i class="fas fa-user-clock"></i>
+                                        <div class="title">Aucun visiteur en attente</div>
+                                        <div class="sub">Les visiteurs enregistrés apparaîtront ici.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                                <tr class="fade-in-row {{ isStock ? 'row-stock' : '' }}" style="animation-delay: {{ loop.index * 0.05 }}s;">
-                                    <td class="fw-bold text-secondary">#{{ b.id }}</td>
-                                    <td>
-                                        {% if isStock %}
-                                            <span class="badge-origine badge-origine-stock">
-                                                <i class="fas fa-boxes me-1"></i>Stock
-                                            </span>
-                                        {% else %}
-                                            <span class="badge-origine badge-origine-agent">
-                                                <i class="fas fa-user me-1"></i>Agent
-                                            </span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark">{{ b.nomEmploye }}</div>
-                                        {% if isStock and detail %}
-                                            <div class="text-muted small" style="font-size: 0.75rem;">
-                                                <i class="fas fa-info-circle me-1"></i>{{ detail }}
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
-                                            {{ b.departement }}
-                                        </span>
-                                    </td>
-                                    <td class="text-muted">{{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '-' }}</td>
-                                    <td>
-                                        <span class="badge-statut {% if b.statut == 'Créé' %}bg-warning text-dark{% elseif b.statut == 'Validé Coordon' %}bg-success text-white{% elseif b.statut == 'Sortie effective' %}bg-info text-white{% else %}bg-secondary text-white{% endif %}">
-                                            {{ b.statut }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        {% if b.statut == 'Validé Coordon' %}
-                                            <form action="{{ path('app_guerite_sortie_bon', {'id': b.id}) }}" method="POST" class="d-inline">
-                                                <button type="submit" class="btn btn-sm btn-primary btn-action px-3" onclick="return confirm('Confirmer la sortie physique du matériel pour ce bon ?')">
-                                                    <i class="fas fa-door-open me-1"></i> Sortie effective
-                                                </button>
-                                            </form>
-                                        {% elseif b.statut == 'Sortie effective' %}
-                                            <span class="badge bg-success px-3 py-2">
-                                                <i class="fas fa-check-circle me-1"></i> Sortie confirmée
-                                            </span>
-                                        {% else %}
-                                            <span class="text-muted small">En attente de validation</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
-                                        Aucun bon de sortie enregistré.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        {# ═══ RENDEZ-VOUS RÉSERVÉS ═══ #}
+        <div class="section-card">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <div class="section-icon icon-info">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">Rendez-vous réservés</h3>
+                        <p class="section-sub">Réservations planifiées en attente d'accueil</p>
+                    </div>
                 </div>
+                <span class="section-count count-info">{{ rdvReserves|default([])|length }}</span>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-app">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">ID</th>
+                            <th>Visiteur</th>
+                            <th style="width: 150px;">Département</th>
+                            <th>Motif</th>
+                            <th style="width: 170px;">Date réservation</th>
+                            <th style="width: 130px;">Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rdv in rdvReserves|default([]) %}
+                            <tr>
+                                <td class="cell-strong">#{{ rdv.id }}</td>
+                                <td class="cell-strong">{{ rdv.nomVisiteur }}</td>
+                                <td><span class="tag tag-neutral">{{ rdv.departement }}</span></td>
+                                <td class="cell-muted">{{ rdv.motif }}</td>
+                                <td class="cell-muted">{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
+                                <td><span class="tag tag-info">{{ rdv.statut }}</span></td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-pro">
+                                        <i class="fas fa-calendar-times"></i>
+                                        <div class="title">Aucun rendez-vous réservé</div>
+                                        <div class="sub">Les réservations planifiées apparaîtront ici.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {# ═══ REGISTRE COMPLET DES BONS ═══ #}
+        <div class="section-card">
+            <div class="section-head">
+                <div class="section-head-left">
+                    <div class="section-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div>
+                        <h3 class="section-title">Registre complet des bons de sortie</h3>
+                        <p class="section-sub">Historique de tous les bons émis</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <span class="tag tag-neutral"><i class="fas fa-user"></i> Agent</span>
+                    <span class="tag tag-info"><i class="fas fa-boxes"></i> Stock</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table-app">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Code</th>
+                            <th style="width: 110px;">Origine</th>
+                            <th>Employé / Détail</th>
+                            <th style="width: 150px;">Département</th>
+                            <th style="width: 170px;">Date création</th>
+                            <th style="width: 170px;">Statut</th>
+                            <th style="width: 190px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in bonsSortie %}
+                            {% set isStock = false %}
+                            {% set detail = '' %}
+                            {% if b.raison is defined and b.raison and 'Sortie stock' in b.raison %}
+                                {% set isStock = true %}
+                                {% set detail = b.raison %}
+                            {% endif %}
+
+                            <tr>
+                                <td class="cell-strong">#{{ b.id }}</td>
+                                <td>
+                                    {% if isStock %}
+                                        <span class="tag tag-info"><i class="fas fa-boxes"></i> Stock</span>
+                                    {% else %}
+                                        <span class="tag tag-neutral"><i class="fas fa-user"></i> Agent</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="cell-detail">
+                                        <span class="name">{{ b.nomEmploye }}</span>
+                                        {% if isStock and detail %}
+                                            <span class="sub">{{ detail }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td><span class="tag tag-neutral">{{ b.departement }}</span></td>
+                                <td class="cell-muted">{{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '—' }}</td>
+                                <td>
+                                    {% if b.statut == 'Créé' %}
+                                        <span class="tag tag-warn"><i class="fas fa-clock"></i> Créé</span>
+                                    {% elseif b.statut == 'ATTENTE_CHEF_SERVICE' %}
+                                        <span class="tag tag-warn"><i class="fas fa-hourglass-half"></i> Attente chef</span>
+                                    {% elseif b.statut == 'ATTENTE_CAISSE' %}
+                                        <span class="tag tag-warn"><i class="fas fa-hourglass-half"></i> Attente caisse</span>
+                                    {% elseif b.statut == 'Validé Chef Service' %}
+                                        <span class="tag tag-ok"><i class="fas fa-check"></i> Validé chef</span>
+                                    {% elseif b.statut == 'Validé Coordon' %}
+                                        <span class="tag tag-ok"><i class="fas fa-check"></i> Validé coordon</span>
+                                    {% elseif b.statut == 'Validé Caisse' %}
+                                        <span class="tag tag-ok"><i class="fas fa-check"></i> Validé caisse</span>
+                                    {% elseif b.statut == 'Sortie effective' %}
+                                        <span class="tag tag-info"><i class="fas fa-door-open"></i> Sortie effective</span>
+                                    {% elseif b.statut == 'Rejeté Chef Service' %}
+                                        <span class="tag tag-danger"><i class="fas fa-ban"></i> Rejeté chef</span>
+                                    {% elseif b.statut == 'Rejeté Coordon' %}
+                                        <span class="tag tag-danger"><i class="fas fa-ban"></i> Rejeté coordon</span>
+                                    {% else %}
+                                        <span class="tag tag-neutral">{{ b.statut }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="cell-action">
+                                    {% if b.statut == 'Validé Chef Service' or b.statut == 'Validé Coordon' or b.statut == 'Validé Caisse' or b.statut == 'Validé Secrétariat' %}
+                                        <form action="{{ path('app_guerite_sortie_bon', {'id': b.id}) }}" method="POST" class="d-inline">
+                                            <button type="submit" class="btn-app btn-app-primary btn-app-sm"
+                                                    onclick="return confirm('Confirmer la sortie physique du matériel pour le bon #{{ b.id }} ?')">
+                                                <i class="fas fa-door-open"></i> Sortie effective
+                                            </button>
+                                        </form>
+                                    {% elseif b.statut == 'Sortie effective' %}
+                                        <span class="tag tag-ok"><i class="fas fa-check-double"></i> Confirmée</span>
+                                    {% else %}
+                                        <span class="cell-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="empty-pro">
+                                        <i class="fas fa-box-open"></i>
+                                        <div class="title">Aucun bon enregistré</div>
+                                        <div class="sub">Les bons de sortie apparaîtront ici.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- ============================================
-    MODAL : ENREGISTRER UN VISITEUR
-    ============================================ -->
+    {# ═══ MODAL : ENREGISTRER UN VISITEUR ═══ #}
     <div class="modal fade" id="modalVisiteur" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content rounded-4 border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white border-0">
-                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Enregistrer un Visiteur</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border: none; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(15,23,42,.20);">
+                <div class="modal-header" style="background: var(--ink-50); border-bottom: 1px solid var(--ink-100); padding: 1.25rem 1.5rem;">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 44px; height: 44px; border-radius: 11px; background: var(--accent-soft); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem;">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title" style="font-weight: 700; color: var(--ink-900); font-size: 1rem; margin: 0;">
+                                Enregistrer un visiteur
+                            </h5>
+                            <p style="color: var(--ink-500); font-size: 0.8rem; margin: 0.15rem 0 0;">
+                                Saisissez les informations d'accès
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body p-4">
                     {% if formVisiteGuerite is defined and formVisiteGuerite is not null %}
                         {{ form_start(formVisiteGuerite) }}
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Nom du Visiteur <span class="text-danger">*</span></label>
-                                    {{ form_widget(formVisiteGuerite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Nom complet'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Nom du visiteur <span style="color:var(--danger);">*</span>
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.nomVisiteur, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'Nom complet'}}) }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Département Visité <span class="text-danger">*</span></label>
-                                    {{ form_widget(formVisiteGuerite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production, Compta...'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Département visité <span style="color:var(--danger);">*</span>
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.departement, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'Ex : Production'}}) }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Motif de la visite <span class="text-danger">*</span></label>
-                                    {{ form_widget(formVisiteGuerite.motif, {'attr': {'class': 'form-control', 'placeholder': 'Raison de la visite'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Motif <span style="color:var(--danger);">*</span>
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.motif, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'Raison de la visite'}}) }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Téléphone</label>
-                                    {{ form_widget(formVisiteGuerite.telephone, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Téléphone
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.telephone, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'Numéro de téléphone'}}) }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Email</label>
-                                    {{ form_widget(formVisiteGuerite.email, {'attr': {'class': 'form-control', 'placeholder': 'email@example.com'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Email
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.email, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'email@exemple.com'}}) }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label fw-bold">Pièce d'identité</label>
-                                    {{ form_widget(formVisiteGuerite.pieceIdentite, {'attr': {'class': 'form-control', 'placeholder': 'CIN, Passeport...'}}) }}
+                                    <label class="form-label" style="font-size:0.72rem;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.05em;">
+                                        Pièce d'identité
+                                    </label>
+                                    {{ form_widget(formVisiteGuerite.pieceIdentite, {'attr': {'class': 'form-control', 'style': 'border-radius:8px;padding:0.6rem 0.85rem;font-size:0.87rem;', 'placeholder': 'CIN, Passeport...'}}) }}
                                 </div>
                             </div>
+
                             <div class="d-flex justify-content-end gap-2 mt-4">
-                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
-                                <button type="submit" class="btn btn-primary rounded-pill px-4">
-                                    <i class="fas fa-save me-1"></i> Enregistrer
+                                <button type="button" class="btn-app btn-app-ghost" data-bs-dismiss="modal">
+                                    Annuler
+                                </button>
+                                <button type="submit" class="btn-app btn-app-primary">
+                                    <i class="fas fa-save"></i> Enregistrer
                                 </button>
                             </div>
                         {{ form_end(formVisiteGuerite) }}
                     {% else %}
-                        <div class="alert alert-warning">
+                        <div class="alert alert-warning rounded-3 border-0 mb-0" style="font-size:0.87rem;">
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             Le formulaire d'enregistrement n'est pas disponible.
                         </div>
@@ -534,17 +969,15 @@
         </div>
     </div>
 
-    <!-- ============================================
-    SCRIPTS
-    ============================================ -->
+    {# ═══ SCRIPTS ═══ #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const alerts = document.querySelectorAll('.flash-message');
-            alerts.forEach(alert => {
+            document.querySelectorAll('.flash-pro').forEach(alert => {
                 setTimeout(() => {
+                    alert.style.transition = 'opacity 0.4s ease';
                     alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
+                    setTimeout(() => alert.remove(), 400);
                 }, 6000);
             });
         });

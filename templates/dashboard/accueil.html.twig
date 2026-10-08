@@ -8,9 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
-        /* ============================================================
-           DESIGN SYSTEM
-        ============================================================ */
         :root {
             --ink-950: #050810;
             --ink-900: #0a0f1e;
@@ -53,9 +50,7 @@
 
         * { transition: background-color .2s ease, border-color .2s ease, color .2s ease, box-shadow .3s ease, transform .3s ease; }
 
-        html, body {
-            height: 100%; margin: 0; padding: 0; width: 100%;
-        }
+        html, body { height: 100%; margin: 0; padding: 0; width: 100%; }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -78,9 +73,6 @@
             pointer-events: none;
         }
 
-        /* ============================================================
-           NAVBAR
-        ============================================================ */
         .navbar-glass {
             background: linear-gradient(135deg, rgba(5,8,16,.95) 0%, rgba(30,27,75,.95) 100%);
             backdrop-filter: blur(20px) saturate(180%);
@@ -93,21 +85,10 @@
             box-shadow: 0 4px 30px rgba(0,0,0,.15);
         }
 
-        /* ============================================================
-           LOGO ENTREPRISE
-        ============================================ */
-        .brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: .85rem;
-            text-decoration: none;
-        }
+        .brand-wrap { display: flex; align-items: center; gap: .85rem; text-decoration: none; }
         .brand-logo-img {
-            width: 52px;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 52px; height: 52px;
+            display: flex; align-items: center; justify-content: center;
             border-radius: 14px;
             background: rgba(255,255,255,.08);
             border: 1px solid rgba(255,255,255,.12);
@@ -115,77 +96,40 @@
             box-shadow: 0 8px 20px rgba(0,0,0,.30);
             flex-shrink: 0;
         }
-        .brand-logo-img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 28px rgba(99,102,241,.45);
-        }
-        .brand-logo-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,.2));
-        }
-        .brand-text {
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: #fff;
-            letter-spacing: -.4px;
-            line-height: 1;
-        }
+        .brand-logo-img:hover { transform: scale(1.05); box-shadow: 0 12px 28px rgba(99,102,241,.45); }
+        .brand-logo-img img { width: 100%; height: 100%; object-fit: contain; display: block; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); }
+        .brand-text { font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -.4px; line-height: 1; }
         .brand-text .accent {
             background: linear-gradient(135deg, var(--indigo-2), var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .brand-tag {
-            font-size: .72rem;
-            color: rgba(255,255,255,.5);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-top: 3px;
+            font-size: .72rem; color: rgba(255,255,255,.5);
+            letter-spacing: 1.5px; text-transform: uppercase;
+            font-weight: 600; margin-top: 3px;
         }
 
         .role-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: .55rem;
+            display: inline-flex; align-items: center; gap: .55rem;
             background: rgba(255,255,255,.06);
             border: 1px solid rgba(255,255,255,.10);
             color: rgba(255,255,255,.9);
-            padding: .5rem 1rem;
-            border-radius: 999px;
-            font-size: .8rem;
-            backdrop-filter: blur(10px);
+            padding: .5rem 1rem; border-radius: 999px;
+            font-size: .8rem; backdrop-filter: blur(10px);
         }
         .role-chip i { color: var(--amber); }
         .role-chip strong { color: #fff; font-weight: 700; }
 
         .btn-logout-glass {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .5rem 1.1rem;
-            border: none;
-            border-radius: 999px;
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .5rem 1.1rem; border: none; border-radius: 999px;
             background: linear-gradient(135deg, var(--rose), #e11d48);
-            color: #fff;
-            font-weight: 600;
-            font-size: .82rem;
+            color: #fff; font-weight: 600; font-size: .82rem;
             box-shadow: 0 6px 16px rgba(244,63,94,.35);
             text-decoration: none;
         }
-        .btn-logout-glass:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(244,63,94,.5);
-            color: #fff;
-        }
+        .btn-logout-glass:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(244,63,94,.5); color: #fff; }
 
-        /* ============================================================
-           LAYOUT
-        ============================================================ */
         .app-shell {
             width: 100%;
             min-height: calc(100vh - 84px);
@@ -193,79 +137,49 @@
             box-sizing: border-box;
         }
 
-        /* ============================================================
-           HERO
-        ============================================================ */
         .hero {
             position: relative;
             border-radius: var(--r-2xl);
             background: var(--grad-dark);
             padding: clamp(1.75rem, 3vw, 2.5rem);
-            overflow: hidden;
-            color: #fff;
+            overflow: hidden; color: #fff;
             margin-bottom: 1.5rem;
             box-shadow: 0 20px 60px rgba(10,15,30,.28);
         }
         .hero::before {
-            content: "";
-            position: absolute;
-            top: -50%; right: -10%;
+            content: ""; position: absolute; top: -50%; right: -10%;
             width: 500px; height: 500px;
             background: radial-gradient(circle, rgba(99,102,241,.35) 0%, transparent 65%);
-            border-radius: 50%;
-            pointer-events: none;
+            border-radius: 50%; pointer-events: none;
         }
         .hero::after {
-            content: "";
-            position: absolute;
-            bottom: -60%; left: -5%;
+            content: ""; position: absolute; bottom: -60%; left: -5%;
             width: 450px; height: 450px;
             background: radial-gradient(circle, rgba(6,182,212,.28) 0%, transparent 65%);
-            border-radius: 50%;
-            pointer-events: none;
+            border-radius: 50%; pointer-events: none;
         }
         .hero-inner {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 1.5rem;
+            position: relative; z-index: 2;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 1.5rem;
         }
         .hero-title {
-            font-weight: 900;
-            font-size: clamp(1.5rem, 2.5vw, 2.1rem);
-            letter-spacing: -1px;
-            margin: 0 0 .35rem;
-            color: #fff;
-            line-height: 1.1;
+            font-weight: 900; font-size: clamp(1.5rem, 2.5vw, 2.1rem);
+            letter-spacing: -1px; margin: 0 0 .35rem; color: #fff; line-height: 1.1;
         }
-        .hero-subtitle {
-            font-size: .95rem;
-            color: rgba(255,255,255,.65);
-            margin: 0;
-            max-width: 600px;
-        }
+        .hero-subtitle { font-size: .95rem; color: rgba(255,255,255,.65); margin: 0; max-width: 600px; }
         .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
+            display: inline-flex; align-items: center; gap: .5rem;
             background: rgba(99,102,241,.18);
             border: 1px solid rgba(99,102,241,.35);
             color: #c7d2fe;
-            padding: .4rem .9rem;
-            border-radius: 999px;
-            font-size: .75rem;
-            font-weight: 700;
-            letter-spacing: .5px;
-            text-transform: uppercase;
+            padding: .4rem .9rem; border-radius: 999px;
+            font-size: .75rem; font-weight: 700;
+            letter-spacing: .5px; text-transform: uppercase;
             margin-bottom: .9rem;
         }
         .hero-badge .dot {
-            width: 7px; height: 7px;
-            background: #4ade80;
-            border-radius: 50%;
+            width: 7px; height: 7px; background: #4ade80; border-radius: 50%;
             box-shadow: 0 0 0 4px rgba(74,222,128,.25);
             animation: pulse 2s infinite;
         }
@@ -274,59 +188,31 @@
             50% { opacity: .6; transform: scale(1.15); }
         }
 
-        .hero-stats {
-            display: flex;
-            gap: .75rem;
-            flex-wrap: wrap;
-        }
+        .hero-stats { display: flex; gap: .75rem; flex-wrap: wrap; }
         .hero-stat {
             background: rgba(255,255,255,.08);
             border: 1px solid rgba(255,255,255,.14);
             backdrop-filter: blur(12px);
             padding: .9rem 1.25rem;
-            border-radius: var(--r-md);
-            min-width: 130px;
+            border-radius: var(--r-md); min-width: 130px;
         }
         .hero-stat-label {
-            font-size: .7rem;
-            color: rgba(255,255,255,.55);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            margin-bottom: .35rem;
+            font-size: .7rem; color: rgba(255,255,255,.55);
+            text-transform: uppercase; letter-spacing: 1px;
+            font-weight: 700; margin-bottom: .35rem;
         }
         .hero-stat-value {
-            display: flex;
-            align-items: baseline;
-            gap: .35rem;
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -.5px;
-            line-height: 1;
+            display: flex; align-items: baseline; gap: .35rem;
+            font-size: 1.75rem; font-weight: 800; color: #fff;
+            letter-spacing: -.5px; line-height: 1;
         }
-        .hero-stat-value small {
-            font-size: .8rem;
-            font-weight: 600;
-            color: rgba(255,255,255,.5);
-        }
-        .hero-stat-value i {
-            font-size: 1rem;
-            color: var(--cyan);
-        }
+        .hero-stat-value small { font-size: .8rem; font-weight: 600; color: rgba(255,255,255,.5); }
+        .hero-stat-value i { font-size: 1rem; color: var(--cyan); }
 
-        /* ============================================================
-           FLASH
-        ============================================================ */
         .flash-msg {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            padding: 1rem 1.25rem;
-            border-radius: var(--r-md);
-            margin-bottom: 1rem;
-            font-size: .9rem;
-            font-weight: 500;
+            display: flex; align-items: center; gap: .75rem;
+            padding: 1rem 1.25rem; border-radius: var(--r-md);
+            margin-bottom: 1rem; font-size: .9rem; font-weight: 500;
             border: 1px solid transparent;
             animation: slideDown .35s ease;
         }
@@ -334,21 +220,10 @@
             from { opacity: 0; transform: translateY(-8px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-        .flash-ok {
-            background: rgba(16,185,129,.08);
-            border-color: rgba(16,185,129,.20);
-            color: #065f46;
-        }
-        .flash-danger {
-            background: rgba(244,63,94,.08);
-            border-color: rgba(244,63,94,.20);
-            color: #9f1239;
-        }
+        .flash-ok { background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.20); color: #065f46; }
+        .flash-danger { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.20); color: #9f1239; }
         .flash-msg .btn-close { margin-left: auto; }
 
-        /* ============================================================
-           WORKSPACE
-        ============================================================ */
         .workspace {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -356,7 +231,6 @@
             align-items: start;
         }
 
-        /* SIDEBAR */
         .side-nav {
             background: var(--card);
             border: 1px solid var(--line);
@@ -368,68 +242,39 @@
         }
         .side-nav-header {
             padding: .75rem 1rem .5rem;
-            font-size: .68rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 800;
-            color: var(--ink-300);
+            font-size: .68rem; text-transform: uppercase;
+            letter-spacing: 1.5px; font-weight: 800; color: var(--ink-300);
         }
         .side-tab {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            width: 100%;
-            padding: .85rem 1rem;
-            border: none;
-            background: transparent;
+            display: flex; align-items: center; gap: .75rem;
+            width: 100%; padding: .85rem 1rem;
+            border: none; background: transparent;
             border-radius: var(--r-md);
-            font-weight: 600;
-            font-size: .88rem;
-            color: var(--ink-500);
-            text-align: left;
-            position: relative;
-            cursor: pointer;
-            margin-bottom: .25rem;
+            font-weight: 600; font-size: .88rem;
+            color: var(--ink-500); text-align: left;
+            position: relative; cursor: pointer; margin-bottom: .25rem;
         }
         .side-tab-icon {
             width: 38px; height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-flex; align-items: center; justify-content: center;
             border-radius: 11px;
-            background: var(--line-2);
-            color: var(--ink-500);
-            font-size: .9rem;
-            flex-shrink: 0;
+            background: var(--line-2); color: var(--ink-500);
+            font-size: .9rem; flex-shrink: 0;
         }
         .side-tab-text { flex: 1; }
         .side-tab-count {
-            background: var(--line-2);
-            color: var(--ink-500);
-            padding: .15rem .55rem;
-            border-radius: 999px;
-            font-size: .7rem;
-            font-weight: 800;
+            background: var(--line-2); color: var(--ink-500);
+            padding: .15rem .55rem; border-radius: 999px;
+            font-size: .7rem; font-weight: 800;
         }
-        .side-tab:hover {
-            background: #f8faff;
-            color: var(--ink-900);
-        }
+        .side-tab:hover { background: #f8faff; color: var(--ink-900); }
         .side-tab.active {
-            background: var(--grad-indigo);
-            color: #fff;
+            background: var(--grad-indigo); color: #fff;
             box-shadow: var(--sh-glow-indigo);
         }
-        .side-tab.active .side-tab-icon {
-            background: rgba(255,255,255,.20);
-            color: #fff;
-        }
-        .side-tab.active .side-tab-count {
-            background: rgba(255,255,255,.22);
-            color: #fff;
-        }
+        .side-tab.active .side-tab-icon { background: rgba(255,255,255,.20); color: #fff; }
+        .side-tab.active .side-tab-count { background: rgba(255,255,255,.22); color: #fff; }
 
-        /* CONTENU */
         .content-area {
             background: var(--card);
             border: 1px solid var(--line);
@@ -439,70 +284,39 @@
             min-height: 500px;
         }
 
-        /* ============================================================
-           SECTION HEADER
-        ============================================================ */
         .sec-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; flex-wrap: wrap;
             margin-bottom: 1.5rem;
             padding-bottom: 1.1rem;
             border-bottom: 1px dashed var(--line);
         }
-        .sec-head-left {
-            display: flex;
-            align-items: center;
-            gap: .9rem;
-        }
+        .sec-head-left { display: flex; align-items: center; gap: .9rem; }
         .sec-head-icon {
             width: 48px; height: 48px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 1.05rem;
-            flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 14px; color: #fff; font-size: 1.05rem; flex-shrink: 0;
         }
         .sec-head-icon.grad-cyan { background: var(--grad-cyan); box-shadow: 0 8px 20px rgba(6,182,212,.30); }
         .sec-head-icon.grad-emerald { background: var(--grad-emerald); box-shadow: 0 8px 20px rgba(16,185,129,.30); }
         .sec-head-icon.grad-indigo { background: var(--grad-indigo); box-shadow: 0 8px 20px rgba(99,102,241,.30); }
         .sec-head-icon.grad-amber { background: var(--grad-amber); box-shadow: 0 8px 20px rgba(245,158,11,.30); }
         .sec-head-title {
-            font-weight: 800;
-            font-size: 1.15rem;
-            color: var(--ink-900);
-            margin: 0;
-            letter-spacing: -.3px;
+            font-weight: 800; font-size: 1.15rem;
+            color: var(--ink-900); margin: 0; letter-spacing: -.3px;
         }
-        .sec-head-sub {
-            font-size: .82rem;
-            color: var(--ink-400);
-            margin: .15rem 0 0;
-        }
+        .sec-head-sub { font-size: .82rem; color: var(--ink-400); margin: .15rem 0 0; }
         .chip-count {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .45rem .9rem;
-            border-radius: 999px;
-            font-size: .75rem;
-            font-weight: 700;
-            background: var(--line-2);
-            color: var(--ink-700);
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .45rem .9rem; border-radius: 999px;
+            font-size: .75rem; font-weight: 700;
+            background: var(--line-2); color: var(--ink-700);
         }
         .chip-count.grad {
-            background: var(--grad-indigo);
-            color: #fff;
+            background: var(--grad-indigo); color: #fff;
             box-shadow: 0 6px 16px rgba(99,102,241,.28);
         }
 
-        /* ============================================================
-           VISITOR CARDS
-        ============================================================ */
         .visitor-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -514,16 +328,11 @@
             border-radius: var(--r-lg);
             padding: 1.25rem;
             box-shadow: var(--sh-sm);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            position: relative; overflow: hidden;
+            display: flex; flex-direction: column;
         }
         .v-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
             background: var(--grad-cyan);
         }
         .v-card:hover {
@@ -531,189 +340,91 @@
             box-shadow: var(--sh-lg);
             border-color: rgba(99,102,241,.25);
         }
-        .v-card-head {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            margin-bottom: .85rem;
-        }
+        .v-card-head { display: flex; align-items: center; gap: .75rem; margin-bottom: .85rem; }
         .v-avatar {
             width: 44px; height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-flex; align-items: center; justify-content: center;
             border-radius: 13px;
-            background: var(--grad-cyan);
-            color: #fff;
-            font-weight: 800;
-            font-size: .95rem;
-            flex-shrink: 0;
+            background: var(--grad-cyan); color: #fff;
+            font-weight: 800; font-size: .95rem; flex-shrink: 0;
             box-shadow: 0 6px 14px rgba(6,182,212,.30);
         }
-        .v-name {
-            font-weight: 700;
-            color: var(--ink-900);
-            font-size: .95rem;
-            letter-spacing: -.2px;
-            line-height: 1.2;
-        }
-        .v-dept {
-            font-size: .72rem;
-            color: var(--ink-400);
-            font-weight: 600;
-            letter-spacing: .3px;
-            margin-top: .1rem;
-        }
+        .v-name { font-weight: 700; color: var(--ink-900); font-size: .95rem; letter-spacing: -.2px; line-height: 1.2; }
+        .v-dept { font-size: .72rem; color: var(--ink-400); font-weight: 600; letter-spacing: .3px; margin-top: .1rem; }
         .v-status {
             margin-left: auto;
-            display: inline-flex;
-            align-items: center;
-            gap: .35rem;
-            padding: .3rem .65rem;
-            border-radius: 999px;
-            font-size: .68rem;
-            font-weight: 800;
-            background: rgba(16,185,129,.12);
-            color: #047857;
-            letter-spacing: .3px;
-            text-transform: uppercase;
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .3rem .65rem; border-radius: 999px;
+            font-size: .68rem; font-weight: 800;
+            background: rgba(16,185,129,.12); color: #047857;
+            letter-spacing: .3px; text-transform: uppercase;
         }
         .v-status .dot {
-            width: 6px; height: 6px;
-            background: #10b981;
-            border-radius: 50%;
+            width: 6px; height: 6px; background: #10b981; border-radius: 50%;
             box-shadow: 0 0 0 3px rgba(16,185,129,.20);
         }
         .v-body {
-            display: flex;
-            flex-direction: column;
-            gap: .4rem;
-            font-size: .82rem;
-            color: var(--ink-500);
-            margin-bottom: 1rem;
-            flex: 1;
+            display: flex; flex-direction: column; gap: .4rem;
+            font-size: .82rem; color: var(--ink-500);
+            margin-bottom: 1rem; flex: 1;
         }
-        .v-body .row-info {
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-        }
-        .v-body .row-info i {
-            color: var(--indigo-2);
-            width: 14px;
-            text-align: center;
-        }
+        .v-body .row-info { display: flex; align-items: center; gap: .5rem; }
+        .v-body .row-info i { color: var(--indigo-2); width: 14px; text-align: center; }
         .btn-depart {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: .5rem;
-            width: 100%;
-            padding: .65rem 1rem;
-            border: none;
-            border-radius: var(--r-md);
-            background: var(--ink-900);
-            color: #fff;
-            font-weight: 700;
-            font-size: .82rem;
-            letter-spacing: .2px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: .5rem; width: 100%; padding: .65rem 1rem;
+            border: none; border-radius: var(--r-md);
+            background: var(--ink-900); color: #fff;
+            font-weight: 700; font-size: .82rem; letter-spacing: .2px;
             box-shadow: 0 4px 12px rgba(10,15,30,.20);
         }
         .btn-depart:hover {
-            background: var(--grad-indigo);
-            transform: translateY(-2px);
-            box-shadow: var(--sh-glow-indigo);
-            color: #fff;
+            background: var(--grad-indigo); transform: translateY(-2px);
+            box-shadow: var(--sh-glow-indigo); color: #fff;
         }
 
-        /* ============================================================
-           EMPTY STATE
-        ============================================================ */
-        .empty-box {
-            text-align: center;
-            padding: clamp(3rem, 6vw, 5rem) 1rem;
-        }
+        .empty-box { text-align: center; padding: clamp(3rem, 6vw, 5rem) 1rem; }
         .empty-illustration {
             width: 100px; height: 100px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: inline-flex; align-items: center; justify-content: center;
             border-radius: 28px;
-            background: var(--grad-indigo);
-            color: #fff;
-            font-size: 2.2rem;
-            margin-bottom: 1.5rem;
+            background: var(--grad-indigo); color: #fff;
+            font-size: 2.2rem; margin-bottom: 1.5rem;
             box-shadow: 0 16px 40px rgba(99,102,241,.30);
             position: relative;
         }
         .empty-illustration::after {
-            content: "";
-            position: absolute;
-            inset: -8px;
+            content: ""; position: absolute; inset: -8px;
             border-radius: 36px;
             border: 2px dashed rgba(99,102,241,.25);
             animation: rotate 20s linear infinite;
         }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to   { transform: rotate(360deg); }
-        }
-        .empty-box h4 {
-            font-weight: 800;
-            color: var(--ink-900);
-            margin-bottom: .5rem;
-            letter-spacing: -.3px;
-        }
-        .empty-box p {
-            color: var(--ink-400);
-            font-size: .9rem;
-            margin: 0 auto;
-            max-width: 400px;
-        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .empty-box h4 { font-weight: 800; color: var(--ink-900); margin-bottom: .5rem; letter-spacing: -.3px; }
+        .empty-box p { color: var(--ink-400); font-size: .9rem; margin: 0 auto; max-width: 400px; }
 
-        /* ============================================================
-           FORMULAIRES
-        ============================================================ */
         .form-wrap { max-width: 680px; margin: 0 auto; }
 
-        .form-hero {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+        .form-hero { text-align: center; margin-bottom: 2rem; }
         .form-hero-icon {
             width: 68px; height: 68px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 20px;
-            font-size: 1.6rem;
-            color: #fff;
-            margin-bottom: 1rem;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 20px; font-size: 1.6rem;
+            color: #fff; margin-bottom: 1rem;
             box-shadow: 0 14px 34px rgba(16,185,129,.32);
         }
         .form-hero-icon.grad-emerald { background: var(--grad-emerald); }
         .form-hero-icon.grad-indigo  { background: var(--grad-indigo); box-shadow: 0 14px 34px rgba(99,102,241,.32); }
-        .form-hero h4 {
-            font-weight: 800;
-            color: var(--ink-900);
-            letter-spacing: -.4px;
-            margin: 0;
-        }
-        .form-hero p {
-            color: var(--ink-400);
-            font-size: .9rem;
-            margin: .35rem 0 0;
-        }
+        .form-hero h4 { font-weight: 800; color: var(--ink-900); letter-spacing: -.4px; margin: 0; }
+        .form-hero p { color: var(--ink-400); font-size: .9rem; margin: .35rem 0 0; }
 
         .field { margin-bottom: 1.1rem; }
         .field-label {
             display: block;
-            font-size: .78rem;
-            font-weight: 700;
+            font-size: .78rem; font-weight: 700;
             color: var(--ink-700);
             text-transform: uppercase;
-            letter-spacing: .6px;
-            margin-bottom: .5rem;
+            letter-spacing: .6px; margin-bottom: .5rem;
         }
         .field-label i { color: var(--indigo); margin-right: .3rem; }
         .field-label .req { color: var(--rose); }
@@ -725,10 +436,9 @@
             border: 1.5px solid var(--line);
             border-radius: var(--r-md);
             background: #fff;
-            font-size: .9rem;
-            font-weight: 500;
-            color: var(--ink-900);
-            box-shadow: none;
+            font-size: .9rem; font-weight: 500;
+            color: var(--ink-900); box-shadow: none;
+            pointer-events: auto;
         }
         .form-wrap .form-control:focus,
         .form-wrap .form-select:focus {
@@ -738,20 +448,18 @@
         }
         .form-wrap .form-control::placeholder { color: var(--ink-300); font-weight: 400; }
 
+        .form-wrap .form-control[readonly] {
+            background: #f8fafc;
+            color: var(--ink-500);
+            cursor: not-allowed;
+        }
+
         .btn-form-submit {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: .6rem;
-            width: 100%;
-            padding: .95rem 1.5rem;
-            border: none;
-            border-radius: var(--r-md);
-            background: var(--grad-emerald);
-            color: #fff;
-            font-weight: 700;
-            font-size: .92rem;
-            letter-spacing: .2px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: .6rem; width: 100%; padding: .95rem 1.5rem;
+            border: none; border-radius: var(--r-md);
+            background: var(--grad-emerald); color: #fff;
+            font-weight: 700; font-size: .92rem; letter-spacing: .2px;
             box-shadow: 0 10px 26px rgba(16,185,129,.32);
             margin-top: .5rem;
         }
@@ -763,98 +471,110 @@
         .btn-form-submit.grad-indigo { background: var(--grad-indigo); box-shadow: 0 10px 26px rgba(99,102,241,.32); }
         .btn-form-submit.grad-indigo:hover { box-shadow: 0 14px 32px rgba(99,102,241,.45); }
 
-        /* ============================================================
-           TABLEAU
-        ============================================================ */
-        .table-wrap {
-            border: 1px solid var(--line);
-            border-radius: var(--r-lg);
-            overflow: hidden;
-            background: #fff;
-        }
-        .table-mod {
-            width: 100%;
-            margin: 0;
-            border-collapse: collapse;
-        }
+        .table-wrap { border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; background: #fff; }
+        .table-mod { width: 100%; margin: 0; border-collapse: collapse; }
         .table-mod thead th {
-            background: #f8fafc;
-            color: var(--ink-700);
-            font-size: .72rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .8px;
-            padding: 1rem 1.1rem;
-            text-align: left;
-            border-bottom: 1px solid var(--line);
-            white-space: nowrap;
+            background: #f8fafc; color: var(--ink-700);
+            font-size: .72rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: .8px;
+            padding: 1rem 1.1rem; text-align: left;
+            border-bottom: 1px solid var(--line); white-space: nowrap;
         }
         .table-mod tbody td {
             padding: 1rem 1.1rem;
             border-bottom: 1px solid var(--line-2);
-            vertical-align: middle;
-            font-size: .88rem;
+            vertical-align: middle; font-size: .88rem;
         }
         .table-mod tbody tr:last-child td { border-bottom: none; }
         .table-mod tbody tr:hover { background: #f8faff; }
 
         .tag {
-            display: inline-flex;
-            align-items: center;
-            gap: .3rem;
-            padding: .3rem .65rem;
-            border-radius: 8px;
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .2px;
+            display: inline-flex; align-items: center; gap: .3rem;
+            padding: .3rem .65rem; border-radius: 8px;
+            font-size: .72rem; font-weight: 700; letter-spacing: .2px;
         }
         .tag-cyan { background: rgba(6,182,212,.10); color: #0e7490; }
         .tag-amber { background: rgba(245,158,11,.12); color: #b45309; }
         .tag-emerald { background: rgba(16,185,129,.12); color: #047857; }
 
         .btn-accept {
-            display: inline-flex;
-            align-items: center;
-            gap: .4rem;
-            padding: .5rem 1rem;
-            border: none;
-            border-radius: var(--r-sm);
-            background: var(--grad-emerald);
-            color: #fff;
-            font-weight: 700;
-            font-size: .78rem;
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .5rem 1rem; border: none; border-radius: var(--r-sm);
+            background: var(--grad-emerald); color: #fff;
+            font-weight: 700; font-size: .78rem;
             box-shadow: 0 4px 12px rgba(16,185,129,.28);
         }
         .btn-accept:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16,185,129,.40);
-            color: #fff;
+            box-shadow: 0 8px 20px rgba(16,185,129,.40); color: #fff;
         }
 
-        /* ============================================================
-           RESPONSIVE
-        ============================================================ */
+        /* 🎯 DESTINATION CHOOSER */
+        .dest-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .75rem;
+            margin-bottom: .75rem;
+        }
+        .dest-option {
+            display: flex; align-items: center; gap: .75rem;
+            padding: 1rem;
+            border: 2px solid var(--line);
+            border-radius: var(--r-md);
+            background: #fff;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+            pointer-events: auto;
+        }
+        .dest-option:hover {
+            border-color: var(--indigo-2);
+            background: #f8faff;
+        }
+        .dest-option.selected {
+            border-color: var(--indigo);
+            background: rgba(99,102,241,.06);
+            box-shadow: 0 0 0 4px rgba(99,102,241,.10);
+        }
+        .dest-icon {
+            width: 42px; height: 42px; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 12px;
+            color: #fff; font-size: .95rem;
+        }
+        .dest-icon.indigo { background: var(--grad-indigo); box-shadow: 0 6px 14px rgba(99,102,241,.30); }
+        .dest-icon.emerald { background: var(--grad-emerald); box-shadow: 0 6px 14px rgba(16,185,129,.30); }
+        .dest-text { display: flex; flex-direction: column; line-height: 1.25; }
+        .dest-text strong { color: var(--ink-900); font-size: .88rem; font-weight: 700; }
+        .dest-text small { color: var(--ink-400); font-size: .72rem; margin-top: 2px; }
+        .dest-option .check {
+            position: absolute; top: .5rem; right: .5rem;
+            width: 20px; height: 20px; border-radius: 50%;
+            background: var(--indigo); color: #fff;
+            display: none; align-items: center; justify-content: center;
+            font-size: .6rem;
+        }
+        .dest-option.selected .check { display: inline-flex; }
+
+        .chef-panel {
+            background: linear-gradient(135deg, rgba(99,102,241,.05), rgba(139,92,246,.04));
+            border: 1px dashed rgba(99,102,241,.35);
+            border-radius: var(--r-md);
+            padding: 1rem;
+            margin-bottom: 1.1rem;
+            animation: slideDown .3s ease;
+        }
+        .chef-panel .field { margin-bottom: 0; }
+
         @media (max-width: 992px) {
-            .workspace {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
+            .workspace { grid-template-columns: 1fr; gap: 1rem; }
             .side-nav {
-                position: static;
-                display: flex;
-                overflow-x: auto;
-                gap: .35rem;
-                padding: .5rem;
-                scrollbar-width: none;
+                position: static; display: flex; overflow-x: auto;
+                gap: .35rem; padding: .5rem; scrollbar-width: none;
             }
             .side-nav::-webkit-scrollbar { display: none; }
             .side-nav-header { display: none; }
-            .side-tab {
-                flex-shrink: 0;
-                width: auto;
-                padding: .65rem .9rem;
-                margin: 0;
-            }
+            .side-tab { flex-shrink: 0; width: auto; padding: .65rem .9rem; margin: 0; }
             .side-tab-text { white-space: nowrap; font-size: .82rem; }
             .side-tab-icon { width: 32px; height: 32px; font-size: .78rem; }
         }
@@ -868,6 +588,7 @@
             .role-chip { display: none; }
             .visitor-grid { grid-template-columns: 1fr; }
             .form-hero-icon { width: 56px; height: 56px; font-size: 1.3rem; }
+            .dest-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
             .app-shell { padding: 1rem .75rem; }
@@ -881,9 +602,7 @@
 </head>
 <body>
 
-    {# ============================================
-       NAVBAR
-    ============================================ #}
+    {# NAVBAR #}
     <nav class="navbar-glass">
         <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
             <a href="#" class="brand-wrap">
@@ -910,9 +629,6 @@
         </div>
     </nav>
 
-    {# ============================================
-       SHELL
-    ============================================ #}
     <div class="app-shell">
 
         {# HERO #}
@@ -965,12 +681,9 @@
             {% endfor %}
         {% endfor %}
 
-        {# ============================================
-           WORKSPACE
-        ============================================ #}
+        {# WORKSPACE #}
         <div class="workspace">
 
-            {# --- SIDEBAR TABS --- #}
             <nav class="side-nav" id="accueilTabs" role="tablist" aria-orientation="vertical">
                 <div class="side-nav-header">Navigation</div>
 
@@ -978,10 +691,8 @@
                         id="registre-tab"
                         data-bs-toggle="tab"
                         data-bs-target="#registre-pane"
-                        type="button"
-                        role="tab"
-                        aria-controls="registre-pane"
-                        aria-selected="true">
+                        type="button" role="tab"
+                        aria-controls="registre-pane" aria-selected="true">
                     <span class="side-tab-icon"><i class="fas fa-users"></i></span>
                     <span class="side-tab-text">Visiteurs présents</span>
                     <span class="side-tab-count">{{ visites|length }}</span>
@@ -991,10 +702,8 @@
                         id="visite-tab"
                         data-bs-toggle="tab"
                         data-bs-target="#visite-pane"
-                        type="button"
-                        role="tab"
-                        aria-controls="visite-pane"
-                        aria-selected="false">
+                        type="button" role="tab"
+                        aria-controls="visite-pane" aria-selected="false">
                     <span class="side-tab-icon"><i class="fas fa-calendar-plus"></i></span>
                     <span class="side-tab-text">Enregistrer visite</span>
                 </button>
@@ -1003,10 +712,8 @@
                         id="rdv-tab"
                         data-bs-toggle="tab"
                         data-bs-target="#rdv-pane"
-                        type="button"
-                        role="tab"
-                        aria-controls="rdv-pane"
-                        aria-selected="false">
+                        type="button" role="tab"
+                        aria-controls="rdv-pane" aria-selected="false">
                     <span class="side-tab-icon"><i class="fas fa-calendar-check"></i></span>
                     <span class="side-tab-text">Rendez-vous</span>
                     <span class="side-tab-count">{{ rdvReserves|default([])|length }}</span>
@@ -1016,22 +723,17 @@
                         id="bon-tab"
                         data-bs-toggle="tab"
                         data-bs-target="#bon-pane"
-                        type="button"
-                        role="tab"
-                        aria-controls="bon-pane"
-                        aria-selected="false">
+                        type="button" role="tab"
+                        aria-controls="bon-pane" aria-selected="false">
                     <span class="side-tab-icon"><i class="fas fa-ticket-alt"></i></span>
                     <span class="side-tab-text">Bon de sortie</span>
                 </button>
             </nav>
 
-            {# --- CONTENU DES ONGLETS --- #}
             <main class="content-area">
                 <div class="tab-content" id="accueilTabContent">
 
-                    {# ============================================================
-                       ONGLET 1 : VISITEURS PRÉSENTS
-                    ============================================================ #}
+                    {# ONGLET 1 : VISITEURS PRÉSENTS #}
                     <div class="tab-pane fade show active"
                          id="registre-pane"
                          role="tabpanel"
@@ -1059,33 +761,20 @@
                                 {% for v in visites %}
                                     <article class="v-card">
                                         <div class="v-card-head">
-                                            <div class="v-avatar">
-                                                {{ v.nomVisiteur|first|upper }}
-                                            </div>
+                                            <div class="v-avatar">{{ v.nomVisiteur|first|upper }}</div>
                                             <div style="min-width:0; flex:1;">
                                                 <div class="v-name text-truncate">{{ v.nomVisiteur }}</div>
                                                 <div class="v-dept text-truncate">{{ v.departement }}</div>
                                             </div>
-                                            <span class="v-status">
-                                                <span class="dot"></span> Présent
-                                            </span>
+                                            <span class="v-status"><span class="dot"></span> Présent</span>
                                         </div>
-
                                         <div class="v-body">
-                                            <div class="row-info">
-                                                <i class="fas fa-info-circle"></i>
-                                                <span>{{ v.motif }}</span>
-                                            </div>
-                                            <div class="row-info">
-                                                <i class="fas fa-clock"></i>
-                                                <span>Arrivée à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span>
-                                            </div>
+                                            <div class="row-info"><i class="fas fa-info-circle"></i><span>{{ v.motif }}</span></div>
+                                            <div class="row-info"><i class="fas fa-clock"></i><span>Arrivée à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span></div>
                                         </div>
-
                                         <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST">
                                             <button type="submit" class="btn-depart">
-                                                <i class="fas fa-door-open"></i>
-                                                Signaler le départ
+                                                <i class="fas fa-door-open"></i>Signaler le départ
                                             </button>
                                         </form>
                                     </article>
@@ -1093,29 +782,22 @@
                             </div>
                         {% else %}
                             <div class="empty-box">
-                                <div class="empty-illustration">
-                                    <i class="fas fa-user-clock"></i>
-                                </div>
+                                <div class="empty-illustration"><i class="fas fa-user-clock"></i></div>
                                 <h4>Aucun visiteur présent</h4>
                                 <p>Les visiteurs enregistrés par la guérite apparaîtront ici automatiquement.</p>
                             </div>
                         {% endif %}
                     </div>
 
-                    {# ============================================================
-                       ONGLET 2 : FORMULAIRE VISITE
-                    ============================================================ #}
+                    {# ONGLET 2 : FORMULAIRE VISITE #}
                     <div class="tab-pane fade"
                          id="visite-pane"
                          role="tabpanel"
                          aria-labelledby="visite-tab"
                          tabindex="0">
                         <div class="form-wrap">
-
                             <div class="form-hero">
-                                <div class="form-hero-icon grad-emerald">
-                                    <i class="fas fa-id-card"></i>
-                                </div>
+                                <div class="form-hero-icon grad-emerald"><i class="fas fa-id-card"></i></div>
                                 <h4>Nouvelle fiche visiteur</h4>
                                 <p>Planifier l'accès d'un tiers dans l'imprimerie</p>
                             </div>
@@ -1124,60 +806,43 @@
                                 {{ form_start(formVisite) }}
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="field-label">
-                                                <i class="fas fa-user"></i>Nom & Prénom <span class="req">*</span>
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-user"></i>Nom & Prénom <span class="req">*</span></label>
                                             {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="field-label">
-                                                <i class="fas fa-building"></i>Département <span class="req">*</span>
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-building"></i>Département <span class="req">*</span></label>
                                             {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production'}}) }}
                                         </div>
                                         <div class="col-12">
-                                            <label class="field-label">
-                                                <i class="fas fa-info-circle"></i>Motif <span class="req">*</span>
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-info-circle"></i>Motif <span class="req">*</span></label>
                                             {{ form_widget(formVisite.motif, {'attr': {'class': 'form-control', 'rows': '2', 'placeholder': 'Raison de la visite'}}) }}
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="field-label">
-                                                <i class="fas fa-phone"></i>Téléphone
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-phone"></i>Téléphone</label>
                                             {{ form_widget(formVisite.telephone, {'attr': {'class': 'form-control', 'placeholder': 'Numéro de téléphone'}}) }}
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="field-label">
-                                                <i class="fas fa-envelope"></i>Email
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-envelope"></i>Email</label>
                                             {{ form_widget(formVisite.email, {'attr': {'class': 'form-control', 'placeholder': 'email@exemple.com'}}) }}
                                         </div>
                                         <div class="col-12">
-                                            <label class="field-label">
-                                                <i class="fas fa-id-card"></i>Pièce d'identité
-                                            </label>
+                                            <label class="field-label"><i class="fas fa-id-card"></i>Pièce d'identité</label>
                                             {{ form_widget(formVisite.pieceIdentite, {'attr': {'class': 'form-control', 'placeholder': 'CIN, Passeport, etc.'}}) }}
                                         </div>
                                     </div>
-
                                     <button type="submit" class="btn-form-submit">
-                                        <i class="fas fa-check-circle"></i>
-                                        Enregistrer et réserver
+                                        <i class="fas fa-check-circle"></i>Enregistrer et réserver
                                     </button>
                                 {{ form_end(formVisite) }}
                             {% else %}
                                 <div class="alert alert-warning rounded-3 border-0">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                    Le formulaire de visite n'est pas disponible.
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n'est pas disponible.
                                 </div>
                             {% endif %}
                         </div>
                     </div>
 
-                    {# ============================================================
-                       ONGLET 3 : RENDEZ-VOUS
-                    ============================================================ #}
+                    {# ONGLET 3 : RENDEZ-VOUS #}
                     <div class="tab-pane fade"
                          id="rdv-pane"
                          role="tabpanel"
@@ -1186,17 +851,14 @@
 
                         <div class="sec-head">
                             <div class="sec-head-left">
-                                <div class="sec-head-icon grad-indigo">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
+                                <div class="sec-head-icon grad-indigo"><i class="fas fa-calendar-alt"></i></div>
                                 <div>
                                     <h3 class="sec-head-title">Rendez-vous réservés</h3>
                                     <p class="sec-head-sub">Réservations planifiées en attente d'accueil</p>
                                 </div>
                             </div>
                             <span class="chip-count grad">
-                                <i class="fas fa-calendar-check"></i>
-                                {{ rdvReserves|default([])|length }} RDV
+                                <i class="fas fa-calendar-check"></i>{{ rdvReserves|default([])|length }} RDV
                             </span>
                         </div>
 
@@ -1229,11 +891,7 @@
                                                 <td style="color: var(--ink-500); font-size:.82rem;">
                                                     {{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '-' }}
                                                 </td>
-                                                <td>
-                                                    <span class="tag tag-amber">
-                                                        <i class="fas fa-clock"></i> En attente
-                                                    </span>
-                                                </td>
+                                                <td><span class="tag tag-amber"><i class="fas fa-clock"></i> En attente</span></td>
                                                 <td class="text-center">
                                                     <form action="{{ path('app_visite_valider_guerite', {'id': rdv.id}) }}" method="POST" class="d-inline">
                                                         <button type="submit" class="btn-accept">
@@ -1261,9 +919,7 @@
                         </div>
                     </div>
 
-                    {# ============================================================
-                       ONGLET 4 : BON DE SORTIE
-                    ============================================================ #}
+                    {# ONGLET 4 : BON DE SORTIE #}
                     <div class="tab-pane fade"
                          id="bon-pane"
                          role="tabpanel"
@@ -1276,28 +932,96 @@
                                     <i class="fas fa-exchange-alt"></i>
                                 </div>
                                 <h4>Créer un bon de sortie</h4>
-                                <p>Déclarer la sortie physique d'un matériel ou équipement</p>
+                                <p>Le bon sera transmis au coordonnateur — ou déléguez directement</p>
                             </div>
 
                             {% if formBon is defined and formBon is not null %}
                                 {{ form_start(formBon) }}
+
                                     <div class="field">
                                         <label class="field-label">
                                             <i class="fas fa-user"></i>Agent responsable
                                         </label>
-                                        {{ form_widget(formBon.nomEmploye, {'attr': {'class': 'form-control', 'readonly': true}}) }}
+                                        {{ form_widget(formBon.nomEmploye, {'attr': {
+                                            'class': 'form-control',
+                                            'readonly': true,
+                                            'placeholder': 'Auto-rempli'
+                                        }}) }}
                                     </div>
+
                                     <div class="field">
                                         <label class="field-label">
                                             <i class="fas fa-building"></i>Département
                                         </label>
-                                        {{ form_widget(formBon.departement, {'attr': {'class': 'form-control'}}) }}
+                                        {{ form_widget(formBon.departement, {'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Saisissez votre département'
+                                        }}) }}
+                                    </div>
+
+                                    <div class="field">
+                                        <label class="field-label">
+                                            <i class="fas fa-share-alt"></i>Déléguer à
+                                            <span style="color:var(--ink-400);font-weight:500;text-transform:none;letter-spacing:0;">(facultatif)</span>
+                                        </label>
+
+                                        <div class="dest-grid">
+                                            <button type="button"
+                                                    class="dest-option"
+                                                    data-dest="chef_service"
+                                                    onclick="selectDestination('chef_service')">
+                                                <span class="dest-icon indigo"><i class="fas fa-user-tie"></i></span>
+                                                <span class="dest-text">
+                                                    <strong>Un chef de service</strong>
+                                                    <small>Déléguer la validation</small>
+                                                </span>
+                                                <span class="check"><i class="fas fa-check"></i></span>
+                                            </button>
+
+                                            <button type="button"
+                                                    class="dest-option"
+                                                    data-dest="caisse"
+                                                    onclick="selectDestination('caisse')">
+                                                <span class="dest-icon emerald"><i class="fas fa-cash-register"></i></span>
+                                                <span class="dest-text">
+                                                    <strong>Le secrétariat</strong>
+                                                    <small>Transfert direct</small>
+                                                </span>
+                                                <span class="check"><i class="fas fa-check"></i></span>
+                                            </button>
+                                        </div>
+
+                                        <input type="hidden" name="destination" id="destinationInput" value="">
+
+                                        <small class="d-block mt-2" style="color:var(--ink-400); font-size:.78rem;">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Sans sélection, le bon est transmis au <strong>Coordonnateur</strong> pour validation.
+                                        </small>
+                                    </div>
+
+                                    <div class="chef-panel" id="chefPanel" style="display:none;">
+                                        <div class="field">
+                                            <label class="field-label">
+                                                <i class="fas fa-user-tie"></i>Sélectionner le chef de service
+                                            </label>
+                                            <select name="chef_service_id"
+                                                    id="chefServiceSelect"
+                                                    class="form-select">
+                                                <option value="">— Choisir un chef de service —</option>
+                                                {% for chef in chefsService|default([]) %}
+                                                    <option value="{{ chef.id }}">
+                                                        {{ chef.email }}{% if chef.service %} — {{ chef.service.nom }}{% endif %}
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <button type="submit" class="btn-form-submit grad-indigo">
                                         <i class="fas fa-paper-plane"></i>
-                                        Transmettre pour signature
+                                        Transmettre le bon
                                     </button>
+
                                 {{ form_end(formBon) }}
                             {% else %}
                                 <div class="alert alert-warning rounded-3 border-0">
@@ -1314,30 +1038,17 @@
         </div>
     </div>
 
-    {# ============================================
-       SCRIPTS
-    ============================================ #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-
-        // ============================================================
-        // 1. INITIALISATION BOOTSTRAP DES ONGLETS
-        // ============================================================
         const tabButtons = document.querySelectorAll('.side-tab[data-bs-toggle="tab"]');
         const panes = document.querySelectorAll('.tab-content .tab-pane');
 
-        tabButtons.forEach(btn => {
-            new bootstrap.Tab(btn);
-        });
+        tabButtons.forEach(btn => { new bootstrap.Tab(btn); });
 
-        // ============================================================
-        // 2. FALLBACK MANUEL
-        // ============================================================
         tabButtons.forEach(btn => {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
-
                 const targetId = this.getAttribute('data-bs-target');
                 if (!targetId) return;
 
@@ -1345,31 +1056,22 @@
                     b.classList.remove('active');
                     b.setAttribute('aria-selected', 'false');
                 });
-
-                panes.forEach(p => {
-                    p.classList.remove('show', 'active');
-                });
+                panes.forEach(p => p.classList.remove('show', 'active'));
 
                 this.classList.add('active');
                 this.setAttribute('aria-selected', 'true');
 
                 const targetPane = document.querySelector(targetId);
-                if (targetPane) {
-                    targetPane.classList.add('show', 'active');
-                }
+                if (targetPane) targetPane.classList.add('show', 'active');
             });
         });
 
-        // ============================================================
-        // 3. MÉMORISATION DE L'ONGLET ACTIF
-        // ============================================================
         const urlHash = window.location.hash;
         if (urlHash) {
             const trigger = document.querySelector(`.side-tab[data-bs-target="${urlHash}"]`);
             if (trigger) {
                 document.querySelectorAll('.side-tab').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
-
                 trigger.classList.add('active');
                 const target = document.querySelector(urlHash);
                 if (target) target.classList.add('show', 'active');
@@ -1377,14 +1079,44 @@
         }
 
         tabButtons.forEach(btn => {
-            btn.addEventListener('shown.bs.tab', function (e) {
+            btn.addEventListener('shown.bs.tab', function () {
                 const target = this.getAttribute('data-bs-target');
-                if (target) {
-                    history.replaceState(null, null, target);
-                }
+                if (target) history.replaceState(null, null, target);
             });
         });
     });
+
+    function selectDestination(value) {
+        const current = document.getElementById('destinationInput').value;
+
+        // Re-clic sur la même option → désélectionner
+        if (current === value) {
+            document.querySelectorAll('.dest-option').forEach(o => o.classList.remove('selected'));
+            document.getElementById('destinationInput').value = '';
+            document.getElementById('chefPanel').style.display = 'none';
+            document.getElementById('chefServiceSelect').required = false;
+            document.getElementById('chefServiceSelect').value = '';
+            return;
+        }
+
+        document.querySelectorAll('.dest-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.getAttribute('data-dest') === value);
+        });
+
+        document.getElementById('destinationInput').value = value;
+
+        const chefPanel  = document.getElementById('chefPanel');
+        const chefSelect = document.getElementById('chefServiceSelect');
+
+        if (value === 'chef_service') {
+            chefPanel.style.display = 'block';
+            chefSelect.required = true;
+        } else {
+            chefPanel.style.display = 'none';
+            chefSelect.required = false;
+            chefSelect.value = '';
+        }
+    }
     </script>
 </body>
 </html>

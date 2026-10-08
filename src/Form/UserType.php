@@ -29,6 +29,7 @@ class UserType extends AbstractType
                     'Comptabilité' => 'ROLE_COMPTA',
                     'Gérant de Stock' => 'ROLE_STOCK',
                     'Utilisateur Standard' => 'ROLE_USER',
+                    'Accueil'                          => 'ROLE_ACCUEIL',
                     'Administrateur' => 'ROLE_ADMIN',
                 ],
                 'multiple' => true,
@@ -36,15 +37,13 @@ class UserType extends AbstractType
                 'label' => 'Attribuer un rôle / Service',
                 'attr' => ['class' => 'form-control']
             ])
-            // Dans UserType.php, dans la méthode buildForm()
-  ->add('password', PasswordType::class, [
+    ->add('password', PasswordType::class, [
     'label' => 'Mot de passe provisoire',
     'required' => true,
     'mapped' => true,
     'attr' => [
         'class' => 'form-control',
         'placeholder' => 'Saisissez le mot de passe à communiquer',
-        'autocomplete' => 'new-password',
     ],
 ])
             ->add('service', EntityType::class, [

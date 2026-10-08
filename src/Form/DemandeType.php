@@ -17,26 +17,36 @@ class DemandeType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            // On remplace le texte libre par la sélection directe de l'attribut/article
-           ->add('materiel', TextType::class, [
+            ->add('materiel', TextType::class, [
                 'label' => 'Article / Matériel demandé',
-                'attr' => ['class' => 'form-control', 'placeholder' => 'Ex: Polyester, Rames de papier...']
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Ex: Polyester, Rames de papier...',
+                    'autocomplete' => 'off',
+                    'autocorrect' => 'off',
+                    'autocapitalize' => 'off',
+                    'spellcheck' => 'false',
+                    'id' => 'demande_materiel',
+                ],
             ])
-            // Champ pour la variante (qui s'affichera dynamiquement s'il y a des choix)
             ->add('attribut', EntityType::class, [
                 'class' => ArticleAttribut::class,
                 'required' => false,
                 'placeholder' => '-- Choisissez la variante / couleur --',
-                'choices' => [], // Sera rempli ou géré dynamiquement par le JS
-                'attr' => ['class' => 'form-select d-none', 'id' => 'select-attribut-container'] 
+                'choices' => [],
+                'attr' => [
+                    'class' => 'form-select',
+                    'id' => 'demande_attribut',
+                ],
             ])
             ->add('quantite', IntegerType::class, [
                 'label' => 'Quantité demandée',
-                'attr' => ['class' => 'form-control', 'min' => 1]
+                'attr' => ['class' => 'form-control', 'min' => 1],
             ])
             ->add('destination', ChoiceType::class, [
                 'label' => 'Commune de destination',
                 'placeholder' => '-- Sélectionnez la commune de destination --',
+                'required' => false,
                 'choices' => [
                     'Bandalungwa' => 'Bandalungwa', 'Barumbu' => 'Barumbu', 'Bumbu' => 'Bumbu',
                     'Gombe' => 'Gombe', 'Kalamu' => 'Kalamu', 'Kasa-Vubu' => 'Kasa-Vubu',
@@ -47,9 +57,8 @@ class DemandeType extends AbstractType
                     'Ndjili' => 'Ndjili', 'Ngaba' => 'Ngaba', 'Ngaliema' => 'Ngaliema',
                     'Ngiri-Ngiri' => 'Ngiri-Ngiri', 'Nsele' => 'Nsele', 'Selembao' => 'Selembao',
                 ],
-                'attr' => ['class' => 'form-select']
-            ])
-        ;
+                'attr' => ['class' => 'form-select', 'id' => 'demande_destination'],
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

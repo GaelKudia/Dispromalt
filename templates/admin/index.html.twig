@@ -587,7 +587,7 @@
                                         {{ form_errors(form.localisation) }}
                                     </div>
 
-                                    {# 🔑 Mot de passe SAISI par l'admin #}
+                                    {# 🔑 Champ mot de passe — saisie normale #}
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold text-secondary">
                                             Mot de passe provisoire <span class="text-danger">*</span>
@@ -595,8 +595,7 @@
                                         {{ form_widget(form.password, {
                                             'attr': {
                                                 'class': 'form-control',
-                                                'placeholder': 'Saisissez le mot de passe à communiquer',
-                                                'autocomplete': 'new-password'
+                                                'placeholder': 'Saisissez le mot de passe à communiquer'
                                             }
                                         }) }}
                                         {{ form_errors(form.password) }}

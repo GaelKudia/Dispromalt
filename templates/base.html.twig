@@ -50,18 +50,43 @@
             </a>
             <div class="p-3">
                 <nav class="nav flex-column">
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded" href="{{ path('app_dashboard') }}">
+
+                    {# ── Dashboard ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_dashboard') }}">
                         <i class="fa-solid fa-gauge-high me-2"></i> Dashboard
                     </a>
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_category_index' %}active{% endif %} mb-1 rounded" href="{{ path('app_category_index') }}">
+
+                    {# ── Catégories ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_category' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_category_index') }}">
                         <i class="fa-solid fa-layer-group me-2"></i> Catégories
                     </a>
-                    <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_caisse' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_index') }}">
+
+                    {# ── Espace Caisse (mouvements) ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_mouvements' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_caisse_mouvements') }}">
                         <i class="fa-solid fa-cash-register me-2"></i> Espace Caisse
                     </a>
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_nouvelle_visite' %}active{% endif %} mb-1 rounded" href="{{ path('app_caisse_nouvelle_visite') }}">
+
+                    {# ── Enregistrer Visite / Entrée caisse ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_entree' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_caisse_entree') }}">
                         <i class="fa-solid fa-address-book me-2"></i> Enregistrer Visite
                     </a>
+
+                    {# ── Rapports ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_rapport' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_rapport') }}">
+                        <i class="fa-solid fa-chart-line me-2"></i> Rapports
+                    </a>
+
+                    {# ── Historique réappro ── #}
+                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_historique_reappro' %}active{% endif %} mb-1 rounded"
+                       href="{{ path('app_historique_reappro') }}">
+                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Historique réappro
+                    </a>
+
                 </nav>
             </div>
         </div>
@@ -70,7 +95,12 @@
             <div class="top-navbar d-flex justify-content-between align-items-center shadow-sm">
                 <button class="btn btn-link text-dark" id="toggleSidebar"><i class="fa-solid fa-bars"></i></button>
                 {% if app.user %}
-                    <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">Sign out</a>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small">
+                            <i class="fa-solid fa-user me-1"></i>{{ app.user.userIdentifier }}
+                        </span>
+                        <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">Sign out</a>
+                    </div>
                 {% endif %}
             </div>
 

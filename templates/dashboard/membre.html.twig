@@ -62,6 +62,20 @@
             height: 3px; background: var(--gradient-1); border-radius: 3px 3px 0 0;
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
+        .nav-tabs-modern .nav-link .tab-badge {
+            background: #ef4444;
+            color: #fff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 800;
+            margin-left: 0.35rem;
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .6; transform: scale(1.1); }
+        }
         .table-modern { margin: 0; }
         .table-modern thead th {
             background: #f8fafc; color: #475569; font-size: 0.72rem;
@@ -120,9 +134,6 @@
             text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem;
         }
 
-        /* ============================================
-           BANNIÈRE "RÉDIGER UN DEVIS" (CHEF)
-        ============================================ */
         .chef-devis-banner {
             background: linear-gradient(135deg, rgba(250,210,90,0.12) 0%, rgba(250,210,90,0.03) 100%);
             border: 1.5px dashed rgba(202, 138, 4, 0.35);
@@ -135,78 +146,107 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
-        .chef-devis-banner-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+        .chef-devis-banner-left { display: flex; align-items: center; gap: 1rem; }
         .chef-devis-banner-icon {
             width: 52px; height: 52px;
             border-radius: 14px;
             background: var(--gradient-5);
             color: #fff;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.35rem;
-            flex-shrink: 0;
+            font-size: 1.35rem; flex-shrink: 0;
             box-shadow: 0 6px 16px rgba(250, 112, 154, 0.35);
         }
         .chef-devis-banner-title {
-            font-size: 1rem;
-            font-weight: 800;
-            color: #1e293b;
-            margin: 0;
-            letter-spacing: -0.2px;
+            font-size: 1rem; font-weight: 800;
+            color: #1e293b; margin: 0; letter-spacing: -0.2px;
         }
         .chef-devis-banner-subtitle {
-            font-size: 0.83rem;
-            color: #64748b;
-            margin: 0.15rem 0 0;
-            font-weight: 500;
+            font-size: 0.83rem; color: #64748b;
+            margin: 0.15rem 0 0; font-weight: 500;
         }
         .btn-creer-devis {
             background: var(--gradient-5);
-            color: #fff;
-            border: none;
+            color: #fff; border: none;
             border-radius: 12px;
             padding: 0.75rem 1.4rem;
-            font-weight: 700;
-            font-size: 0.92rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            font-weight: 700; font-size: 0.92rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
             box-shadow: 0 8px 20px rgba(250, 112, 154, 0.35);
-            text-decoration: none;
-            white-space: nowrap;
+            text-decoration: none; white-space: nowrap;
         }
         .btn-creer-devis:hover {
-            color: #fff;
-            transform: translateY(-2px);
+            color: #fff; transform: translateY(-2px);
             box-shadow: 0 12px 28px rgba(250, 112, 154, 0.5);
         }
 
-        /* Statistiques en haut du tableau chef */
-        .chef-stats-row {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.25rem;
-        }
+        .chef-stats-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
         .chef-stat-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
             padding: 0.55rem 1rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background: #f8fafc; border: 1px solid #e2e8f0;
             border-radius: 10px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: #475569;
+            font-size: 0.82rem; font-weight: 700; color: #475569;
         }
         .chef-stat-chip i { font-size: 0.95rem; }
         .chef-stat-chip.chip-warning { background: rgba(250,112,154,0.08); border-color: rgba(250,112,154,0.25); color: #d63384; }
         .chef-stat-chip.chip-success { background: rgba(67,233,123,0.08); border-color: rgba(67,233,123,0.25); color: #059669; }
         .chef-stat-chip.chip-info    { background: rgba(14,165,233,0.08); border-color: rgba(14,165,233,0.25); color: #0284c7; }
+
+        .bons-section {
+            background: linear-gradient(135deg, #fffbeb, #fff);
+            border: 2px solid #f59e0b;
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
+        }
+        .bons-section-head {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 1.15rem 1.4rem;
+            border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .bons-section-head-left { display: flex; align-items: center; gap: 1rem; }
+        .bons-section-icon {
+            width: 48px; height: 48px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+            flex-shrink: 0;
+        }
+        .bons-section-title {
+            font-size: 1rem; font-weight: 800;
+            color: #78350f; margin: 0; letter-spacing: -0.2px;
+        }
+        .bons-section-sub {
+            font-size: 0.8rem; color: #92400e;
+            margin: 0.1rem 0 0; font-weight: 500;
+        }
+        .bons-section-count {
+            background: #fff;
+            color: #b45309;
+            padding: 0.45rem 0.95rem;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 800;
+            border: 1.5px solid rgba(245, 158, 11, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .bons-section-count .dot-live {
+            width: 7px; height: 7px;
+            background: #ef4444; border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.20);
+            animation: pulse 1.8s infinite;
+        }
     </style>
 </head>
 <body>
@@ -217,23 +257,35 @@
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
-    <img src="{{ asset('images/logo.png') }}"
-         alt="Logo Dispromalt"
-         style="height: 40px; width: auto; margin-right: 10px;">
-    Dispro<span class="text-primary">malt</span>
-    <span class="fw-light fs-6 text-white-50 ms-2">| Espace Opérationnel</span>
-</a>
+            <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
+            Dispro<span class="text-primary">malt</span>
+            <span class="fw-light fs-6 text-white-50 ms-2">| Espace Opérationnel</span>
+        </a>
         <div class="d-flex align-items-center gap-3">
             <div class="dropdown">
                 <button class="notification-bell" type="button" id="notificationsMenu" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-bell"></i>
-                    {% if reunionsDelegation is defined and reunionsDelegation|length > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">
-                            {{ reunionsDelegation|length }}
-                        </span>
+                    {% set totalNotifs = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (bonsChefService|default([])|length) %}
+                    {% if totalNotifs > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">{{ totalNotifs }}</span>
                     {% endif %}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 320px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
+                    {% if bonsChefService|default([])|length > 0 %}
+                        <li class="dropdown-header fw-bold text-warning border-bottom pb-2 mb-2">
+                            <i class="fas fa-hourglass-half me-2"></i>Bons à valider ({{ bonsChefService|length }})
+                        </li>
+                        {% for bon in bonsChefService|slice(0, 5) %}
+                            <li>
+                                <a class="dropdown-item p-2 rounded mb-1" href="#pane-bons-chef" data-bs-toggle="tab">
+                                    <div class="fw-bold text-dark small">#{{ bon.id }} — {{ bon.nomEmploye }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">
+                                        <i class="fas fa-building me-1"></i>{{ bon.departement }}
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                     <li class="dropdown-header fw-bold text-dark border-bottom pb-2 mb-2">
                         <i class="fas fa-calendar-alt text-primary me-2"></i>Réunions / Ordres Délégués
                     </li>
@@ -251,7 +303,7 @@
                     {% else %}
                         <li class="text-center text-muted py-3 small">
                             <i class="fas fa-check-circle text-success mb-1 d-block"></i>
-                            Aucune notification.
+                            Aucune réunion planifiée.
                         </li>
                     {% endif %}
                 </ul>
@@ -272,7 +324,7 @@
 ============================================ #}
 <div class="container-fluid py-4 px-4" style="max-width: 1500px;">
 
-    {# ============ HERO BANNER CHEF DE SERVICE ============ #}
+    {# HERO BANNER CHEF DE SERVICE #}
     {% if isChefService|default(false) %}
     <div class="hero-banner">
         <div class="hero-banner-content">
@@ -300,14 +352,14 @@
     {# Flash Messages #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
-                <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+            <div class="alert alert-{{ label == 'danger' ? 'danger' : (label == 'warning' ? 'warning' : 'success') }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
+                <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : (label == 'warning' ? 'fa-info-circle' : 'fa-check-circle') }} me-2"></i> {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
             </div>
         {% endfor %}
     {% endfor %}
 
-    {# ============ STATISTIQUES ============ #}
+    {# STATISTIQUES #}
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="stat-card stat-warning">
@@ -352,7 +404,6 @@
     <div class="main-card">
         <ul class="nav nav-tabs nav-tabs-modern" id="mainTabs" role="tablist">
 
-            {# ONGLETS PRIORITAIRES POUR LE CHEF DE SERVICE #}
             {% if isChefService|default(false) %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-devis-service" data-bs-toggle="tab" data-bs-target="#pane-devis-service" type="button" role="tab">
@@ -364,26 +415,34 @@
                     <i class="fas fa-boxes text-primary"></i>Demandes à valider
                 </button>
             </li>
-                        {% if is_granted('ROLE_STOCK') or is_granted('ROLE_COORDON') or is_granted('ROLE_GUERITE') or is_granted('ROLE_COMPTA') or is_granted('ROLE_DG') %}
+
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-bons-chef" data-bs-toggle="tab" data-bs-target="#pane-bons-chef" type="button" role="tab">
+                    <i class="fas fa-file-signature text-warning"></i>Bons à valider
+                    {% if bonsChefService|default([])|length > 0 %}
+                        <span class="tab-badge">{{ bonsChefService|length }}</span>
+                    {% endif %}
+                </button>
+            </li>
+
+            {% if is_granted('ROLE_STOCK') or is_granted('ROLE_COORDON') or is_granted('ROLE_GUERITE') or is_granted('ROLE_COMPTA') or is_granted('ROLE_DG') %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
-                    <i class="fas fa-file-signature text-success"></i>Bons de Sortie
+                    <i class="fas fa-file-signature text-success"></i>Registre Bons
                 </button>
             </li>
             {% endif %}
             <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-ma-demande" data-bs-toggle="tab" data-bs-target="#pane-ma-demande" type="button" role="tab">
-        <i class="fas fa-plus-circle text-primary"></i>Ma Demande
-    </button>
-</li>
+                <button class="nav-link" id="tab-ma-demande" data-bs-toggle="tab" data-bs-target="#pane-ma-demande" type="button" role="tab">
+                    <i class="fas fa-plus-circle text-primary"></i>Ma Demande
+                </button>
+            </li>
             {% else %}
-            {# MEMBRE SIMPLE #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Suivi des Demandes
                 </button>
             </li>
-            
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-mes-devis" data-bs-toggle="tab" data-bs-target="#pane-mes-devis" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Mes Devis
@@ -414,12 +473,11 @@
             <div class="tab-content">
 
                 {# ============================================================
-                   ONGLET CHEF : DEVIS DU SERVICE (Validation + Création)
+                   ONGLET CHEF : DEVIS DU SERVICE
                 ============================================================ #}
                 {% if isChefService|default(false) %}
                 <div class="tab-pane fade show active" id="pane-devis-service" role="tabpanel">
 
-                    {# Bannière "Rédiger un Devis" #}
                     <div class="chef-devis-banner">
                         <div class="chef-devis-banner-left">
                             <div class="chef-devis-banner-icon">
@@ -438,7 +496,6 @@
                         </a>
                     </div>
 
-                    {# Statistiques rapides #}
                     <div class="chef-stats-row">
                         <span class="chef-stat-chip chip-warning">
                             <i class="fas fa-clock"></i>
@@ -541,15 +598,188 @@
                         </table>
                     </div>
                 </div>
-                {% endif %}
 
                 {# ============================================================
-                   ONGLET CHEF : MA NOUVELLE DEMANDE
+                   🎯 ONGLET DÉDIÉ : BONS À VALIDER PAR LE CHEF
                 ============================================================ #}
-                {% if isChefService|default(false) %}
+                <div class="tab-pane fade" id="pane-bons-chef" role="tabpanel">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0">
+                                <i class="fas fa-hourglass-half text-warning me-2"></i>
+                                Bons de sortie à valider
+                            </h5>
+                            <small class="text-muted">
+                                Bons qui vous ont été délégués par l'accueil — action requise
+                            </small>
+                        </div>
+                        {% if bonsChefService|default([])|length > 0 %}
+                            <span class="badge badge-soft badge-soft-warning px-3 py-2" style="font-size:0.8rem;">
+                                <i class="fas fa-bell me-1"></i>
+                                {{ bonsChefService|length }} en attente
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if bonsChefService|default([])|length > 0 %}
+
+                        <div class="bons-section">
+                            <div class="bons-section-head">
+                                <div class="bons-section-head-left">
+                                    <div class="bons-section-icon">
+                                        <i class="fas fa-file-signature"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="bons-section-title">Liste des bons à traiter</h5>
+                                        <p class="bons-section-sub">
+                                            Validez ou rejetez chaque bon ci-dessous
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="bons-section-count">
+                                    <span class="dot-live"></span>
+                                    {{ bonsChefService|length }} bon(s)
+                                </span>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table mb-0" style="font-size: 0.9rem;">
+                                    <thead style="background: #f8fafc;">
+                                        <tr>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;">ID</th>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;">Employé</th>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;">Département</th>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;">Motif</th>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;">Date</th>
+                                            <th style="padding:1rem;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;border-bottom:2px solid #e2e8f0;" class="text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for bon in bonsChefService %}
+                                            <tr style="border-bottom:1px solid #f1f5f9;">
+                                                <td style="padding:1rem;font-weight:700;color:#0a0f1e;">
+                                                    #{{ bon.id }}
+                                                </td>
+                                                <td style="padding:1rem;">
+                                                    <span class="badge" style="background:#e0e7ff;color:#3730a3;padding:.4rem .75rem;border-radius:8px;font-weight:600;">
+                                                        <i class="fas fa-user me-1"></i>{{ bon.nomEmploye }}
+                                                    </span>
+                                                </td>
+                                                <td style="padding:1rem;">
+                                                    <span class="badge" style="background:#cffafe;color:#0e7490;padding:.4rem .75rem;border-radius:8px;font-weight:600;">
+                                                        {{ bon.departement }}
+                                                    </span>
+                                                </td>
+                                                <td style="padding:1rem;color:#64748b;font-size:.85rem;">
+                                                    {{ bon.raison|default(bon.motif|default('—')) }}
+                                                </td>
+                                                <td style="padding:1rem;color:#64748b;font-size:.82rem;">
+                                                    {{ bon.dateCreation ? bon.dateCreation|date('d/m/Y H:i') : '—' }}
+                                                </td>
+                                                <td style="padding:1rem;text-align:center;">
+                                                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+                                                        {# ✅ VALIDER #}
+                                                        <form action="{{ path('app_chef_service_bon_valider', {'id': bon.id}) }}"
+                                                              method="POST"
+                                                              class="d-inline"
+                                                              onsubmit="return confirm('Valider ce bon de sortie ?\n\nIl sera transmis au coordonnateur.');">
+                                                            <button type="submit"
+                                                                    class="btn btn-sm fw-bold"
+                                                                    style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;box-shadow:0 4px 12px rgba(16,185,129,.3);">
+                                                                <i class="fas fa-check me-1"></i>Valider
+                                                            </button>
+                                                        </form>
+
+                                                        {# ❌ REJETER — ouvre la modal #}
+                                                        <button type="button"
+                                                                class="btn btn-sm fw-bold"
+                                                                style="background:#fff;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#modalRejetBonChef"
+                                                                data-bon-id="{{ bon.id }}"
+                                                                data-bon-employe="{{ bon.nomEmploye }}">
+                                                            <i class="fas fa-ban me-1"></i>Rejeter
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle" style="color:#10b981;"></i>
+                            <div class="fw-bold">Aucun bon en attente</div>
+                            <small>Tous les bons qui vous ont été délégués ont été traités.</small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {# ═══════════════════════════════════════════════════════════════
+                   MODAL : Motif de rejet
+                ═══════════════════════════════════════════════════════════════ #}
+                <div class="modal fade" id="modalRejetBonChef" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.25);">
+
+                            <div class="modal-header" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;padding:1.25rem 1.5rem;">
+                                <h5 class="modal-title fw-bold mb-0">
+                                    <i class="fas fa-ban me-2"></i>Rejeter le bon
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <form id="formRejetBonChef" method="POST">
+                                <div class="modal-body p-4">
+
+                                    <div class="mb-3 p-3 rounded-3" style="background:#fef2f2;border:1px solid #fecaca;">
+                                        <div class="small" style="color:#991b1b;">
+                                            <strong><i class="fas fa-file-signature me-1"></i>Bon concerné :</strong>
+                                            <span id="rejetBonRecap">#— — —</span>
+                                        </div>
+                                    </div>
+
+                                    <label class="form-label small fw-bold text-secondary text-uppercase">
+                                        Motif du rejet <span style="color:#ef4444;">*</span>
+                                    </label>
+                                    <textarea name="motif_rejet"
+                                              class="form-control"
+                                              rows="3"
+                                              required
+                                              placeholder="Expliquez pourquoi ce bon est rejeté…"
+                                              style="border:1.5px solid #e2e8f0;border-radius:10px;font-size:.9rem;"></textarea>
+
+                                    <small class="text-muted d-block mt-2" style="font-size:.78rem;">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Le motif sera enregistré et consultable par l'accueil.
+                                    </small>
+                                </div>
+
+                                <div class="modal-footer border-0 p-4 pt-0 gap-2">
+                                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                                        Annuler
+                                    </button>
+                                    <button type="submit"
+                                            class="btn fw-bold rounded-pill px-4"
+                                            style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;">
+                                        <i class="fas fa-ban me-1"></i>Confirmer le rejet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                {# ============================================================
+                   ONGLET CHEF : MA NOUVELLE DEMANDE (STRUCTURE CORRIGÉE)
+                ============================================================ #}
                 <div class="tab-pane fade" id="pane-ma-demande" role="tabpanel">
 
-                    {# Bannière info #}
                     <div class="chef-devis-banner mb-4" style="border-color: rgba(79,172,254,0.35);">
                         <div class="chef-devis-banner-left">
                             <div class="chef-devis-banner-icon" style="background: var(--gradient-3);">
@@ -578,21 +808,32 @@
                                 </div>
 
                                 {% if formDemande is defined and formDemande is not null %}
-                                    {{ form_start(formDemande) }}
+                                    {{ form_start(formDemande, {'attr': {'autocomplete': 'off', 'id': 'form-demande-chef'}}) }}
+
                                         <div class="row">
                                             <div class="col-md-8 mb-3">
                                                 {{ form_label(formDemande.materiel, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                                {{ form_widget(formDemande.materiel, {'attr': {'class': 'form-control', 'id': 'demande_materiel', 'placeholder': 'Tapez le nom de l\'article'}}) }}
+                                                {{ form_widget(formDemande.materiel, {'attr': {
+                                                    'class': 'form-control demande-materiel-input',
+                                                    'placeholder': 'Tapez le nom de l\'article',
+                                                    'autocomplete': 'off',
+                                                    'autocorrect': 'off',
+                                                    'autocapitalize': 'off',
+                                                    'spellcheck': 'false'
+                                                }}) }}
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
                                             </div>
                                         </div>
+
                                         <div class="row">
-                                            <div class="col-md-6 mb-3" id="attribut-wrapper">
+                                            <div class="col-md-6 mb-3">
                                                 {{ form_label(formDemande.attribut, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                                {{ form_widget(formDemande.attribut, {'attr': {'class': 'form-select', 'id': 'demande_attribut', 'disabled': 'disabled'}}) }}
+                                                {{ form_widget(formDemande.attribut, {'attr': {
+                                                    'class': 'form-select demande-attribut-select'
+                                                }}) }}
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
@@ -601,10 +842,26 @@
                                                 </div>
                                             {% endif %}
                                         </div>
+
                                         {{ form_rest(formDemande) }}
+
+                                        {# 🔍 AFFICHAGE DES ERREURS #}
+                                        {% if formDemande.vars.errors|length > 0 %}
+                                            <div class="alert alert-danger rounded-3 border-0 mt-3 mb-2" style="font-size:0.85rem;">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                <strong>Erreurs à corriger :</strong>
+                                                <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                                    {% for error in formDemande.vars.errors %}
+                                                        <li>{{ error.message }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+
                                         <button type="submit" class="btn btn-modern btn-primary w-100 mt-2">
                                             <i class="fas fa-paper-plane me-2"></i>Envoyer ma Demande
                                         </button>
+
                                     {{ form_end(formDemande) }}
                                 {% else %}
                                     <div class="alert alert-info mb-0 rounded-3">
@@ -723,8 +980,6 @@
                                                 </form>
                                             </td>
                                         {% endif %}
-
-                                        
                                     </tr>
                                 {% else %}
                                     <tr>
@@ -804,7 +1059,6 @@
                     <div class="row justify-content-center">
                         <div class="col-lg-10">
 
-                            {# Bouton création devis #}
                             <div class="form-card mb-4" style="background: linear-gradient(135deg, rgba(250,210,90,0.08) 0%, rgba(250,210,90,0.02) 100%);">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                                     <div class="d-flex align-items-center gap-3">
@@ -822,7 +1076,6 @@
                                 </div>
                             </div>
 
-                            {# Liste de mes devis #}
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-yellow">
@@ -868,8 +1121,6 @@
                                                         <span class="small text-muted">{{ devis.devise }}</span>
                                                     </td>
                                                 </tr>
-
-                                                
                                             {% else %}
                                                 <tr>
                                                     <td colspan="5">
@@ -890,7 +1141,7 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET : NOUVELLE DEMANDE
+                   ONGLET : NOUVELLE DEMANDE (MEMBRE) — CORRIGÉ
                 ============================================================ #}
                 <div class="tab-pane fade" id="pane-new-demande" role="tabpanel">
                     <div class="row g-4">
@@ -905,22 +1156,34 @@
                                         <small class="text-muted">Remplissez le formulaire pour soumettre une demande.</small>
                                     </div>
                                 </div>
+
                                 {% if formDemande is defined and formDemande is not null %}
-                                    {{ form_start(formDemande) }}
+                                    {{ form_start(formDemande, {'attr': {'autocomplete': 'off', 'id': 'form-demande-membre'}}) }}
+
                                         <div class="row">
                                             <div class="col-md-8 mb-3">
                                                 {{ form_label(formDemande.materiel, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                                {{ form_widget(formDemande.materiel, {'attr': {'class': 'form-control', 'id': 'demande_materiel', 'placeholder': 'Tapez le nom de l\'article'}}) }}
+                                                {{ form_widget(formDemande.materiel, {'attr': {
+                                                    'class': 'form-control demande-materiel-input',
+                                                    'placeholder': 'Tapez le nom de l\'article',
+                                                    'autocomplete': 'off',
+                                                    'autocorrect': 'off',
+                                                    'autocapitalize': 'off',
+                                                    'spellcheck': 'false'
+                                                }}) }}
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
                                             </div>
                                         </div>
+
                                         <div class="row">
-                                            <div class="col-md-6 mb-3" id="attribut-wrapper">
+                                            <div class="col-md-6 mb-3">
                                                 {{ form_label(formDemande.attribut, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
-                                                {{ form_widget(formDemande.attribut, {'attr': {'class': 'form-select', 'id': 'demande_attribut', 'disabled': 'disabled'}}) }}
+                                                {{ form_widget(formDemande.attribut, {'attr': {
+                                                    'class': 'form-select demande-attribut-select'
+                                                }}) }}
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
@@ -929,10 +1192,26 @@
                                                 </div>
                                             {% endif %}
                                         </div>
+
                                         {{ form_rest(formDemande) }}
+
+                                        {# 🔍 AFFICHAGE DES ERREURS #}
+                                        {% if formDemande.vars.errors|length > 0 %}
+                                            <div class="alert alert-danger rounded-3 border-0 mt-3 mb-2" style="font-size:0.85rem;">
+                                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                                <strong>Erreurs à corriger :</strong>
+                                                <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                                    {% for error in formDemande.vars.errors %}
+                                                        <li>{{ error.message }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+
                                         <button type="submit" class="btn btn-modern btn-primary w-100 mt-2">
                                             <i class="fas fa-paper-plane me-2"></i>Envoyer la Demande
                                         </button>
+
                                     {{ form_end(formDemande) }}
                                 {% else %}
                                     <div class="alert alert-info mb-0 rounded-3">
@@ -1001,8 +1280,6 @@
                 </div>
                 {% endif %}
 
-                
-
                 {# ============================================================
                    ONGLET : RÉSERVER UNE VISITE
                 ============================================================ #}
@@ -1054,70 +1331,122 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Obligation de la commune pour les gilets
-        const champMateriel = document.getElementById('demande_materiel');
-        const champDestination = document.getElementById('demande_destination');
-        if (champMateriel && champDestination) {
-            function verifierConditionCommune() {
-                const valeurMateriel = champMateriel.value.trim().toLowerCase();
-                if (valeurMateriel.includes('gilet')) {
-                    champDestination.setAttribute('required', 'required');
-                    champDestination.classList.add('border-danger');
-                } else {
-                    champDestination.removeAttribute('required');
-                    champDestination.classList.remove('border-danger');
-                }
-            }
-            champMateriel.addEventListener('input', verifierConditionCommune);
-            champMateriel.addEventListener('blur', verifierConditionCommune);
-            verifierConditionCommune();
-        }
 
-        // 2. Chargement dynamique des attributs
-        const champRecherche = document.getElementById('demande_materiel');
-        const attributSelect = document.getElementById('demande_attribut');
-        if (champRecherche && attributSelect) {
+        // ============================================================
+        // 1. Gestion de la recherche d'articles (multi-formulaires)
+        // ============================================================
+        document.querySelectorAll('.demande-materiel-input').forEach(champMateriel => {
+            // Trouver les champs associés dans le MÊME form
+            const form = champMateriel.closest('form');
+            if (!form) return;
+
+            const attributSelect = form.querySelector('.demande-attribut-select');
+            const champDestination = form.querySelector('select[id$="_destination"]');
+
+            if (!attributSelect) return;
+
             let timeoutId = null;
-            function chargerAttributs(nom) {
+            let lastQuery = '';
+
+            async function chargerAttributs(nom) {
                 if (!nom || nom.length < 2) {
                     attributSelect.innerHTML = '<option value="">Saisissez au moins 2 caractères</option>';
-                    attributSelect.disabled = true;
+                    attributSelect.disabled = false;
                     return;
                 }
-                fetch('/api/recherche-article?nom=' + encodeURIComponent(nom))
-                    .then(r => r.ok ? r.json() : Promise.reject())
-                    .then(data => {
-                        if (!data.found) {
-                            attributSelect.innerHTML = '<option value="">Aucun article trouvé</option>';
-                            attributSelect.disabled = true;
-                            return;
-                        }
-                        attributSelect.innerHTML = '<option value="">Choisissez une variante</option>';
-                        if (data.attributs.length === 0) {
-                            attributSelect.innerHTML = '<option value="">Aucune variante</option>';
-                            attributSelect.disabled = true;
-                        } else {
-                            data.attributs.forEach(attr => {
-                                const option = document.createElement('option');
-                                option.value = attr.id;
-                                option.textContent = attr.valeur;
-                                attributSelect.appendChild(option);
-                            });
-                            attributSelect.disabled = false;
-                        }
-                    })
-                    .catch(() => {
-                        attributSelect.innerHTML = '<option value="">Erreur de chargement</option>';
-                        attributSelect.disabled = true;
-                    });
-            }
-            champRecherche.addEventListener('input', function() {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => chargerAttributs(this.value.trim()), 500);
-            });
-        }
 
+                attributSelect.innerHTML = '<option value="">Recherche en cours…</option>';
+                attributSelect.disabled = false;
+
+                try {
+                    const r = await fetch('/api/recherche-article?nom=' + encodeURIComponent(nom));
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    const data = await r.json();
+
+                    if (!data.found) {
+                        attributSelect.innerHTML = '<option value="">Aucun article trouvé — vous pouvez envoyer quand même</option>';
+                        attributSelect.disabled = false;
+                        return;
+                    }
+
+                    if (data.attributs.length === 0) {
+                        attributSelect.innerHTML = '<option value="">Aucune variante disponible</option>';
+                        attributSelect.disabled = false;
+                    } else {
+                        attributSelect.innerHTML = '<option value="">-- Choisissez la variante / couleur --</option>';
+                        data.attributs.forEach(attr => {
+                            const option = document.createElement('option');
+                            option.value = attr.id;
+                            option.textContent = attr.valeur;
+                            attributSelect.appendChild(option);
+                        });
+                        attributSelect.disabled = false;
+                    }
+                } catch (e) {
+                    console.error('Erreur recherche article:', e);
+                    attributSelect.innerHTML = '<option value="">Erreur — vous pouvez envoyer quand même</option>';
+                    attributSelect.disabled = false;
+                }
+            }
+
+            // Debounce 300ms + évite les doublons
+            champMateriel.addEventListener('input', function() {
+                const val = this.value.trim();
+                if (val === lastQuery) return;
+                lastQuery = val;
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => chargerAttributs(val), 300);
+            });
+
+            // Force le chargement au blur
+            champMateriel.addEventListener('blur', function() {
+                clearTimeout(timeoutId);
+                const nom = this.value.trim();
+                if (nom.length >= 2 && attributSelect.options.length <= 1) {
+                    chargerAttributs(nom);
+                }
+            });
+
+            // Obligation commune pour gilets
+            if (champDestination) {
+                function verifierCommuneGilet() {
+                    const val = champMateriel.value.trim().toLowerCase();
+                    if (val.includes('gilet')) {
+                        champDestination.setAttribute('required', 'required');
+                        champDestination.classList.add('border-danger');
+                    } else {
+                        champDestination.removeAttribute('required');
+                        champDestination.classList.remove('border-danger');
+                    }
+                }
+                champMateriel.addEventListener('input', verifierCommuneGilet);
+                champMateriel.addEventListener('blur', verifierCommuneGilet);
+                verifierCommuneGilet();
+            }
+        });
+
+        // ============================================================
+        // 2. Empêcher l'autocomplete navigateur de bloquer le 1er clic
+        // ============================================================
+        document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
+            input.setAttribute('autocomplete', 'off');
+            input.setAttribute('autocorrect', 'off');
+            input.setAttribute('autocapitalize', 'off');
+            input.setAttribute('spellcheck', 'false');
+        });
+
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                // Fermer les dropdowns autocomplete ouverts
+                if (document.activeElement && document.activeElement.blur) {
+                    document.activeElement.blur();
+                }
+            });
+        });
+
+        // ============================================================
         // 3. Mémorisation de l'onglet actif via l'URL
+        // ============================================================
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -1128,6 +1457,22 @@
                 history.replaceState(null, null, e.target.dataset.bsTarget);
             });
         });
+
+        // ============================================================
+        // 4. MODAL DE REJET — alimenter les infos du bon
+        // ============================================================
+        const modalRejet = document.getElementById('modalRejetBonChef');
+        if (modalRejet) {
+            modalRejet.addEventListener('show.bs.modal', function (event) {
+                const btn     = event.relatedTarget;
+                const bonId   = btn.getAttribute('data-bon-id');
+                const employe = btn.getAttribute('data-bon-employe');
+
+                document.getElementById('rejetBonRecap').textContent = `#${bonId} — ${employe}`;
+                document.getElementById('formRejetBonChef').action =
+                    '/dashboard/chef-service/bon/rejeter/' + bonId;
+            });
+        }
     });
 </script>
 </body>

@@ -199,6 +199,11 @@ class DashboardController extends AbstractController
         $formVisiteView = null;
         $formStockView = null;
         $formVisiteGueriteView = null;
+        // 👔 Liste des chefs de service (pour la délégation des bons de sortie)
+$chefsService = $em->getRepository(User::class)->findBy(
+    ['isChefService' => true],
+    ['email' => 'ASC']
+);
 
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui   = new \DateTime('today 23:59:59');
@@ -334,25 +339,64 @@ class DashboardController extends AbstractController
         }
 
         // 3. FORMULAIRE BON DE SORTIE
-        if ($this->isGranted('ROLE_STOCK') ||
-            (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
+        // 3. FORMULAIRE BON DE SORTIE — avec choix de destination
+if ($this->isGranted('ROLE_STOCK') ||
+    (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
 
-            $bonSortie = new BonSortie();
-            $formBon = $this->createForm(BonSortieType::class, $bonSortie);
-            $formBon->handleRequest($request);
-            if ($formBon->isSubmitted() && $formBon->isValid()) {
-                $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
-                $bonSortie->setDepartement($userDept);
-                $bonSortie->setDateCreation(new \DateTime());
+    $bonSortie = new BonSortie();
+$bonSortie->setNomEmploye($currentUser->getUserIdentifier());  // ← Pré-remplissage
+$bonSortie->setDepartement($userDept);                         // ← Pré-remplissage
+$formBon = $this->createForm(BonSortieType::class, $bonSortie);
+    $formBon->handleRequest($request);
+
+    if ($formBon->isSubmitted() && $formBon->isValid()) {
+        $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
+        $bonSortie->setDepartement($userDept);
+        $bonSortie->setDateCreation(new \DateTime());
+
+        // 🎯 NOUVEAU : lire la destination choisie par l'agent d'accueil
+        $destination   = $request->request->get('destination');
+        $chefServiceId = $request->request->get('chef_service_id');
+
+        // 🅰️ Cas 1 : Délégation à un chef de service
+        if ($destination === 'chef_service' && $chefServiceId) {
+            $chefService = $em->getRepository(User::class)->find((int) $chefServiceId);
+
+            if ($chefService && method_exists($chefService, 'isChefService') && $chefService->isChefService()) {
+                $bonSortie->setStatut('ATTENTE_CHEF_SERVICE');
+
+                // On journalise dans la raison qui est le chef concerné
+                if (method_exists($bonSortie, 'setRaison')) {
+                    $raison = $bonSortie->getRaison() ?: '';
+                    $bonSortie->setRaison(
+                        trim($raison . ' | Délégué à : ' . $chefService->getUserIdentifier())
+                    );
+                }
+
+                $this->addFlash('success', '🚀 Bon transmis au chef de service : ' . $chefService->getUserIdentifier());
+            } else {
+                // Fallback : chef introuvable → on envoie au coordon
                 $bonSortie->setStatut('Créé');
-                $em->persist($bonSortie);
-                $em->flush();
-                $this->addFlash('success', '🚀 Le bon de sortie a été transmis avec succès !');
-                return $this->redirectToRoute('app_dashboard');
+                $this->addFlash('warning', '⚠️ Chef de service introuvable — bon transmis au coordonnateur par défaut.');
             }
-            $formBonView = $formBon->createView();
+
+        // 🅱️ Cas 2 : Transmission directe à la caisse
+        } elseif ($destination === 'caisse') {
+            $bonSortie->setStatut('ATTENTE_CAISSE');
+            $this->addFlash('success', '🚀 Bon transmis à la Caisse.');
+
+        // 🅲 Cas 3 : Fallback — envoi au coordonnateur (comportement classique)
+        } else {
+            $bonSortie->setStatut('Créé');
+            $this->addFlash('success', '🚀 Le bon de sortie a été transmis au coordonnateur.');
         }
 
+        $em->persist($bonSortie);
+        $em->flush();
+        return $this->redirectToRoute('app_dashboard');
+    }
+    $formBonView = $formBon->createView();
+}
         // 4. FORMULAIRE DEMANDE
         if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN')) {
             $demande = new Demande();
@@ -397,8 +441,12 @@ class DashboardController extends AbstractController
                 $em->persist($demande);
                 $em->flush();
 
-                $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
-                return $this->redirectToRoute('app_dashboard');
+$this->addFlash('success', sprintf(
+    '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
+    $demande->getId(),
+    $demande->getMateriel(),
+    $demande->getQuantite() ?? 1
+));                return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
             }
             $formDemandeView = $formDemande->createView();
         }
@@ -420,6 +468,12 @@ class DashboardController extends AbstractController
                 ->getResult();
 
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
+
+            // 🎯 Bons délégués au chef de service (en attente de validation)
+$bonsChefService = $bonSortieRepository->findBy(
+    ['statut' => 'ATTENTE_CHEF_SERVICE'],
+    ['id' => 'DESC']
+);
 
             $devisServiceListe = [];
             $totalDevisUSD = 0;
@@ -508,8 +562,13 @@ class DashboardController extends AbstractController
                     $em->persist($demande);
                     $em->flush();
 
-                    $this->addFlash('success', 'Demande de matériel enregistrée avec succès.');
-                    return $this->redirectToRoute('app_dashboard');
+                    $this->addFlash('success', sprintf(
+    '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
+    $demande->getId(),
+    $demande->getMateriel(),
+    $demande->getQuantite() ?? 1
+));
+return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
                 }
                 $formDemandeView = $formDemande->createView();
             }
@@ -529,6 +588,7 @@ class DashboardController extends AbstractController
                 'formVisite'     => $formVisiteView,
                 'date_debut'     => $dateDebutFiltre,
                 'date_fin'       => $dateFinFiltre,
+                'bonsChefService' => $bonsChefService,   // ← AJOUT
                 'isChefService'  => true,
                 'estSiteDistant' => $estSiteDistant,
             ]);
@@ -604,6 +664,7 @@ class DashboardController extends AbstractController
 
             return $this->render('dashboard/accueil.html.twig', [
                 'visites' => $visites,
+                'chefsService' => $chefsService,   // ← AJOUT
                 'rdvReserves' => $rdvReserves,
                 'userRole' => $roleLabel,
                 'stats' => $stats,
@@ -1362,20 +1423,30 @@ class DashboardController extends AbstractController
 
     #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
     #[IsGranted('ROLE_GUERITE')]
-    public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
-    {
-        if ($bonSortie->getStatut() !== 'Validé Coordon') {
-            $this->addFlash('danger', 'Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
-            return $this->redirectToRoute('app_dashboard');
-        }
+    #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
+#[IsGranted('ROLE_GUERITE')]
+public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
+{
+    // 🎯 Tous les statuts "prêts pour la sortie physique"
+    $statutsPretsPourSortie = [
+        'Validé Coordon',
+        'Validé Chef Service',
+        'Validé Caisse',
+        'Validé Secrétariat',
+        'Valide Coordon',    // au cas où
+    ];
 
-        $bonSortie->setStatut('Sortie effective');
-        $em->flush();
-
-        $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
+    if (!in_array($bonSortie->getStatut(), $statutsPretsPourSortie, true)) {
+        $this->addFlash('danger', '❌ Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
         return $this->redirectToRoute('app_dashboard');
     }
 
+    $bonSortie->setStatut('Sortie effective');
+    $em->flush();
+
+    $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
+    return $this->redirectToRoute('app_dashboard');
+}
     #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
@@ -1802,4 +1873,74 @@ class DashboardController extends AbstractController
         $this->addFlash('success', '✅ Devis validé et transmis au Coordonnateur.');
         return $this->redirectToRoute('app_dashboard');
     }
+
+    // ═══════════════════════════════════════════════════════════════
+// ✅ VALIDATION D'UN BON PAR LE CHEF DE SERVICE
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/chef-service/bon/valider/{id}', name: 'app_chef_service_bon_valider', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function validerBonChefService(BonSortie $bonSortie, EntityManagerInterface $em): Response
+{
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
+
+    if (!$currentUser->isChefService()) {
+        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+    }
+
+    if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
+        $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $bonSortie->setStatut('Validé Chef Service');
+
+    if (method_exists($bonSortie, 'setRaison')) {
+        $raison = $bonSortie->getRaison() ?: '';
+        $bonSortie->setRaison(trim($raison . ' | Validé par chef : ' . $currentUser->getUserIdentifier()));
+    }
+
+    $em->flush();
+
+    $this->addFlash('success', '✅ Bon #' . $bonSortie->getId() . ' validé — transmis au Coordonnateur.');
+    return $this->redirectToRoute('app_dashboard');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ❌ REJET D'UN BON PAR LE CHEF DE SERVICE
+// ═══════════════════════════════════════════════════════════════
+#[Route('/dashboard/chef-service/bon/rejeter/{id}', name: 'app_chef_service_bon_rejeter', methods: ['POST'])]
+#[IsGranted('ROLE_USER')]
+public function rejeterBonChefService(Request $request, BonSortie $bonSortie, EntityManagerInterface $em): Response
+{
+    /** @var User $currentUser */
+    $currentUser = $this->getUser();
+
+    if (!$currentUser->isChefService()) {
+        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+    }
+
+    if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
+        $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    $motif = trim((string) $request->request->get('motif_rejet', ''));
+
+    $bonSortie->setStatut('Rejeté Chef Service');
+
+    if (method_exists($bonSortie, 'setRaison')) {
+        $raison = $bonSortie->getRaison() ?: '';
+        $log = ' | Rejeté par chef : ' . $currentUser->getUserIdentifier();
+        if ($motif !== '') {
+            $log .= ' — Motif : ' . $motif;
+        }
+        $bonSortie->setRaison(trim($raison . $log));
+    }
+
+    $em->flush();
+
+    $this->addFlash('warning', '❌ Bon #' . $bonSortie->getId() . ' rejeté.');
+    return $this->redirectToRoute('app_dashboard');
+}
 }
