@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% block title %}Planning DG - Dispromalt{% endblock %}
+{% block title %}Planning PDG - Dispromalt{% endblock %}
 
 {% block main_content %}
 <div class="container-fluid py-4">
@@ -8,7 +8,7 @@
         <div class="col-12 d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-calendar-days text-primary me-2"></i>Planning des RDV du DG
+                    <i class="fa-solid fa-calendar-days text-primary me-2"></i>Planning des RDV du PDG
                 </h1>
                 <p class="text-muted mb-0">Nombre de visites par jour et gestion des réunions.</p>
             </div>
@@ -37,14 +37,14 @@
 
     <div class="alert alert-info rounded-4 shadow-sm">
         <i class="fa-solid fa-info-circle me-2"></i>
-        <strong>{{ nbJour }}</strong> rendez-vous DG programmé(s) le <strong>{{ jour }}</strong>.
+        <strong>{{ nbJour }}</strong> rendez-vous PDG programmé(s) le <strong>{{ jour }}</strong>.
     </div>
 
     {# Stats semaine #}
     <div class="card border-0 shadow-sm rounded-4 mb-4">
         <div class="card-header bg-white rounded-top-4">
             <h5 class="mb-0 fw-semibold">
-                <i class="fa-solid fa-chart-bar text-primary me-2"></i>Nombre de RDV DG cette semaine
+                <i class="fa-solid fa-chart-bar text-primary me-2"></i>Nombre de RDV PDG cette semaine
             </h5>
         </div>
         <div class="card-body">

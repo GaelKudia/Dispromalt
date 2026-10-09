@@ -36,16 +36,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminController extends AbstractController
 {
     #[Route('/admin', name: 'app_admin_dashboard')]
-    public function index(
-        Request $request,
-        DemandeRepository $demandeRepository,
-        BonSortieRepository $bonSortieRepository,
-        UserRepository $userRepository,
-        ServiceRepository $serviceRepository,
-        EntityManagerInterface $em,
-        UserPasswordHasherInterface $hasher,
-        HistoriqueReapprovisionnementRepository $historiqueRepo
-    ): Response {
+   public function index(
+    Request $request,
+    DemandeRepository $demandeRepository,
+    BonSortieRepository $bonSortieRepository,
+    UserRepository $userRepository,
+    ServiceRepository $serviceRepository,
+    EntityManagerInterface $em,
+    UserPasswordHasherInterface $hasher,
+    HistoriqueReapprovisionnementRepository $historiqueRepo,
+    \App\Repository\VisiteRepository $visiteRepo,
+    \App\Repository\DevisRepository $devisRepo,
+    \App\Repository\MouvementCaisseRepository $mouvementRepo
+): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         // ═══════════════════════════════════════════════════════
@@ -284,6 +287,119 @@ if ($form->isSubmitted() && $form->isValid()) {
         // ═══════════════════════════════════════════════════════
         // RENDER
         // ═══════════════════════════════════════════════════════
+
+                // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — VISITES & RDV
+        // ═══════════════════════════════════════════════════════
+        $toutesVisites     = $visiteRepo->findBy([], ['dateArrivee' => 'DESC']);
+        $visitesReservees  = $visiteRepo->findBy(['statut' => 'RESERVE'],  ['dateArrivee' => 'DESC']);
+        $visitesAccueil    = $visiteRepo->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
+        $visitesTerminees  = $visiteRepo->findBy(['statut' => 'TERMINE'],  ['dateArrivee' => 'DESC']);
+        $visitesDeleguees  = $visiteRepo->findBy(['statut' => 'DELEGUE'],  ['dateArrivee' => 'DESC']);
+        $nbVisitesTotal    = count($toutesVisites);
+        $nbVisitesJour     = 0;
+        $aujourdhui        = new \DateTime('today');
+        foreach ($toutesVisites as $v) {
+            if ($v->getDateArrivee() && $v->getDateArrivee()->format('Y-m-d') === $aujourdhui->format('Y-m-d')) {
+                $nbVisitesJour++;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — DEVIS & FINANCES
+        // ═══════════════════════════════════════════════════════
+        $tousDevis = $devisRepo->createQueryBuilder('d')
+            ->orderBy('d.id', 'DESC')
+            ->setMaxResults(200)
+            ->getQuery()
+            ->getResult();
+
+        $nbDevisTotal     = count($tousDevis);
+        $nbDevisEnCours   = 0;
+        $nbDevisDecaisses = 0;
+        $nbDevisRejetes   = 0;
+        $totalDevisUSD    = 0;
+        $totalDevisCDF    = 0;
+
+        foreach ($tousDevis as $d) {
+            $statut = $d->getStatut();
+            $montant = (float) $d->getMontant();
+
+            if ($statut === 'DECAISSE') {
+                $nbDevisDecaisses++;
+                if ($d->getDevise() === 'CDF') $totalDevisCDF += $montant;
+                else                             $totalDevisUSD += $montant;
+            } elseif ($statut === 'REJETE') {
+                $nbDevisRejetes++;
+            } else {
+                $nbDevisEnCours++;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — MOUVEMENTS DE CAISSE
+        // ═══════════════════════════════════════════════════════
+        $mouvementsCaisse  = $mouvementRepo->findAllOrdered();
+        $soldeCaisseUSD    = $mouvementRepo->getSolde('USD');
+        $soldeCaisseCDF    = $mouvementRepo->getSolde('CDF');
+
+        $totalEntreesUSD = 0;
+        $totalEntreesCDF = 0;
+        $totalSortiesUSD = 0;
+        $totalSortiesCDF = 0;
+
+        foreach ($mouvementsCaisse as $m) {
+            $mt = (float) $m->getMontant();
+            if ($m->getType() === 'ENTREE') {
+                if ($m->getDevise() === 'CDF') $totalEntreesCDF += $mt;
+                else                          $totalEntreesUSD += $mt;
+            } else {
+                if ($m->getDevise() === 'CDF') $totalSortiesCDF += $mt;
+                else                          $totalSortiesUSD += $mt;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — HISTORIQUE RÉAPPRO
+        // ═══════════════════════════════════════════════════════
+
+                // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — SOLDES SÉPARÉS (Comptabilité / Caisse / Global)
+        // ═══════════════════════════════════════════════════════
+        $soldeGlobalUSD   = $mouvementRepo->getSolde('USD');
+        $soldeGlobalCDF   = $mouvementRepo->getSolde('CDF');
+        $soldeComptaUSD   = $mouvementRepo->getSoldeComptabilite('USD');
+        $soldeComptaCDF   = $mouvementRepo->getSoldeComptabilite('CDF');
+        $soldeCaissierUSD = $mouvementRepo->getSoldeCaisse('USD');
+        $soldeCaissierCDF = $mouvementRepo->getSoldeCaisse('CDF');
+
+        // Compteurs par catégorie de mouvement
+        $nbMvtCompta   = 0;
+        $nbMvtCaissier = 0;
+
+        foreach ($mouvementsCaisse as $m) {
+            $user = method_exists($m, 'getEffectuePar') ? $m->getEffectuePar() : null;
+            if (!$user) continue;
+
+            $roles = $user->getRoles();
+            if (in_array('ROLE_COMPTA', $roles) || in_array('ROLE_CHEF_COMPTA', $roles)) $nbMvtCompta++;
+            if (in_array('ROLE_CAISSIER', $roles)) $nbMvtCaissier++;
+        }
+
+        // ═══════════════════════════════════════════════════════
+        // ✅ VUE 360° — DEVIS EN ATTENTE (par étape du circuit)
+        // ═══════════════════════════════════════════════════════
+        $devisAiguiller       = [];
+        $devisPretsADecaisser = [];
+        $devisEnAttenteCaisse = [];
+
+        foreach ($tousDevis as $d) {
+            $statut = $d->getStatut();
+            if ($statut === 'ATTENTE_COMPTA')        $devisAiguiller[]       = $d;
+            if ($statut === 'ATTENTE_DECAISSEMENT')  $devisPretsADecaisser[] = $d;
+            if ($statut === 'ATTENTE_CAISSE')        $devisEnAttenteCaisse[] = $d;
+        }
+        $historiqueReappro = $historiqueRepo->findAllOrdered();
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
@@ -314,6 +430,53 @@ if ($form->isSubmitted() && $form->isValid()) {
             'articlesEnAlerte'     => $articlesEnAlerte,
             'alerteDetails'        => $alerteDetails,
             'nbAlertesStock'       => $nbAlertesStock,
+
+                        // ✅ VUE 360° — VISITES
+            'toutesVisites'     => $toutesVisites,
+            'visitesReservees'  => $visitesReservees,
+            'visitesAccueil'    => $visitesAccueil,
+            'visitesTerminees'  => $visitesTerminees,
+            'visitesDeleguees'  => $visitesDeleguees,
+            'nbVisitesTotal'    => $nbVisitesTotal,
+            'nbVisitesJour'     => $nbVisitesJour,
+
+            // ✅ VUE 360° — DEVIS
+            'tousDevis'         => $tousDevis,
+            'nbDevisTotal'      => $nbDevisTotal,
+            'nbDevisEnCours'    => $nbDevisEnCours,
+            'nbDevisDecaisses'  => $nbDevisDecaisses,
+            'nbDevisRejetes'    => $nbDevisRejetes,
+            'totalDevisUSD'     => $totalDevisUSD,
+            'totalDevisCDF'     => $totalDevisCDF,
+
+            // ✅ VUE 360° — CAISSE
+            'mouvementsCaisse'  => $mouvementsCaisse,
+            'soldeCaisseUSD'    => $soldeCaisseUSD,
+            'soldeCaisseCDF'    => $soldeCaisseCDF,
+            'totalEntreesUSD'   => $totalEntreesUSD,
+            'totalEntreesCDF'   => $totalEntreesCDF,
+            'totalSortiesUSD'   => $totalSortiesUSD,
+            'totalSortiesCDF'   => $totalSortiesCDF,
+
+            // ✅ VUE 360° — HISTORIQUE
+                        // ✅ VUE 360° — HISTORIQUE
+            'historiqueReappro' => $historiqueReappro,
+
+            // ✅ VUE 360° — SOLDES SÉPARÉS
+            'soldeGlobalUSD'      => $soldeGlobalUSD,
+            'soldeGlobalCDF'      => $soldeGlobalCDF,
+            'soldeComptaUSD'      => $soldeComptaUSD,
+            'soldeComptaCDF'      => $soldeComptaCDF,
+            'soldeCaissierUSD'    => $soldeCaissierUSD,
+            'soldeCaissierCDF'    => $soldeCaissierCDF,
+            'nbMvtCompta'         => $nbMvtCompta,
+            'nbMvtCaissier'       => $nbMvtCaissier,
+
+            // ✅ VUE 360° — DEVIS EN ATTENTE
+            'devisAiguiller'       => $devisAiguiller,
+            'devisPretsADecaisser' => $devisPretsADecaisser,
+            'devisEnAttenteCaisse' => $devisEnAttenteCaisse,
+        
         ]);
     }
 

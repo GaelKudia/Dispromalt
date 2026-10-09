@@ -14,10 +14,6 @@ class MouvementCaisseRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementCaisse::class);
     }
 
-    /**
-     * 🎯 SOLDE GLOBAL par devise (toute l'entreprise)
-     * Solde = Σ entrées - Σ sorties
-     */
     public function getSolde(string $devise): float
     {
         $res = $this->createQueryBuilder('m')
@@ -35,14 +31,6 @@ class MouvementCaisseRepository extends ServiceEntityRepository
         return (float) $res['entrees'] - (float) $res['sorties'];
     }
 
-    /**
-     * 🎯 SOLDE PERSONNEL d'un utilisateur donné pour une devise.
-     * = somme de ses propres entrées − somme de ses propres sorties.
-     */
-        /**
-     * Solde PERSONNEL d'un utilisateur donné pour une devise.
-     * = somme de ses propres entrées − somme de ses propres sorties.
-     */
     public function getSoldeParUtilisateur(User $user, string $devise): float
     {
         $res = $this->createQueryBuilder('m')
@@ -61,13 +49,53 @@ class MouvementCaisseRepository extends ServiceEntityRepository
 
         return (float) $res['entrees'] - (float) $res['sorties'];
     }
-    /** Vérifie si la caisse peut couvrir un montant donné */
+
+    public function getSoldeComptabilite(string $devise): float
+    {
+        $res = $this->createQueryBuilder('m')
+            ->select('
+                COALESCE(SUM(CASE WHEN m.type = :e THEN m.montant ELSE 0 END), 0) AS entrees,
+                COALESCE(SUM(CASE WHEN m.type = :s THEN m.montant ELSE 0 END), 0) AS sorties
+            ')
+            ->join('m.effectuePar', 'u')
+            ->where('m.devise = :devise')
+            ->andWhere('u.roles LIKE :compta OR u.roles LIKE :chef')
+            ->setParameter('e', MouvementCaisse::TYPE_ENTREE)
+            ->setParameter('s', MouvementCaisse::TYPE_SORTIE)
+            ->setParameter('devise', $devise)
+            ->setParameter('compta', '%ROLE_COMPTA%')
+            ->setParameter('chef',   '%ROLE_CHEF_COMPTA%')
+            ->getQuery()
+            ->getSingleResult();
+
+        return (float) $res['entrees'] - (float) $res['sorties'];
+    }
+
+    public function getSoldeCaisse(string $devise): float
+    {
+        $res = $this->createQueryBuilder('m')
+            ->select('
+                COALESCE(SUM(CASE WHEN m.type = :e THEN m.montant ELSE 0 END), 0) AS entrees,
+                COALESCE(SUM(CASE WHEN m.type = :s THEN m.montant ELSE 0 END), 0) AS sorties
+            ')
+            ->join('m.effectuePar', 'u')
+            ->where('m.devise = :devise')
+            ->andWhere('u.roles LIKE :caissier')
+            ->setParameter('e', MouvementCaisse::TYPE_ENTREE)
+            ->setParameter('s', MouvementCaisse::TYPE_SORTIE)
+            ->setParameter('devise', $devise)
+            ->setParameter('caissier', '%ROLE_CAISSIER%')
+            ->getQuery()
+            ->getSingleResult();
+
+        return (float) $res['entrees'] - (float) $res['sorties'];
+    }
+
     public function peutDecaisser(string $devise, float $montant): bool
     {
         return $this->getSolde($devise) >= $montant;
     }
 
-    /** Tous les mouvements (ordre décroissant) */
     public function findAllOrdered(): array
     {
         return $this->createQueryBuilder('m')
@@ -79,7 +107,6 @@ class MouvementCaisseRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /** Mouvements d'une période (pour rapports) */
     public function findByPeriode(\DateTimeInterface $debut, \DateTimeInterface $fin): array
     {
         return $this->createQueryBuilder('m')
@@ -92,7 +119,6 @@ class MouvementCaisseRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /** Totaux entrées/sorties d'une période, par devise */
     public function getTotauxPeriode(\DateTimeInterface $debut, \DateTimeInterface $fin): array
     {
         $rows = $this->createQueryBuilder('m')

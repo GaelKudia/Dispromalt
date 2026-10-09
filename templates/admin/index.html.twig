@@ -68,6 +68,8 @@
         .stat-card.stat-success::before { background: var(--gradient-4); }
         .stat-card.stat-purple::before { background: var(--gradient-purple); }
         .stat-card.stat-warning::before { background: var(--gradient-5); }
+        .stat-card.stat-info::before { background: var(--gradient-2); }
+        .stat-card.stat-danger::before { background: linear-gradient(135deg, #dc2626, #f5576c); }
         .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
 
         .stat-icon {
@@ -81,6 +83,8 @@
         .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
         .stat-icon-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
         .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
+        .stat-icon-info    { background: rgba(240, 147, 251, 0.12); color: #d946ef; }
+        .stat-icon-danger  { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
 
         .main-card {
             border: none;
@@ -183,6 +187,7 @@
         .form-card-icon-purple { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
         .form-card-icon-red    { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
         .form-card-icon-gold   { background: rgba(212, 175, 55, 0.15); color: #b8860b; }
+        .form-card-icon-info   { background: rgba(240, 147, 251, 0.12); color: #d946ef; }
 
         .btn-modern {
             border-radius: 10px;
@@ -239,6 +244,18 @@
 
         .text-purple { color: #9333ea !important; }
         .bg-purple-soft { background: rgba(168, 85, 247, 0.12) !important; }
+
+        /* KPI 360 */
+        .kpi360 {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 1.25rem; border-radius: 14px;
+            background: #fff; border: 1px solid #eef2f7;
+            box-shadow: var(--shadow-soft);
+            height: 100%;
+        }
+        .kpi360 .kpi360-value { font-size: 1.75rem; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
+        .kpi360 .kpi360-label { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+        .kpi360 .kpi360-icon { font-size: 1.75rem; opacity: 0.4; }
     </style>
 </head>
 <body>
@@ -346,13 +363,33 @@
 
         <ul class="nav nav-tabs nav-tabs-modern" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
+                <button class="nav-link active" id="tab-360" data-bs-toggle="tab" data-bs-target="#pane-360" type="button" role="tab">
+                    <i class="fas fa-globe text-primary"></i>Vue 360°
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Demandes
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
                     <i class="fas fa-id-badge text-success"></i>Bons de Sortie
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-visites" data-bs-toggle="tab" data-bs-target="#pane-visites" type="button" role="tab">
+                    <i class="fas fa-calendar-check text-info"></i>Visites & RDV
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-devis-admin" data-bs-toggle="tab" data-bs-target="#pane-devis-admin" type="button" role="tab">
+                    <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-caisse-admin" data-bs-toggle="tab" data-bs-target="#pane-caisse-admin" type="button" role="tab">
+                    <i class="fas fa-cash-register text-success"></i>Mouvements Caisse
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -385,8 +422,340 @@
         <div class="p-4">
             <div class="tab-content">
 
+                {# ═══════════════════════════════════════════════
+                   ONGLET 0 : VUE 360°
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade show active" id="pane-360" role="tabpanel">
+
+                    <h5 class="fw-bold text-dark mb-4">
+                        <i class="fas fa-globe text-primary me-2"></i>Vue à 360° de l'activité
+                    </h5>
+
+                    {# KPIs globaux #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="kpi360">
+                                <div>
+                                    <div class="kpi360-value text-primary">{{ demandes|length }}</div>
+                                    <div class="kpi360-label">Demandes</div>
+                                </div>
+                                <i class="fas fa-boxes kpi360-icon text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi360">
+                                <div>
+                                    <div class="kpi360-value text-success">{{ bons|length }}</div>
+                                    <div class="kpi360-label">Bons de sortie</div>
+                                </div>
+                                <i class="fas fa-file-signature kpi360-icon text-success"></i>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi360">
+                                <div>
+                                    <div class="kpi360-value text-warning">{{ nbDevisTotal|default(0) }}</div>
+                                    <div class="kpi360-label">Devis émis</div>
+                                </div>
+                                <i class="fas fa-file-invoice-dollar kpi360-icon text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi360">
+                                <div>
+                                    <div class="kpi360-value text-purple">{{ nbVisitesTotal|default(0) }}</div>
+                                    <div class="kpi360-label">Visites / RDV</div>
+                                </div>
+                                <i class="fas fa-calendar-check kpi360-icon text-purple"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ═══════════════════════════════════════════════
+                       TRÉSORERIE — 3 SOLDES SÉPARÉS
+                       Comptabilité | Caisse | Global
+                    ═══════════════════════════════════════════════ #}
+                    <div class="row g-3 mb-4">
+
+                        {# Solde Comptabilité #}
+                        <div class="col-lg-4">
+                            <div class="stat-card stat-success h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.7rem;">
+                                            <i class="fas fa-calculator text-success me-1"></i>Solde Comptabilité
+                                        </h6>
+                                        <div class="small text-muted">{{ nbMvtCompta|default(0) }} mouvement(s)</div>
+                                    </div>
+                                    <i class="fas fa-calculator fa-2x text-success opacity-25"></i>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-semibold">USD</span>
+                                    <span class="fw-bold text-success" style="font-size: 1.15rem;">
+                                        {{ soldeComptaUSD|default(0)|number_format(2, ',', ' ') }} $
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted fw-semibold">CDF</span>
+                                    <span class="fw-bold text-primary" style="font-size: 1.15rem;">
+                                        {{ soldeComptaCDF|default(0)|number_format(0, ',', ' ') }} FC
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Solde Caisse #}
+                        <div class="col-lg-4">
+                            <div class="stat-card stat-info h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.7rem;">
+                                            <i class="fas fa-cash-register me-1" style="color:#d946ef;"></i>Solde Caisse
+                                        </h6>
+                                        <div class="small text-muted">{{ nbMvtCaissier|default(0) }} mouvement(s)</div>
+                                    </div>
+                                    <i class="fas fa-cash-register fa-2x opacity-25" style="color:#d946ef;"></i>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-semibold">USD</span>
+                                    <span class="fw-bold text-success" style="font-size: 1.15rem;">
+                                        {{ soldeCaissierUSD|default(0)|number_format(2, ',', ' ') }} $
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted fw-semibold">CDF</span>
+                                    <span class="fw-bold text-primary" style="font-size: 1.15rem;">
+                                        {{ soldeCaissierCDF|default(0)|number_format(0, ',', ' ') }} FC
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Solde Global #}
+                        <div class="col-lg-4">
+                            <div class="stat-card stat-primary h-100">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.7rem;">
+                                            <i class="fas fa-vault text-primary me-1"></i>Solde Global
+                                        </h6>
+                                        <div class="small text-muted">Cumul Comptabilité + Caisse</div>
+                                    </div>
+                                    <i class="fas fa-vault fa-2x text-primary opacity-25"></i>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="small text-muted fw-semibold">USD</span>
+                                    <span class="fw-bold text-success" style="font-size: 1.15rem;">
+                                        {{ soldeGlobalUSD|default(0)|number_format(2, ',', ' ') }} $
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted fw-semibold">CDF</span>
+                                    <span class="fw-bold text-primary" style="font-size: 1.15rem;">
+                                        {{ soldeGlobalCDF|default(0)|number_format(0, ',', ' ') }} FC
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ═══════════════════════════════════════════════
+                       OPÉRATIONS EN ATTENTE (Comptabilité + Caisse)
+                    ═══════════════════════════════════════════════ #}
+                    {% if (devisAiguiller|default([])|length > 0)
+                       or (devisPretsADecaisser|default([])|length > 0)
+                       or (devisEnAttenteCaisse|default([])|length > 0) %}
+                    <div class="form-card mb-4">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-yellow"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-dark">Opérations en attente</h5>
+                                <small class="text-muted">Points de blocage dans le circuit Comptabilité & Caisse</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="kpi360">
+                                    <div>
+                                        <div class="kpi360-value text-warning">{{ devisAiguiller|default([])|length }}</div>
+                                        <div class="kpi360-label">À aiguiller (Compta)</div>
+                                    </div>
+                                    <i class="fas fa-random kpi360-icon text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="kpi360">
+                                    <div>
+                                        <div class="kpi360-value text-primary">{{ devisPretsADecaisser|default([])|length }}</div>
+                                        <div class="kpi360-label">Prêts à décaisser (Compta)</div>
+                                    </div>
+                                    <i class="fas fa-money-bill-wave kpi360-icon text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="kpi360">
+                                    <div>
+                                        <div class="kpi360-value text-purple">{{ devisEnAttenteCaisse|default([])|length }}</div>
+                                        <div class="kpi360-label">En attente Caisse</div>
+                                    </div>
+                                    <i class="fas fa-cash-register kpi360-icon text-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if devisAiguiller|default([])|length > 0 %}
+                        <div class="mt-4">
+                            <h6 class="fw-bold text-warning mb-2">
+                                <i class="fas fa-random me-2"></i>Devis à aiguiller
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-modern table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Demandeur</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d in devisAiguiller %}
+                                            <tr>
+                                                <td class="fw-bold">#{{ d.id }}</td>
+                                                <td class="small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '—' }}</td>
+                                                <td class="small">{{ d.user ? d.user.userIdentifier|split('@')|first : '—' }}</td>
+                                                <td class="fw-bold">{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}</td>
+                                                <td><span class="badge badge-soft badge-soft-warning">{{ d.statut }}</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if devisPretsADecaisser|default([])|length > 0 %}
+                        <div class="mt-4">
+                            <h6 class="fw-bold text-primary mb-2">
+                                <i class="fas fa-money-bill-wave me-2"></i>Devis prêts à décaisser
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-modern table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Demandeur</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d in devisPretsADecaisser %}
+                                            <tr>
+                                                <td class="fw-bold">#{{ d.id }}</td>
+                                                <td class="small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '—' }}</td>
+                                                <td class="small">{{ d.user ? d.user.userIdentifier|split('@')|first : '—' }}</td>
+                                                <td class="fw-bold">{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}</td>
+                                                <td><span class="badge badge-soft badge-soft-primary">{{ d.statut }}</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if devisEnAttenteCaisse|default([])|length > 0 %}
+                        <div class="mt-4">
+                            <h6 class="fw-bold text-purple mb-2">
+                                <i class="fas fa-cash-register me-2"></i>Devis en attente à la Caisse
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-modern table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Date</th>
+                                            <th>Demandeur</th>
+                                            <th>Montant</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for d in devisEnAttenteCaisse %}
+                                            <tr>
+                                                <td class="fw-bold">#{{ d.id }}</td>
+                                                <td class="small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '—' }}</td>
+                                                <td class="small">{{ d.user ? d.user.userIdentifier|split('@')|first : '—' }}</td>
+                                                <td class="fw-bold">{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}</td>
+                                                <td><span class="badge badge-soft badge-soft-info">{{ d.statut }}</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {# Tableau récapitulatif par module #}
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
+                            <h5 class="fw-bold m-0 text-dark">Récapitulatif par module</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-modern mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Module</th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center">En cours</th>
+                                        <th class="text-center">Clôturé / Validé</th>
+                                        <th class="text-center">Rejeté</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-semibold"><i class="fas fa-boxes text-primary me-2"></i>Demandes</td>
+                                        <td class="text-center fw-bold">{{ demandes|length }}</td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ demandes|filter(d => 'attente' in d.statut|lower)|length }}</span></td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-success">{{ demandes|filter(d => 'livr' in d.statut|lower)|length }}</span></td>
+                                        <td class="text-center">—</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold"><i class="fas fa-file-signature text-success me-2"></i>Bons de sortie</td>
+                                        <td class="text-center fw-bold">{{ bons|length }}</td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ bons|filter(b => b.statut == 'Créé')|length }}</span></td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-success">{{ bons|filter(b => b.statut == 'Sortie effective' or b.statut == 'Validé Coordon')|length }}</span></td>
+                                        <td class="text-center">—</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis</td>
+                                        <td class="text-center fw-bold">{{ nbDevisTotal|default(0) }}</td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ nbDevisEnCours|default(0) }}</span></td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-success">{{ nbDevisDecaisses|default(0) }}</span></td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-danger">{{ nbDevisRejetes|default(0) }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-semibold"><i class="fas fa-calendar-check text-info me-2"></i>Visites / RDV</td>
+                                        <td class="text-center fw-bold">{{ nbVisitesTotal|default(0) }}</td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ visitesReservees|default([])|length }}</span></td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-success">{{ visitesTerminees|default([])|length }}</span></td>
+                                        <td class="text-center">—</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 {# ============ ONGLET 1 : DEMANDES ============ #}
-                <div class="tab-pane fade show active" id="pane-demandes" role="tabpanel">
+                <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Suivi des Demandes de Matériel</h5>
@@ -535,7 +904,265 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 3 : COMPTES AGENTS ============ #}
+                {# ═══════════════════════════════════════════════
+                   ONGLET 3 : VISITES & RDV
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade" id="pane-visites" role="tabpanel">
+
+                    <h5 class="fw-bold text-dark mb-4">
+                        <i class="fas fa-calendar-check text-info me-2"></i>Visites & Rendez-vous
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-primary">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Total</h6>
+                                <h3 class="fw-bold m-0 text-primary">{{ nbVisitesTotal|default(0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-warning">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Réservées</h6>
+                                <h3 class="fw-bold m-0 text-warning">{{ visitesReservees|default([])|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-success">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Terminées</h6>
+                                <h3 class="fw-bold m-0 text-success">{{ visitesTerminees|default([])|length }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-purple">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Aujourd'hui</h6>
+                                <h3 class="fw-bold m-0 text-purple">{{ nbVisitesJour|default(0) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
+                            <h5 class="fw-bold m-0 text-dark">Toutes les visites</h5>
+                            <span class="badge badge-soft badge-soft-primary ms-auto">{{ nbVisitesTotal|default(0) }} enregistrement(s)</span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Visiteur</th>
+                                        <th>Motif</th>
+                                        <th>Délégation</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in toutesVisites|default([]) %}
+                                        <tr>
+                                            <td class="small">{{ v.dateArrivee ? v.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
+                                            <td class="fw-semibold text-dark">{{ v.nomVisiteur }}</td>
+                                            <td class="text-muted small">{{ v.motif ?? '—' }}</td>
+                                            <td>
+                                                {% if v.responsableDelegue %}
+                                                    <span class="badge badge-soft badge-soft-info">
+                                                        <i class="fas fa-share me-1"></i>{{ v.responsableDelegue.userIdentifier|split('@')|first }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if v.statut == 'RESERVE' %}
+                                                    <span class="badge badge-soft badge-soft-primary">Réservé</span>
+                                                {% elseif v.statut == 'A_L_ACCUEIL' %}
+                                                    <span class="badge badge-soft badge-soft-warning">À l'accueil</span>
+                                                {% elseif v.statut == 'TERMINE' %}
+                                                    <span class="badge badge-soft badge-soft-success">Terminé</span>
+                                                {% elseif v.statut == 'DELEGUE' %}
+                                                    <span class="badge badge-soft badge-soft-info">Délégué</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-secondary">{{ v.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="5" class="text-center text-muted py-4">Aucune visite enregistrée.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {# ═══════════════════════════════════════════════
+                   ONGLET 4 : DEVIS & FINANCES
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade" id="pane-devis-admin" role="tabpanel">
+
+                    <h5 class="fw-bold text-dark mb-4">
+                        <i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis & Finances
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-primary">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Total devis</h6>
+                                <h3 class="fw-bold m-0 text-primary">{{ nbDevisTotal|default(0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-warning">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">En cours</h6>
+                                <h3 class="fw-bold m-0 text-warning">{{ nbDevisEnCours|default(0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-success">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Décaissés</h6>
+                                <h3 class="fw-bold m-0 text-success">{{ nbDevisDecaisses|default(0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="stat-card stat-warning">
+                                <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size:0.68rem;">Rejetés</h6>
+                                <h3 class="fw-bold m-0 text-danger">{{ nbDevisRejetes|default(0) }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="stat-card stat-success">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2">Total décaissé USD</h6>
+                                <h3 class="fw-bold m-0 text-success">{{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }} $</h3>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card stat-primary">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2">Total décaissé CDF</h6>
+                                <h3 class="fw-bold m-0 text-primary">{{ totalDevisCDF|default(0)|number_format(0, ',', ' ') }} FC</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
+                            <h5 class="fw-bold m-0 text-dark">Derniers devis</h5>
+                        </div>
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Demandeur</th>
+                                        <th>Montant</th>
+                                        <th>Statut</th>
+                                        <th>Décaissé par</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for d in tousDevis|default([]) %}
+                                        <tr>
+                                            <td class="fw-bold">#{{ d.id }}</td>
+                                            <td class="small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '—' }}</td>
+                                            <td class="small">{{ d.user ? d.user.userIdentifier : (d.createdBy|default('—')) }}</td>
+                                            <td class="fw-bold text-dark">{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}</td>
+                                            <td>
+                                                {% if d.statut == 'DECAISSE' %}
+                                                    <span class="badge badge-soft badge-soft-success">Décaissé</span>
+                                                {% elseif d.statut == 'REJETE' %}
+                                                    <span class="badge badge-soft badge-soft-danger">Rejeté</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-warning">{{ d.statut }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="small text-muted">
+                                                {{ d.decaissePar ? d.decaissePar.userIdentifier|split('@')|first : '—' }}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="6" class="text-center text-muted py-4">Aucun devis.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {# ═══════════════════════════════════════════════
+                   ONGLET 5 : MOUVEMENTS DE CAISSE
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade" id="pane-caisse-admin" role="tabpanel">
+
+                    <h5 class="fw-bold text-dark mb-4">
+                        <i class="fas fa-cash-register text-success me-2"></i>Mouvements de caisse
+                    </h5>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="stat-card stat-success">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2">Solde USD actuel</h6>
+                                <h3 class="fw-bold m-0 text-success">{{ soldeGlobalUSD|default(0)|number_format(2, ',', ' ') }} $</h3>
+                                <div class="small text-muted mt-2">
+                                    ↑ Entrées : {{ totalEntreesUSD|default(0)|number_format(2, ',', ' ') }} $ • ↓ Sorties : {{ totalSortiesUSD|default(0)|number_format(2, ',', ' ') }} $
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="stat-card stat-primary">
+                                <h6 class="text-muted text-uppercase fw-bold mb-2">Solde CDF actuel</h6>
+                                <h3 class="fw-bold m-0 text-primary">{{ soldeGlobalCDF|default(0)|number_format(0, ',', ' ') }} FC</h3>
+                                <div class="small text-muted mt-2">
+                                    ↑ Entrées : {{ totalEntreesCDF|default(0)|number_format(0, ',', ' ') }} FC • ↓ Sorties : {{ totalSortiesCDF|default(0)|number_format(0, ',', ' ') }} FC
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
+                            <h5 class="fw-bold m-0 text-dark">Historique des mouvements</h5>
+                        </div>
+                        <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Montant</th>
+                                        <th>Provenance</th>
+                                        <th>Effectué par</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in mouvementsCaisse|default([]) %}
+                                        <tr>
+                                            <td class="small">{{ m.dateMouvement ? m.dateMouvement|date('d/m/Y H:i') : '—' }}</td>
+                                            <td>
+                                                {% if m.type == 'ENTREE' %}
+                                                    <span class="badge badge-soft badge-soft-success"><i class="fas fa-arrow-down me-1"></i>Entrée</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-danger"><i class="fas fa-arrow-up me-1"></i>Sortie</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="fw-bold">{{ m.montant|number_format(2, ',', ' ') }} {{ m.devise }}</td>
+                                            <td class="small text-muted">{{ m.provenance }}</td>
+                                            <td class="small">{{ m.effectuePar ? m.effectuePar.userIdentifier|split('@')|first : '—' }}</td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="5" class="text-center text-muted py-4">Aucun mouvement.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                {# ============ ONGLET 6 : COMPTES AGENTS ============ #}
                 <div class="tab-pane fade" id="pane-agents" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-5">
@@ -721,7 +1348,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 4 : NOMINATIONS ============ #}
+                {# ============ ONGLET 7 : NOMINATIONS ============ #}
                 <div class="tab-pane fade" id="pane-nominations" role="tabpanel">
                     <div class="row g-4">
 
@@ -918,7 +1545,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 5 : CATÉGORIES ============ #}
+                {# ============ ONGLET 8 : CATÉGORIES ============ #}
                 <div class="tab-pane fade" id="pane-structure" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-6">
@@ -1084,7 +1711,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 6 : MACHINES ============ #}
+                {# ============ ONGLET 9 : MACHINES ============ #}
                 <div class="tab-pane fade" id="pane-machines" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-5">
@@ -1181,7 +1808,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 7 : ÉTAT DU STOCK ============ #}
+                {# ============ ONGLET 10 : ÉTAT DU STOCK ============ #}
                 <div class="tab-pane fade" id="pane-stock" role="tabpanel">
 
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">

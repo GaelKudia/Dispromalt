@@ -840,10 +840,19 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             ));
             return $this->redirectToRoute('app_dashboard');
         }
+            // Solde de la CAISSE COMPTABILITÉ (tous les comptables confondus)
+            $soldeUSD = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD);
+            $soldeCDF = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF);
 
-        $soldeUSD   = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
-        $soldeCDF   = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
-        $mouvements = $mouvementRepo->findAllOrdered();
+            // Mouvements de la caisse comptabilité
+            $mouvements = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
+                ->join('m.effectuePar', 'u')
+                ->where('u.roles LIKE :compta OR u.roles LIKE :chef')
+                ->setParameter('compta', '%ROLE_COMPTA%')
+                ->setParameter('chef',   '%ROLE_CHEF_COMPTA%')
+                ->orderBy('m.dateMouvement', 'DESC')
+                ->getQuery()
+                ->getResult();
 
         // ============================================================
         // COMPTABLE
@@ -1073,8 +1082,6 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'date_fin'             => $dateFinFiltre,
                 'articlesEnAlerte'     => $articlesEnAlerte,
                 'nbAlertesStock'       => $nbAlertesStock,
-                'soldeUSD'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
-                'soldeCDF'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),
                 'soldeCaisseUSD'       => $soldeCaisseUSD,
                 'soldeCaisseCDF'       => $soldeCaisseCDF,
                 'articlesDG'           => $articlesDG,
@@ -1084,6 +1091,8 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'categoriesLabels'     => $categoriesLabels,
                 'categoriesQuantites'  => $categoriesQuantites,
                 'estSiteDistant'       => $estSiteDistant,
+                               'soldeUSD'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD),
+                'soldeCDF'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF),
             ];
 
             // ═══════════════════════════════════════════════════════
