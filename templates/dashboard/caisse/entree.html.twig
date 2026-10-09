@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+{% block title %}Entrée de caisse - Dispromalt{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid py-4">
+
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-arrow-down text-success me-2"></i>Nouvelle entrée de fonds
+                </h1>
+                <p class="text-muted mb-0">Enregistrez une entrée en caisse et imprimez le reçu.</p>
+            </div>
+            <a href="{{ path('app_caisse_mouvements') }}" class="btn btn-outline-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Voir les mouvements
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-success text-white py-3 rounded-top-4">
+                    <h5 class="card-title mb-0 fw-semibold">
+                        <i class="fa-solid fa-money-bill-wave me-2"></i> Formulaire d'entrée
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Montant</label>
+                            {{ form_widget(form.montant, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(form.montant) }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Devise</label>
+                            {{ form_widget(form.devise, {'attr': {'class': 'form-select rounded-3 py-2'}}) }}
+                            {{ form_errors(form.devise) }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Catégorie</label>
+                            {{ form_widget(form.categorie, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(form.categorie) }}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Provenance</label>
+                            {{ form_widget(form.provenance, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(form.provenance) }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary small text-uppercase">Date du mouvement</label>
+                            {{ form_widget(form.dateMouvement, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                            {{ form_errors(form.dateMouvement) }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ path('app_caisse_mouvements') }}" class="btn btn-light px-4 rounded-3">Annuler</a>
+                        <button type="submit" class="btn btn-success px-4 rounded-3 shadow-sm">
+                            <i class="fa-solid fa-check me-1"></i> Enregistrer & imprimer
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+
+                    <div class="row mt-4 pt-3 border-top">
+                        <div class="col-md-6">
+                            <div class="alert alert-success mb-0 rounded-3">
+                                <i class="fa-solid fa-dollar-sign me-1"></i>
+                                Solde USD : <strong>{{ soldes.USD|number_format(2, ',', ' ') }} $</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info mb-0 rounded-3">
+                                <i class="fa-solid fa-coins me-1"></i>
+                                Solde CDF : <strong>{{ soldes.CDF|number_format(2, ',', ' ') }} FC</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

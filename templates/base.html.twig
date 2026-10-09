@@ -11,10 +11,11 @@
     <style>
         body { overflow-x: hidden; font-family: 'Source Sans Pro', sans-serif; background-color: #f4f6f9; }
         .login-page { background-color: #e3f2fd !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .sidebar { width: 250px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #343a40; color: #c2c7d0; z-index: 1000; transition: all 0.3s ease-in-out; }
+        .sidebar { width: 250px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #343a40; color: #c2c7d0; z-index: 1000; transition: all 0.3s ease-in-out; overflow-y: auto; }
         .sidebar .brand-link { padding: 15px; font-size: 1.25rem; background-color: #22252a; color: #fff; text-decoration: none; display: block; border-bottom: 1px solid #4b545c; }
-        .sidebar .nav-link { color: #c2c7d0; padding: 10px 15px; display: block; text-decoration: none; }
+        .sidebar .nav-link { color: #c2c7d0; padding: 10px 15px; display: block; text-decoration: none; font-size: 0.94rem; }
         .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; border-left: 3px solid #0d6efd; }
+        .sidebar .nav-section-title { color: #8a939c; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 15px 6px; }
         .main-wrapper { margin-left: 250px; min-height: 100vh; transition: all 0.3s ease-in-out; }
         .top-navbar { background-color: #fff; border-bottom: 1px solid #dee2e6; padding: 10px 20px; }
         .content-body { padding: 20px; }
@@ -63,28 +64,58 @@
                         <i class="fa-solid fa-layer-group me-2"></i> Catégories
                     </a>
 
-                    {# ── Espace Caisse (mouvements) ── #}
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_mouvements' %}active{% endif %} mb-1 rounded"
-                       href="{{ path('app_caisse_mouvements') }}">
-                        <i class="fa-solid fa-cash-register me-2"></i> Espace Caisse
-                    </a>
+                    {# ═══════════════════════════════════════════════════════
+                       ESPACE CAISSE
+                       → Uniquement pour le caissier nommé via /admin
+                       → Plus ROLE_COMPTA : la comptabilité a son propre espace
+                    ═══════════════════════════════════════════════════════ #}
+                    {% if is_granted('ROLE_CAISSIER') or is_granted('ROLE_ADMIN') %}
+                        <div class="nav-section-title">Espace Caisse</div>
 
-                    {# ── Enregistrer Visite / Entrée caisse ── #}
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_entree' %}active{% endif %} mb-1 rounded"
-                       href="{{ path('app_caisse_entree') }}">
-                        <i class="fa-solid fa-address-book me-2"></i> Enregistrer Visite
-                    </a>
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_mouvements' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_caisse_mouvements') }}">
+                            <i class="fa-solid fa-cash-register me-2"></i> Mes mouvements
+                        </a>
+
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_entree' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_caisse_entree') }}">
+                            <i class="fa-solid fa-arrow-down me-2"></i> Enregistrer une entrée
+                        </a>
+
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_rdv_dg' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_caisse_rdv_dg') }}">
+                            <i class="fa-solid fa-calendar-days me-2"></i> Planning RDV DG
+                        </a>
+
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_rdv_nouveau' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_caisse_rdv_nouveau') }}">
+                            <i class="fa-solid fa-calendar-plus me-2"></i> Programmer Réunion
+                        </a>
+                    {% endif %}
+
+                    {# ═══════════════════════════════════════════════════════
+                       ESPACE COMPTABILITÉ
+                       → Uniquement pour les comptables et chefs comptables
+                       → Ils gardent leur tableau de bord /dashboard
+                    ═══════════════════════════════════════════════════════ #}
+                    {% if is_granted('ROLE_COMPTA') or is_granted('ROLE_CHEF_COMPTA') %}
+                        <div class="nav-section-title">Comptabilité</div>
+
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_dashboard') }}">
+                            <i class="fa-solid fa-calculator me-2"></i> Tableau de bord compta
+                        </a>
+
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_historique_reappro' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_historique_reappro') }}">
+                            <i class="fa-solid fa-clock-rotate-left me-2"></i> Historique réappro
+                        </a>
+                    {% endif %}
 
                     {# ── Rapports ── #}
                     <a class="nav-link {% if app.request.attributes.get('_route') == 'app_rapport' %}active{% endif %} mb-1 rounded"
                        href="{{ path('app_rapport') }}">
                         <i class="fa-solid fa-chart-line me-2"></i> Rapports
-                    </a>
-
-                    {# ── Historique réappro ── #}
-                    <a class="nav-link {% if app.request.attributes.get('_route') == 'app_historique_reappro' %}active{% endif %} mb-1 rounded"
-                       href="{{ path('app_historique_reappro') }}">
-                        <i class="fa-solid fa-clock-rotate-left me-2"></i> Historique réappro
                     </a>
 
                 </nav>
@@ -105,6 +136,18 @@
             </div>
 
             <div class="content-body">
+                {# ═══════════════════════════════════════════════════════
+                   AFFICHAGE DES MESSAGES FLASH
+                ═══════════════════════════════════════════════════════ #}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
+                            {{ message|raw }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
                 {% block main_content %}{% endblock %}
             </div>
         </div>

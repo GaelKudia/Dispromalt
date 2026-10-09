@@ -1,3 +1,4 @@
+
 {% extends 'base.html.twig' %}
 
 {% block title %}Espace Caissier{% endblock %}
@@ -16,45 +17,60 @@
     {% endfor %}
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-dark"><i class="fas fa-cash-register me-2"></i>Espace Caissier</h3>
-        <span class="text-muted"><i class="fas fa-user me-1"></i> {{ app.user.userIdentifier }}</span>
+        <h3 class="fw-bold text-dark">
+            <i class="fas fa-cash-register me-2"></i>Espace Caissier
+        </h3>
+        <span class="text-muted">
+            <i class="fas fa-user me-1"></i> {{ app.user.userIdentifier }}
+        </span>
     </div>
 
     <div class="card shadow-sm border-0">
         <div class="card-header bg-white py-3">
-            <h5 class="m-0 text-primary fw-bold"><i class="fas fa-wallet me-2"></i>Ordres de décaissement (Circuit 2)</h5>
+            <h5 class="m-0 text-primary fw-bold">
+                <i class="fas fa-wallet me-2"></i>Ordres de décaissement (Circuit 2)
+            </h5>
         </div>
-        
+
         <div class="card-body">
+
             {# Totaux #}
             <div class="d-flex gap-2 mb-4">
-                <span class="badge bg-success py-2 px-3 rounded-pill">Total USD : {{ totalDevisUSD|number_format(2, ',', ' ') }} $</span>
-                <span class="badge bg-primary py-2 px-3 rounded-pill">Total FC : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC</span>
+                <span class="badge bg-success py-2 px-3 rounded-pill">
+                    Total USD : {{ totalDevisUSD|number_format(2, ',', ' ') }} $
+                </span>
+                <span class="badge bg-primary py-2 px-3 rounded-pill">
+                    Total FC : {{ totalDevisCDF|number_format(0, ',', ' ') }} FC
+                </span>
             </div>
 
+            {# Filtre période #}
             <div class="card bg-light border-0 p-3 mb-4 shadow-sm rounded-3">
-                                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
-                                    <div class="col-md-4 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de début</label>
-                                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
-                                    </div>
-                                    <div class="col-md-4 col-sm-6">
-                                        <label class="form-label small fw-bold text-secondary"><i class="fas fa-calendar-alt me-1"></i> Date de fin</label>
-                                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
-                                    </div>
-                                    <div class="col-md-4 col-12 d-flex gap-2">
-                                        <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
-                                            <i class="fas fa-filter me-1"></i> Filtrer la période
-                                        </button>
-                                        <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </a>
-                                    </div>
-                                </form>
-                            </div>
+                <form method="GET" action="{{ path('app_dashboard') }}" class="row g-3 align-items-end">
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold text-secondary">
+                            <i class="fas fa-calendar-alt me-1"></i> Date de début
+                        </label>
+                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label small fw-bold text-secondary">
+                            <i class="fas fa-calendar-alt me-1"></i> Date de fin
+                        </label>
+                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                    </div>
+                    <div class="col-md-4 col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary fw-bold flex-grow-1">
+                            <i class="fas fa-filter me-1"></i> Filtrer la période
+                        </button>
+                        <a href="{{ path('app_dashboard') }}" class="btn btn-sm btn-outline-secondary fw-bold">
+                            <i class="fas fa-sync-alt"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
 
-
-            {# Table #}
+            {# Tableau des devis #}
             <div class="table-responsive">
                 <table class="table table-hover align-middle m-0">
                     <thead class="table-light small text-uppercase">
@@ -67,42 +83,144 @@
                         </tr>
                     </thead>
                     <tbody class="small">
-    {% for devis in devisListe %}
-        <tr>
-            <td>{{ devis.createdBy }}</td>
-            <td>{{ devis.entete }}</td>
-            <td>{{ devis.montant|number_format(2) }} {{ devis.devise }}</td>
-            <td>{{ devis.createdAt|date('d/m/Y') }}</td>
-            
-            <td class="text-center">
-    {% if devis.statut == 'EN_ATTENTE_BON_SORTIE' or devis.statut == 'Validé Compta' %}
-        {# J'ai corrigé la balise form ici #}
-        <form action="{{ path('app_caisse_valider', {'id': devis.id}) }}" 
-              method="POST" 
-              onsubmit="return confirm('⚠️ Confirmer le paiement ?');">
-            <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
-                <i class="fas fa-check me-1"></i> Payer
-            </button>
-        </form>
-    {% elseif devis.statut == 'Decaissé' %}
-        <span class="badge bg-success shadow-sm">
-            <i class="fas fa-check-double me-1"></i> Décaissé
-        </span>
-    {% else %}
-        <span class="badge bg-secondary">{{ devis.statut }}</span>
-    {% endif %}
-</td>
-        </tr>
-    {% else %}
-        {# Ce bloc s'affiche si la liste est vide #}
-        <tr>
-            <td colspan="5" class="text-center">Aucun décaissement en attente.</td>
-        </tr>
-    {% endfor %}
-</tbody>
+                    {% for devis in devisListe %}
+                        <tr>
+                            <td>
+                                {% if devis.user %}
+                                    {{ devis.user.userIdentifier }}
+                                {% elseif devis.createdBy is defined and devis.createdBy %}
+                                    {{ devis.createdBy }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if devis.entete is defined and devis.entete %}
+                                    {{ devis.entete }}
+                                {% elseif devis.objet is defined and devis.objet %}
+                                    {{ devis.objet }}
+                                {% else %}
+                                    Devis #{{ devis.id }}
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">
+                                {{ devis.montant|number_format(2, ',', ' ') }} {{ devis.devise }}
+                            </td>
+                            <td>{{ devis.createdAt ? devis.createdAt|date('d/m/Y') : '—' }}</td>
+
+                            <td class="text-center">
+                                {% if devis.statut == 'EN_ATTENTE_BON_SORTIE'
+                                   or devis.statut == 'Validé Compta'
+                                   or devis.statut == 'ATTENTE_CAISSE' %}
+
+                                    <div class="d-flex justify-content-center gap-1">
+
+                                        {# ── Bouton PAYER ── #}
+                                        <form action="{{ path('app_devis_caisse_decaisser', {'id': devis.id}) }}"
+                                              method="POST"
+                                              onsubmit="return confirm('⚠️ Confirmer le paiement du devis #{{ devis.id }} ?');">
+                                            <button type="submit" class="btn btn-sm btn-success text-white shadow-sm">
+                                                <i class="fas fa-check me-1"></i> Payer
+                                            </button>
+                                        </form>
+
+                                        {# ── Bouton REJETER (ouvre une modal) ── #}
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger shadow-sm"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#rejetCaisseModal"
+                                                data-devis-id="{{ devis.id }}"
+                                                data-devis-libelle="{{ devis.entete ?? devis.objet ?? ('Devis #' ~ devis.id) }}">
+                                            <i class="fas fa-times me-1"></i> Rejeter
+                                        </button>
+
+                                    </div>
+
+                                {% elseif devis.statut == 'Decaissé' or devis.statut == 'DECAISSE' %}
+                                    <span class="badge bg-success shadow-sm">
+                                        <i class="fas fa-check-double me-1"></i> Décaissé
+                                    </span>
+                                {% elseif devis.statut == 'REJETE' or devis.statut == 'Rejeté' %}
+                                    <span class="badge bg-danger shadow-sm">
+                                        <i class="fas fa-ban me-1"></i> Rejeté
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ devis.statut }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+                                Aucun décaissement en attente.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
                 </table>
             </div>
+
         </div>
     </div>
 </div>
+
+{# ═══════════════════════════════════════════════════════════
+   MODAL : Rejeter un devis
+═══════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="rejetCaisseModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" id="rejetCaisseForm" class="modal-content rounded-4 border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-ban me-2"></i>Rejeter le devis
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-3">
+                    Vous êtes sur le point de <strong>rejeter</strong> :<br>
+                    <span id="rejetCaisseLibelle" class="fw-bold text-dark"></span>
+                </p>
+
+                <label class="form-label fw-bold small text-secondary">
+                    Motif du rejet (optionnel)
+                </label>
+                <textarea name="motif_rejet"
+                          class="form-control rounded-3"
+                          rows="3"
+                          placeholder="Ex : informations incomplètes, montant incorrect, pièce manquante..."></textarea>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    Annuler
+                </button>
+                <button type="submit" class="btn btn-danger rounded-pill px-4">
+                    <i class="fas fa-ban me-1"></i> Confirmer le rejet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('rejetCaisseModal');
+        if (!modal) return;
+
+        modal.addEventListener('show.bs.modal', function (event) {
+            const btn = event.relatedTarget;
+            const devisId = btn.getAttribute('data-devis-id');
+            const libelle = btn.getAttribute('data-devis-libelle');
+
+            // Action dynamique du formulaire
+            document.getElementById('rejetCaisseForm').action =
+                '/caisse/devis/rejeter/' + devisId;
+
+            // Affichage du libellé
+            document.getElementById('rejetCaisseLibelle').textContent = libelle;
+        });
+    });
+</script>
+
 {% endblock %}

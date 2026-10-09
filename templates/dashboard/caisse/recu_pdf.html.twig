@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu d'entrée de caisse</title>
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 13px; color: #222; }
+        h1 { font-size: 18px; color: #059669; border-bottom: 2px solid #059669; padding-bottom: 8px; }
+        .subtitle { color: #666; font-size: 11px; margin-top: -10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        td { padding: 8px 4px; border-bottom: 1px dashed #ccc; vertical-align: top; }
+        .label { width: 40%; font-weight: bold; color: #555; }
+        .amount { font-size: 16px; font-weight: bold; color: #059669; }
+        .footer { margin-top: 40px; text-align: right; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
+        .brand { color: #0d6efd; }
+    </style>
+</head>
+<body>
+
+    <h1>Dispro<span class="brand">malt</span> — Reçu d'entrée de caisse</h1>
+    <p class="subtitle">Document officiel — à conserver</p>
+
+    <table>
+        <tr>
+            <td class="label">Reçu N°</td>
+            <td>#{{ mouvement.id }}</td>
+        </tr>
+        <tr>
+            <td class="label">Date du mouvement</td>
+            <td>{{ mouvement.dateMouvement ? mouvement.dateMouvement|date('d/m/Y H:i') : '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Montant</td>
+            <td class="amount">
+                {{ mouvement.montant|number_format(2, ',', ' ') }} {{ mouvement.devise }}
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Provenance</td>
+            <td>{{ mouvement.provenance ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Catégorie</td>
+            <td>{{ mouvement.categorie ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Enregistré par</td>
+            <td>
+                {% if mouvement.effectuePar %}
+                    {{ mouvement.effectuePar.userIdentifier }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Imprimé le {{ date|date('d/m/Y à H:i') }}
+    </div>
+
+</body>
+</html>

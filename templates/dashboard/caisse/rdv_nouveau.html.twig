@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+{% block title %}Programmer une réunion DG - Dispromalt{% endblock %}
+
+{% block main_content %}
+<div class="container-fluid py-4">
+
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 fw-bold text-dark mb-1">
+                    <i class="fa-solid fa-calendar-plus text-primary me-2"></i>Programmer une réunion DG
+                </h1>
+                <p class="text-muted mb-0">Planifiez un rendez-vous ou une réunion avec un chef de service.</p>
+            </div>
+            <a href="{{ path('app_caisse_rdv_dg') }}" class="btn btn-outline-secondary shadow-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Retour au planning
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white py-3 rounded-top-4">
+                    <h5 class="card-title mb-0 fw-semibold">
+                        <i class="fa-solid fa-user-clock me-2"></i> Détails du rendez-vous
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+
+                    {# Affichage des erreurs globales #}
+                    {% if form.vars.errors|length > 0 %}
+                        <div class="alert alert-danger rounded-3 mb-3">
+                            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                            <strong>Formulaire invalide :</strong>
+                            <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    {# ─── Tous les champs du formulaire affichés dynamiquement ─── #}
+                    <div class="row g-3">
+                        {% for field in form %}
+                            {% if field.rendered is defined and not field.rendered %}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold text-secondary small text-uppercase">
+                                        {{ field.vars.label ?? field.vars.name|humanize }}
+                                    </label>
+                                    {{ form_widget(field, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
+                                    {{ form_errors(field) }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {# ─── Sélection du chef de service concerné ─── #}
+                    <div class="col-md-12 mt-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            Chef de service concerné (optionnel)
+                        </label>
+                        <select name="chef_service_id" class="form-select rounded-3 py-2">
+                            <option value="">— Aucun —</option>
+                            {% for c in chefsService %}
+                                <option value="{{ c.id }}">{{ c.userIdentifier }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ path('app_caisse_rdv_dg') }}" class="btn btn-light px-4 rounded-3">
+                            Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 rounded-3 shadow-sm">
+                            <i class="fa-solid fa-check me-1"></i> Enregistrer & imprimer
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

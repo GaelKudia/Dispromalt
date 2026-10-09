@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"><title>Rapport caisse</title>
+<style>
+body{font-family:Helvetica,sans-serif;font-size:12px}
+h2{color:#0d6efd;border-bottom:2px solid #0d6efd;padding-bottom:6px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border:1px solid #999;padding:5px}
+th{background:#f0f0f0;text-align:left}
+tfoot td{font-weight:bold;background:#f8f8f8}
+</style>
+</head><body>
+<h2>Dispro<span style="color:#000">malt</span> — Rapport de caisse</h2>
+<p><strong>Période :</strong> du {{ date_debut }} au {{ date_fin }}</p>
+<table>
+<thead>
+<tr>
+    <th>Date</th><th>Type</th><th>Devise</th><th style="text-align:right">Montant</th><th>Provenance</th>
+</tr>
+</thead>
+<tbody>
+{% for m in mouvements %}
+<tr>
+    <td>{{ m.dateMouvement|date('d/m/Y H:i') }}</td>
+    <td>{{ m.type }}</td>
+    <td>{{ m.devise }}</td>
+    <td style="text-align:right">{{ m.montant|number_format(2, ',', ' ') }}</td>
+    <td>{{ m.provenance }}</td>
+</tr>
+{% else %}
+<tr><td colspan="5" style="text-align:center">Aucun mouvement sur la période.</td></tr>
+{% endfor %}
+</tbody>
+</table>
+<p style="margin-top:15px">
+<strong>Solde USD :</strong> {{ soldeUSD|number_format(2, ',', ' ') }} $ &nbsp;—&nbsp;
+<strong>Solde CDF :</strong> {{ soldeCDF|number_format(2, ',', ' ') }} FC
+</p>
+</body></html>

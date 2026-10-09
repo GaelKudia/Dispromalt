@@ -38,12 +38,32 @@ class Visite
     private ?string $pieceIdentite = null;
 
     // ============================================================
-    // RELATION : Responsable à qui la visite est déléguée
-    // (uniquement un compte prédéfini : DG, Coordonnateur, Chef Compta)
+    // RELATION : Responsable à qui la visite / RDV est délégué(e)
     // ============================================================
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $responsableDelegue = null;
+
+    // ============================================================
+    // ✅ CHAMPS RDV DG / RÉUNION
+    // ============================================================
+
+    /**
+     * Type d'enregistrement :
+     *  - VISITE   : visite classique
+     *  - RDV_DG   : rendez-vous pour le DG
+     *  - REUNION  : réunion DG ↔ chef de service
+     */
+    #[ORM\Column(length: 20, options: ['default' => 'VISITE'])]
+    private string $type = 'VISITE';
+
+    /** Le RDV est-il destiné au DG lui-même ? */
+    #[ORM\Column(options: ['default' => false])]
+    private bool $avecDG = false;
+
+    /** Motif de la délégation (si le RDV est délégué) */
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $motifDelegation = null;
 
     // ============================================================
     // GETTERS / SETTERS
@@ -77,4 +97,15 @@ class Visite
 
     public function getResponsableDelegue(): ?User { return $this->responsableDelegue; }
     public function setResponsableDelegue(?User $responsableDelegue): static { $this->responsableDelegue = $responsableDelegue; return $this; }
+
+    // ───── Nouveaux champs RDV DG ─────
+
+    public function getType(): string { return $this->type; }
+    public function setType(string $type): self { $this->type = $type; return $this; }
+
+    public function isAvecDG(): bool { return $this->avecDG; }
+    public function setAvecDG(bool $avecDG): self { $this->avecDG = $avecDG; return $this; }
+
+    public function getMotifDelegation(): ?string { return $this->motifDelegation; }
+    public function setMotifDelegation(?string $motifDelegation): self { $this->motifDelegation = $motifDelegation; return $this; }
 }

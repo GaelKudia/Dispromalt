@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Convocation — Rendez-vous DG</title>
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 13px; color: #222; }
+        h1 { font-size: 20px; color: #0d6efd; border-bottom: 2px solid #0d6efd; padding-bottom: 8px; }
+        .subtitle { color: #666; font-size: 11px; margin-top: -10px; margin-bottom: 20px; }
+        .brand { color: #000; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        td { padding: 10px 6px; border-bottom: 1px dashed #ccc; vertical-align: top; }
+        .label { width: 35%; font-weight: bold; color: #555; }
+        .highlight { background: #f0f7ff; border-radius: 6px; padding: 12px; margin-top: 15px; border-left: 4px solid #0d6efd; }
+        .highlight strong { color: #0d6efd; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-delegue { background: #fff3cd; color: #856404; }
+        .badge-confirme { background: #d1e7dd; color: #0f5132; }
+        .badge-annule  { background: #f8d7da; color: #842029; }
+        .badge-planifie { background: #cfe2ff; color: #084298; }
+        .footer { margin-top: 40px; text-align: right; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Dispro<span class="brand">malt</span> — Convocation</h1>
+    <p class="subtitle">Document officiel — Rendez-vous Direction Générale</p>
+
+    <table>
+        <tr>
+            <td class="label">RDV N°</td>
+            <td><strong>#{{ visite.id }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Visiteur / Demandeur</td>
+            <td><strong>{{ visite.nomVisiteur ?? '—' }}</strong></td>
+        </tr>
+
+        {% if visite.telephone is defined and visite.telephone %}
+        <tr>
+            <td class="label">Téléphone</td>
+            <td>{{ visite.telephone }}</td>
+        </tr>
+        {% endif %}
+
+        {% if visite.email is defined and visite.email %}
+        <tr>
+            <td class="label">Email</td>
+            <td>{{ visite.email }}</td>
+        </tr>
+        {% endif %}
+
+        <tr>
+            <td class="label">Date & heure</td>
+            <td>
+                <strong>
+                    {{ visite.dateArrivee ? visite.dateArrivee|date('d/m/Y à H:i') : '—' }}
+                </strong>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="label">Objet</td>
+            <td>{{ visite.motif ?? '—' }}</td>
+        </tr>
+
+        {% if visite.departement is defined and visite.departement %}
+        <tr>
+            <td class="label">Département concerné</td>
+            <td>{{ visite.departement }}</td>
+        </tr>
+        {% endif %}
+
+        <tr>
+            <td class="label">Statut</td>
+            <td>
+                {% if visite.statut == 'DELEGUE' %}
+                    <span class="badge badge-delegue">Délégué</span>
+                {% elseif visite.statut == 'CONFIRME' %}
+                    <span class="badge badge-confirme">Confirmé</span>
+                {% elseif visite.statut == 'ANNULE' %}
+                    <span class="badge badge-annule">Annulé</span>
+                {% else %}
+                    <span class="badge badge-planifie">{{ visite.statut }}</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    {% if visite.responsableDelegue %}
+        <div class="highlight">
+            <strong>📤 Délégation :</strong>
+            Ce rendez-vous a été délégué à
+            <strong>{{ visite.responsableDelegue.userIdentifier }}</strong>.
+            {% if visite.motifDelegation %}
+                <br>
+                <strong>Motif :</strong> {{ visite.motifDelegation }}
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <div class="footer">
+        Document généré le {{ date|date('d/m/Y à H:i') }}
+    </div>
+
+</body>
+</html>

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\MouvementCaisse;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,7 +15,7 @@ class MouvementCaisseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 🎯 SOLDE ACTUEL par devise
+     * 🎯 SOLDE GLOBAL par devise (toute l'entreprise)
      * Solde = Σ entrées - Σ sorties
      */
     public function getSolde(string $devise): float
@@ -34,6 +35,32 @@ class MouvementCaisseRepository extends ServiceEntityRepository
         return (float) $res['entrees'] - (float) $res['sorties'];
     }
 
+    /**
+     * 🎯 SOLDE PERSONNEL d'un utilisateur donné pour une devise.
+     * = somme de ses propres entrées − somme de ses propres sorties.
+     */
+        /**
+     * Solde PERSONNEL d'un utilisateur donné pour une devise.
+     * = somme de ses propres entrées − somme de ses propres sorties.
+     */
+    public function getSoldeParUtilisateur(User $user, string $devise): float
+    {
+        $res = $this->createQueryBuilder('m')
+            ->select('
+                COALESCE(SUM(CASE WHEN m.type = :entree THEN m.montant ELSE 0 END), 0) AS entrees,
+                COALESCE(SUM(CASE WHEN m.type = :sortie THEN m.montant ELSE 0 END), 0) AS sorties
+            ')
+            ->where('m.devise = :devise')
+            ->andWhere('m.effectuePar = :user')
+            ->setParameter('entree', MouvementCaisse::TYPE_ENTREE)
+            ->setParameter('sortie', MouvementCaisse::TYPE_SORTIE)
+            ->setParameter('devise', $devise)
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getSingleResult();
+
+        return (float) $res['entrees'] - (float) $res['sorties'];
+    }
     /** Vérifie si la caisse peut couvrir un montant donné */
     public function peutDecaisser(string $devise, float $montant): bool
     {
