@@ -200,4 +200,18 @@ public function setIsChefComptable(bool $isChefComptable): static {
     $this->isChefComptable = $isChefComptable;
     return $this;
 }
+
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isPDG = false;
+
+    public function isPDG(): bool
+    {
+        return $this->isPDG;
+    }
+
+    public function setIsPDG(bool $isPDG): self
+    {
+        $this->isPDG = $isPDG;
+        return $this;
+    }
 }

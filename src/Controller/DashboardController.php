@@ -1054,7 +1054,14 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 $categoriesQuantites[] = $data['quantite'];
             }
 
-            return $this->render('dashboard/directeur.html.twig', [
+            // ═══════════════════════════════════════════════════════════
+            // ═══════════════════════════════════════════════════════
+            // ✅ DONNÉES COMMUNES DG + PDG
+            // ═══════════════════════════════════════════════════════
+            $soldeCaisseUSD = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
+            $soldeCaisseCDF = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
+
+            $vars = [
                 'demandes'             => $demandes,
                 'rapportGlobal'        => $rapportGlobal,
                 'bonsSortie'           => $bonsSortie,
@@ -1068,6 +1075,8 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'nbAlertesStock'       => $nbAlertesStock,
                 'soldeUSD'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
                 'soldeCDF'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),
+                'soldeCaisseUSD'       => $soldeCaisseUSD,
+                'soldeCaisseCDF'       => $soldeCaisseCDF,
                 'articlesDG'           => $articlesDG,
                 'totalQuantiteStock'   => $totalQuantiteStock,
                 'articlesParCategorie' => $articlesParCategorie,
@@ -1075,7 +1084,47 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'categoriesLabels'     => $categoriesLabels,
                 'categoriesQuantites'  => $categoriesQuantites,
                 'estSiteDistant'       => $estSiteDistant,
-            ]);
+            ];
+
+            // ═══════════════════════════════════════════════════════
+            // ✅ RDV — chargés uniquement si l'utilisateur est PDG
+            // ═══════════════════════════════════════════════════════
+            $mesRdv      = [];
+            $rdvDelegues = [];
+
+            if ($currentUser->isPDG()) {
+                $mesRdv = $em->getRepository(Visite::class)->createQueryBuilder('v')
+                    ->where('v.avecDG = :oui')
+                    ->setParameter('oui', true)
+                    ->orderBy('v.dateArrivee', 'DESC')
+                    ->setMaxResults(50)
+                    ->getQuery()
+                    ->getResult();
+
+                $rdvDelegues = $em->getRepository(Visite::class)->createQueryBuilder('v')
+                    ->where('v.responsableDelegue IS NOT NULL')
+                    ->orderBy('v.dateArrivee', 'DESC')
+                    ->setMaxResults(50)
+                    ->getQuery()
+                    ->getResult();
+            }
+
+            $vars['mesRdv']      = $mesRdv;
+            $vars['rdvDelegues'] = $rdvDelegues;
+            $vars['isPDG']       = $currentUser->isPDG();
+
+            // ═══════════════════════════════════════════════════════
+            // ✅ Vue unique — le template gère l'onglet RDV en conditionnel
+            // ═══════════════════════════════════════════════════════
+                        return $this->render('dashboard/directeur.html.twig', $vars);
+        
+            // ═══════════════════════════════════════════════════════
+            // ✅ DG standard
+            // ═══════════════════════════════════════════════════════
+                        // ═══════════════════════════════════════════════════════
+            // ✅ DG standard
+            // ═══════════════════════════════════════════════════════
+            return $this->render('dashboard/directeur.html.twig', $vars);
         }
 
         // PAR DÉFAUT

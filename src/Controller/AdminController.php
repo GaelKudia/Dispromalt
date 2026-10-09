@@ -686,4 +686,64 @@ private function genererMotDePasseFort(int $longueur = 12): string
         $this->addFlash('success', '🗑️ Article « '.$nom.' » supprimé.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
     }
+
+        // ═══════════════════════════════════════════════════════════
+    // ✅ NOMMER UN PDG (un seul à la fois)
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/assigner-pdg', name: 'app_admin_assigner_pdg', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function assignerPDG(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $userId = $request->request->get('user_id');
+        $user   = $userRepository->find($userId);
+
+        if (!$user) {
+            $this->addFlash('danger', '❌ Utilisateur introuvable.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+        }
+
+        // On retire le statut PDG de tous les autres utilisateurs
+        foreach ($userRepository->findBy(['isPDG' => true]) as $ancien) {
+            $ancien->setIsPDG(false);
+        }
+
+        $user->setIsPDG(true);
+
+        // Le PDG doit avoir ROLE_DG pour accéder à la vue
+        $roles = $user->getRoles();
+        if (!in_array('ROLE_DG', $roles)) {
+            $roles[] = 'ROLE_DG';
+            $user->setRoles($roles);
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            '👑 %s a été nommé PDG. La vue exclusive lui est maintenant accessible.',
+            $user->getEmail()
+        ));
+
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ DESTITUER LE PDG
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/destituer-pdg/{id}', name: 'app_admin_destituer_pdg', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function destituerPDG(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($id);
+
+        if ($user && $user->isPDG()) {
+            $user->setIsPDG(false);
+            $em->flush();
+            $this->addFlash('success', sprintf(
+                'Le statut PDG a été retiré à %s.',
+                $user->getEmail()
+            ));
+        }
+
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+    }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Direction Générale - Dispromalt</title>
+    <title>{% if isPDG|default(false) %}Direction Générale (PDG){% else %}Direction Générale{% endif %} - Dispromalt</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
@@ -18,15 +18,8 @@
             --shadow-soft: 0 4px 20px rgba(0,0,0,0.06);
             --shadow-hover: 0 12px 30px rgba(0,0,0,0.10);
         }
-
         * { transition: all 0.25s ease; }
-
-        html, body {
-            width: 100%;
-            max-width: 100%;
-            overflow-x: hidden;
-        }
-
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #f0f2f7;
@@ -35,8 +28,6 @@
                 radial-gradient(at 100% 100%, rgba(44, 62, 80, 0.06) 0px, transparent 50%);
             min-height: 100vh;
         }
-
-        /* ========= NAVBAR ========= */
         .navbar-modern {
             background: rgba(30, 41, 59, 0.98);
             backdrop-filter: blur(12px);
@@ -56,8 +47,6 @@
             font-weight: 800;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
         }
-
-        /* ========= HERO / BANNIÈRE DG ========= */
         .dg-hero {
             background: var(--gradient-dg);
             border-radius: 22px;
@@ -104,189 +93,115 @@
             letter-spacing: 0.1em;
             margin-bottom: 1rem;
         }
-        .dg-hero h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin: 0 0 0.5rem;
-        }
-        .dg-hero p {
-            color: rgba(255,255,255,0.75);
-            margin: 0;
-            font-size: 0.95rem;
-        }
-        .dg-hero-meta {
-            display: flex;
-            gap: 1.5rem;
-            margin-top: 1.25rem;
-            flex-wrap: wrap;
-        }
+        .dg-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 0.5rem; }
+        .dg-hero p { color: rgba(255,255,255,0.75); margin: 0; font-size: 0.95rem; }
+        .dg-hero-meta { display: flex; gap: 1.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
         .dg-hero-meta-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: rgba(255,255,255,0.85);
-            font-size: 0.85rem;
+            display: flex; align-items: center; gap: 0.5rem;
+            color: rgba(255,255,255,0.85); font-size: 0.85rem;
         }
         .dg-hero-meta-item i { color: #f9d976; }
 
-        /* ========= STAT CARDS ========= */
         .stat-card {
-            border: none;
-            border-radius: 18px;
-            padding: 1.4rem;
-            position: relative;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: var(--shadow-soft);
+            border: none; border-radius: 18px; padding: 1.4rem;
+            position: relative; overflow: hidden;
+            background: #fff; box-shadow: var(--shadow-soft);
         }
         .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 4px;
-            background: var(--gradient-1);
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; background: var(--gradient-1);
         }
         .stat-card.stat-warning::before { background: var(--gradient-5); }
         .stat-card.stat-primary::before { background: var(--gradient-3); }
         .stat-card.stat-success::before { background: var(--gradient-4); }
         .stat-card.stat-gold::before    { background: var(--gradient-gold); }
-        .stat-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-hover);
-        }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
         .stat-icon {
-            width: 56px; height: 56px;
-            border-radius: 14px;
+            width: 56px; height: 56px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
+            font-size: 1.5rem; flex-shrink: 0;
         }
         .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
         .stat-icon-primary { background: rgba(79, 172, 254, 0.12); color: #3b82f6; }
         .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
         .stat-icon-gold    { background: rgba(212, 175, 55, 0.15); color: #b8860b; }
-
         .stat-trend {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            margin-top: 0.5rem;
+            display: inline-flex; align-items: center; gap: 0.25rem;
+            font-size: 0.72rem; font-weight: 700;
+            padding: 0.2rem 0.5rem; border-radius: 6px; margin-top: 0.5rem;
         }
         .stat-trend-up   { background: rgba(67, 233, 123, 0.15); color: #059669; }
         .stat-trend-info { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
 
-        /* ========= BANDEAU TRÉSORERIE ========= */
         .treso-card {
-            border-radius: 18px;
-            padding: 1.15rem 1.4rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-soft);
-            height: 100%;
+            border-radius: 18px; padding: 1.15rem 1.4rem;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: var(--shadow-soft); height: 100%;
         }
         .treso-card .treso-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.35rem;
+            font-size: 0.7rem; text-transform: uppercase;
+            font-weight: 700; letter-spacing: 0.05em; margin-bottom: 0.35rem;
         }
         .treso-card .treso-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            line-height: 1;
+            font-size: 1.6rem; font-weight: 800; line-height: 1;
             letter-spacing: -0.5px;
         }
-        .treso-card .treso-icon {
-            font-size: 2rem;
-            opacity: 0.25;
-        }
-        .treso-usd {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border: 1px solid rgba(5, 150, 105, 0.25);
-        }
+        .treso-card .treso-icon { font-size: 2rem; opacity: 0.25; }
+        .treso-usd { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid rgba(5, 150, 105, 0.25); }
         .treso-usd .treso-label { color: #065f46; }
         .treso-usd .treso-value { color: #059669; }
-        .treso-cdf {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border: 1px solid rgba(37, 99, 235, 0.25);
-        }
+        .treso-cdf { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid rgba(37, 99, 235, 0.25); }
         .treso-cdf .treso-label { color: #1e40af; }
         .treso-cdf .treso-value { color: #2563eb; }
+        .treso-caisse { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid rgba(212, 175, 55, 0.35); }
+        .treso-caisse .treso-label { color: #92400e; }
+        .treso-caisse .treso-value { color: #78350f; }
 
-        /* ========= MAIN CARD & TABS ========= */
         .main-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: var(--shadow-soft);
-            background: #fff;
-            overflow: hidden;
-            width: 100%;
+            border: none; border-radius: 20px;
+            box-shadow: var(--shadow-soft); background: #fff;
+            overflow: hidden; width: 100%;
         }
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
-            padding: 0 1rem;
-            gap: 0.25rem;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
+            padding: 0 1rem; gap: 0.25rem;
+            flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
         }
         .nav-tabs-modern::-webkit-scrollbar { display: none; }
         .nav-tabs-modern .nav-link {
-            border: none !important;
-            color: #64748b;
-            font-weight: 600;
-            font-size: 0.9rem;
-            padding: 1rem 1.1rem;
-            white-space: nowrap;
-            border-radius: 0;
-            position: relative;
-            background: none;
+            border: none !important; color: #64748b;
+            font-weight: 600; font-size: 0.9rem;
+            padding: 1rem 1.1rem; white-space: nowrap;
+            border-radius: 0; position: relative; background: none;
         }
         .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); }
         .nav-tabs-modern .nav-link.active { color: var(--dg-primary) !important; background: none; }
         .nav-tabs-modern .nav-link.active::after {
-            content: '';
-            position: absolute;
+            content: ''; position: absolute;
             bottom: -1px; left: 1rem; right: 1rem;
-            height: 3px;
-            background: var(--gradient-gold);
+            height: 3px; background: var(--gradient-gold);
             border-radius: 3px 3px 0 0;
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
-        /* ========= TABLE ========= */
         .table-responsive { width: 100%; }
         .table-modern { margin: 0; width: 100% !important; }
         .table-modern thead th {
-            background: #f8fafc;
-            color: #475569;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 1rem 0.9rem;
-            border-bottom: 2px solid #e2e8f0;
+            background: #f8fafc; color: #475569;
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0;
             white-space: nowrap;
         }
         .table-modern tbody td {
-            padding: 1rem 0.9rem;
-            vertical-align: middle;
+            padding: 1rem 0.9rem; vertical-align: middle;
             border-color: #f1f5f9;
         }
         .table-modern tbody tr:hover { background: #f8fafc; }
 
         .badge-soft {
-            padding: 0.4rem 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.75rem;
+            padding: 0.4rem 0.75rem; border-radius: 8px;
+            font-weight: 600; font-size: 0.75rem;
         }
         .badge-soft-warning { background: rgba(250, 112, 154, 0.12); color: #d63384; }
         .badge-soft-primary { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
@@ -296,32 +211,21 @@
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-gold    { background: rgba(212, 175, 55, 0.15); color: #8b6508; }
 
-        /* ========= FILTER BAR ========= */
         .filter-bar {
-            background: #f8fafc;
-            border-radius: 14px;
-            padding: 1rem 1.25rem;
-            border: 1px solid #e2e8f0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            align-items: end;
-            margin-bottom: 1.25rem;
+            background: #f8fafc; border-radius: 14px;
+            padding: 1rem 1.25rem; border: 1px solid #e2e8f0;
+            display: flex; flex-wrap: wrap; gap: 0.75rem;
+            align-items: end; margin-bottom: 1.25rem;
         }
         .filter-bar .form-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+            font-size: 0.72rem; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: 0.04em;
             margin-bottom: 0.35rem;
         }
         .filter-bar .form-control,
         .filter-bar .form-select {
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            padding: 0.55rem 0.85rem;
-            font-size: 0.88rem;
+            border-radius: 10px; border: 1px solid #e2e8f0;
+            padding: 0.55rem 0.85rem; font-size: 0.88rem;
             background: #fff;
         }
         .filter-bar .form-control:focus,
@@ -330,128 +234,63 @@
             box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.10);
         }
 
-        /* ========= KPI GRID ========= */
         .kpi-mini {
-            background: #f8fafc;
-            border: 1px solid #eef2f7;
-            border-radius: 14px;
-            padding: 1rem 1.15rem;
-            text-align: center;
+            background: #f8fafc; border: 1px solid #eef2f7;
+            border-radius: 14px; padding: 1rem 1.15rem; text-align: center;
         }
         .kpi-mini .kpi-value {
-            font-size: 1.6rem;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 0.35rem;
-            letter-spacing: -0.5px;
+            font-size: 1.6rem; font-weight: 800; line-height: 1;
+            margin-bottom: 0.35rem; letter-spacing: -0.5px;
         }
         .kpi-mini .kpi-label {
-            font-size: 0.7rem;
-            color: #64748b;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            font-size: 0.7rem; color: #64748b; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em;
         }
         .kpi-mini.kpi-warning  { background: rgba(250, 112, 154, 0.06); border-color: rgba(250, 112, 154, 0.15); }
         .kpi-mini.kpi-primary  { background: rgba(79, 172, 254, 0.06); border-color: rgba(79, 172, 254, 0.15); }
         .kpi-mini.kpi-success  { background: rgba(67, 233, 123, 0.06); border-color: rgba(67, 233, 123, 0.15); }
         .kpi-mini.kpi-gold     { background: rgba(212, 175, 55, 0.08); border-color: rgba(212, 175, 55, 0.2); }
 
-        /* ========= EMPTY STATE ========= */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: #94a3b8;
-        }
-        .empty-state i {
-            font-size: 3rem;
-            color: #cbd5e1;
-            margin-bottom: 1rem;
-            display: block;
-        }
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
+        .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
 
-        /* ========= BOUTON EXPORT ========= */
         .btn-export {
-            background: var(--gradient-gold);
-            color: #1e293b;
-            border: none;
-            font-weight: 700;
-            border-radius: 10px;
-            padding: 0.65rem 1.15rem;
-            font-size: 0.88rem;
+            background: var(--gradient-gold); color: #1e293b;
+            border: none; font-weight: 700; border-radius: 10px;
+            padding: 0.65rem 1.15rem; font-size: 0.88rem;
             box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
         }
-        .btn-export:hover {
-            color: #1e293b;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 24px rgba(212, 175, 55, 0.4);
-        }
+        .btn-export:hover { color: #1e293b; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(212, 175, 55, 0.4); }
 
-        /* ========= TIMELINE STATUTS ========= */
         .status-timeline {
-            display: flex;
-            gap: 0.25rem;
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 0.75rem;
-            background: #f1f5f9;
+            display: flex; gap: 0.25rem; height: 8px;
+            border-radius: 4px; overflow: hidden;
+            margin-top: 0.75rem; background: #f1f5f9;
         }
         .status-segment { height: 100%; }
         .status-seg-attente { background: #fa709a; }
         .status-seg-valide  { background: #4facfe; }
         .status-seg-livre   { background: #43e97b; }
-
         .legend-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.4rem;
+            width: 10px; height: 10px; border-radius: 50%;
+            display: inline-block; margin-right: 0.4rem;
         }
 
-        /* ═══════════════════════════════════════════════
-           ✅ PLEINE LARGEUR RESPONSIVE — tous écrans
-        ═══════════════════════════════════════════════ */
-
-        .container-fluid {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-
-        /* Très grands écrans (> 1920px) */
+        .container-fluid { width: 100% !important; max-width: 100% !important; }
         @media (min-width: 1920px) {
-            .container-fluid {
-                padding-left: 3rem !important;
-                padding-right: 3rem !important;
-            }
+            .container-fluid { padding-left: 3rem !important; padding-right: 3rem !important; }
         }
-
-        /* Tablettes (768px - 1200px) */
         @media (max-width: 1200px) {
-            .container-fluid {
-                padding-left: 1.5rem !important;
-                padding-right: 1.5rem !important;
-            }
+            .container-fluid { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
             .dg-hero { padding: 1.75rem 1.5rem; }
             .dg-hero h1 { font-size: 1.6rem; }
         }
-
-        /* Petits écrans (576px - 768px) */
         @media (max-width: 768px) {
-            .container-fluid {
-                padding-left: 1rem !important;
-                padding-right: 1rem !important;
-            }
-            .navbar-modern {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-            }
+            .container-fluid { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .navbar-modern { padding-left: 0.75rem; padding-right: 0.75rem; }
             .navbar-brand-modern { font-size: 1rem; }
             .navbar-brand-modern img { height: 32px !important; }
-            .dg-hero {
-                padding: 1.25rem 1.15rem;
-                border-radius: 18px;
-            }
+            .dg-hero { padding: 1.25rem 1.15rem; border-radius: 18px; }
             .dg-hero h1 { font-size: 1.35rem; }
             .dg-hero p { font-size: 0.85rem; }
             .dg-hero-meta { gap: 0.75rem; }
@@ -464,23 +303,15 @@
             .nav-tabs-modern .nav-link { font-size: 0.82rem; padding: 0.85rem 0.75rem; }
             .nav-tabs-modern .nav-link i { margin-right: 0.3rem; }
             .table-modern thead th,
-            .table-modern tbody td {
-                padding: 0.75rem 0.6rem;
-                font-size: 0.82rem;
-            }
+            .table-modern tbody td { padding: 0.75rem 0.6rem; font-size: 0.82rem; }
             .kpi-mini { padding: 0.85rem 0.75rem; }
             .kpi-mini .kpi-value { font-size: 1.35rem; }
             .kpi-mini .kpi-label { font-size: 0.65rem; }
             .main-card { border-radius: 16px; }
             .main-card > .p-4 { padding: 1rem !important; }
         }
-
-        /* Très petits écrans (< 576px) */
         @media (max-width: 576px) {
-            .container-fluid {
-                padding-left: 0.75rem !important;
-                padding-right: 0.75rem !important;
-            }
+            .container-fluid { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
             .dg-hero { padding: 1rem 1rem; }
             .dg-hero h1 { font-size: 1.15rem; }
             .dg-hero-badge { font-size: 0.65rem; padding: 0.3rem 0.75rem; }
@@ -496,16 +327,11 @@
             .nav-tabs-modern .nav-link.active::after { left: 0.4rem; right: 0.4rem; }
             .filter-bar { padding: 0.75rem; }
             .table-modern thead th,
-            .table-modern tbody td {
-                padding: 0.6rem 0.5rem;
-                font-size: 0.75rem;
-            }
+            .table-modern tbody td { padding: 0.6rem 0.5rem; font-size: 0.75rem; }
             .badge-soft { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
             .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .stat-icon { width: 38px; height: 38px; font-size: 1rem; }
         }
-
-        /* ========= PRINT ========= */
         @media print {
             .navbar-modern, .nav-tabs-modern, .filter-bar, .btn-export, .no-print { display: none !important; }
             .main-card { box-shadow: none; }
@@ -517,22 +343,20 @@
 </head>
 <body>
 
-{# ============================================
-   NAVBAR
-============================================ #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
             Dispro<span class="text-primary">malt</span>
-            <span class="fw-light fs-6 text-white-50 ms-2">| Direction Générale</span>
+            <span class="fw-light fs-6 text-white-50 ms-2">
+                | {% if isPDG|default(false) %}Direction Générale (PDG){% else %}Direction Générale{% endif %}
+            </span>
         </a>
         <div class="d-flex align-items-center gap-3">
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-crown me-2"></i>
-                <span>{{ userRole }}</span>
+                <span>{% if isPDG|default(false) %}PDG{% else %}{{ userRole }}{% endif %}</span>
             </div>
-
             <a href="{{ path('app_historique_reappro') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
                 <i class="fas fa-history me-1"></i> Historique Réappro
             </a>
@@ -546,19 +370,15 @@
     </div>
 </nav>
 
-{# ============================================
-   MAIN CONTAINER — PLEINE LARGEUR
-============================================ #}
 <div class="container-fluid py-4" style="max-width: 100%; padding-left: 2rem; padding-right: 2rem;">
 
-    {# ============ HERO DG ============ #}
     <div class="dg-hero">
         <div class="dg-hero-content">
             <div class="dg-hero-badge">
                 <i class="fas fa-crown"></i>
-                Tableau de bord exécutif
+                {% if isPDG|default(false) %}Tableau de bord PDG{% else %}Tableau de bord exécutif{% endif %}
             </div>
-            <h1>Bienvenue, Direction Générale</h1>
+            <h1>Bienvenue, {% if isPDG|default(false) %}Président-Directeur Général{% else %}Direction Générale{% endif %}</h1>
             <p>Vue stratégique de l'activité — supervision des demandes, bons, devis et performances globales.</p>
             <div class="dg-hero-meta">
                 <div class="dg-hero-meta-item">
@@ -567,22 +387,20 @@
                 </div>
                 <div class="dg-hero-meta-item">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Accès : <strong>Supervision totale</strong></span>
+                    <span>Accès : <strong>{% if isPDG|default(false) %}PDG — supervision + agenda{% else %}Supervision totale{% endif %}</strong></span>
                 </div>
             </div>
         </div>
     </div>
 
-    {# ============================================
-       BANDEAU TRÉSORERIE (solde comptabilité)
-    ============================================ #}
+    {# ═══════════════════════════════════════════════════════
+       TRÉSORERIE — 3 cartes
+    ═══════════════════════════════════════════════════════ #}
     <div class="row g-3 mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="treso-card treso-usd">
                 <div>
-                    <div class="treso-label">
-                        <i class="fas fa-hand-holding-usd me-1"></i>Solde USD — Comptabilité
-                    </div>
+                    <div class="treso-label"><i class="fas fa-hand-holding-usd me-1"></i>Solde USD — Comptabilité</div>
                     <div class="treso-value">
                         {{ soldeUSD|default(0)|number_format(2, ',', ' ') }}
                         <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">$</small>
@@ -591,12 +409,10 @@
                 <i class="fas fa-dollar-sign treso-icon"></i>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="treso-card treso-cdf">
                 <div>
-                    <div class="treso-label">
-                        <i class="fas fa-money-bill-wave me-1"></i>Solde CDF — Comptabilité
-                    </div>
+                    <div class="treso-label"><i class="fas fa-money-bill-wave me-1"></i>Solde CDF — Comptabilité</div>
                     <div class="treso-value">
                         {{ soldeCDF|default(0)|number_format(0, ',', ' ') }}
                         <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">FC</small>
@@ -605,9 +421,21 @@
                 <i class="fas fa-coins treso-icon"></i>
             </div>
         </div>
+        <div class="col-md-4">
+            <div class="treso-card treso-caisse">
+                <div>
+                    <div class="treso-label"><i class="fas fa-cash-register me-1"></i>Solde Caisse (global)</div>
+                    <div class="treso-value" style="font-size: 1.15rem;">
+                        {{ soldeCaisseUSD|default(0)|number_format(2, ',', ' ') }} $
+                        <span style="opacity:0.5;">•</span>
+                        {{ soldeCaisseCDF|default(0)|number_format(0, ',', ' ') }} FC
+                    </div>
+                </div>
+                <i class="fas fa-vault treso-icon"></i>
+            </div>
+        </div>
     </div>
 
-    {# ============ FLASH MESSAGES ============ #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
@@ -617,9 +445,10 @@
         {% endfor %}
     {% endfor %}
 
-    {# ============================================
-       CARTES STATISTIQUES GLOBALES
-    ============================================ #}
+    {# ═══════════════════════════════════════════════════════
+       STATS GLOBALES — 4 cartes
+       La 4ème change selon PDG ou DG
+    ═══════════════════════════════════════════════════════ #}
     <div class="row g-3 mb-4">
         <div class="col-md-6 col-xl-3">
             <div class="stat-card stat-warning">
@@ -627,13 +456,9 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Demandes totales</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ demandes|length }}</h3>
-                        <span class="stat-trend stat-trend-up">
-                            <i class="fas fa-chart-line"></i> Activité en cours
-                        </span>
+                        <span class="stat-trend stat-trend-up"><i class="fas fa-chart-line"></i> Activité en cours</span>
                     </div>
-                    <div class="stat-icon stat-icon-warning">
-                        <i class="fas fa-boxes"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-warning"><i class="fas fa-boxes"></i></div>
                 </div>
             </div>
         </div>
@@ -643,13 +468,9 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons de sortie</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ bonsSortie|default([])|length }}</h3>
-                        <span class="stat-trend stat-trend-info">
-                            <i class="fas fa-truck"></i> Logistique
-                        </span>
+                        <span class="stat-trend stat-trend-info"><i class="fas fa-truck"></i> Logistique</span>
                     </div>
-                    <div class="stat-icon stat-icon-primary">
-                        <i class="fas fa-file-signature"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-primary"><i class="fas fa-file-signature"></i></div>
                 </div>
             </div>
         </div>
@@ -659,45 +480,52 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis émis</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|default([])|length }}</h3>
-                        <span class="stat-trend stat-trend-up">
-                            <i class="fas fa-file-invoice-dollar"></i> Financier
-                        </span>
+                        <span class="stat-trend stat-trend-up"><i class="fas fa-file-invoice-dollar"></i> Financier</span>
                     </div>
-                    <div class="stat-icon stat-icon-success">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
+                    <div class="stat-icon stat-icon-success"><i class="fas fa-file-invoice-dollar"></i></div>
                 </div>
             </div>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="stat-card stat-gold">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Départements actifs</h6>
-                        <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
-                            {% set depts = [] %}
-                            {% for d in demandes %}
-                                {% if d.departement not in depts %}
-                                    {% set depts = depts|merge([d.departement]) %}
-                                {% endif %}
-                            {% endfor %}
-                            {{ depts|length }}
-                        </h3>
-                        <span class="stat-trend stat-trend-info">
-                            <i class="fas fa-building"></i> Multi-services
-                        </span>
-                    </div>
-                    <div class="stat-icon stat-icon-gold">
-                        <i class="fas fa-sitemap"></i>
+            {% if isPDG|default(false) %}
+                {# Carte RDV — visible seulement pour le PDG #}
+                <div class="stat-card stat-gold">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Mes rendez-vous</h6>
+                            <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ mesRdv|default([])|length }}</h3>
+                            <span class="stat-trend stat-trend-info"><i class="fas fa-calendar-check"></i> Agenda PDG</span>
+                        </div>
+                        <div class="stat-icon stat-icon-gold"><i class="fas fa-calendar-check"></i></div>
                     </div>
                 </div>
-            </div>
+            {% else %}
+                {# Carte Départements — visible pour le DG normal #}
+                <div class="stat-card stat-gold">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Départements actifs</h6>
+                            <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
+                                {% set depts = [] %}
+                                {% for d in demandes %}
+                                    {% if d.departement not in depts %}
+                                        {% set depts = depts|merge([d.departement]) %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ depts|length }}
+                            </h3>
+                            <span class="stat-trend stat-trend-info"><i class="fas fa-building"></i> Multi-services</span>
+                        </div>
+                        <div class="stat-icon stat-icon-gold"><i class="fas fa-sitemap"></i></div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
 
-    {# ============================================
-       CARTE PRINCIPALE À ONGLETS
-    ============================================ #}
+    {# ═══════════════════════════════════════════════════════
+       CARTE PRINCIPALE — ONGLETS
+    ═══════════════════════════════════════════════════════ #}
     <div class="main-card">
 
         <ul class="nav nav-tabs nav-tabs-modern" id="dgTabs" role="tablist">
@@ -706,6 +534,16 @@
                     <i class="fas fa-chart-pie text-warning"></i>Vue d'ensemble
                 </button>
             </li>
+
+            {# ── Onglet RDV — UNIQUEMENT pour le PDG ── #}
+            {% if isPDG|default(false) %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-rdv" data-bs-toggle="tab" data-bs-target="#pane-rdv" type="button" role="tab">
+                    <i class="fas fa-calendar-check text-primary"></i>Mes Rendez-vous
+                </button>
+            </li>
+            {% endif %}
+
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Demandes Globales
@@ -722,20 +560,19 @@
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-    <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#pane-stock" type="button" role="tab">
-        <i class="fas fa-warehouse text-success"></i>État du Stock
-    </button>
-</li>
+                <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#pane-stock" type="button" role="tab">
+                    <i class="fas fa-warehouse text-success"></i>État du Stock
+                </button>
+            </li>
         </ul>
 
         <div class="p-4">
             <div class="tab-content">
 
-                {# ============================================================
+                {# ═══════════════════════════════════════════════
                    ONGLET 1 : VUE D'ENSEMBLE
-                ============================================================ #}
+                ═══════════════════════════════════════════════ #}
                 <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
-
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-chart-pie text-warning me-2"></i>Synthèse de l'activité</h5>
@@ -746,7 +583,6 @@
                         </a>
                     </div>
 
-                    {# KPI Mini-grid #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-warning">
@@ -776,14 +612,10 @@
                         </div>
                     </div>
 
-                    {# RÉPARTITION + PERFORMANCE + TRÉSORERIE #}
                     <div class="row g-3">
                         <div class="col-lg-4">
                             <div class="p-3 bg-light rounded-3 border h-100">
-                                <h6 class="fw-bold text-dark mb-3">
-                                    <i class="fas fa-chart-bar text-primary me-2"></i>Répartition des demandes
-                                </h6>
-
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-chart-bar text-primary me-2"></i>Répartition des demandes</h6>
                                 {% set nb_total = demandes|length %}
                                 {% set nb_attente = 0 %}
                                 {% set nb_valide = 0 %}
@@ -797,7 +629,6 @@
                                         {% set nb_valide = nb_valide + 1 %}
                                     {% endif %}
                                 {% endfor %}
-
                                 {% if nb_total > 0 %}
                                     <div class="d-flex justify-content-between mb-2 small fw-bold">
                                         <span><span class="legend-dot" style="background: #fa709a;"></span>Attente : {{ nb_attente }}</span>
@@ -814,12 +645,9 @@
                                 {% endif %}
                             </div>
                         </div>
-
                         <div class="col-lg-4">
                             <div class="p-3 bg-light rounded-3 border h-100">
-                                <h6 class="fw-bold text-dark mb-3">
-                                    <i class="fas fa-coins text-warning me-2"></i>Performance financière
-                                </h6>
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-coins text-warning me-2"></i>Performance financière</h6>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted">Devis totaux émis</span>
                                     <span class="fw-bold text-dark">{{ devisListe|default([])|length }}</span>
@@ -834,13 +662,9 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="col-lg-4">
                             <div class="p-3 rounded-3 border h-100" style="background: linear-gradient(135deg, #fef9e7 0%, #fdf2d0 100%); border-color: rgba(212, 175, 55, 0.3) !important;">
-                                <h6 class="fw-bold mb-3" style="color: #8b6508;">
-                                    <i class="fas fa-vault me-2"></i>Trésorerie (Comptabilité)
-                                </h6>
-
+                                <h6 class="fw-bold mb-3" style="color: #8b6508;"><i class="fas fa-vault me-2"></i>Trésorerie (Comptabilité)</h6>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted fw-semibold">Solde USD</span>
                                     <span class="fw-bold" style="color: #059669; font-size: 1.15rem;">
@@ -853,7 +677,6 @@
                                         {{ soldeCDF|default(0)|number_format(0, ',', ' ') }} <small class="text-muted">FC</small>
                                     </span>
                                 </div>
-
                                 <hr class="my-2" style="opacity: 0.2;">
                                 <div class="d-flex align-items-center gap-2 small text-muted">
                                     <i class="fas fa-info-circle"></i>
@@ -863,7 +686,6 @@
                         </div>
                     </div>
 
-                    {# ALERTES STOCK #}
                     {% if nbAlertesStock|default(0) > 0 %}
                     <div class="p-3 rounded-3 border mb-4 mt-4" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -878,27 +700,19 @@
                                 <div class="col-md-6 col-xl-4">
                                     <div class="p-3 bg-white rounded-3 border h-100">
                                         <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div class="fw-bold text-dark">
-                                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                                            </div>
+                                            <div class="fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</div>
                                             <span class="badge bg-danger">{{ art.quantite }} / {{ art.seuilAlerte }}</span>
                                         </div>
-                                        <div class="small text-muted mb-2">
-                                            <i class="fas fa-info-circle me-1"></i>Stock sous le seuil critique
-                                        </div>
+                                        <div class="small text-muted mb-2"><i class="fas fa-info-circle me-1"></i>Stock sous le seuil critique</div>
                                         {% if art.reapprovisionnementEnCours %}
-                                            <span class="badge badge-soft badge-soft-primary">
-                                                <i class="fas fa-truck-loading me-1"></i>Réappro en cours
-                                            </span>
+                                            <span class="badge badge-soft badge-soft-primary"><i class="fas fa-truck-loading me-1"></i>Réappro en cours</span>
                                             {% if art.dateReapprovisionnement %}
                                                 <div class="small text-muted mt-2">
                                                     Prévision : <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
                                                 </div>
                                             {% endif %}
                                         {% else %}
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                <i class="fas fa-hourglass-start me-1"></i>Non lancé
-                                            </span>
+                                            <span class="badge badge-soft badge-soft-secondary"><i class="fas fa-hourglass-start me-1"></i>Non lancé</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -917,11 +731,162 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET 2 : DEMANDES GLOBALES
-                ============================================================ #}
-                <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
+                {# ═══════════════════════════════════════════════
+                   ONGLET 2 : MES RENDEZ-VOUS — UNIQUEMENT PDG
+                ═══════════════════════════════════════════════ #}
+                {% if isPDG|default(false) %}
+                <div class="tab-pane fade" id="pane-rdv" role="tabpanel">
 
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0">
+                                <i class="fas fa-calendar-check text-primary me-2"></i>Mes rendez-vous
+                            </h5>
+                            <small class="text-muted">Rendez-vous et réunions planifiés par le secrétariat / la caisse.</small>
+                        </div>
+                        <span class="badge badge-soft badge-soft-primary px-3 py-2">
+                            <i class="fas fa-list me-1"></i>{{ mesRdv|default([])|length }} RDV
+                        </span>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-primary">
+                                <div class="kpi-value text-primary">{{ mesRdv|default([])|length }}</div>
+                                <div class="kpi-label">RDV totaux</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-success">
+                                <div class="kpi-value text-success">{{ mesRdv|default([])|filter(r => r.statut == 'RESERVE')|length }}</div>
+                                <div class="kpi-label">Réservés</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-warning">
+                                <div class="kpi-value text-warning">{{ mesRdv|default([])|filter(r => r.statut == 'DELEGUE')|length }}</div>
+                                <div class="kpi-label">Délégués</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-gold">
+                                <div class="kpi-value" style="color: #b8860b;">{{ rdvDelegues|default([])|length }}</div>
+                                <div class="kpi-label">Délégués par moi</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border mb-4">
+                        <h6 class="fw-bold text-dark mb-3">
+                            <i class="fas fa-inbox text-primary me-2"></i>Rendez-vous qui me sont destinés
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date & heure</th>
+                                        <th>Visiteur</th>
+                                        <th>Objet</th>
+                                        <th>Statut</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for rdv in mesRdv|default([]) %}
+                                    <tr>
+                                        <td class="fw-semibold text-dark">
+                                            <i class="fas fa-clock text-muted me-1"></i>
+                                            {{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}
+                                        </td>
+                                        <td><i class="fas fa-user-circle text-muted me-2"></i>{{ rdv.nomVisiteur }}</td>
+                                        <td>{{ rdv.motif ?? '—' }}</td>
+                                        <td>
+                                            {% if rdv.statut == 'DELEGUE' %}
+                                                <span class="badge badge-soft badge-soft-warning">
+                                                    <i class="fas fa-share me-1"></i>Délégué à
+                                                    {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier|split('@')|first : '?' }}
+                                                </span>
+                                            {% elseif rdv.statut == 'RESERVE' %}
+                                                <span class="badge badge-soft badge-soft-primary">
+                                                    <i class="fas fa-calendar me-1"></i>Réservé
+                                                </span>
+                                            {% elseif rdv.statut == 'TERMINE' %}
+                                                <span class="badge badge-soft badge-soft-success">
+                                                    <i class="fas fa-check me-1"></i>Terminé
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-soft badge-soft-secondary">{{ rdv.statut }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="{{ path('app_caisse_rdv_imprimer', {id: rdv.id}) }}"
+                                               target="_blank"
+                                               class="btn btn-sm btn-outline-secondary"
+                                               title="Imprimer">
+                                                <i class="fas fa-print"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty-state">
+                                                <i class="fas fa-calendar-xmark"></i>
+                                                <div class="fw-bold">Aucun rendez-vous planifié</div>
+                                                <small>Le secrétariat ou la caisse n'a encore rien enregistré pour vous.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if rdvDelegues|default([])|length > 0 %}
+                        <div class="p-3 rounded-3 border" style="background: rgba(250, 112, 154, 0.04); border-color: rgba(250, 112, 154, 0.15) !important;">
+                            <h6 class="fw-bold text-dark mb-3">
+                                <i class="fas fa-share-nodes text-warning me-2"></i>
+                                Rendez-vous que j'ai délégués
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-modern table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Visiteur</th>
+                                            <th>Objet</th>
+                                            <th>Délégué à</th>
+                                            <th>Motif</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for rdv in rdvDelegues %}
+                                        <tr>
+                                            <td>{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
+                                            <td><i class="fas fa-user-circle text-muted me-2"></i>{{ rdv.nomVisiteur }}</td>
+                                            <td>{{ rdv.motif ?? '—' }}</td>
+                                            <td>
+                                                <span class="badge badge-soft badge-soft-info">
+                                                    {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier : '—' }}
+                                                </span>
+                                            </td>
+                                            <td class="text-muted small">{{ rdv.motifDelegation ?? '—' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+
+                {# ═══════════════════════════════════════════════
+                   ONGLET 3 : DEMANDES GLOBALES
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Toutes les demandes de matériel</h5>
@@ -947,12 +912,8 @@
                             </select>
                         </div>
                         <div class="ms-auto d-flex gap-2">
-                            <button type="submit" class="btn btn-primary rounded-3 fw-bold">
-                                <i class="fas fa-search me-1"></i> Filtrer
-                            </button>
-                            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary rounded-3">
-                                <i class="fas fa-undo"></i>
-                            </a>
+                            <button type="submit" class="btn btn-primary rounded-3 fw-bold"><i class="fas fa-search me-1"></i> Filtrer</button>
+                            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary rounded-3"><i class="fas fa-undo"></i></a>
                         </div>
                     </form>
 
@@ -984,9 +945,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="fw-semibold text-dark">{{ d.materiel }}</td>
-                                        <td class="text-center">
-                                            <span class="badge badge-soft badge-soft-secondary font-monospace">{{ d.quantite|default(1) }}</span>
-                                        </td>
+                                        <td class="text-center"><span class="badge badge-soft badge-soft-secondary font-monospace">{{ d.quantite|default(1) }}</span></td>
                                         <td>
                                             {% if 'attente' in d.statut|lower %}
                                                 <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>{{ d.statut }}</span>
@@ -998,9 +957,7 @@
                                                 <span class="badge badge-soft badge-soft-info"><i class="fas fa-check me-1"></i>{{ d.statut }}</span>
                                             {% endif %}
                                         </td>
-                                        <td class="text-muted small">
-                                            {{ d.createdAt ? d.createdAt|date('d/m/Y') : '-' }}
-                                        </td>
+                                        <td class="text-muted small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '-' }}</td>
                                     </tr>
                                 {% else %}
                                     <tr>
@@ -1018,11 +975,10 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET 3 : BONS DE SORTIE
-                ============================================================ #}
+                {# ═══════════════════════════════════════════════
+                   ONGLET 4 : BONS DE SORTIE
+                ═══════════════════════════════════════════════ #}
                 <div class="tab-pane fade" id="pane-bons" role="tabpanel">
-
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-signature text-success me-2"></i>Registre des bons de sortie</h5>
@@ -1048,13 +1004,9 @@
                                 {% for b in bonsSortie|default([]) %}
                                     <tr>
                                         <td class="fw-bold text-secondary">#{{ b.id }}</td>
-                                        <td class="fw-semibold text-dark">
-                                            <i class="fas fa-user-circle text-muted me-2"></i>{{ b.nomEmploye }}
-                                        </td>
+                                        <td class="fw-semibold text-dark"><i class="fas fa-user-circle text-muted me-2"></i>{{ b.nomEmploye }}</td>
                                         <td><span class="badge badge-soft badge-soft-secondary">{{ b.departement }}</span></td>
-                                        <td class="text-muted small">
-                                            {{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '-' }}
-                                        </td>
+                                        <td class="text-muted small">{{ b.dateCreation ? b.dateCreation|date('d/m/Y H:i') : '-' }}</td>
                                         <td>
                                             {% if b.statut == 'Créé' %}
                                                 <span class="badge badge-soft badge-soft-warning"><i class="fas fa-clock me-1"></i>Créé</span>
@@ -1083,11 +1035,10 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET 4 : DEVIS & FINANCES
-                ============================================================ #}
+                {# ═══════════════════════════════════════════════
+                   ONGLET 5 : DEVIS & FINANCES
+                ═══════════════════════════════════════════════ #}
                 <div class="tab-pane fade" id="pane-devis" role="tabpanel">
-
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis & situation financière</h5>
@@ -1095,7 +1046,6 @@
                         </div>
                     </div>
 
-                    {# KPI financiers #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-primary">
@@ -1137,7 +1087,7 @@
                                     <th>Description</th>
                                     <th>Statut</th>
                                     <th class="text-end">Montant</th>
-                                    <th class="text-center" style="min-width: 240px;">Action DG</th>
+                                    <th class="text-center" style="min-width: 240px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1175,15 +1125,12 @@
                                                         <input type="number" step="0.01" name="nouveau_montant"
                                                                class="form-control text-end fw-bold"
                                                                value="{{ devis.montant }}" required>
-                                                        <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">
-                                                            {{ devis.devise }}
-                                                        </span>
+                                                        <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">{{ devis.devise }}</span>
                                                     </div>
                                                     <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
                                                         <i class="fas fa-check me-1"></i> Valider
                                                     </button>
                                                 </form>
-
                                                 <form method="POST" action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}"
                                                       class="d-inline"
                                                       onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
@@ -1191,12 +1138,10 @@
                                                         <i class="fas fa-ban"></i> Rejeter
                                                     </button>
                                                 </form>
-
                                             {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
                                                 <span class="badge badge-soft badge-soft-info">
                                                     <i class="fas fa-check-circle me-1"></i>Validé — chez la Compta
                                                 </span>
-
                                             {% elseif devis.statut == 'DECAISSE' %}
                                                 <span class="badge badge-soft badge-soft-success">
                                                     <i class="fas fa-check-double me-1"></i>Décaissé
@@ -1206,16 +1151,10 @@
                                                         </span>
                                                     {% endif %}
                                                 </span>
-
                                             {% elseif devis.statut == 'REJETE' %}
-                                                <span class="badge badge-soft badge-soft-danger">
-                                                    <i class="fas fa-ban me-1"></i>Rejeté
-                                                </span>
-
+                                                <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
                                             {% else %}
-                                                <span class="text-muted small">
-                                                    <i class="fas fa-hourglass-half me-1"></i>En cours de traitement
-                                                </span>
+                                                <span class="text-muted small"><i class="fas fa-hourglass-half me-1"></i>En cours de traitement</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -1235,198 +1174,148 @@
                     </div>
                 </div>
 
-                {# ============================================================
-   ONGLET 5 : ÉTAT DU STOCK (synthèse pour la DG)
-============================================================ #}
-<div class="tab-pane fade" id="pane-stock" role="tabpanel">
+                {# ═══════════════════════════════════════════════
+                   ONGLET 6 : ÉTAT DU STOCK
+                ═══════════════════════════════════════════════ #}
+                <div class="tab-pane fade" id="pane-stock" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock</h5>
+                            <small class="text-muted">Vue synthétique de l'inventaire pour la Direction Générale.</small>
+                        </div>
+                        <a href="{{ path('app_historique_reappro') }}" class="btn btn-export">
+                            <i class="fas fa-history me-1"></i> Historique Réappro
+                        </a>
+                    </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <div>
-            <h5 class="fw-bold text-dark m-0">
-                <i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock
-            </h5>
-            <small class="text-muted">Vue synthétique de l'inventaire pour la Direction Générale.</small>
-        </div>
-        <a href="{{ path('app_historique_reappro') }}" class="btn btn-export">
-            <i class="fas fa-history me-1"></i> Historique Réappro
-        </a>
-    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-primary">
+                                <div class="kpi-value text-primary">{{ articlesDG|length }}</div>
+                                <div class="kpi-label">Articles référencés</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-success">
+                                <div class="kpi-value text-success">{{ totalQuantiteStock|number_format(0, ',', ' ') }}</div>
+                                <div class="kpi-label">Quantité totale</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-warning">
+                                <div class="kpi-value text-warning">{{ articlesParCategorie|length }}</div>
+                                <div class="kpi-label">Catégories</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
+                                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
+                                <div class="kpi-label">Alertes critiques</div>
+                            </div>
+                        </div>
+                    </div>
 
-    {# KPI Stock #}
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="kpi-mini kpi-primary">
-                <div class="kpi-value text-primary">{{ articlesDG|length }}</div>
-                <div class="kpi-label">Articles référencés</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="kpi-mini kpi-success">
-                <div class="kpi-value text-success">
-                    {{ totalQuantiteStock|number_format(0, ',', ' ') }}
+                    <div class="row g-3 mb-4">
+                        <div class="col-lg-7">
+                            <div class="p-3 bg-white rounded-3 border h-100">
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-chart-bar text-primary me-2"></i>Top 10 articles (par quantité)</h6>
+                                <div style="position: relative; height: 320px;"><canvas id="chartTopArticles"></canvas></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="p-3 bg-white rounded-3 border h-100">
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-chart-pie text-success me-2"></i>Répartition par catégorie</h6>
+                                <div style="position: relative; height: 320px;"><canvas id="chartCategories"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border mb-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list text-secondary me-2"></i>Synthèse par catégorie</h6>
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Catégorie</th>
+                                        <th class="text-center">Nb articles</th>
+                                        <th class="text-center">Quantité totale</th>
+                                        <th class="text-center">Part</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set totalGlobal = totalQuantiteStock > 0 ? totalQuantiteStock : 1 %}
+                                    {% for cat, data in articlesParCategorie|sort((a, b) => b.quantite <=> a.quantite) %}
+                                        <tr>
+                                            <td class="fw-semibold text-dark"><i class="fas fa-tag text-muted me-2"></i>{{ cat }}</td>
+                                            <td class="text-center"><span class="badge badge-soft badge-soft-secondary">{{ data.count }}</span></td>
+                                            <td class="text-center fw-bold text-dark">{{ data.quantite|number_format(0, ',', ' ') }}</td>
+                                            <td class="text-center">
+                                                <div class="d-flex align-items-center gap-2 justify-content-center">
+                                                    <div class="progress" style="width: 80px; height: 6px;">
+                                                        <div class="progress-bar bg-success" style="width: {{ (data.quantite / totalGlobal * 100)|round }}%;"></div>
+                                                    </div>
+                                                    <span class="small text-muted fw-bold">{{ (data.quantite / totalGlobal * 100)|round(1) }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr><td colspan="4" class="text-center text-muted py-4">Aucune catégorie enregistrée.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if nbAlertesStock|default(0) > 0 %}
+                    <div class="p-3 rounded-3 border" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                            <h6 class="fw-bold text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Articles sous le seuil critique</h6>
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2">{{ nbAlertesStock }} article(s)</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Article</th>
+                                        <th class="text-center">Stock actuel</th>
+                                        <th class="text-center">Seuil</th>
+                                        <th class="text-center">Écart</th>
+                                        <th>Réappro</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for art in articlesEnAlerte %}
+                                        <tr>
+                                            <td class="fw-semibold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                            <td class="text-center"><span class="badge badge-soft badge-soft-danger">{{ art.quantite }}</span></td>
+                                            <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ art.seuilAlerte }}</span></td>
+                                            <td class="text-center fw-bold text-danger">-{{ art.seuilAlerte - art.quantite }}</td>
+                                            <td>
+                                                {% if art.reapprovisionnementEnCours %}
+                                                    <span class="badge badge-soft badge-soft-primary"><i class="fas fa-truck-loading me-1"></i>En cours</span>
+                                                    {% if art.dateReapprovisionnement %}
+                                                        <div class="small text-muted mt-1">Prévu : <strong>{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong></div>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-secondary">Non lancé</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="kpi-label">Quantité totale</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="kpi-mini kpi-warning">
-                <div class="kpi-value text-warning">{{ articlesParCategorie|length }}</div>
-                <div class="kpi-label">Catégories</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
-                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
-                <div class="kpi-label">Alertes critiques</div>
-            </div>
-        </div>
-    </div>
-
-    {# Graphiques #}
-    <div class="row g-3 mb-4">
-        <div class="col-lg-7">
-            <div class="p-3 bg-white rounded-3 border h-100">
-                <h6 class="fw-bold text-dark mb-3">
-                    <i class="fas fa-chart-bar text-primary me-2"></i>Top 10 articles (par quantité)
-                </h6>
-                <div style="position: relative; height: 320px;">
-                    <canvas id="chartTopArticles"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-5">
-            <div class="p-3 bg-white rounded-3 border h-100">
-                <h6 class="fw-bold text-dark mb-3">
-                    <i class="fas fa-chart-pie text-success me-2"></i>Répartition par catégorie
-                </h6>
-                <div style="position: relative; height: 320px;">
-                    <canvas id="chartCategories"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {# Tableau de synthèse par catégorie #}
-    <div class="p-3 bg-white rounded-3 border mb-4">
-        <h6 class="fw-bold text-dark mb-3">
-            <i class="fas fa-list text-secondary me-2"></i>Synthèse par catégorie
-        </h6>
-        <div class="table-responsive">
-            <table class="table table-modern table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Catégorie</th>
-                        <th class="text-center">Nb articles</th>
-                        <th class="text-center">Quantité totale</th>
-                        <th class="text-center">Part</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% set totalGlobal = totalQuantiteStock > 0 ? totalQuantiteStock : 1 %}
-                    {% for cat, data in articlesParCategorie|sort((a, b) => b.quantite <=> a.quantite) %}
-                        <tr>
-                            <td class="fw-semibold text-dark">
-                                <i class="fas fa-tag text-muted me-2"></i>{{ cat }}
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-soft badge-soft-secondary">{{ data.count }}</span>
-                            </td>
-                            <td class="text-center fw-bold text-dark">
-                                {{ data.quantite|number_format(0, ',', ' ') }}
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex align-items-center gap-2 justify-content-center">
-                                    <div class="progress" style="width: 80px; height: 6px;">
-                                        <div class="progress-bar bg-success"
-                                             style="width: {{ (data.quantite / totalGlobal * 100)|round }}%;"></div>
-                                    </div>
-                                    <span class="small text-muted fw-bold">
-                                        {{ (data.quantite / totalGlobal * 100)|round(1) }}%
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">Aucune catégorie enregistrée.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    {# Tableau des alertes critiques #}
-    {% if nbAlertesStock|default(0) > 0 %}
-    <div class="p-3 rounded-3 border" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h6 class="fw-bold text-danger mb-0">
-                <i class="fas fa-exclamation-triangle me-2"></i>Articles sous le seuil critique
-            </h6>
-            <span class="badge badge-soft badge-soft-danger px-3 py-2">
-                {{ nbAlertesStock }} article(s)
-            </span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-modern table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Article</th>
-                        <th class="text-center">Stock actuel</th>
-                        <th class="text-center">Seuil</th>
-                        <th class="text-center">Écart</th>
-                        <th>Réappro</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for art in articlesEnAlerte %}
-                        <tr>
-                            <td class="fw-semibold text-dark">
-                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-soft badge-soft-danger">{{ art.quantite }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-soft badge-soft-warning">{{ art.seuilAlerte }}</span>
-                            </td>
-                            <td class="text-center fw-bold text-danger">
-                                -{{ art.seuilAlerte - art.quantite }}
-                            </td>
-                            <td>
-                                {% if art.reapprovisionnementEnCours %}
-                                    <span class="badge badge-soft badge-soft-primary">
-                                        <i class="fas fa-truck-loading me-1"></i>En cours
-                                    </span>
-                                    {% if art.dateReapprovisionnement %}
-                                        <div class="small text-muted mt-1">
-                                            Prévu : <strong>{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
-                                        </div>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="badge badge-soft badge-soft-secondary">Non lancé</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-
-</div>
 
             </div>
         </div>
     </div>
 
-    {# ============================================
-       FOOTER INFO
-    ============================================ #}
     <div class="text-center text-muted small mt-4 py-3">
         <i class="fas fa-shield-alt me-1"></i>
-        Console de supervision — Direction Générale • Dispromalt {{ 'now'|date('Y') }}
+        Console de supervision — {% if isPDG|default(false) %}PDG{% else %}Direction Générale{% endif %} • Dispromalt {{ 'now'|date('Y') }}
     </div>
 </div>
 
@@ -1448,13 +1337,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-
-        // ═══════════════════════════════════════════════════════
-        // Graphique 1 : Top 10 articles (barres)
-        // ═══════════════════════════════════════════════════════
         const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
         const canvas1 = document.getElementById('chartTopArticles');
-
         if (canvas1 && topArticlesData.length > 0) {
             new Chart(canvas1, {
                 type: 'bar',
@@ -1463,50 +1347,29 @@
                     datasets: [{
                         label: 'Quantité en stock',
                         data: topArticlesData.map(a => a.quantite),
-                        backgroundColor: topArticlesData.map(a =>
-                            a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'
-                        ),
-                        borderColor: topArticlesData.map(a =>
-                            a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'
-                        ),
-                        borderWidth: 1,
-                        borderRadius: 6,
+                        backgroundColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'),
+                        borderColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'),
+                        borderWidth: 1, borderRadius: 6,
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    responsive: true, maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    const art = topArticlesData[context.dataIndex];
-                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
-                                }
-                            }
-                        }
+                        tooltip: { callbacks: { afterLabel: function(context) {
+                            const art = topArticlesData[context.dataIndex];
+                            return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
+                        }}}
                     },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } }
-                    }
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                 }
             });
         }
-
-        // ═══════════════════════════════════════════════════════
-        // Graphique 2 : Répartition par catégorie (doughnut)
-        // ═══════════════════════════════════════════════════════
         const categoriesLabels   = {{ categoriesLabels|default([])|json_encode|raw }};
         const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvas2 = document.getElementById('chartCategories');
-
         if (canvas2 && categoriesLabels.length > 0) {
-            const palette = [
-                '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
-                '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
-                '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
-            ];
+            const palette = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2','#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c','#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'];
             new Chart(canvas2, {
                 type: 'doughnut',
                 data: {
@@ -1514,19 +1377,11 @@
                     datasets: [{
                         data: categoriesQuantites,
                         backgroundColor: categoriesLabels.map((_, i) => palette[i % palette.length]),
-                        borderWidth: 2,
-                        borderColor: '#fff',
+                        borderWidth: 2, borderColor: '#fff',
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
-                        }
-                    }
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } }
                 }
             });
         }

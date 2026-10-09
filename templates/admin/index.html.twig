@@ -153,6 +153,7 @@
         .badge-soft-info    { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-purple  { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
+        .badge-soft-gold    { background: rgba(212, 175, 55, 0.15); color: #8b6508; }
 
         .form-card {
             border: none;
@@ -181,6 +182,7 @@
         .form-card-icon-yellow { background: rgba(250, 210, 90, 0.18); color: #ca8a04; }
         .form-card-icon-purple { background: rgba(168, 85, 247, 0.12); color: #9333ea; }
         .form-card-icon-red    { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
+        .form-card-icon-gold   { background: rgba(212, 175, 55, 0.15); color: #b8860b; }
 
         .btn-modern {
             border-radius: 10px;
@@ -202,7 +204,6 @@
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.10);
         }
 
-        /* Style des erreurs de formulaire */
         .form-error-message,
         ul.form-error-message li {
             color: #dc2626;
@@ -551,7 +552,6 @@
 
                                 {{ form_start(form) }}
 
-                                    {# Affichage des erreurs globales #}
                                     {% if form.vars.errors|length > 0 %}
                                         <div class="alert alert-danger rounded-3 mb-3" style="font-size:0.85rem;">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
@@ -587,7 +587,6 @@
                                         {{ form_errors(form.localisation) }}
                                     </div>
 
-                                    {# 🔑 Champ mot de passe — saisie normale #}
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold text-secondary">
                                             Mot de passe provisoire <span class="text-danger">*</span>
@@ -633,8 +632,11 @@
                                                 </div>
 
                                                 <div class="d-flex flex-wrap gap-1 mt-2">
+                                                    {% if u.isPDG %}
+                                                        <span class="badge badge-soft badge-soft-gold"><i class="fas fa-crown me-1"></i>PDG</span>
+                                                    {% endif %}
                                                     {% if 'ROLE_ADMIN' in u.roles %}
-                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-crown me-1"></i>ADMIN</span>
+                                                        <span class="badge badge-soft badge-soft-danger"><i class="fas fa-user-shield me-1"></i>ADMIN</span>
                                                     {% endif %}
                                                     {% if 'ROLE_CHEF_COMPTA' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-warning"><i class="fas fa-star me-1"></i>CHEF COMPTABLE</span>
@@ -655,8 +657,11 @@
                                                     {% if 'ROLE_COORDON' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-purple"><i class="fas fa-sitemap me-1"></i>COORDON</span>
                                                     {% endif %}
+                                                    {% if 'ROLE_DG' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-gold"><i class="fas fa-crown me-1"></i>DG</span>
+                                                    {% endif %}
 
-                                                    {% if 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles and 'ROLE_CAISSIER' not in u.roles and 'ROLE_STOCK' not in u.roles and 'ROLE_COORDON' not in u.roles %}
+                                                    {% if not u.isPDG and 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles and 'ROLE_CAISSIER' not in u.roles and 'ROLE_STOCK' not in u.roles and 'ROLE_COORDON' not in u.roles and 'ROLE_DG' not in u.roles %}
                                                         <span class="badge badge-soft badge-soft-secondary font-monospace">{{ u.roles[0]|default('ROLE_USER') }}</span>
                                                     {% endif %}
                                                 </div>
@@ -676,9 +681,18 @@
                                             </div>
 
                                             <div class="d-flex gap-1 flex-shrink-0">
+                                                {% if u.isPDG %}
+                                                    <form action="{{ path('app_admin_destituer_pdg', {'id': u.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('Retirer le statut PDG à {{ u.email }} ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer PDG">
+                                                            <i class="fas fa-crown"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
                                                 {% if 'ROLE_CHEF_COMPTA' in u.roles %}
-                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
-                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer">
+                                                    <form action="{{ path('app_admin_destituer_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer Chef Compta">
                                                             <i class="fas fa-user-slash"></i>
                                                         </button>
                                                     </form>
@@ -691,7 +705,8 @@
                                                         <i class="fas {{ u.isActif|default(true) ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                                                     </button>
                                                 </form>
-                                                <form action="{{ path('app_admin_user_delete', {'id': u.id}) }}" method="POST" class="d-inline" onsubmit="return confirm('⚠️ Supprimer définitivement {{ u.email }} ?');">
+                                                <form action="{{ path('app_admin_user_delete', {'id': u.id}) }}" method="POST" class="d-inline"
+                                                      onsubmit="return confirm('⚠️ Supprimer définitivement {{ u.email }} ?');">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('delete_user_' ~ u.id) }}">
                                                     <button type="submit" class="btn btn-light border btn-sm text-danger" title="Supprimer">
                                                         <i class="fas fa-trash-alt"></i>
@@ -709,6 +724,8 @@
                 {# ============ ONGLET 4 : NOMINATIONS ============ #}
                 <div class="tab-pane fade" id="pane-nominations" role="tabpanel">
                     <div class="row g-4">
+
+                        {# ──────── Nommer un Caissier ──────── #}
                         <div class="col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -739,6 +756,7 @@
                             </div>
                         </div>
 
+                        {# ──────── Nommer un Chef Comptable ──────── #}
                         <div class="col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -769,6 +787,67 @@
                             </div>
                         </div>
 
+                        {# ──────── Nommer le PDG ──────── #}
+                        <div class="col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-gold">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Nommer le PDG</h5>
+                                        <small class="text-muted">Une seule personne peut être PDG à la fois.</small>
+                                    </div>
+                                </div>
+
+                                <form method="POST" action="{{ path('app_admin_assigner_pdg') }}">
+                                    <label class="form-label small fw-bold text-secondary">Sélectionner l'utilisateur</label>
+                                    <div class="input-group">
+                                        <select name="user_id" class="form-select" required>
+                                            <option value="" disabled selected>Choisir un utilisateur...</option>
+                                            {% for u in users %}
+                                                {% if not u.isPDG and 'ROLE_ADMIN' not in u.roles %}
+                                                    <option value="{{ u.id }}">
+                                                        {{ u.email }}
+                                                        {% if 'ROLE_DG' in u.roles %} — (a déjà ROLE_DG){% endif %}
+                                                    </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-modern btn-warning text-dark">
+                                            <i class="fas fa-crown me-1"></i> Nommer
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% set pdgActuel = null %}
+                                {% for u in users %}
+                                    {% if u.isPDG %}{% set pdgActuel = u %}{% endif %}
+                                {% endfor %}
+
+                                {% if pdgActuel %}
+                                    <div class="alert alert-warning rounded-3 mt-3 mb-0 d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-crown me-2"></i>
+                                            <strong>PDG actuel :</strong> {{ pdgActuel.email }}
+                                        </div>
+                                        <form method="POST" action="{{ path('app_admin_destituer_pdg', {'id': pdgActuel.id}) }}"
+                                              onsubmit="return confirm('Retirer le statut PDG à {{ pdgActuel.email }} ?');"
+                                              class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-user-slash me-1"></i> Destituer
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light rounded-3 mt-3 mb-0 text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i> Aucun PDG nommé actuellement.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {# ──────── Créer un Nouveau Service ──────── #}
                         <div class="col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -792,6 +871,7 @@
                             </div>
                         </div>
 
+                        {# ──────── Rôles disponibles ──────── #}
                         <div class="col-lg-6">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
@@ -804,6 +884,13 @@
                                     </div>
                                 </div>
                                 <ul class="list-unstyled mb-0">
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-crown text-warning me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">PDG</strong>
+                                            <div class="text-muted">Vue enrichie avec planning RDV — une seule personne à la fois.</div>
+                                        </div>
+                                    </li>
                                     <li class="mb-3 d-flex">
                                         <i class="fas fa-cash-register text-info me-2 mt-1"></i>
                                         <div class="small">
@@ -1552,7 +1639,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Mémorisation de l'onglet actif via l'URL
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -1563,8 +1649,6 @@
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
             });
         });
-
-        // Peuplement des modals d'édition
 
         // Catégorie
         document.querySelectorAll('[data-bs-target="#editCategoryModal"]').forEach(btn => {
@@ -1606,10 +1690,9 @@
             });
         });
 
-        // Graphiques Stock (Admin)
+        // Graphique Top Articles
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
-
         if (canvasTA && topArticlesAdmin.length > 0) {
             new Chart(canvasTA, {
                 type: 'bar',
@@ -1647,10 +1730,10 @@
             });
         }
 
+        // Graphique Catégories
         const catLabelsAdmin = {{ categoriesLabels|default([])|json_encode|raw }};
         const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvasCA = document.getElementById('chartCategoriesAdmin');
-
         if (canvasCA && catLabelsAdmin.length > 0) {
             const palette = [
                 '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
