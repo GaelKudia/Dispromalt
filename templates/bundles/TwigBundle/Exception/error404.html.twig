@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page introuvable{% endblock %}
+
+{% block body %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;background:#f4f6fb;">
+    <div style="max-width:500px;text-align:center;background:#fff;padding:3rem 2rem;border-radius:20px;box-shadow:0 12px 32px rgba(15,23,42,.08);">
+        <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:24px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;">
+            🔍
+        </div>
+        <h1 style="font-weight:800;font-size:1.6rem;color:#0f172a;margin:0 0 .5rem;">
+            Page introuvable
+        </h1>
+        <p style="color:#64748b;margin:0 0 1.5rem;font-size:.95rem;">
+            La page que vous cherchez n'existe pas ou a été déplacée.
+        </p>
+        <a href="/" style="display:inline-block;padding:.75rem 1.5rem;border-radius:12px;background:#4f46e5;color:#fff;text-decoration:none;font-weight:700;">
+            ← Retour à l'accueil
+        </a>
+    </div>
+</div>
+{% endblock %}
