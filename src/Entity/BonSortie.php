@@ -23,8 +23,9 @@ class BonSortie
     #[ORM\Column(type: Types::TEXT)]
     private ?string $raison = null;
 
+    // 🔥 Correction : un SEUL #[ORM\Column] + valeur par défaut false
     #[ORM\Column]
-    private ?bool $isAllerSansRetour = null;
+    private bool $isAllerSansRetour = false;
 
     #[ORM\Column]
     private ?\DateTime $dateCreation = null;
@@ -45,7 +46,6 @@ class BonSortie
     public function setNomEmploye(string $nomEmploye): static
     {
         $this->nomEmploye = $nomEmploye;
-
         return $this;
     }
 
@@ -57,7 +57,6 @@ class BonSortie
     public function setDepartement(string $departement): static
     {
         $this->departement = $departement;
-
         return $this;
     }
 
@@ -69,11 +68,10 @@ class BonSortie
     public function setRaison(string $raison): static
     {
         $this->raison = $raison;
-
         return $this;
     }
 
-    public function isAllerSansRetour(): ?bool
+    public function isAllerSansRetour(): bool
     {
         return $this->isAllerSansRetour;
     }
@@ -81,7 +79,6 @@ class BonSortie
     public function setIsAllerSansRetour(bool $isAllerSansRetour): static
     {
         $this->isAllerSansRetour = $isAllerSansRetour;
-
         return $this;
     }
 
@@ -93,7 +90,6 @@ class BonSortie
     public function setDateCreation(\DateTime $dateCreation): static
     {
         $this->dateCreation = $dateCreation;
-
         return $this;
     }
 
@@ -105,7 +101,6 @@ class BonSortie
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
-
         return $this;
     }
 }

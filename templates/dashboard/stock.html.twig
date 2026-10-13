@@ -206,6 +206,41 @@
         .alert { border-radius: var(--radius-md); border: 1px solid var(--line); padding: 1rem 1.2rem; box-shadow: var(--shadow-sm); }
         .alert-ok { background: #ecfdf3; border-left: 5px solid var(--success); color: #065f46; }
 
+        /* ============================================
+           🆕 BARRE DE RECHERCHE INVENTAIRE
+        ============================================ */
+        .search-bar-wrap {
+            background: linear-gradient(135deg, #f8fbff 0%, #eef5ff 100%);
+            border: 1.5px solid #dbe7f7;
+            border-radius: 16px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 4px 12px rgba(75,158,255,.06);
+        }
+        .search-bar-wrap .input-group { border-radius: 12px; overflow: hidden; }
+        .search-bar-wrap .input-group-text {
+            background: #fff;
+            border: 1.5px solid #e2e8f2;
+            font-weight: 600;
+        }
+        .search-bar-wrap .form-control {
+            border: 1.5px solid #e2e8f2;
+            font-size: .95rem;
+        }
+        .search-bar-wrap .form-control:focus {
+            border-color: var(--accent);
+            box-shadow: none;
+        }
+        .search-bar-wrap .input-group:focus-within .input-group-text {
+            border-color: var(--accent);
+        }
+        #searchResultCount {
+            min-width: 110px;
+            justify-content: center;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
         @media (max-width: 992px) { .attr-fields { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 768px) {
             .nav-tabs { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
@@ -485,6 +520,31 @@
                                     <button class="btn btn-outline-success btn-sm" onclick="exportToExcel()"><i class="fas fa-file-excel me-1"></i> Exporter</button>
                                 </div>
                             </div>
+
+                            {# 🆕 BARRE DE RECHERCHE ARTICLES #}
+                            <div class="search-bar-wrap">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-search text-primary"></i>
+                                    </span>
+                                    <input type="text"
+                                           id="searchArticle"
+                                           class="form-control"
+                                           placeholder="🔍 Rechercher un article par nom, couleur, machine…"
+                                           autocomplete="off">
+                                    <button class="btn btn-outline-secondary d-none" type="button" id="clearSearchBtn" title="Effacer">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <span class="input-group-text bg-light text-muted" id="searchResultCount">
+                                        —
+                                    </span>
+                                </div>
+                                <small class="text-muted d-block mt-2" style="font-size: .78rem;">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    La recherche se fait en temps réel sur tous les articles affichés.
+                                </small>
+                            </div>
+
                             <form method="GET" class="mb-3 d-flex flex-wrap gap-2">
                                 <select name="category" class="form-select w-auto" onchange="this.form.submit()">
                                     <option value="">Toutes catégories</option>
@@ -501,9 +561,10 @@
                                     </select>
                                 {% endif %}
                             </form>
+
                             {% set activeSubCatName = selectedSubCategory ? selectedSubCategory.nom|lower : '' %}
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle">
+                                <table class="table table-hover align-middle" id="tableInventaire">
                                     <thead>
                                         <tr>
                                             <th>Article</th><th>Couleur</th>
@@ -518,58 +579,81 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-    {% set hasAttributs = attributs|length > 0 %}
-    {% set rows = hasAttributs ? attributs : [] %}
+                                    {% set hasAttributs = attributs|length > 0 %}
 
-    {# 1️⃣ Articles AVEC attributs #}
-    {% for attr in attributs %}
-        <tr>
-            <td><strong>{{ attr.article.nom }}</strong></td>
-            <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
-            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
-                <td>{{ attr.longueur ?: '-' }}</td>
-                <td>{{ attr.grammage ?: '-' }}</td>
-                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
-                <td>{{ attr.dimension ?: '-' }}</td>
-                <td>{{ attr.longueur ?: '-' }}</td>
-                <td>{{ attr.grammage ?: '-' }}</td>
-            {% else %}
-                <td>{{ attr.grammage ?: '-' }}</td>
-                <td>{{ attr.longueur ?: '-' }}</td>
-                <td>{{ attr.dimension ?: '-' }}</td>
-                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
-            {% endif %}
-            <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
-            <td>{% if attr.article.quantite <= attr.article.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
-        </tr>
-    {% endfor %}
+                                    {# 1️⃣ Articles AVEC attributs #}
+                                    {% for attr in attributs %}
+                                        <tr>
+                                            <td><strong>{{ attr.article.nom }}</strong></td>
+                                            <td>{% if attr.couleur %}<span class="badge bg-secondary">{{ attr.couleur }}</span>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                                            {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+                                            {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                                <td>{{ attr.dimension ?: '-' }}</td>
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                            {% else %}
+                                                <td>{{ attr.grammage ?: '-' }}</td>
+                                                <td>{{ attr.longueur ?: '-' }}</td>
+                                                <td>{{ attr.dimension ?: '-' }}</td>
+                                                <td>{{ attr.article.machine ? attr.article.machine.nom : '-' }}</td>
+                                            {% endif %}
+                                            <td><span class="fw-bold">{{ attr.article.quantite }}</span></td>
+                                            <td>
+                                                {% if attr.article.quantite <= attr.article.seuilAlerte %}
+                                                    <span class="badge bg-warning text-dark">Stock Bas</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Correct</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
 
-    {# 2️⃣ Articles SANS attributs (comme "Gilet" simple) — pour ne pas les perdre #}
-    {% for art in articles %}
-        {% if art.attributs is empty %}
-            <tr>
-                <td><strong>{{ art.nom }}</strong></td>
-                <td><span class="text-muted">-</span></td>
-                {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
-                    <td>-</td><td>-</td><td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
-                {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
-                    <td>-</td><td>-</td><td>-</td>
-                {% else %}
-                    <td>-</td><td>-</td><td>-</td>
-                    <td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
-                {% endif %}
-                <td><span class="fw-bold">{{ art.quantite }}</span></td>
-                <td>{% if art.quantite <= art.seuilAlerte %}<span class="badge bg-warning text-dark">Stock Bas</span>{% else %}<span class="badge bg-success">Correct</span>{% endif %}</td>
-            </tr>
-        {% endif %}
-    {% endfor %}
+                                    {# 2️⃣ Articles SANS attributs (comme "Gilet" simple) #}
+                                    {% for art in articles %}
+                                        {% if art.attributs is empty %}
+                                            <tr>
+                                                <td><strong>{{ art.nom }}</strong></td>
+                                                <td><span class="text-muted">-</span></td>
+                                                {% if 'encre' in activeSubCatName or 'solvant' in activeSubCatName %}
+                                                    <td>-</td><td>-</td><td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
+                                                {% elseif 'media' in activeSubCatName or 'bache' in activeSubCatName %}
+                                                    <td>-</td><td>-</td><td>-</td>
+                                                {% else %}
+                                                    <td>-</td><td>-</td><td>-</td>
+                                                    <td>{% if art.machine %}{{ art.machine.nom }}{% else %}-{% endif %}</td>
+                                                {% endif %}
+                                                <td><span class="fw-bold">{{ art.quantite }}</span></td>
+                                                <td>
+                                                    {% if art.quantite <= art.seuilAlerte %}
+                                                        <span class="badge bg-warning text-dark">Stock Bas</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">Correct</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    {% endfor %}
 
-    {% if attributs|length == 0 and articles|length == 0 %}
-        <tr><td colspan="10" class="text-center text-muted py-4">Aucun article trouvé.</td></tr>
-    {% endif %}
-</tbody>
+                                    {% if attributs|length == 0 and articles|length == 0 %}
+                                        <tr>
+                                            <td colspan="10" class="text-center text-muted py-4">
+                                                <i class="fas fa-inbox fa-2x d-block mb-2 opacity-50"></i>
+                                                Aucun article trouvé.
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                    </tbody>
                                 </table>
+                            </div>
+
+                            {# 🆕 Message "aucun résultat" pour la recherche #}
+                            <div id="noResultInventaire" class="text-center text-muted py-4" style="display:none;">
+                                <i class="fas fa-search fa-2x d-block mb-2 opacity-50"></i>
+                                <div class="fw-bold">Aucun article ne correspond à votre recherche</div>
+                                <small>Essayez avec un autre mot-clé.</small>
                             </div>
                         </div>
 
@@ -619,7 +703,7 @@
                                             </td>
                                         </tr>
                                         {% else %}
-                                        <tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-folder-open me-2"></i>Aucune demande ce matin.</td></tr>
+                                        <tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-folder-open me-2"></i>Aucune demande en cours.</td></tr>
                                         {% endfor %}
                                     </tbody>
                                 </table>
@@ -911,6 +995,78 @@
             nomInput.addEventListener('change', updateRequiredByNom);
             updateRequiredByNom();
         }
+
+        // ============================================================
+        // 🆕 6. RECHERCHE D'ARTICLES DANS L'INVENTAIRE (temps réel)
+        // ============================================================
+        const searchInput    = document.getElementById('searchArticle');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const resultCount    = document.getElementById('searchResultCount');
+        const tableInv       = document.getElementById('tableInventaire');
+        const noResultInv    = document.getElementById('noResultInventaire');
+
+        function filtrerInventaire() {
+            if (!searchInput || !tableInv) return;
+
+            const query = searchInput.value.toLowerCase().trim();
+            const rows  = tableInv.querySelectorAll('tbody tr');
+            let visible = 0;
+            let total   = 0;
+
+            rows.forEach(row => {
+                // Ligne "Aucun article trouvé"
+                if (row.querySelector('td[colspan]')) {
+                    row.style.display = query === '' ? '' : 'none';
+                    return;
+                }
+                total++;
+                const match = query === '' || row.textContent.toLowerCase().includes(query);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            // Compteur
+            if (resultCount) {
+                if (query === '') {
+                    resultCount.textContent = total + ' article(s)';
+                    resultCount.className = 'input-group-text bg-light text-muted';
+                } else if (visible > 0) {
+                    resultCount.textContent = visible + ' résultat(s)';
+                    resultCount.className = 'input-group-text bg-success text-white';
+                } else {
+                    resultCount.textContent = '0 résultat';
+                    resultCount.className = 'input-group-text bg-danger text-white';
+                }
+            }
+
+            // Bouton "effacer"
+            if (clearSearchBtn) {
+                clearSearchBtn.classList.toggle('d-none', query === '');
+            }
+
+            // Message "aucun résultat"
+            if (noResultInv) {
+                noResultInv.style.display = (query !== '' && visible === 0) ? 'block' : 'none';
+            }
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', filtrerInventaire);
+            searchInput.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') { this.value = ''; filtrerInventaire(); }
+            });
+        }
+
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                filtrerInventaire();
+                searchInput.focus();
+            });
+        }
+
+        // Initialisation du compteur
+        filtrerInventaire();
 
     }); // fin DOMContentLoaded
     </script>

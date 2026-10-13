@@ -3,10 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\ArticleAttribut;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use App\Entity\Category;
 use App\Entity\SubCategory;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<ArticleAttribut>
@@ -18,49 +18,36 @@ class ArticleAttributRepository extends ServiceEntityRepository
         parent::__construct($registry, ArticleAttribut::class);
     }
 
-    //    /**
-    //     * @return ArticleAttribut[] Returns an array of ArticleAttribut objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Récupère tous les attributs d'articles avec leurs relations
+     * (article, catégorie, sous-catégorie, machine) préchargées.
+     *
+     * ⚠️ Utilise LEFT JOIN partout pour ne JAMAIS exclure d'article
+     *    (ex : un article sans catégorie doit quand même apparaître).
+     *
+     * @return ArticleAttribut[]
+     */
+    public function findAllWithDetails(?Category $category = null, ?SubCategory $subCategory = null): array
+    {
+        $qb = $this->createQueryBuilder('aa')
+            ->addSelect('a', 'c', 'sc', 'm')
+            ->leftJoin('aa.article', 'a')
+            ->leftJoin('a.category', 'c')
+            ->leftJoin('a.subCategory', 'sc')
+            ->leftJoin('a.machine', 'm')
+            ->orderBy('a.nom', 'ASC')
+            ->addOrderBy('aa.id', 'ASC');
 
-    //    public function findOneBySomeField($value): ?ArticleAttribut
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($category !== null) {
+            $qb->andWhere('c = :category')
+               ->setParameter('category', $category);
+        }
 
-    // Dans ton Repository ou Contrôleur (Ex: ArticleAttributRepository)
-public function findAllWithDetails(?Category $category = null, ?SubCategory $subCategory = null)
-{
-    $qb = $this->createQueryBuilder('aa')
-        ->join('aa.article', 'a')
-        ->leftJoin('a.category', 'c')
-        ->leftJoin('a.subCategory', 'sc');
+        if ($subCategory !== null) {
+            $qb->andWhere('sc = :subCategory')
+               ->setParameter('subCategory', $subCategory);
+        }
 
-    if ($category) {
-        $qb->andWhere('c = :category')
-           ->setParameter('category', $category);
+        return $qb->getQuery()->getResult();
     }
-
-    if ($subCategory) {
-        $qb->andWhere('sc = :subCategory')
-           ->setParameter('subCategory', $subCategory);
-    }
-
-    return $qb->getQuery()->getResult();
-}
 }

@@ -22,7 +22,13 @@
             --shadow-hover: 0 12px 30px rgba(0,0,0,0.10);
         }
 
-        * { transition: all 0.25s ease; }
+        * { transition: background-color 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease; }
+
+        html, body {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -30,7 +36,18 @@
             background-image:
                 radial-gradient(at 0% 0%, rgba(102, 126, 234, 0.08) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
-            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* Conteneur pleine largeur */
+        .full-width-container {
+            width: 100%;
+            max-width: 100%;
+            padding-left: clamp(0.75rem, 1.5vw, 2rem);
+            padding-right: clamp(0.75rem, 1.5vw, 2rem);
+            padding-top: 1rem;
+            padding-bottom: 3rem;
+            box-sizing: border-box;
         }
 
         .navbar-modern {
@@ -92,38 +109,64 @@
             box-shadow: var(--shadow-soft);
             background: #fff;
             overflow: hidden;
+            width: 100%;
         }
+
+        /* ═══════════════════════════════════════════════
+           ONGLETS : WRAP AUTOMATIQUE = TOUS VISIBLES
+           (plus de scroll horizontal, empilement vertical)
+        ═══════════════════════════════════════════════ */
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
-            padding: 0 1rem;
-            gap: 0.25rem;
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
+            padding: 0.5rem 1rem;
+            gap: 0.35rem;
+            flex-wrap: wrap !important;
+            overflow: visible !important;
+            display: flex;
         }
-        .nav-tabs-modern::-webkit-scrollbar { display: none; }
+        .nav-tabs-modern .nav-item {
+            flex: 0 1 auto;
+        }
         .nav-tabs-modern .nav-link {
-            border: none !important;
+            border: 1px solid transparent !important;
             color: #64748b;
             font-weight: 600;
             font-size: 0.9rem;
-            padding: 1rem 1.1rem;
+            padding: 0.65rem 1rem;
             white-space: nowrap;
-            border-radius: 0;
+            border-radius: 10px;
             position: relative;
-            background: none;
+            background: #f8fafc;
+            margin: 2px;
         }
-        .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); }
-        .nav-tabs-modern .nav-link.active { color: var(--dg-primary) !important; background: none; }
-        .nav-tabs-modern .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -1px; left: 1rem; right: 1rem;
-            height: 3px;
-            background: var(--gradient-1);
-            border-radius: 3px 3px 0 0;
+        .nav-tabs-modern .nav-link:hover {
+            color: var(--dg-primary);
+            background: #eef2f7;
         }
+        .nav-tabs-modern .nav-link.active {
+            color: #fff !important;
+            background: var(--gradient-1) !important;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+        }
+        .nav-tabs-modern .nav-link.active::after { display: none; }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
+
+        /* Sur très petits écrans : onglets sur toute la largeur, empilés */
+        @media (max-width: 575.98px) {
+            .nav-tabs-modern {
+                flex-direction: column;
+                gap: 0.4rem;
+                padding: 0.75rem;
+            }
+            .nav-tabs-modern .nav-item {
+                width: 100%;
+            }
+            .nav-tabs-modern .nav-link {
+                width: 100%;
+                text-align: left;
+                border-radius: 10px;
+            }
+        }
 
         .table-modern { margin: 0; }
         .table-modern thead th {
@@ -238,6 +281,7 @@
             padding: 1rem 1.25rem;
             border-bottom: 1px solid #f1f5f9;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         .user-item:hover { background: #f8fafc; }
         .user-item:last-child { border-bottom: none; }
@@ -256,6 +300,16 @@
         .kpi360 .kpi360-value { font-size: 1.75rem; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
         .kpi360 .kpi360-label { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
         .kpi360 .kpi360-icon { font-size: 1.75rem; opacity: 0.4; }
+
+        /* Tableaux responsive : scroll horizontal UNIQUEMENT dans le tableau */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Le contenu des onglets défile verticalement avec la page */
+        .tab-content { width: 100%; }
     </style>
 </head>
 <body>
@@ -264,11 +318,11 @@
    NAVBAR
 ============================================ #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
-    <div class="container-fluid px-4">
+    <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
             Dispro<span class="text-primary">malt</span>
-            <span class="fw-light fs-6 text-white-50 ms-2">| Gérant imprimerie</span>
+            <span class="fw-light fs-6 text-white-50 ms-2 d-none d-md-inline">| Gérant imprimerie</span>
         </a>
         <div class="d-flex align-items-center gap-3">
             <div class="role-pill d-none d-md-inline-flex align-items-center">
@@ -283,9 +337,9 @@
 </nav>
 
 {# ============================================
-   MAIN CONTAINER
+   MAIN CONTAINER — PLEINE LARGEUR
 ============================================ #}
-<div class="container-fluid py-4 px-4" style="max-width: 1600px;">
+<div class="full-width-container">
 
     {# En-tête #}
     <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -310,7 +364,7 @@
 
     {# Cartes de statistiques #}
     <div class="row g-3 mb-4">
-        <div class="col-md-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -321,7 +375,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-success">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -332,7 +386,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-purple">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -343,7 +397,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-warning">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -419,7 +473,7 @@
             </li>
         </ul>
 
-        <div class="p-4">
+        <div class="p-3 p-lg-4">
             <div class="tab-content">
 
                 {# ═══════════════════════════════════════════════
@@ -471,14 +525,11 @@
                         </div>
                     </div>
 
-                    {# ═══════════════════════════════════════════════
-                       TRÉSORERIE — 3 SOLDES SÉPARÉS
-                       Comptabilité | Caisse | Global
-                    ═══════════════════════════════════════════════ #}
+                    {# TRÉSORERIE — 3 SOLDES SÉPARÉS #}
                     <div class="row g-3 mb-4">
 
                         {# Solde Comptabilité #}
-                        <div class="col-lg-4">
+                        <div class="col-12 col-lg-4">
                             <div class="stat-card stat-success h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
@@ -505,7 +556,7 @@
                         </div>
 
                         {# Solde Caisse #}
-                        <div class="col-lg-4">
+                        <div class="col-12 col-lg-4">
                             <div class="stat-card stat-info h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
@@ -532,7 +583,7 @@
                         </div>
 
                         {# Solde Global #}
-                        <div class="col-lg-4">
+                        <div class="col-12 col-lg-4">
                             <div class="stat-card stat-primary h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
@@ -559,9 +610,7 @@
                         </div>
                     </div>
 
-                    {# ═══════════════════════════════════════════════
-                       OPÉRATIONS EN ATTENTE (Comptabilité + Caisse)
-                    ═══════════════════════════════════════════════ #}
+                    {# OPÉRATIONS EN ATTENTE #}
                     {% if (devisAiguiller|default([])|length > 0)
                        or (devisPretsADecaisser|default([])|length > 0)
                        or (devisEnAttenteCaisse|default([])|length > 0) %}
@@ -575,7 +624,7 @@
                         </div>
 
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="kpi360">
                                     <div>
                                         <div class="kpi360-value text-warning">{{ devisAiguiller|default([])|length }}</div>
@@ -584,7 +633,7 @@
                                     <i class="fas fa-random kpi360-icon text-warning"></i>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="kpi360">
                                     <div>
                                         <div class="kpi360-value text-primary">{{ devisPretsADecaisser|default([])|length }}</div>
@@ -593,7 +642,7 @@
                                     <i class="fas fa-money-bill-wave kpi360-icon text-primary"></i>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12 col-md-4">
                                 <div class="kpi360">
                                     <div>
                                         <div class="kpi360-value text-purple">{{ devisEnAttenteCaisse|default([])|length }}</div>
@@ -761,7 +810,7 @@
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Suivi des Demandes de Matériel</h5>
                             <small class="text-muted">Contrôle et validation des demandes de tous les services.</small>
                         </div>
-                        <form method="get" class="d-flex align-items-center gap-2">
+                        <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
                             <div class="d-flex align-items-center gap-1">
                                 <span class="small fw-bold text-muted text-nowrap">Du :</span>
                                 <input type="date" name="date_debut" class="form-control form-control-sm"
@@ -1032,13 +1081,13 @@
                     </div>
 
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="stat-card stat-success">
                                 <h6 class="text-muted text-uppercase fw-bold mb-2">Total décaissé USD</h6>
                                 <h3 class="fw-bold m-0 text-success">{{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }} $</h3>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="stat-card stat-primary">
                                 <h6 class="text-muted text-uppercase fw-bold mb-2">Total décaissé CDF</h6>
                                 <h3 class="fw-bold m-0 text-primary">{{ totalDevisCDF|default(0)|number_format(0, ',', ' ') }} FC</h3>
@@ -1102,7 +1151,7 @@
                     </h5>
 
                     <div class="row g-3 mb-4">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="stat-card stat-success">
                                 <h6 class="text-muted text-uppercase fw-bold mb-2">Solde USD actuel</h6>
                                 <h3 class="fw-bold m-0 text-success">{{ soldeGlobalUSD|default(0)|number_format(2, ',', ' ') }} $</h3>
@@ -1111,7 +1160,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <div class="stat-card stat-primary">
                                 <h6 class="text-muted text-uppercase fw-bold mb-2">Solde CDF actuel</h6>
                                 <h3 class="fw-bold m-0 text-primary">{{ soldeGlobalCDF|default(0)|number_format(0, ',', ' ') }} FC</h3>
@@ -1165,7 +1214,7 @@
                 {# ============ ONGLET 6 : COMPTES AGENTS ============ #}
                 <div class="tab-pane fade" id="pane-agents" role="tabpanel">
                     <div class="row g-4">
-                        <div class="col-lg-5">
+                        <div class="col-12 col-lg-5">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-purple">
@@ -1238,7 +1287,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-7">
+                        <div class="col-12 col-lg-7">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
                                     <div class="form-card-icon form-card-icon-blue">
@@ -1307,7 +1356,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="d-flex gap-1 flex-shrink-0">
+                                            <div class="d-flex gap-1 flex-shrink-0 flex-wrap">
                                                 {% if u.isPDG %}
                                                     <form action="{{ path('app_admin_destituer_pdg', {'id': u.id}) }}" method="POST" class="d-inline"
                                                           onsubmit="return confirm('Retirer le statut PDG à {{ u.email }} ?');">
@@ -1353,7 +1402,7 @@
                     <div class="row g-4">
 
                         {# ──────── Nommer un Caissier ──────── #}
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-blue">
@@ -1384,7 +1433,7 @@
                         </div>
 
                         {# ──────── Nommer un Chef Comptable ──────── #}
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-yellow">
@@ -1415,7 +1464,7 @@
                         </div>
 
                         {# ──────── Nommer le PDG ──────── #}
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-gold">
@@ -1453,7 +1502,7 @@
                                 {% endfor %}
 
                                 {% if pdgActuel %}
-                                    <div class="alert alert-warning rounded-3 mt-3 mb-0 d-flex justify-content-between align-items-center">
+                                    <div class="alert alert-warning rounded-3 mt-3 mb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                                         <div>
                                             <i class="fas fa-crown me-2"></i>
                                             <strong>PDG actuel :</strong> {{ pdgActuel.email }}
@@ -1475,7 +1524,7 @@
                         </div>
 
                         {# ──────── Créer un Nouveau Service ──────── #}
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-green">
@@ -1499,7 +1548,7 @@
                         </div>
 
                         {# ──────── Rôles disponibles ──────── #}
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-purple">
@@ -1548,7 +1597,7 @@
                 {# ============ ONGLET 8 : CATÉGORIES ============ #}
                 <div class="tab-pane fade" id="pane-structure" role="tabpanel">
                     <div class="row g-4">
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-blue">
@@ -1570,7 +1619,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-green">
@@ -1595,7 +1644,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
                                     <div class="form-card-icon form-card-icon-purple">
@@ -1609,7 +1658,7 @@
                                 <div class="p-3">
                                     <ul class="list-group list-group-flush">
                                         {% for category in categories %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 border-bottom flex-wrap gap-2">
                                                 <span class="fw-bold text-dark">
                                                     <i class="fas fa-folder text-primary me-2"></i>{{ category.nom }}
                                                 </span>
@@ -1645,7 +1694,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-6">
+                        <div class="col-12 col-lg-6">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
                                     <div class="form-card-icon form-card-icon-blue">
@@ -1714,7 +1763,7 @@
                 {# ============ ONGLET 9 : MACHINES ============ #}
                 <div class="tab-pane fade" id="pane-machines" role="tabpanel">
                     <div class="row g-4">
-                        <div class="col-lg-5">
+                        <div class="col-12 col-lg-5">
                             <div class="form-card">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-yellow">
@@ -1739,7 +1788,7 @@
                             </div>
                         </div>
 
-                        <div class="col-lg-7">
+                        <div class="col-12 col-lg-7">
                             <div class="form-card p-0">
                                 <div class="form-card-header px-4 pt-4 mb-0">
                                     <div class="form-card-icon form-card-icon-blue">
@@ -1977,7 +2026,7 @@
 
                     {# Graphiques #}
                     <div class="row g-3 mb-4">
-                        <div class="col-lg-7">
+                        <div class="col-12 col-lg-7">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-blue"><i class="fas fa-chart-bar"></i></div>
@@ -1991,7 +2040,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-5">
+                        <div class="col-12 col-lg-5">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
                                     <div class="form-card-icon form-card-icon-green"><i class="fas fa-chart-pie"></i></div>
@@ -2274,6 +2323,8 @@
         document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+                // Remonter en haut de page lors du changement d'onglet
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 

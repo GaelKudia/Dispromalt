@@ -428,6 +428,14 @@
         }
         .field-label i { color: var(--indigo); margin-right: .3rem; }
         .field-label .req { color: var(--rose); }
+        .field-help {
+            display: block;
+            margin-top: .4rem;
+            font-size: .74rem;
+            color: var(--ink-400);
+            font-weight: 500;
+        }
+        .field-help i { color: var(--indigo-2); }
 
         .form-wrap .form-control,
         .form-wrap .form-select {
@@ -919,7 +927,7 @@
                         </div>
                     </div>
 
-                    {# ONGLET 4 : BON DE SORTIE #}
+                    {# ONGLET 4 : BON DE SORTIE — ✅ CORRIGÉ #}
                     <div class="tab-pane fade"
                          id="bon-pane"
                          role="tabpanel"
@@ -932,30 +940,39 @@
                                     <i class="fas fa-exchange-alt"></i>
                                 </div>
                                 <h4>Créer un bon de sortie</h4>
-                                <p>Le bon sera transmis au coordonnateur — ou déléguez directement</p>
+                                <p>Renseignez l'agent qui emporte le matériel, puis transmettez le bon</p>
                             </div>
 
                             {% if formBon is defined and formBon is not null %}
                                 {{ form_start(formBon) }}
 
+                                    {# ✅ NOM DE L'AGENT — ÉDITABLE #}
                                     <div class="field">
                                         <label class="field-label">
-                                            <i class="fas fa-user"></i>Agent responsable
+                                            <i class="fas fa-user"></i>Nom de l'agent <span class="req">*</span>
                                         </label>
                                         {{ form_widget(formBon.nomEmploye, {'attr': {
                                             'class': 'form-control',
-                                            'readonly': true,
-                                            'placeholder': 'Auto-rempli'
+                                            'placeholder': 'Nom et prénom de l\'agent qui emporte le matériel',
+                                            'autocomplete': 'off',
+                                            'required': 'required'
                                         }}) }}
+                                        <small class="field-help">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Indiquez <strong>qui emporte physiquement le matériel</strong> (peut être différent de vous).
+                                        </small>
                                     </div>
 
+                                    {# ✅ DÉPARTEMENT DE L'AGENT — ÉDITABLE #}
                                     <div class="field">
                                         <label class="field-label">
-                                            <i class="fas fa-building"></i>Département
+                                            <i class="fas fa-building"></i>Département de l'agent <span class="req">*</span>
                                         </label>
                                         {{ form_widget(formBon.departement, {'attr': {
                                             'class': 'form-control',
-                                            'placeholder': 'Saisissez votre département'
+                                            'placeholder': 'Ex : Production, Impression, Logistique…',
+                                            'autocomplete': 'off',
+                                            'required': 'required'
                                         }}) }}
                                     </div>
 
@@ -993,7 +1010,7 @@
 
                                         <input type="hidden" name="destination" id="destinationInput" value="">
 
-                                        <small class="d-block mt-2" style="color:var(--ink-400); font-size:.78rem;">
+                                        <small class="field-help">
                                             <i class="fas fa-info-circle me-1"></i>
                                             Sans sélection, le bon est transmis au <strong>Coordonnateur</strong> pour validation.
                                         </small>
@@ -1089,7 +1106,6 @@
     function selectDestination(value) {
         const current = document.getElementById('destinationInput').value;
 
-        // Re-clic sur la même option → désélectionner
         if (current === value) {
             document.querySelectorAll('.dest-option').forEach(o => o.classList.remove('selected'));
             document.getElementById('destinationInput').value = '';

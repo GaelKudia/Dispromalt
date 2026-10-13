@@ -247,6 +247,49 @@
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.20);
             animation: pulse 1.8s infinite;
         }
+
+        /* ═══════════════════════════════════════════════════
+           🖨️ NOUVEAU : SÉLECTEUR DE MACHINE (VISUEL)
+        ═══════════════════════════════════════════════════ */
+        .machine-info-box {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(79,172,254,0.10) 0%, rgba(168,85,247,0.06) 100%);
+            border: 1.5px dashed rgba(79,172,254,0.35);
+            align-items: center;
+            gap: 0.85rem;
+        }
+        .machine-info-box.show { display: flex; }
+        .machine-info-icon {
+            width: 42px; height: 42px;
+            border-radius: 11px;
+            background: var(--gradient-3);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(79,172,254,0.35);
+        }
+        .machine-info-label {
+            font-size: 0.68rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: #2563eb; margin: 0;
+        }
+        .machine-info-value {
+            font-size: 0.95rem; font-weight: 800;
+            color: #1e293b; margin: 0.1rem 0 0;
+        }
+        .machine-info-hint {
+            font-size: 0.72rem; color: #64748b;
+            margin: 0.2rem 0 0;
+        }
+
+        /* Badge visuel dans les options de l'attribut */
+        .attribut-option-machine {
+            color: #2563eb;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -776,7 +819,7 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET CHEF : MA NOUVELLE DEMANDE (STRUCTURE CORRIGÉE)
+                   ONGLET CHEF : MA NOUVELLE DEMANDE
                 ============================================================ #}
                 <div class="tab-pane fade" id="pane-ma-demande" role="tabpanel">
 
@@ -815,12 +858,15 @@
                                                 {{ form_label(formDemande.materiel, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.materiel, {'attr': {
                                                     'class': 'form-control demande-materiel-input',
-                                                    'placeholder': 'Tapez le nom de l\'article',
+                                                    'placeholder': 'Tapez le nom de l\'article (ex : encre, papier…)',
                                                     'autocomplete': 'off',
                                                     'autocorrect': 'off',
                                                     'autocapitalize': 'off',
                                                     'spellcheck': 'false'
                                                 }}) }}
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-search me-1"></i>La liste des machines proposera automatiquement les variantes disponibles.
+                                                </small>
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
@@ -834,6 +880,9 @@
                                                 {{ form_widget(formDemande.attribut, {'attr': {
                                                     'class': 'form-select demande-attribut-select'
                                                 }}) }}
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-info-circle me-1"></i>Chaque variante indique la machine associée.
+                                                </small>
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
@@ -841,6 +890,18 @@
                                                     {{ form_widget(formDemande.destination, {'attr': {'class': 'form-select'}}) }}
                                                 </div>
                                             {% endif %}
+                                        </div>
+
+                                        {# 🖨️ ENCADRÉ MACHINE (affiché dynamiquement après sélection) #}
+                                        <div class="machine-info-box" id="machine-info-chef">
+                                            <div class="machine-info-icon">
+                                                <i class="fas fa-industry"></i>
+                                            </div>
+                                            <div>
+                                                <p class="machine-info-label">Machine associée</p>
+                                                <p class="machine-info-value" id="machine-info-value-chef">—</p>
+                                                <p class="machine-info-hint">L'encre sera prélevée du stock de cette machine.</p>
+                                            </div>
                                         </div>
 
                                         {{ form_rest(formDemande) }}
@@ -882,6 +943,12 @@
                                     </div>
                                 </div>
                                 <ul class="list-unstyled mb-0">
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-industry text-primary me-2 mt-1"></i>
+                                        <span class="small text-muted">
+                                            <strong>Précisez la machine</strong> pour les encres : deux machines peuvent avoir des encres de même nom.
+                                        </span>
+                                    </li>
                                     <li class="mb-3 d-flex">
                                         <i class="fas fa-check-circle text-success me-2 mt-1"></i>
                                         <span class="small text-muted">Votre demande sera transmise à la comptabilité après validation.</span>
@@ -1141,7 +1208,7 @@
                 </div>
 
                 {# ============================================================
-                   ONGLET : NOUVELLE DEMANDE (MEMBRE) — CORRIGÉ
+                   ONGLET : NOUVELLE DEMANDE (MEMBRE)
                 ============================================================ #}
                 <div class="tab-pane fade" id="pane-new-demande" role="tabpanel">
                     <div class="row g-4">
@@ -1165,12 +1232,15 @@
                                                 {{ form_label(formDemande.materiel, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.materiel, {'attr': {
                                                     'class': 'form-control demande-materiel-input',
-                                                    'placeholder': 'Tapez le nom de l\'article',
+                                                    'placeholder': 'Tapez le nom de l\'article (ex : encre, papier…)',
                                                     'autocomplete': 'off',
                                                     'autocorrect': 'off',
                                                     'autocapitalize': 'off',
                                                     'spellcheck': 'false'
                                                 }}) }}
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-search me-1"></i>La liste des machines proposera automatiquement les variantes disponibles.
+                                                </small>
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
@@ -1184,6 +1254,9 @@
                                                 {{ form_widget(formDemande.attribut, {'attr': {
                                                     'class': 'form-select demande-attribut-select'
                                                 }}) }}
+                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-info-circle me-1"></i>Chaque variante indique la machine associée.
+                                                </small>
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
@@ -1191,6 +1264,18 @@
                                                     {{ form_widget(formDemande.destination, {'attr': {'class': 'form-select'}}) }}
                                                 </div>
                                             {% endif %}
+                                        </div>
+
+                                        {# 🖨️ ENCADRÉ MACHINE (affiché dynamiquement après sélection) #}
+                                        <div class="machine-info-box" id="machine-info-membre">
+                                            <div class="machine-info-icon">
+                                                <i class="fas fa-industry"></i>
+                                            </div>
+                                            <div>
+                                                <p class="machine-info-label">Machine associée</p>
+                                                <p class="machine-info-value" id="machine-info-value-membre">—</p>
+                                                <p class="machine-info-hint">L'encre sera prélevée du stock de cette machine.</p>
+                                            </div>
                                         </div>
 
                                         {{ form_rest(formDemande) }}
@@ -1230,6 +1315,12 @@
                                     </div>
                                 </div>
                                 <ul class="list-unstyled mb-0">
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-industry text-primary me-2 mt-1"></i>
+                                        <span class="small text-muted">
+                                            <strong>Précisez la machine</strong> pour les encres : deux machines peuvent avoir des encres de même nom.
+                                        </span>
+                                    </li>
                                     <li class="mb-3 d-flex">
                                         <i class="fas fa-check-circle text-success me-2 mt-1"></i>
                                         <span class="small text-muted">Vérifiez la disponibilité du stock avant de valider.</span>
@@ -1334,24 +1425,44 @@
 
         // ============================================================
         // 1. Gestion de la recherche d'articles (multi-formulaires)
+        //    + Affichage automatique de la machine associée
         // ============================================================
         document.querySelectorAll('.demande-materiel-input').forEach(champMateriel => {
-            // Trouver les champs associés dans le MÊME form
             const form = champMateriel.closest('form');
             if (!form) return;
 
-            const attributSelect = form.querySelector('.demande-attribut-select');
+            const attributSelect   = form.querySelector('.demande-attribut-select');
             const champDestination = form.querySelector('select[id$="_destination"]');
+            const machineBox       = form.querySelector('.machine-info-box');
+            const machineValue     = machineBox ? machineBox.querySelector('.machine-info-value') : null;
 
             if (!attributSelect) return;
 
             let timeoutId = null;
             let lastQuery = '';
 
+            /**
+             * Affiche / masque l'encadré machine en fonction de l'option sélectionnée
+             */
+            function afficherMachineSelectionnee() {
+                if (!machineBox || !machineValue) return;
+                const selectedOption = attributSelect.options[attributSelect.selectedIndex];
+                const machineName = selectedOption ? (selectedOption.dataset.machine || '') : '';
+
+                if (machineName) {
+                    machineValue.textContent = machineName;
+                    machineBox.classList.add('show');
+                } else {
+                    machineValue.textContent = '—';
+                    machineBox.classList.remove('show');
+                }
+            }
+
             async function chargerAttributs(nom) {
                 if (!nom || nom.length < 2) {
                     attributSelect.innerHTML = '<option value="">Saisissez au moins 2 caractères</option>';
                     attributSelect.disabled = false;
+                    afficherMachineSelectionnee();
                     return;
                 }
 
@@ -1366,6 +1477,7 @@
                     if (!data.found) {
                         attributSelect.innerHTML = '<option value="">Aucun article trouvé — vous pouvez envoyer quand même</option>';
                         attributSelect.disabled = false;
+                        afficherMachineSelectionnee();
                         return;
                     }
 
@@ -1374,22 +1486,44 @@
                         attributSelect.disabled = false;
                     } else {
                         attributSelect.innerHTML = '<option value="">-- Choisissez la variante / couleur --</option>';
+
+                        // 🖨️ Regrouper par machine pour plus de clarté
+                        const parMachine = {};
                         data.attributs.forEach(attr => {
-                            const option = document.createElement('option');
-                            option.value = attr.id;
-                            option.textContent = attr.valeur;
-                            attributSelect.appendChild(option);
+                            const m = attr.machine || 'Sans machine';
+                            if (!parMachine[m]) parMachine[m] = [];
+                            parMachine[m].push(attr);
                         });
+
+                        Object.keys(parMachine).sort().forEach(machineName => {
+                            // 🏷️ Étiquette de groupe (machine)
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = '🖨️ ' + machineName;
+
+                            parMachine[machineName].forEach(attr => {
+                                const option = document.createElement('option');
+                                option.value = attr.id;
+                                // Le texte de l'option montre la variante (couleur, grammage…)
+                                option.textContent = attr.valeur;
+                                option.dataset.machine = attr.machine || '';
+                                optgroup.appendChild(option);
+                            });
+
+                            attributSelect.appendChild(optgroup);
+                        });
+
                         attributSelect.disabled = false;
                     }
+                    afficherMachineSelectionnee();
                 } catch (e) {
                     console.error('Erreur recherche article:', e);
                     attributSelect.innerHTML = '<option value="">Erreur — vous pouvez envoyer quand même</option>';
                     attributSelect.disabled = false;
+                    afficherMachineSelectionnee();
                 }
             }
 
-            // Debounce 300ms + évite les doublons
+            // Debounce 300ms
             champMateriel.addEventListener('input', function() {
                 const val = this.value.trim();
                 if (val === lastQuery) return;
@@ -1406,6 +1540,9 @@
                     chargerAttributs(nom);
                 }
             });
+
+            // 🖨️ Mise à jour de l'encadré machine quand on change de variante
+            attributSelect.addEventListener('change', afficherMachineSelectionnee);
 
             // Obligation commune pour gilets
             if (champDestination) {
@@ -1426,7 +1563,7 @@
         });
 
         // ============================================================
-        // 2. Empêcher l'autocomplete navigateur de bloquer le 1er clic
+        // 2. Empêcher l'autocomplete navigateur
         // ============================================================
         document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
             input.setAttribute('autocomplete', 'off');
@@ -1437,7 +1574,6 @@
 
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function() {
-                // Fermer les dropdowns autocomplete ouverts
                 if (document.activeElement && document.activeElement.blur) {
                     document.activeElement.blur();
                 }

@@ -174,12 +174,12 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
+        // 🔥 DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
+        //    Plus de 'Impression' en dur → on utilise le service réel
+        //    de l'utilisateur connecté (ou chaîne vide si aucun service).
         // ============================================================
-        $userDept = 'Impression';
-        if ($currentUser->getService()) {
-            $userDept = $currentUser->getService()->getNom();
-        }
+        $userService = method_exists($currentUser, 'getService') ? $currentUser->getService() : null;
+        $userDept    = $userService ? $userService->getNom() : '';
 
         // ============================================================
         // INITIALISATION DES VARIABLES
@@ -199,11 +199,12 @@ class DashboardController extends AbstractController
         $formVisiteView = null;
         $formStockView = null;
         $formVisiteGueriteView = null;
+
         // 👔 Liste des chefs de service (pour la délégation des bons de sortie)
-$chefsService = $em->getRepository(User::class)->findBy(
-    ['isChefService' => true],
-    ['email' => 'ASC']
-);
+        $chefsService = $em->getRepository(User::class)->findBy(
+            ['isChefService' => true],
+            ['email' => 'ASC']
+        );
 
         $debutAujourdhui = new \DateTime('today 00:00:00');
         $finAujourdhui   = new \DateTime('today 23:59:59');
@@ -287,7 +288,9 @@ $chefsService = $em->getRepository(User::class)->findBy(
 
         }
 
+        // ============================================================
         // 2. FORMULAIRE STOCK
+        // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $article = new Article();
             $formStock = $this->createForm(StockType::class, $article);
@@ -297,13 +300,23 @@ $chefsService = $em->getRepository(User::class)->findBy(
                 $nomArticle      = $article->getNom();
                 $quantiteAjoutee = $article->getQuantite() ?? 0;
 
-                $articleExistant = $em->getRepository(Article::class)->findOneBy(['nom' => $nomArticle]);
+                $criteria = ['nom' => $nomArticle];
+
+                if ($article->getMachine() !== null) {
+                    $criteria['machine'] = $article->getMachine();
+                }
+                if ($article->getSubCategory() !== null) {
+                    $criteria['subCategory'] = $article->getSubCategory();
+                }
+
+                $articleExistant = $em->getRepository(Article::class)->findOneBy($criteria);
 
                 if ($articleExistant) {
                     $articleExistant->setQuantite($articleExistant->getQuantite() + $quantiteAjoutee);
                     if ($article->getSeuilAlerte()) {
                         $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
                     }
+
                     if ($articleExistant->getAttributs()->isEmpty()) {
                         $attr = new \App\Entity\ArticleAttribut();
                         $attr->setArticle($articleExistant);
@@ -313,8 +326,12 @@ $chefsService = $em->getRepository(User::class)->findBy(
                         }
                         $em->persist($attr);
                     }
+
                     $em->flush();
-                    $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' » — Stock incrémenté de ' . $quantiteAjoutee . ' (total : ' . $articleExistant->getQuantite() . ')');
+                    $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' »'
+                        . ($article->getMachine() ? ' [' . $article->getMachine()->getNom() . ']' : '')
+                        . ' — Stock incrémenté de ' . $quantiteAjoutee
+                        . ' (total : ' . $articleExistant->getQuantite() . ')');
 
                 } else {
                     $em->persist($article);
@@ -330,7 +347,10 @@ $chefsService = $em->getRepository(User::class)->findBy(
                         $em->persist($attr);
                         $em->flush();
                     }
-                    $this->addFlash('success', '📥 Nouvel article « ' . $nomArticle . ' » enregistré.');
+
+                    $this->addFlash('success', '📥 Nouvel article « ' . $nomArticle . ' »'
+                        . ($article->getMachine() ? ' [' . $article->getMachine()->getNom() . ']' : '')
+                        . ' enregistré.');
                 }
 
                 return $this->redirectToRoute('app_dashboard');
@@ -338,66 +358,78 @@ $chefsService = $em->getRepository(User::class)->findBy(
             $formStockView = $formStock->createView();
         }
 
+        // ============================================================
         // 3. FORMULAIRE BON DE SORTIE
-        // 3. FORMULAIRE BON DE SORTIE — avec choix de destination
-if ($this->isGranted('ROLE_STOCK') ||
-    (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
+        //    🔥 FIX : plus de pré-remplissage avec l'utilisateur connecté.
+        //    L'agent d'accueil DOIT saisir le nom de l'agent qui emporte
+        //    physiquement le matériel — ce nom apparaîtra à la guérite.
+        // ============================================================
+        if ($this->isGranted('ROLE_STOCK') ||
+            (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
 
-    $bonSortie = new BonSortie();
-$bonSortie->setNomEmploye($currentUser->getUserIdentifier());  // ← Pré-remplissage
-$bonSortie->setDepartement($userDept);                         // ← Pré-remplissage
-$formBon = $this->createForm(BonSortieType::class, $bonSortie);
-    $formBon->handleRequest($request);
+            // ⚠️ On NE pré-remplit PAS les champs avec l'utilisateur connecté.
+            //    Le formulaire doit être rempli manuellement par l'agent d'accueil.
+            $bonSortie = new BonSortie();
+            $formBon = $this->createForm(BonSortieType::class, $bonSortie);
+            $formBon->handleRequest($request);
 
-    if ($formBon->isSubmitted() && $formBon->isValid()) {
-        $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
-        $bonSortie->setDepartement($userDept);
-        $bonSortie->setDateCreation(new \DateTime());
+            if ($formBon->isSubmitted() && $formBon->isValid()) {
 
-        // 🎯 NOUVEAU : lire la destination choisie par l'agent d'accueil
-        $destination   = $request->request->get('destination');
-        $chefServiceId = $request->request->get('chef_service_id');
-
-        // 🅰️ Cas 1 : Délégation à un chef de service
-        if ($destination === 'chef_service' && $chefServiceId) {
-            $chefService = $em->getRepository(User::class)->find((int) $chefServiceId);
-
-            if ($chefService && method_exists($chefService, 'isChefService') && $chefService->isChefService()) {
-                $bonSortie->setStatut('ATTENTE_CHEF_SERVICE');
-
-                // On journalise dans la raison qui est le chef concerné
-                if (method_exists($bonSortie, 'setRaison')) {
-                    $raison = $bonSortie->getRaison() ?: '';
-                    $bonSortie->setRaison(
-                        trim($raison . ' | Délégué à : ' . $chefService->getUserIdentifier())
-                    );
+                // 🔥 Fallback : si jamais l'utilisateur a laissé les champs vides
+                //    (impossible car required=true, mais sécurité supplémentaire)
+                $nomSaisi = trim((string) $bonSortie->getNomEmploye());
+                if ($nomSaisi === '') {
+                    $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
                 }
 
-                $this->addFlash('success', '🚀 Bon transmis au chef de service : ' . $chefService->getUserIdentifier());
-            } else {
-                // Fallback : chef introuvable → on envoie au coordon
-                $bonSortie->setStatut('Créé');
-                $this->addFlash('warning', '⚠️ Chef de service introuvable — bon transmis au coordonnateur par défaut.');
+                $deptSaisi = trim((string) $bonSortie->getDepartement());
+                if ($deptSaisi === '') {
+                    $bonSortie->setDepartement($userDept);
+                }
+
+                $bonSortie->setDateCreation(new \DateTime());
+
+                $destination   = $request->request->get('destination');
+                $chefServiceId = $request->request->get('chef_service_id');
+
+                if ($destination === 'chef_service' && $chefServiceId) {
+                    $chefService = $em->getRepository(User::class)->find((int) $chefServiceId);
+
+                    if ($chefService && method_exists($chefService, 'isChefService') && $chefService->isChefService()) {
+                        $bonSortie->setStatut('ATTENTE_CHEF_SERVICE');
+
+                        if (method_exists($bonSortie, 'setRaison')) {
+                            $raison = $bonSortie->getRaison() ?: '';
+                            $bonSortie->setRaison(
+                                trim($raison . ' | Délégué à : ' . $chefService->getUserIdentifier())
+                            );
+                        }
+
+                        $this->addFlash('success', '🚀 Bon transmis au chef de service : ' . $chefService->getUserIdentifier());
+                    } else {
+                        $bonSortie->setStatut('Créé');
+                        $this->addFlash('warning', '⚠️ Chef de service introuvable — bon transmis au coordonnateur par défaut.');
+                    }
+
+                } elseif ($destination === 'caisse') {
+                    $bonSortie->setStatut('ATTENTE_CAISSE');
+                    $this->addFlash('success', '🚀 Bon transmis à la Caisse.');
+
+                } else {
+                    $bonSortie->setStatut('Créé');
+                    $this->addFlash('success', '🚀 Le bon de sortie a été transmis au coordonnateur.');
+                }
+
+                $em->persist($bonSortie);
+                $em->flush();
+                return $this->redirectToRoute('app_dashboard');
             }
-
-        // 🅱️ Cas 2 : Transmission directe à la caisse
-        } elseif ($destination === 'caisse') {
-            $bonSortie->setStatut('ATTENTE_CAISSE');
-            $this->addFlash('success', '🚀 Bon transmis à la Caisse.');
-
-        // 🅲 Cas 3 : Fallback — envoi au coordonnateur (comportement classique)
-        } else {
-            $bonSortie->setStatut('Créé');
-            $this->addFlash('success', '🚀 Le bon de sortie a été transmis au coordonnateur.');
+            $formBonView = $formBon->createView();
         }
 
-        $em->persist($bonSortie);
-        $em->flush();
-        return $this->redirectToRoute('app_dashboard');
-    }
-    $formBonView = $formBon->createView();
-}
+        // ============================================================
         // 4. FORMULAIRE DEMANDE
+        // ============================================================
         if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN')) {
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
@@ -412,7 +444,13 @@ $formBon = $this->createForm(BonSortieType::class, $bonSortie);
                     return $this->redirectToRoute('app_dashboard');
                 }
 
-                $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+                $article = null;
+                if ($attribut && method_exists($attribut, 'getArticle')) {
+                    $article = $attribut->getArticle();
+                }
+                if (!$article) {
+                    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+                }
 
                 if ($attribut && method_exists($attribut, 'getQuantite')) {
                     if ($attribut->getQuantite() < $quantiteDemandee) {
@@ -420,6 +458,11 @@ $formBon = $this->createForm(BonSortieType::class, $bonSortie);
                         return $this->redirectToRoute('app_dashboard');
                     }
                     $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+
+                    if ($article) {
+                        $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
+                    }
+
                     $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
                 } else {
                     if ($article) {
@@ -441,12 +484,13 @@ $formBon = $this->createForm(BonSortieType::class, $bonSortie);
                 $em->persist($demande);
                 $em->flush();
 
-$this->addFlash('success', sprintf(
-    '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
-    $demande->getId(),
-    $demande->getMateriel(),
-    $demande->getQuantite() ?? 1
-));                return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
+                $this->addFlash('success', sprintf(
+                    '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
+                    $demande->getId(),
+                    $demande->getMateriel(),
+                    $demande->getQuantite() ?? 1
+                ));
+                return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
             }
             $formDemandeView = $formDemande->createView();
         }
@@ -456,7 +500,8 @@ $this->addFlash('success', sprintf(
         // ============================================================
         if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
             $serviceChef = $currentUser->getService();
-            $userDept = $serviceChef ? $serviceChef->getNom() : 'Impression';
+
+            $userDept = $serviceChef ? $serviceChef->getNom() : '';
 
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.departement = :dept')
@@ -469,11 +514,10 @@ $this->addFlash('success', sprintf(
 
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
 
-            // 🎯 Bons délégués au chef de service (en attente de validation)
-$bonsChefService = $bonSortieRepository->findBy(
-    ['statut' => 'ATTENTE_CHEF_SERVICE'],
-    ['id' => 'DESC']
-);
+            $bonsChefService = $bonSortieRepository->findBy(
+                ['statut' => 'ATTENTE_CHEF_SERVICE'],
+                ['id' => 'DESC']
+            );
 
             $devisServiceListe = [];
             $totalDevisUSD = 0;
@@ -528,20 +572,24 @@ $bonsChefService = $bonSortieRepository->findBy(
                         return $this->redirectToRoute('app_dashboard');
                     }
 
-                    $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
-                    if ($article) {
-                        $articlesSimilaires = $em->getRepository(Article::class)->findBy(['nom' => $nomMaterielSaisi]);
-                        $stockTotal = 0;
-                        foreach ($articlesSimilaires as $a) {
-                            $stockTotal += $a->getQuantite() ?? 0;
-                        }
+                    $article = null;
+                    if ($attribut && method_exists($attribut, 'getArticle')) {
+                        $article = $attribut->getArticle();
+                    }
+                    if (!$article) {
+                        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $nomMaterielSaisi]);
+                    }
 
-                        if ($stockTotal < $quantiteDemandee) {
-                            $this->addFlash('danger', 'Stock insuffisant pour cet article (stock total : ' . $stockTotal . ').');
+                    if ($attribut && method_exists($attribut, 'getQuantite')) {
+                        if ($attribut->getQuantite() < $quantiteDemandee) {
+                            $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
                             return $this->redirectToRoute('app_dashboard');
                         }
-
-                        $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                        $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+                        if ($article) {
+                            $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
+                        }
+                        $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
                     } else {
                         if ($article) {
                             if ($article->getQuantite() < $quantiteDemandee) {
@@ -563,12 +611,12 @@ $bonsChefService = $bonSortieRepository->findBy(
                     $em->flush();
 
                     $this->addFlash('success', sprintf(
-    '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
-    $demande->getId(),
-    $demande->getMateriel(),
-    $demande->getQuantite() ?? 1
-));
-return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
+                        '✅ Demande #%d enregistrée : %s × %d — statut « En attente »',
+                        $demande->getId(),
+                        $demande->getMateriel(),
+                        $demande->getQuantite() ?? 1
+                    ));
+                    return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes']);
                 }
                 $formDemandeView = $formDemande->createView();
             }
@@ -588,7 +636,7 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'formVisite'     => $formVisiteView,
                 'date_debut'     => $dateDebutFiltre,
                 'date_fin'       => $dateFinFiltre,
-                'bonsChefService' => $bonsChefService,   // ← AJOUT
+                'bonsChefService' => $bonsChefService,
                 'isChefService'  => true,
                 'estSiteDistant' => $estSiteDistant,
             ]);
@@ -664,7 +712,7 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
 
             return $this->render('dashboard/accueil.html.twig', [
                 'visites' => $visites,
-                'chefsService' => $chefsService,   // ← AJOUT
+                'chefsService' => $chefsService,
                 'rdvReserves' => $rdvReserves,
                 'userRole' => $roleLabel,
                 'stats' => $stats,
@@ -674,59 +722,41 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             ]);
         }
 
-        // --- POUR LES AUTRES RÔLES ---
-        if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
+        // ============================================================
+        // 🔥 CHARGEMENT DES DEMANDES SELON LE RÔLE
+        // ============================================================
+        if ($this->isGranted('ROLE_STOCK')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
-                ->where('d.createdAt BETWEEN :debut AND :fin')
-                ->setParameter('debut', $debutAujourdhui)
-                ->setParameter('fin', $finAujourdhui)
+                ->where('d.statut IN (:statuts)')
+                ->setParameter('statuts', [
+                    'En attente',
+                    'Validé Chef',
+                    'Validé Coordon',
+                    'Validé Compta',
+                ])
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
+
+        } elseif ($this->isGranted('ROLE_COORDON')) {
+            $demandes = $demandeRepository->createQueryBuilder('d')
+                ->where('d.createdAt BETWEEN :debut AND :fin')
+                ->setParameter('debut', $debutAujourdhui)
+                ->setParameter('fin',   $finAujourdhui)
+                ->orderBy('d.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.departement = :dept')
                 ->andWhere('d.createdAt BETWEEN :debut AND :fin')
                 ->setParameter('dept', $userDept)
                 ->setParameter('debut', $debutAujourdhui)
-                ->setParameter('fin', $finAujourdhui)
+                ->setParameter('fin',   $finAujourdhui)
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
-        }
-
-        if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
-            $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
-            $categoryId = $request->query->get('category');
-            $subCategoryId = $request->query->get('subCategory');
-
-            if ($categoryId) {
-                $selectedCategory = $categoryRepo->find($categoryId);
-                $subCategories = $subCategoryRepo->findBy(['category' => $selectedCategory]);
-            }
-            if ($subCategoryId) {
-                $selectedSubCategory = $subCategoryRepo->find($subCategoryId);
-            }
-
-            $attributs = $attributRepo->findAllWithDetails($selectedCategory, $selectedSubCategory);
-            $categories = $categoryRepo->findAll();
-
-            $siteParam = $request->query->get('localisation');
-            $qbGlobal = $demandeRepository->createQueryBuilder('d');
-            if ($dateDebutFiltre && $dateFinFiltre) {
-                $qbGlobal->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
-                    ->setParameter('dateDebut', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                    ->setParameter('dateFin', new \DateTime($dateFinFiltre . ' 23:59:59'));
-            } else {
-                $qbGlobal->where('d.createdAt BETWEEN :debutAujourdhui AND :finAujourdhui')
-                    ->setParameter('debutAujourdhui', $debutAujourdhui)
-                    ->setParameter('finAujourdhui', $finAujourdhui);
-            }
-            if ($siteParam) {
-                $qbGlobal->andWhere('d.localisation = :site')
-                    ->setParameter('site', $siteParam);
-            }
-            $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
 
         if ($this->isGranted('ROLE_GUERITE')) {
@@ -742,21 +772,59 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
         }
 
         // ============================================================
+        // 🔥 CHARGEMENT CATÉGORIES / SOUS-CATÉGORIES / ATTRIBUTS
+        // ============================================================
+        if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
+            $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
+
+            $categoryId    = $request->query->get('category');
+            $subCategoryId = $request->query->get('subCategory');
+
+            if ($categoryId) {
+                $selectedCategory = $categoryRepo->find($categoryId);
+                $subCategories    = $subCategoryRepo->findBy(['category' => $selectedCategory]);
+            }
+            if ($subCategoryId) {
+                $selectedSubCategory = $subCategoryRepo->find($subCategoryId);
+            }
+
+            $attributs  = $attributRepo->findAllWithDetails($selectedCategory, $selectedSubCategory);
+            $categories = $categoryRepo->findAll();
+
+            $siteParam = $request->query->get('localisation');
+            $qbGlobal = $demandeRepository->createQueryBuilder('d');
+
+            if ($dateDebutFiltre && $dateFinFiltre) {
+                $qbGlobal->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
+                    ->setParameter('dateDebut', new \DateTime($dateDebutFiltre . ' 00:00:00'))
+                    ->setParameter('dateFin',   new \DateTime($dateFinFiltre   . ' 23:59:59'));
+            } else {
+                $qbGlobal->where('d.createdAt BETWEEN :debutAujourdhui AND :finAujourdhui')
+                    ->setParameter('debutAujourdhui', $debutAujourdhui)
+                    ->setParameter('finAujourdhui',   $finAujourdhui);
+            }
+
+            if ($siteParam) {
+                $qbGlobal->andWhere('d.localisation = :site')
+                    ->setParameter('site', $siteParam);
+            }
+
+            $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
+        }
+
+        // ============================================================
         // RENDU SELON LE RÔLE
         // ============================================================
 
-        // ============================================================
-        // COORDONNATEUR — CORRIGÉ : ne voit QUE les statuts pertinents
-        // ============================================================
+        // COORDONNATEUR
         if ($this->isGranted('ROLE_COORDON')) {
             $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-            // 🎯 Filtre : le coordonnateur ne voit QUE les statuts qui le concernent
             $statutsVisiblesParCoordon = [
-                Devis::STATUT_VALIDE_CHEF,       // À arbitrer (action requise)
-                Devis::STATUT_ATTENTE_COMPTA,    // Déjà transmis au Comptable (traçabilité)
-                Devis::STATUT_REJETE,            // Rejeté (information)
+                Devis::STATUT_VALIDE_CHEF,
+                Devis::STATUT_ATTENTE_COMPTA,
+                Devis::STATUT_REJETE,
             ];
 
             $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
@@ -781,7 +849,6 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 }
             }
 
-            // Formulaire de visite
             if (!$formVisiteView && !$estSiteDistant) {
                 $visite = new Visite();
                 $formVisiteCoordon = $this->createForm(VisiteType::class, $visite, [
@@ -818,9 +885,7 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             ]);
         }
 
-        // ═══════════════════════════════════════════════════════════
         // FORMULAIRE D'ENTRÉE DE FONDS
-        // ═══════════════════════════════════════════════════════════
         $mouvement = new MouvementCaisse();
         $mouvement->setType(MouvementCaisse::TYPE_ENTREE);
         $mouvement->setEffectuePar($currentUser);
@@ -840,23 +905,19 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             ));
             return $this->redirectToRoute('app_dashboard');
         }
-            // Solde de la CAISSE COMPTABILITÉ (tous les comptables confondus)
-            $soldeUSD = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD);
-            $soldeCDF = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF);
+        $soldeUSD = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD);
+        $soldeCDF = $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF);
 
-            // Mouvements de la caisse comptabilité
-            $mouvements = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
-                ->join('m.effectuePar', 'u')
-                ->where('u.roles LIKE :compta OR u.roles LIKE :chef')
-                ->setParameter('compta', '%ROLE_COMPTA%')
-                ->setParameter('chef',   '%ROLE_CHEF_COMPTA%')
-                ->orderBy('m.dateMouvement', 'DESC')
-                ->getQuery()
-                ->getResult();
+        $mouvements = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
+            ->join('m.effectuePar', 'u')
+            ->where('u.roles LIKE :compta OR u.roles LIKE :chef')
+            ->setParameter('compta', '%ROLE_COMPTA%')
+            ->setParameter('chef',   '%ROLE_CHEF_COMPTA%')
+            ->orderBy('m.dateMouvement', 'DESC')
+            ->getQuery()
+            ->getResult();
 
-        // ============================================================
         // COMPTABLE
-        // ============================================================
         if ($this->isGranted('ROLE_COMPTA')) {
             /** @var User $currentUser */
             $currentUser = $this->getUser();
@@ -989,6 +1050,7 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
         // STOCK
         if ($this->isGranted('ROLE_STOCK')) {
             $articles = $em->getRepository(Article::class)->findAll();
+
             return $this->render('dashboard/stock.html.twig', [
                 'demandes'            => $demandes,
                 'rapportGlobal'       => $rapportGlobal,
@@ -1063,10 +1125,6 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 $categoriesQuantites[] = $data['quantite'];
             }
 
-            // ═══════════════════════════════════════════════════════════
-            // ═══════════════════════════════════════════════════════
-            // ✅ DONNÉES COMMUNES DG + PDG
-            // ═══════════════════════════════════════════════════════
             $soldeCaisseUSD = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
             $soldeCaisseCDF = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
 
@@ -1091,13 +1149,10 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
                 'categoriesLabels'     => $categoriesLabels,
                 'categoriesQuantites'  => $categoriesQuantites,
                 'estSiteDistant'       => $estSiteDistant,
-                               'soldeUSD'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD),
+                'soldeUSD'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD),
                 'soldeCDF'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF),
             ];
 
-            // ═══════════════════════════════════════════════════════
-            // ✅ RDV — chargés uniquement si l'utilisateur est PDG
-            // ═══════════════════════════════════════════════════════
             $mesRdv      = [];
             $rdvDelegues = [];
 
@@ -1122,17 +1177,6 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             $vars['rdvDelegues'] = $rdvDelegues;
             $vars['isPDG']       = $currentUser->isPDG();
 
-            // ═══════════════════════════════════════════════════════
-            // ✅ Vue unique — le template gère l'onglet RDV en conditionnel
-            // ═══════════════════════════════════════════════════════
-                        return $this->render('dashboard/directeur.html.twig', $vars);
-        
-            // ═══════════════════════════════════════════════════════
-            // ✅ DG standard
-            // ═══════════════════════════════════════════════════════
-                        // ═══════════════════════════════════════════════════════
-            // ✅ DG standard
-            // ═══════════════════════════════════════════════════════
             return $this->render('dashboard/directeur.html.twig', $vars);
         }
 
@@ -1389,6 +1433,43 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // 🔎 HELPER : retrouve le meilleur article correspondant à un libellé
+    // ═══════════════════════════════════════════════════════════════
+    private function trouverArticleDepuisMateriel(string $materiel, EntityManagerInterface $em): ?Article
+    {
+        $materiel = trim($materiel);
+
+        if (preg_match('/^(.+?)\s*\((.+)\)\s*$/', $materiel, $m)) {
+            $nomArticle      = trim($m[1]);
+            $valeurAttribut  = trim($m[2]);
+
+            $candidats = $em->getRepository(Article::class)->findBy(['nom' => $nomArticle]);
+
+            foreach ($candidats as $candidat) {
+                foreach ($candidat->getAttributs() as $attr) {
+                    $details = [];
+                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
+                    $label = implode(' - ', $details) ?: 'Standard';
+                    if ($label === $valeurAttribut) {
+                        return $candidat;
+                    }
+                }
+            }
+
+            if (!empty($candidats)) {
+                return $candidats[0];
+            }
+        }
+
+        return $em->getRepository(Article::class)->findOneBy(['nom' => $materiel]);
+    }
+
     #[Route('/dashboard/compta/valider/{id}', name: 'app_demande_compta_valider', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
@@ -1400,7 +1481,7 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             return $this->redirectToRoute('app_dashboard');
         }
 
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
+        $article = $this->trouverArticleDepuisMateriel($demande->getMateriel(), $em);
         $quantiteDemandee = $demande->getQuantite() ?? 1;
 
         if (!$article || $article->getQuantite() < $quantiteDemandee) {
@@ -1424,46 +1505,81 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
             return $this->redirectToRoute('app_dashboard');
         }
 
-        $article = $em->getRepository(Article::class)->findOneBy(['nom' => $demande->getMateriel()]);
-        if ($article) {
-            $em->refresh($article);
-            $quantiteDemandee = $demande->getQuantite() ?? 1;
-            $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee;
+        $article = $this->trouverArticleDepuisMateriel($demande->getMateriel(), $em);
 
-            if ($nouvelleQuantite < 0) {
-                $this->addFlash('danger', '❌ Stock insuffisant au moment de la validation finale.');
-                return $this->redirectToRoute('app_dashboard');
-            }
-
-            $article->setQuantite($nouvelleQuantite);
-            $demande->setStatut('Livré par le Stock');
-
-            $departementDemandeur = $demande->getDepartement() ?? 'Non renseigné';
-
-            if (strtolower(trim($departementDemandeur)) !== 'direction') {
-                $bonSortie = new BonSortie();
-                $bonSortie->setNomEmploye($demande->getDemandeur() ? $demande->getDemandeur()->getUserIdentifier() : 'Demandeur inconnu');
-                $bonSortie->setDepartement($departementDemandeur);
-                $bonSortie->setDateCreation(new \DateTime());
-                $bonSortie->setStatut('Validé Coordon');
-
-                $description = 'Sortie stock : ' . $demande->getMateriel() . ' (Qté: ' . $quantiteDemandee . ') — Demande #' . $demande->getId();
-                if (method_exists($bonSortie, 'setRaison')) {
-                    $bonSortie->setRaison($description);
-                }
-
-                $em->persist($bonSortie);
-            }
-
-            $em->flush();
-
-            if (strtolower(trim($departementDemandeur)) === 'direction') {
-                $this->addFlash('success', '🚚 Matériel livré et déduit du stock (Direction — pas de bon de sortie).');
-            } else {
-                $this->addFlash('success', '🚚 Matériel livré, déduit du stock et bon de sortie généré pour la guérite.');
-            }
-        } else {
+        if (!$article) {
             $this->addFlash('warning', '⚠️ Article introuvable dans le stock.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $em->refresh($article);
+        $quantiteDemandee = $demande->getQuantite() ?? 1;
+        $nouvelleQuantite = $article->getQuantite() - $quantiteDemandee;
+
+        if ($nouvelleQuantite < 0) {
+            $this->addFlash('danger', '❌ Stock insuffisant au moment de la validation finale.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $article->setQuantite($nouvelleQuantite);
+        $demande->setStatut('Livré par le Stock');
+
+        $departementDemandeur = $demande->getDepartement() ?? 'Non renseigné';
+        $destinationSaisie    = trim((string) $demande->getDestination());
+        $aUneDestination      = $destinationSaisie !== '';
+        $estSiteDistant       = strtolower(trim($departementDemandeur)) !== 'direction';
+
+        $doitCreerBon     = false;
+        $statutInitialBon = 'Créé';
+
+        if ($aUneDestination) {
+            $doitCreerBon     = true;
+            $statutInitialBon = 'Créé';
+        } elseif ($estSiteDistant) {
+            $doitCreerBon     = true;
+            $statutInitialBon = 'Validé Coordon';
+        }
+
+        if ($doitCreerBon) {
+            $bonSortie = new BonSortie();
+            $bonSortie->setNomEmploye(
+                $demande->getDemandeur()
+                    ? $demande->getDemandeur()->getUserIdentifier()
+                    : 'Demandeur inconnu'
+            );
+            $bonSortie->setDepartement($departementDemandeur);
+            $bonSortie->setDateCreation(new \DateTime());
+            $bonSortie->setStatut($statutInitialBon);
+
+            $bonSortie->setIsAllerSansRetour(false);
+
+            $description = 'Sortie stock : ' . $demande->getMateriel()
+                . ' (Qté: ' . $quantiteDemandee . ')'
+                . ' — Demande #' . $demande->getId();
+
+            if ($aUneDestination) {
+                $description .= ' → Destination : ' . strtoupper($destinationSaisie);
+            }
+
+            $bonSortie->setRaison($description);
+
+            $em->persist($bonSortie);
+        }
+
+        $em->flush();
+
+        if ($doitCreerBon && $aUneDestination) {
+            $this->addFlash('success',
+                '🚚 Matériel livré. Un bon de sortie a été créé et transmis au Coordonnateur pour validation.'
+            );
+        } elseif ($doitCreerBon) {
+            $this->addFlash('success',
+                '🚚 Matériel livré. Un bon de sortie pré-validé a été transmis à la guérite.'
+            );
+        } else {
+            $this->addFlash('success',
+                '🚚 Matériel livré et déduit du stock (mouvement interne — pas de bon de sortie).'
+            );
         }
 
         return $this->redirectToRoute('app_dashboard');
@@ -1481,30 +1597,28 @@ return $this->redirectToRoute('app_dashboard', ['_fragment' => 'pane-demandes'])
 
     #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
     #[IsGranted('ROLE_GUERITE')]
-    #[Route('/dashboard/guerite/sortie/{id}', name: 'app_guerite_sortie_bon', methods: ['POST'])]
-#[IsGranted('ROLE_GUERITE')]
-public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
-{
-    // 🎯 Tous les statuts "prêts pour la sortie physique"
-    $statutsPretsPourSortie = [
-        'Validé Coordon',
-        'Validé Chef Service',
-        'Validé Caisse',
-        'Validé Secrétariat',
-        'Valide Coordon',    // au cas où
-    ];
+    public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
+    {
+        $statutsPretsPourSortie = [
+            'Validé Coordon',
+            'Validé Chef Service',
+            'Validé Caisse',
+            'Validé Secrétariat',
+            'Valide Coordon',
+        ];
 
-    if (!in_array($bonSortie->getStatut(), $statutsPretsPourSortie, true)) {
-        $this->addFlash('danger', '❌ Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
+        if (!in_array($bonSortie->getStatut(), $statutsPretsPourSortie, true)) {
+            $this->addFlash('danger', '❌ Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $bonSortie->setStatut('Sortie effective');
+        $em->flush();
+
+        $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
         return $this->redirectToRoute('app_dashboard');
     }
 
-    $bonSortie->setStatut('Sortie effective');
-    $em->flush();
-
-    $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
-    return $this->redirectToRoute('app_dashboard');
-}
     #[Route('/dashboard/chef-service/traiter/{id}', name: 'app_chef_service_traiter', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
@@ -1626,6 +1740,8 @@ public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Res
             $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
                 ->leftJoin('a.attributs', 'attr')
                 ->addSelect('attr')
+                ->leftJoin('a.machine', 'm')
+                ->addSelect('m')
                 ->where('a.nom LIKE :nom')
                 ->setParameter('nom', '%' . $nom . '%')
                 ->orderBy('a.id', 'ASC')
@@ -1641,6 +1757,8 @@ public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Res
             $nomAffiche = $articles[0]->getNom();
 
             foreach ($articles as $article) {
+                $nomMachine = $article->getMachine() ? $article->getMachine()->getNom() : null;
+
                 foreach ($article->getAttributs() as $attr) {
                     $details = [];
                     if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
@@ -1661,6 +1779,7 @@ public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Res
                         'valeur'   => $label,
                         'quantite' => $quantite,
                         'article'  => $article->getNom(),
+                        'machine'  => $nomMachine,
                     ];
                 }
             }
@@ -1933,72 +2052,72 @@ public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Res
     }
 
     // ═══════════════════════════════════════════════════════════════
-// ✅ VALIDATION D'UN BON PAR LE CHEF DE SERVICE
-// ═══════════════════════════════════════════════════════════════
-#[Route('/dashboard/chef-service/bon/valider/{id}', name: 'app_chef_service_bon_valider', methods: ['POST'])]
-#[IsGranted('ROLE_USER')]
-public function validerBonChefService(BonSortie $bonSortie, EntityManagerInterface $em): Response
-{
-    /** @var User $currentUser */
-    $currentUser = $this->getUser();
+    // ✅ VALIDATION D'UN BON PAR LE CHEF DE SERVICE
+    // ═══════════════════════════════════════════════════════════════
+    #[Route('/dashboard/chef-service/bon/valider/{id}', name: 'app_chef_service_bon_valider', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function validerBonChefService(BonSortie $bonSortie, EntityManagerInterface $em): Response
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
 
-    if (!$currentUser->isChefService()) {
-        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
-    }
-
-    if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
-        $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
-        return $this->redirectToRoute('app_dashboard');
-    }
-
-    $bonSortie->setStatut('Validé Chef Service');
-
-    if (method_exists($bonSortie, 'setRaison')) {
-        $raison = $bonSortie->getRaison() ?: '';
-        $bonSortie->setRaison(trim($raison . ' | Validé par chef : ' . $currentUser->getUserIdentifier()));
-    }
-
-    $em->flush();
-
-    $this->addFlash('success', '✅ Bon #' . $bonSortie->getId() . ' validé — transmis au Coordonnateur.');
-    return $this->redirectToRoute('app_dashboard');
-}
-
-// ═══════════════════════════════════════════════════════════════
-// ❌ REJET D'UN BON PAR LE CHEF DE SERVICE
-// ═══════════════════════════════════════════════════════════════
-#[Route('/dashboard/chef-service/bon/rejeter/{id}', name: 'app_chef_service_bon_rejeter', methods: ['POST'])]
-#[IsGranted('ROLE_USER')]
-public function rejeterBonChefService(Request $request, BonSortie $bonSortie, EntityManagerInterface $em): Response
-{
-    /** @var User $currentUser */
-    $currentUser = $this->getUser();
-
-    if (!$currentUser->isChefService()) {
-        throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
-    }
-
-    if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
-        $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
-        return $this->redirectToRoute('app_dashboard');
-    }
-
-    $motif = trim((string) $request->request->get('motif_rejet', ''));
-
-    $bonSortie->setStatut('Rejeté Chef Service');
-
-    if (method_exists($bonSortie, 'setRaison')) {
-        $raison = $bonSortie->getRaison() ?: '';
-        $log = ' | Rejeté par chef : ' . $currentUser->getUserIdentifier();
-        if ($motif !== '') {
-            $log .= ' — Motif : ' . $motif;
+        if (!$currentUser->isChefService()) {
+            throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
-        $bonSortie->setRaison(trim($raison . $log));
+
+        if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
+            $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $bonSortie->setStatut('Validé Chef Service');
+
+        if (method_exists($bonSortie, 'setRaison')) {
+            $raison = $bonSortie->getRaison() ?: '';
+            $bonSortie->setRaison(trim($raison . ' | Validé par chef : ' . $currentUser->getUserIdentifier()));
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', '✅ Bon #' . $bonSortie->getId() . ' validé — transmis au Coordonnateur.');
+        return $this->redirectToRoute('app_dashboard');
     }
 
-    $em->flush();
+    // ═══════════════════════════════════════════════════════════════
+    // ❌ REJET D'UN BON PAR LE CHEF DE SERVICE
+    // ═══════════════════════════════════════════════════════════════
+    #[Route('/dashboard/chef-service/bon/rejeter/{id}', name: 'app_chef_service_bon_rejeter', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function rejeterBonChefService(Request $request, BonSortie $bonSortie, EntityManagerInterface $em): Response
+    {
+        /** @var User $currentUser */
+        $currentUser = $this->getUser();
 
-    $this->addFlash('warning', '❌ Bon #' . $bonSortie->getId() . ' rejeté.');
-    return $this->redirectToRoute('app_dashboard');
-}
+        if (!$currentUser->isChefService()) {
+            throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
+        }
+
+        if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
+            $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $motif = trim((string) $request->request->get('motif_rejet', ''));
+
+        $bonSortie->setStatut('Rejeté Chef Service');
+
+        if (method_exists($bonSortie, 'setRaison')) {
+            $raison = $bonSortie->getRaison() ?: '';
+            $log = ' | Rejeté par chef : ' . $currentUser->getUserIdentifier();
+            if ($motif !== '') {
+                $log .= ' — Motif : ' . $motif;
+            }
+            $bonSortie->setRaison(trim($raison . $log));
+        }
+
+        $em->flush();
+
+        $this->addFlash('warning', '❌ Bon #' . $bonSortie->getId() . ' rejeté.');
+        return $this->redirectToRoute('app_dashboard');
+    }
 }
