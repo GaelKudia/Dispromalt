@@ -36,6 +36,31 @@
     ═══════════════════════════════════════════════════════ #}
     {{ pwa() }}
 
+    {{ pwa() }}
+
+{# ✅ Force la mise à jour du SW à chaque visite #}
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.getRegistrations().then((registrations) => {
+                registrations.forEach((reg) => {
+                    // Force la vérification du fichier sw.js
+                    reg.update();
+                });
+            });
+        });
+
+        // Recharge si un nouveau SW prend le contrôle
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
+        });
+    }
+</script>
+
     {# ✅ Composant Web universel pour la bannière d'installation
        Compatible Chrome, Edge, Firefox, Safari, Opera #}
     <script type="module" src="https://cdn.jsdelivr.net/npm/@khmyznikov/pwa-install@0.4.5/dist/index.min.js"></script>

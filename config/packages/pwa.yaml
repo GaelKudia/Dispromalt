@@ -6,16 +6,16 @@ pwa:
         name: 'Gestion Digitale Dispromalt'
         short_name: 'Dispromalt'
         description: "Application de gestion de stock et bons de sortie pour l'imprimerie"
-        start_url: '/'                                  # ✅ OK — relatif, fonctionne avec n'importe quel domaine
-        scope: '/'                                       # ✅ OK — reste dans ton domaine
-        id: '/'                                          # ✅ Recommandé
+        start_url: '/'
+        scope: '/'
+        id: '/'
         display: 'standalone'
-        orientation: 'any'                               # ⚠️ 'portrait' bloque la rotation sur tablette desktop
+        orientation: 'any'
         background_color: '#ffffff'
         theme_color: '#317EFB'
         lang: 'fr'
         dir: 'ltr'
-        categories: ['business', 'productivity']         # ✅ Bonus SEO
+        categories: ['business', 'productivity']
         icons:
             - src: 'images/icons/32.png'
               sizes: [32]
@@ -27,20 +27,21 @@ pwa:
             - src: 'images/icons/512.png'
               sizes: [512]
               type: 'image/png'
-              purpose: 'any maskable'                    # ✅ Recommandé
+              purpose: 'any maskable'
             - src: 'images/icons/512.png'
               sizes: [512]
               type: 'image/png'
-              purpose: 'maskable'                        # ✅ Ajout — améliore l'affichage Android
+              purpose: 'maskable'
 
     favicons:
         enabled: true
         default:
             src: 'images/icons/512.png'
 
+    # ✅ SW ACTIVÉ avec TON propre code (pas de Workbox)
     serviceworker:
-        enabled: false
-        src: 'sw.js'
+        enabled: true           # ⬅️ On l'active pour que {{ pwa() }} enregistre le SW
+        src: 'sw.js'            # ⬅️ Lit assets/sw.js → compile vers public/sw.js
         skip_waiting: true
         workbox:
-            enabled: true
+            enabled: false      # ⬅️ CRITIQUE : pas de Workbox, utilise TON code
