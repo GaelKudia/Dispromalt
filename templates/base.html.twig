@@ -41,28 +41,35 @@
 <link rel="apple-touch-icon" href="/images/icons/512.png">
 
 {# ✅ Force la mise à jour du SW à chaque visite #}
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-                registrations.forEach((reg) => {
-                    // Force la vérification du fichier sw.js
-                    reg.update();
-                });
-            });
-        });
+    <script>
+(function () {
+    if (!('serviceWorker' in navigator)) return;
 
-        // Recharge si un nouveau SW prend le contrôle
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-                refreshing = true;
-                window.location.reload();
-            }
+    // 1️⃣ Désinscrit TOUS les anciens SW (dont Workbox)
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+        regs.forEach(function (reg) {
+            reg.unregister();
         });
-    }
+        // 2️⃣ Purge tous les caches
+        caches.keys().then(function (names) {
+            names.forEach(function (n) { caches.delete(n); });
+        });
+        // 3️⃣ Enregistre le NOTRE, une fois les anciens purgés
+        navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+            .then(function (reg) { reg.update(); })
+            .catch(function (err) { console.warn('SW KO:', err); });
+    });
+
+    // 4️⃣ Recharge la page si un nouveau SW prend le contrôle
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
+    });
+})();
 </script>
-
     {# ✅ Composant Web universel pour la bannière d'installation
        Compatible Chrome, Edge, Firefox, Safari, Opera #}
     <script type="module" src="https://cdn.jsdelivr.net/npm/@khmyznikov/pwa-install@0.4.5/dist/index.min.js"></script>
