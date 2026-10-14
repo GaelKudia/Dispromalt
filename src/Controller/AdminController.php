@@ -36,19 +36,19 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminController extends AbstractController
 {
     #[Route('/admin', name: 'app_admin_dashboard')]
-   public function index(
-    Request $request,
-    DemandeRepository $demandeRepository,
-    BonSortieRepository $bonSortieRepository,
-    UserRepository $userRepository,
-    ServiceRepository $serviceRepository,
-    EntityManagerInterface $em,
-    UserPasswordHasherInterface $hasher,
-    HistoriqueReapprovisionnementRepository $historiqueRepo,
-    \App\Repository\VisiteRepository $visiteRepo,
-    \App\Repository\DevisRepository $devisRepo,
-    \App\Repository\MouvementCaisseRepository $mouvementRepo
-): Response {
+    public function index(
+        Request $request,
+        DemandeRepository $demandeRepository,
+        BonSortieRepository $bonSortieRepository,
+        UserRepository $userRepository,
+        ServiceRepository $serviceRepository,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $hasher,
+        HistoriqueReapprovisionnementRepository $historiqueRepo,
+        \App\Repository\VisiteRepository $visiteRepo,
+        \App\Repository\DevisRepository $devisRepo,
+        \App\Repository\MouvementCaisseRepository $mouvementRepo
+    ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         // ═══════════════════════════════════════════════════════
@@ -66,26 +66,34 @@ class AdminController extends AbstractController
         }
 
         // ═══════════════════════════════════════════════════════
-        // DONNÉES GÉNÉRALES
+        // FILTRES DE DATE
         // ═══════════════════════════════════════════════════════
+        $dateDebutParam = $request->query->get('date_debut');
+        $dateFinParam   = $request->query->get('date_fin');
+
+        if (!$dateDebutParam) {
+            $dateDebutParam = (new \DateTime('first day of this month'))->format('Y-m-d');
+        }
+        if (!$dateFinParam) {
+            $dateFinParam = (new \DateTime('today'))->format('Y-m-d');
+        }
+
         // ═══════════════════════════════════════════════════════
-// DEMANDES avec filtre de date
-// ═══════════════════════════════════════════════════════
-$dateDebutParam = $request->query->get('date_debut');
-$dateFinParam = $request->query->get('date_fin');
+        // DEMANDES avec filtre de date
+        // ═══════════════════════════════════════════════════════
+        $qbDemandes = $demandeRepository->createQueryBuilder('d');
 
-$qbDemandes = $demandeRepository->createQueryBuilder('d');
+        if ($dateDebutParam && $dateFinParam) {
+            $qbDemandes->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
+                       ->setParameter('dateDebut', new \DateTime($dateDebutParam . ' 00:00:00'))
+                       ->setParameter('dateFin',   new \DateTime($dateFinParam   . ' 23:59:59'));
+        }
 
-if ($dateDebutParam && $dateFinParam) {
-    $qbDemandes->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
-               ->setParameter('dateDebut', new \DateTime($dateDebutParam . ' 00:00:00'))
-               ->setParameter('dateFin', new \DateTime($dateFinParam . ' 23:59:59'));
-}
+        $allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
+                                  ->getQuery()
+                                  ->getResult();
 
-$allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
-                          ->getQuery()
-                          ->getResult();
-        $allBons = $bonSortieRepository->findBy([], ['id' => 'DESC']);
+        $allBons  = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
         $articles = $em->getRepository(Article::class)->findAll();
 
@@ -97,32 +105,14 @@ $allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
         }
 
         // ═══════════════════════════════════════════════════════
-        // RAPPORT GLOBAL (filtres dates)
+        // RAPPORT GLOBAL
         // ═══════════════════════════════════════════════════════
-        $debutAujourdhui = new \DateTime('today 00:00:00');
-        $finAujourdhui = new \DateTime('today 23:59:59');
-
-                        $dateDebutParam = $request->query->get('date_debut');
-            $dateFinParam = $request->query->get('date_fin');
-
-            // Valeurs par défaut si non fournies (affiche tout le mois en cours par exemple)
-            if (!$dateDebutParam) {
-                $dateDebutParam = (new \DateTime('first day of this month'))->format('Y-m-d');
-            }
-            if (!$dateFinParam) {
-                $dateFinParam = (new \DateTime('today'))->format('Y-m-d');
-            }
-
         $qbGlobal = $demandeRepository->createQueryBuilder('d');
 
         if ($dateDebutParam && $dateFinParam) {
             $qbGlobal->where('d.createdAt BETWEEN :dateDebut AND :dateFin')
                      ->setParameter('dateDebut', new \DateTime($dateDebutParam . ' 00:00:00'))
-                     ->setParameter('dateFin', new \DateTime($dateFinParam . ' 23:59:59'));
-        } else {
-            $qbGlobal->where('d.createdAt BETWEEN :debutAujourdhui AND :finAujourdhui')
-                     ->setParameter('debutAujourdhui', $debutAujourdhui)
-                     ->setParameter('finAujourdhui', $finAujourdhui);
+                     ->setParameter('dateFin',   new \DateTime($dateFinParam   . ' 23:59:59'));
         }
 
         $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')
@@ -132,39 +122,34 @@ $allDemandes = $qbDemandes->orderBy('d.id', 'DESC')
         // ═══════════════════════════════════════════════════════
         // FORMULAIRE : Créer un utilisateur
         // ═══════════════════════════════════════════════════════
-            // ═══════════════════════════════════════════════════════
-// FORMULAIRE : Créer un utilisateur
-// ═══════════════════════════════════════════════════════
-$newUser = new User();
-$form = $this->createForm(UserType::class, $newUser);
-$form->handleRequest($request);
+        $newUser = new User();
+        $form = $this->createForm(UserType::class, $newUser);
+        $form->handleRequest($request);
 
-if ($form->isSubmitted() && $form->isValid()) {
-    // 🔑 Récupérer le mot de passe SAISI par l'admin
-    $plainPassword = $form->get('password')->getData();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $plainPassword = $form->get('password')->getData();
 
-    if (!empty($plainPassword)) {
-        $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
-        $newUser->setPassword($hashedPassword);
-    } else {
-        // Sécurité : mot de passe par défaut si vide (ne devrait pas arriver car champ requis)
-        $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
-        $newUser->setPassword($hashedPassword);
-    }
+            if (!empty($plainPassword)) {
+                $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
+                $newUser->setPassword($hashedPassword);
+            } else {
+                $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
+                $newUser->setPassword($hashedPassword);
+            }
 
-    // Activer le compte
-    if (method_exists($newUser, 'setActif')) {
-        $newUser->setActif(true);
-    } elseif (method_exists($newUser, 'setIsActif')) {
-        $newUser->setIsActif(true);
-    }
+            if (method_exists($newUser, 'setActif')) {
+                $newUser->setActif(true);
+            } elseif (method_exists($newUser, 'setIsActif')) {
+                $newUser->setIsActif(true);
+            }
 
-    $em->persist($newUser);
-    $em->flush();
+            $em->persist($newUser);
+            $em->flush();
 
-    $this->addFlash('success', '✅ Compte créé pour ' . $newUser->getEmail() . ' — mot de passe : ' . $plainPassword);
-    return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-agents']);
-}
+            $this->addFlash('success', '✅ Compte créé pour ' . $newUser->getEmail() . ' — mot de passe : ' . $plainPassword);
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-agents']);
+        }
+
         // ═══════════════════════════════════════════════════════
         // FORMULAIRE : Catégorie
         // ═══════════════════════════════════════════════════════
@@ -207,19 +192,23 @@ if ($form->isSubmitted() && $form->isValid()) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // ═══════════════════════════════════════════════════════
-        // ✅ SYNTHÈSE STOCK POUR L'ADMIN
-        // ═══════════════════════════════════════════════════════
+        // ═══════════════════════════════════════════════════════════════
+        // ✅ SYNTHÈSE STOCK — SOURCE UNIQUE DE VÉRITÉ
+        //    ⚡ $articlesStock est LA référence.
+        //    Tout (KPI, tableaux, graphiques) en dérive.
+        // ═══════════════════════════════════════════════════════════════
         $articlesStock = $em->getRepository(Article::class)->findAll();
 
-        $totalQuantiteStock = 0;
+        $totalQuantiteStock   = 0;
         $articlesParCategorie = [];
-        $topArticles = [];
+        $topArticles          = []; // liste détaillée (peut contenir des doublons de nom)
+        $topArticlesAggreges  = []; // agrégé par nom+machine (pour le graphique)
 
         foreach ($articlesStock as $art) {
             $qte = $art->getQuantite() ?? 0;
             $totalQuantiteStock += $qte;
 
+            // ─── Catégorie (fallback subCategory) ───
             $catNom = 'Sans catégorie';
             if (method_exists($art, 'getCategory') && $art->getCategory()) {
                 $catNom = $art->getCategory()->getNom();
@@ -233,29 +222,54 @@ if ($form->isSubmitted() && $form->isValid()) {
             $articlesParCategorie[$catNom]['count']++;
             $articlesParCategorie[$catNom]['quantite'] += $qte;
 
+            // ─── Machine (pour unicité du graphique) ───
+            $machineNom = '';
+            if (method_exists($art, 'getMachine') && $art->getMachine()) {
+                $machineNom = $art->getMachine()->getNom();
+            }
+
+            $seuil = method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0;
+
+            // ─── Top articles détaillé (comme le tableau) ───
             $topArticles[] = [
                 'nom'       => $art->getNom(),
+                'machine'   => $machineNom,
                 'quantite'  => $qte,
-                'seuil'     => method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0,
+                'seuil'     => $seuil,
                 'categorie' => $catNom,
             ];
+
+            // ─── Top articles AGRÉGÉ (par nom + machine) pour le graphique ───
+            $cle = $art->getNom() . ($machineNom ? ' [' . $machineNom . ']' : '');
+            if (!isset($topArticlesAggreges[$cle])) {
+                $topArticlesAggreges[$cle] = [
+                    'label'    => $cle,
+                    'quantite' => 0,
+                    'seuil'    => $seuil,
+                ];
+            }
+            $topArticlesAggreges[$cle]['quantite'] += $qte;
+            $topArticlesAggreges[$cle]['seuil'] = max($topArticlesAggreges[$cle]['seuil'], $seuil);
         }
 
-        usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
-        $topArticles = array_slice($topArticles, 0, 10);
+        // ─── Top 10 pour le graphique (agrégé + trié) ───
+        $topArticlesAggreges = array_values($topArticlesAggreges);
+        usort($topArticlesAggreges, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
+        $topArticlesTop10 = array_slice($topArticlesAggreges, 0, 10);
+        $topArticlesTotal = count($topArticlesAggreges);
 
-        $categoriesLabels = [];
+        // ─── Labels / quantités catégories (source unique) ───
+        $categoriesLabels    = [];
         $categoriesQuantites = [];
         foreach ($articlesParCategorie as $cat => $data) {
-            $categoriesLabels[] = $cat;
+            $categoriesLabels[]    = $cat;
             $categoriesQuantites[] = $data['quantite'];
         }
 
         // ═══════════════════════════════════════════════════════
         // ✅ ALERTES STOCK ENRICHIES (qui a lancé le réappro)
         // ═══════════════════════════════════════════════════════
-        $articlesEnAlerte = $em->getRepository(Article::class)->findBy([], ['id' => 'DESC']);
-        $articlesEnAlerte = array_filter($articlesEnAlerte, function ($art) {
+        $articlesEnAlerte = array_filter($articlesStock, function ($art) {
             if (!method_exists($art, 'getSeuilAlerte') || !method_exists($art, 'getQuantite')) {
                 return false;
             }
@@ -285,10 +299,6 @@ if ($form->isSubmitted() && $form->isValid()) {
         $nbAlertesStock = count($articlesEnAlerte);
 
         // ═══════════════════════════════════════════════════════
-        // RENDER
-        // ═══════════════════════════════════════════════════════
-
-                // ═══════════════════════════════════════════════════════
         // ✅ VUE 360° — VISITES & RDV
         // ═══════════════════════════════════════════════════════
         $toutesVisites     = $visiteRepo->findBy([], ['dateArrivee' => 'DESC']);
@@ -322,13 +332,13 @@ if ($form->isSubmitted() && $form->isValid()) {
         $totalDevisCDF    = 0;
 
         foreach ($tousDevis as $d) {
-            $statut = $d->getStatut();
+            $statut  = $d->getStatut();
             $montant = (float) $d->getMontant();
 
             if ($statut === 'DECAISSE') {
                 $nbDevisDecaisses++;
                 if ($d->getDevise() === 'CDF') $totalDevisCDF += $montant;
-                else                             $totalDevisUSD += $montant;
+                else                           $totalDevisUSD += $montant;
             } elseif ($statut === 'REJETE') {
                 $nbDevisRejetes++;
             } else {
@@ -352,19 +362,15 @@ if ($form->isSubmitted() && $form->isValid()) {
             $mt = (float) $m->getMontant();
             if ($m->getType() === 'ENTREE') {
                 if ($m->getDevise() === 'CDF') $totalEntreesCDF += $mt;
-                else                          $totalEntreesUSD += $mt;
+                else                           $totalEntreesUSD += $mt;
             } else {
                 if ($m->getDevise() === 'CDF') $totalSortiesCDF += $mt;
-                else                          $totalSortiesUSD += $mt;
+                else                           $totalSortiesUSD += $mt;
             }
         }
 
         // ═══════════════════════════════════════════════════════
-        // ✅ VUE 360° — HISTORIQUE RÉAPPRO
-        // ═══════════════════════════════════════════════════════
-
-                // ═══════════════════════════════════════════════════════
-        // ✅ VUE 360° — SOLDES SÉPARÉS (Comptabilité / Caisse / Global)
+        // ✅ VUE 360° — SOLDES SÉPARÉS
         // ═══════════════════════════════════════════════════════
         $soldeGlobalUSD   = $mouvementRepo->getSolde('USD');
         $soldeGlobalCDF   = $mouvementRepo->getSolde('CDF');
@@ -373,7 +379,6 @@ if ($form->isSubmitted() && $form->isValid()) {
         $soldeCaissierUSD = $mouvementRepo->getSoldeCaisse('USD');
         $soldeCaissierCDF = $mouvementRepo->getSoldeCaisse('CDF');
 
-        // Compteurs par catégorie de mouvement
         $nbMvtCompta   = 0;
         $nbMvtCaissier = 0;
 
@@ -399,7 +404,12 @@ if ($form->isSubmitted() && $form->isValid()) {
             if ($statut === 'ATTENTE_DECAISSEMENT')  $devisPretsADecaisser[] = $d;
             if ($statut === 'ATTENTE_CAISSE')        $devisEnAttenteCaisse[] = $d;
         }
+
         $historiqueReappro = $historiqueRepo->findAllOrdered();
+
+        // ═══════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════
         return $this->render('admin/index.html.twig', [
             'demandes' => $allDemandes,
             'bons' => $allBons,
@@ -420,18 +430,19 @@ if ($form->isSubmitted() && $form->isValid()) {
             'formMachine' => $formMachine->createView(),
             'machines' => $em->getRepository(Machine::class)->findAll(),
 
-            // ✅ NOUVELLES VARIABLES
+            // ✅ STOCK — Source unique
             'articlesStock'        => $articlesStock,
             'totalQuantiteStock'   => $totalQuantiteStock,
             'articlesParCategorie' => $articlesParCategorie,
-            'topArticles'          => $topArticles,
+            'topArticles'          => $topArticlesTop10,     // ⚡ AGRÉGÉ + TOP 10
+            'topArticlesTotal'     => $topArticlesTotal,     // ⚡ Nombre total d'articles référencés
             'categoriesLabels'     => $categoriesLabels,
             'categoriesQuantites'  => $categoriesQuantites,
             'articlesEnAlerte'     => $articlesEnAlerte,
             'alerteDetails'        => $alerteDetails,
             'nbAlertesStock'       => $nbAlertesStock,
 
-                        // ✅ VUE 360° — VISITES
+            // ✅ VUE 360° — VISITES
             'toutesVisites'     => $toutesVisites,
             'visitesReservees'  => $visitesReservees,
             'visitesAccueil'    => $visitesAccueil,
@@ -459,7 +470,6 @@ if ($form->isSubmitted() && $form->isValid()) {
             'totalSortiesCDF'   => $totalSortiesCDF,
 
             // ✅ VUE 360° — HISTORIQUE
-                        // ✅ VUE 360° — HISTORIQUE
             'historiqueReappro' => $historiqueReappro,
 
             // ✅ VUE 360° — SOLDES SÉPARÉS
@@ -476,22 +486,19 @@ if ($form->isSubmitted() && $form->isValid()) {
             'devisAiguiller'       => $devisAiguiller,
             'devisPretsADecaisser' => $devisPretsADecaisser,
             'devisEnAttenteCaisse' => $devisEnAttenteCaisse,
-        
         ]);
     }
 
-        
-
-private function genererMotDePasseFort(int $longueur = 12): string
-{
-    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
-    $pwd = '';
-    $max = strlen($chars) - 1;
-    for ($i = 0; $i < $longueur; $i++) {
-        $pwd .= $chars[random_int(0, $max)];
+    private function genererMotDePasseFort(int $longueur = 12): string
+    {
+        $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%&*';
+        $pwd = '';
+        $max = strlen($chars) - 1;
+        for ($i = 0; $i < $longueur; $i++) {
+            $pwd .= $chars[random_int(0, $max)];
+        }
+        return $pwd;
     }
-    return $pwd;
-}
 
     // ═══════════════════════════════════════════════════════════
     // NOMINATIONS
@@ -652,7 +659,7 @@ private function genererMotDePasseFort(int $longueur = 12): string
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
-        // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
     // CRUD : CATÉGORIES
     // ═══════════════════════════════════════════════════════════
     #[Route('/admin/category/{id}/edit', name: 'app_admin_category_edit', methods: ['POST'])]
@@ -687,7 +694,6 @@ private function genererMotDePasseFort(int $longueur = 12): string
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
-        // Vérifier les dépendances
         if ($category->getSubCategories()->count() > 0) {
             $this->addFlash('danger', '🛑 Impossible de supprimer « '.$category->getNom().' » : elle contient '.$category->getSubCategories()->count().' sous-catégorie(s).');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
@@ -850,7 +856,7 @@ private function genererMotDePasseFort(int $longueur = 12): string
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
     }
 
-        // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════
     // ✅ NOMMER UN PDG (un seul à la fois)
     // ═══════════════════════════════════════════════════════════
     #[Route('/admin/assigner-pdg', name: 'app_admin_assigner_pdg', methods: ['POST'])]
@@ -865,14 +871,12 @@ private function genererMotDePasseFort(int $longueur = 12): string
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
         }
 
-        // On retire le statut PDG de tous les autres utilisateurs
         foreach ($userRepository->findBy(['isPDG' => true]) as $ancien) {
             $ancien->setIsPDG(false);
         }
 
         $user->setIsPDG(true);
 
-        // Le PDG doit avoir ROLE_DG pour accéder à la vue
         $roles = $user->getRoles();
         if (!in_array('ROLE_DG', $roles)) {
             $roles[] = 'ROLE_DG';

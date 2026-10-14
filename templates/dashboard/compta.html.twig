@@ -1500,7 +1500,7 @@
                                                     </div>
                                                 </div>
 
-                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and is_granted('ROLE_COMPTA') %}
+                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and is_granted('ROLE_CHEF_COMPTA') %}
                                                 <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" class="d-inline"
                                                       onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');">
                                                     <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">

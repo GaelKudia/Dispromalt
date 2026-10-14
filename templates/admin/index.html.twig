@@ -2369,18 +2369,26 @@
         });
 
         // Graphique Top Articles
+                    // ═══════════════════════════════════════════════════════
+        // GRAPHIQUE TOP 10 ARTICLES (agrégé par nom + machine)
+        // ═══════════════════════════════════════════════════════
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
+        const topArticlesTotal = {{ topArticlesTotal|default(0) }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
+
         if (canvasTA && topArticlesAdmin.length > 0) {
             new Chart(canvasTA, {
                 type: 'bar',
                 data: {
-                    labels: topArticlesAdmin.map(a => a.nom.length > 18 ? a.nom.substring(0, 18) + '…' : a.nom),
+                    labels: topArticlesAdmin.map(a => {
+                        const lbl = a.label || a.nom || '—';
+                        return lbl.length > 22 ? lbl.substring(0, 22) + '…' : lbl;
+                    }),
                     datasets: [{
                         label: 'Quantité',
                         data: topArticlesAdmin.map(a => a.quantite),
                         backgroundColor: topArticlesAdmin.map(a =>
-                            a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'
+                            a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.75)' : 'rgba(5, 150, 105, 0.75)'
                         ),
                         borderColor: topArticlesAdmin.map(a =>
                             a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'
@@ -2394,30 +2402,55 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
+                        title: {
+                            display: topArticlesTotal > 10,
+                            text: 'Top 10 sur ' + topArticlesTotal + ' article(s) référencé(s)',
+                            color: '#64748b',
+                            font: { size: 11, weight: '600' },
+                            padding: { bottom: 10 }
+                        },
                         tooltip: {
                             callbacks: {
-                                afterLabel: function(context) {
-                                    const art = topArticlesAdmin[context.dataIndex];
-                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
+                                title: function (items) {
+                                    const a = topArticlesAdmin[items[0].dataIndex];
+                                    return a.label || a.nom;
+                                },
+                                label: function (ctx) {
+                                    const a = topArticlesAdmin[ctx.dataIndex];
+                                    return 'Quantité : ' + a.quantite;
+                                },
+                                afterLabel: function (context) {
+                                    const a = topArticlesAdmin[context.dataIndex];
+                                    const seuilMsg = 'Seuil : ' + a.seuil
+                                        + (a.quantite <= a.seuil ? ' ⚠️ ALERTE' : '');
+                                    return seuilMsg;
                                 }
                             }
                         }
                     },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } } }
+                    }
                 }
             });
         }
-
-        // Graphique Catégories
-        const catLabelsAdmin = {{ categoriesLabels|default([])|json_encode|raw }};
+                // ═══════════════════════════════════════════════════════
+        // GRAPHIQUE RÉPARTITION PAR CATÉGORIE (source unique)
+        // ═══════════════════════════════════════════════════════
+        const catLabelsAdmin    = {{ categoriesLabels|default([])|json_encode|raw }};
         const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvasCA = document.getElementById('chartCategoriesAdmin');
+
         if (canvasCA && catLabelsAdmin.length > 0) {
             const palette = [
                 '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
                 '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
                 '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
             ];
+
+            const totalCat = catQuantitesAdmin.reduce((s, q) => s + q, 0);
+
             new Chart(canvasCA, {
                 type: 'doughnut',
                 data: {
@@ -2436,6 +2469,19 @@
                         legend: {
                             position: 'bottom',
                             labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    const val = ctx.parsed || 0;
+                                    const pct = totalCat > 0
+                                        ? ((val / totalCat) * 100).toFixed(1)
+                                        : 0;
+                                    return ' ' + ctx.label + ' : '
+                                        + val.toLocaleString('fr-FR')
+                                        + ' unités (' + pct + '%)';
+                                }
+                            }
                         }
                     }
                 }

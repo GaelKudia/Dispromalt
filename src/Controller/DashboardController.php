@@ -174,9 +174,7 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // 🔥 DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
-        //    Plus de 'Impression' en dur → on utilise le service réel
-        //    de l'utilisateur connecté (ou chaîne vide si aucun service).
+        // DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
         // ============================================================
         $userService = method_exists($currentUser, 'getService') ? $currentUser->getService() : null;
         $userDept    = $userService ? $userService->getNom() : '';
@@ -200,7 +198,6 @@ class DashboardController extends AbstractController
         $formStockView = null;
         $formVisiteGueriteView = null;
 
-        // 👔 Liste des chefs de service (pour la délégation des bons de sortie)
         $chefsService = $em->getRepository(User::class)->findBy(
             ['isChefService' => true],
             ['email' => 'ASC']
@@ -214,7 +211,6 @@ class DashboardController extends AbstractController
         $filtreDateFin   = $request->query->get('filtre_date_fin');
         $filtreStatut    = $request->query->get('filtre_statut');
 
-        // 🔐 DÉTERMINER QUI PEUT DÉLÉGUER UNE VISITE
         $rolesAutorisesPourDeleguer = [
             'ROLE_CAISSIER',
             'ROLE_ACCUEIL',
@@ -230,7 +226,7 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // TRAITEMENT DES FORMULAIRES (selon les rôles)
+        // TRAITEMENT DES FORMULAIRES
         // ============================================================
 
         // 1. FORMULAIRE DE VISITE
@@ -360,23 +356,16 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // 3. FORMULAIRE BON DE SORTIE
-        //    🔥 FIX : plus de pré-remplissage avec l'utilisateur connecté.
-        //    L'agent d'accueil DOIT saisir le nom de l'agent qui emporte
-        //    physiquement le matériel — ce nom apparaîtra à la guérite.
         // ============================================================
         if ($this->isGranted('ROLE_STOCK') ||
             (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN'))) {
 
-            // ⚠️ On NE pré-remplit PAS les champs avec l'utilisateur connecté.
-            //    Le formulaire doit être rempli manuellement par l'agent d'accueil.
             $bonSortie = new BonSortie();
             $formBon = $this->createForm(BonSortieType::class, $bonSortie);
             $formBon->handleRequest($request);
 
             if ($formBon->isSubmitted() && $formBon->isValid()) {
 
-                // 🔥 Fallback : si jamais l'utilisateur a laissé les champs vides
-                //    (impossible car required=true, mais sécurité supplémentaire)
                 $nomSaisi = trim((string) $bonSortie->getNomEmploye());
                 if ($nomSaisi === '') {
                     $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
@@ -723,7 +712,7 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // 🔥 CHARGEMENT DES DEMANDES SELON LE RÔLE
+        // CHARGEMENT DES DEMANDES SELON LE RÔLE
         // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
@@ -772,7 +761,7 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // 🔥 CHARGEMENT CATÉGORIES / SOUS-CATÉGORIES / ATTRIBUTS
+        // CHARGEMENT CATÉGORIES / SOUS-CATÉGORIES / ATTRIBUTS
         // ============================================================
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
             $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
@@ -1069,16 +1058,32 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // DG
+        // ============================================================
+        // DG & PDG
+        //    🔒 RÈGLE MÉTIER : le DG ne voit que les devis qui lui
+        //       ont été transmis dans les 7 derniers jours.
+        //       Au-delà d'une semaine, le devis disparaît de son
+        //       tableau de bord (mais reste en base et accessible
+        //       via d'autres canaux : Compta, Admin, historique).
+        // ============================================================
         if ($this->isGranted('ROLE_DG')) {
+
+            // Fenêtre de visibilité : 7 jours en arrière à partir d'aujourd'hui
+            $limiteUneSemaine = (new \DateTime('today'))->modify('-7 days')->setTime(0, 0, 0);
+            $finAujourdhuiDG  = new \DateTime('today 23:59:59');
+
+            // 📋 Devis visibles par le DG :
+            //   → Uniquement ceux passés par le DG (passageDG = true)
+            //   → ET dont la création est dans les 7 derniers jours
+            //   (logique originale conservée, on ajoute SEULEMENT la limite 7 jours)
             $devisListeDG = $em->getRepository(Devis::class)->createQueryBuilder('d')
                 ->leftJoin('d.user', 'u')
                 ->addSelect('u')
                 ->where('d.passageDG = :oui')
-                ->andWhere('d.createdAt BETWEEN :start AND :end')
+                ->andWhere('d.createdAt BETWEEN :limite AND :fin')
                 ->setParameter('oui', true)
-                ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
-                ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
+                ->setParameter('limite', $limiteUneSemaine)
+                ->setParameter('fin',    $finAujourdhuiDG)
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
@@ -1107,8 +1112,15 @@ class DashboardController extends AbstractController
                 $articlesParCategorie[$catNom]['count']++;
                 $articlesParCategorie[$catNom]['quantite'] += $qte;
 
+                // 🖨️ Récupération de la machine associée à l'article
+                $machineNom = '';
+                if (method_exists($art, 'getMachine') && $art->getMachine()) {
+                    $machineNom = $art->getMachine()->getNom();
+                }
+
                 $topArticles[] = [
                     'nom'       => $art->getNom(),
+                    'machine'   => $machineNom,
                     'quantite'  => $qte,
                     'seuil'     => $art->getSeuilAlerte() ?? 0,
                     'categorie' => $catNom,
@@ -1127,6 +1139,9 @@ class DashboardController extends AbstractController
 
             $soldeCaisseUSD = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
             $soldeCaisseCDF = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
+
+            $estVraimentPDG = method_exists($currentUser, 'isPDG')
+                && $currentUser->isPDG() === true;
 
             $vars = [
                 'demandes'             => $demandes,
@@ -1153,11 +1168,8 @@ class DashboardController extends AbstractController
                 'soldeCDF'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF),
             ];
 
-            $mesRdv      = [];
-            $rdvDelegues = [];
-
-            if ($currentUser->isPDG()) {
-                $mesRdv = $em->getRepository(Visite::class)->createQueryBuilder('v')
+            if ($estVraimentPDG) {
+                $vars['mesRdv'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
                     ->where('v.avecDG = :oui')
                     ->setParameter('oui', true)
                     ->orderBy('v.dateArrivee', 'DESC')
@@ -1165,17 +1177,18 @@ class DashboardController extends AbstractController
                     ->getQuery()
                     ->getResult();
 
-                $rdvDelegues = $em->getRepository(Visite::class)->createQueryBuilder('v')
+                $vars['rdvDelegues'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
                     ->where('v.responsableDelegue IS NOT NULL')
                     ->orderBy('v.dateArrivee', 'DESC')
                     ->setMaxResults(50)
                     ->getQuery()
                     ->getResult();
+            } else {
+                $vars['mesRdv']      = [];
+                $vars['rdvDelegues'] = [];
             }
 
-            $vars['mesRdv']      = $mesRdv;
-            $vars['rdvDelegues'] = $rdvDelegues;
-            $vars['isPDG']       = $currentUser->isPDG();
+            $vars['isPDG'] = $estVraimentPDG;
 
             return $this->render('dashboard/directeur.html.twig', $vars);
         }
@@ -1800,7 +1813,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
-    #[IsGranted('ROLE_COMPTA')]
+    #[IsGranted('ROLE_CHEF_COMPTA')]
     public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
     {
         if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
@@ -1852,7 +1865,7 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/dashboard/devis/rejeter-chef-comptable/{id}', name: 'app_devis_rejeter_chef_comptable', methods: ['POST'])]
-    #[IsGranted('ROLE_COMPTA')]
+    #[IsGranted('ROLE_CHEF_COMPTA')]
     public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $em): Response
     {
         if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
@@ -2051,9 +2064,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // ✅ VALIDATION D'UN BON PAR LE CHEF DE SERVICE
-    // ═══════════════════════════════════════════════════════════════
     #[Route('/dashboard/chef-service/bon/valider/{id}', name: 'app_chef_service_bon_valider', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function validerBonChefService(BonSortie $bonSortie, EntityManagerInterface $em): Response
@@ -2083,9 +2093,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // ❌ REJET D'UN BON PAR LE CHEF DE SERVICE
-    // ═══════════════════════════════════════════════════════════════
     #[Route('/dashboard/chef-service/bon/rejeter/{id}', name: 'app_chef_service_bon_rejeter', methods: ['POST'])]
     #[IsGranted('ROLE_USER')]
     public function rejeterBonChefService(Request $request, BonSortie $bonSortie, EntityManagerInterface $em): Response

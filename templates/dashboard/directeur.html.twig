@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            --dg-primary: #1e293b;
             --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
@@ -28,12 +27,13 @@
                 radial-gradient(at 100% 100%, rgba(44, 62, 80, 0.06) 0px, transparent 50%);
             min-height: 100vh;
         }
+
+        /* NAVBAR */
         .navbar-modern {
             background: rgba(30, 41, 59, 0.98);
             backdrop-filter: blur(12px);
             border-bottom: 3px solid transparent;
             border-image: var(--gradient-gold) 1;
-            width: 100%;
             padding-left: 1.5rem;
             padding-right: 1.5rem;
         }
@@ -47,6 +47,16 @@
             font-weight: 800;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
         }
+        .notification-bell {
+            width: 42px; height: 42px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff; position: relative;
+        }
+        .notification-bell:hover { background: rgba(212,175,55,0.9); color: #1e293b; transform: scale(1.05); }
+
+        /* HERO */
         .dg-hero {
             background: var(--gradient-dg);
             border-radius: 22px;
@@ -59,38 +69,29 @@
         }
         .dg-hero::before {
             content: '';
-            position: absolute;
-            top: -50%; right: -10%;
+            position: absolute; top: -50%; right: -10%;
             width: 400px; height: 400px;
             border-radius: 50%;
             background: var(--gradient-gold);
-            opacity: 0.15;
-            filter: blur(60px);
+            opacity: 0.15; filter: blur(60px);
         }
         .dg-hero::after {
             content: '';
-            position: absolute;
-            bottom: -60%; left: -5%;
+            position: absolute; bottom: -60%; left: -5%;
             width: 300px; height: 300px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            opacity: 0.25;
-            filter: blur(70px);
+            opacity: 0.25; filter: blur(70px);
         }
         .dg-hero-content { position: relative; z-index: 1; }
         .dg-hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: inline-flex; align-items: center; gap: 0.5rem;
             background: rgba(255,255,255,0.12);
             border: 1px solid rgba(255,255,255,0.2);
             color: #f9d976;
-            padding: 0.4rem 1rem;
-            border-radius: 50px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+            padding: 0.4rem 1rem; border-radius: 50px;
+            font-size: 0.72rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
             margin-bottom: 1rem;
         }
         .dg-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 0.5rem; }
@@ -102,6 +103,7 @@
         }
         .dg-hero-meta-item i { color: #f9d976; }
 
+        /* STAT CARDS */
         .stat-card {
             border: none; border-radius: 18px; padding: 1.4rem;
             position: relative; overflow: hidden;
@@ -115,6 +117,7 @@
         .stat-card.stat-primary::before { background: var(--gradient-3); }
         .stat-card.stat-success::before { background: var(--gradient-4); }
         .stat-card.stat-gold::before    { background: var(--gradient-gold); }
+        .stat-card.stat-danger::before  { background: linear-gradient(135deg, #dc2626, #ef4444); }
         .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
         .stat-icon {
             width: 56px; height: 56px; border-radius: 14px;
@@ -124,15 +127,10 @@
         .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
         .stat-icon-primary { background: rgba(79, 172, 254, 0.12); color: #3b82f6; }
         .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
+        .stat-icon-danger  { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
         .stat-icon-gold    { background: rgba(212, 175, 55, 0.15); color: #b8860b; }
-        .stat-trend {
-            display: inline-flex; align-items: center; gap: 0.25rem;
-            font-size: 0.72rem; font-weight: 700;
-            padding: 0.2rem 0.5rem; border-radius: 6px; margin-top: 0.5rem;
-        }
-        .stat-trend-up   { background: rgba(67, 233, 123, 0.15); color: #059669; }
-        .stat-trend-info { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
 
+        /* TRÉSORERIE */
         .treso-card {
             border-radius: 18px; padding: 1.15rem 1.4rem;
             display: flex; justify-content: space-between; align-items: center;
@@ -157,10 +155,12 @@
         .treso-caisse .treso-label { color: #92400e; }
         .treso-caisse .treso-value { color: #78350f; }
 
+        /* MAIN CARD / TABS */
         .main-card {
             border: none; border-radius: 20px;
             box-shadow: var(--shadow-soft); background: #fff;
-            overflow: hidden; width: 100%;
+            overflow: visible; width: 100%;
+            position: relative;
         }
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
@@ -174,8 +174,8 @@
             padding: 1rem 1.1rem; white-space: nowrap;
             border-radius: 0; position: relative; background: none;
         }
-        .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); }
-        .nav-tabs-modern .nav-link.active { color: var(--dg-primary) !important; background: none; }
+        .nav-tabs-modern .nav-link:hover { color: #1e293b; }
+        .nav-tabs-modern .nav-link.active { color: #1e293b !important; background: none; }
         .nav-tabs-modern .nav-link.active::after {
             content: ''; position: absolute;
             bottom: -1px; left: 1rem; right: 1rem;
@@ -184,6 +184,36 @@
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
+        /* Badge compteur sur les onglets */
+        .nav-tabs-modern .nav-link .tab-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            margin-left: 6px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+            animation: pulseDot 2s infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4); }
+            50%      { box-shadow: 0 2px 12px rgba(220, 38, 38, 0.7); }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           MENU MOBILE SUPERPOSÉ (OVERLAY)
+        ═══════════════════════════════════════════════════════ */
+        .mobile-tab-toggle { display: none; }
+        .mobile-tab-overlay { display: none; }
+
+        /* TABLES */
         .table-responsive { width: 100%; }
         .table-modern { margin: 0; width: 100% !important; }
         .table-modern thead th {
@@ -198,7 +228,13 @@
             border-color: #f1f5f9;
         }
         .table-modern tbody tr:hover { background: #f8fafc; }
+        .row-pending {
+            border-left: 4px solid #dc2626 !important;
+            background-color: #fef2f2 !important;
+        }
+        .row-pending:hover { background-color: #fee2e2 !important; }
 
+        /* BADGES SOFT */
         .badge-soft {
             padding: 0.4rem 0.75rem; border-radius: 8px;
             font-weight: 600; font-size: 0.75rem;
@@ -211,29 +247,20 @@
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-gold    { background: rgba(212, 175, 55, 0.15); color: #8b6508; }
 
+        /* FILTER BAR */
         .filter-bar {
-            background: #f8fafc; border-radius: 14px;
-            padding: 1rem 1.25rem; border: 1px solid #e2e8f0;
-            display: flex; flex-wrap: wrap; gap: 0.75rem;
-            align-items: end; margin-bottom: 1.25rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
         }
-        .filter-bar .form-label {
-            font-size: 0.72rem; font-weight: 700; color: #64748b;
-            text-transform: uppercase; letter-spacing: 0.04em;
-            margin-bottom: 0.35rem;
-        }
+        .filter-bar .form-label { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
         .filter-bar .form-control,
-        .filter-bar .form-select {
-            border-radius: 10px; border: 1px solid #e2e8f0;
-            padding: 0.55rem 0.85rem; font-size: 0.88rem;
-            background: #fff;
-        }
+        .filter-bar .form-select { font-size: 0.88rem; border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.6rem 0.85rem; }
         .filter-bar .form-control:focus,
-        .filter-bar .form-select:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.10);
-        }
+        .filter-bar .form-select:focus { border-color: #d4af37; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.10); }
 
+        /* KPI MINI */
         .kpi-mini {
             background: #f8fafc; border: 1px solid #eef2f7;
             border-radius: 14px; padding: 1rem 1.15rem; text-align: center;
@@ -250,10 +277,13 @@
         .kpi-mini.kpi-primary  { background: rgba(79, 172, 254, 0.06); border-color: rgba(79, 172, 254, 0.15); }
         .kpi-mini.kpi-success  { background: rgba(67, 233, 123, 0.06); border-color: rgba(67, 233, 123, 0.15); }
         .kpi-mini.kpi-gold     { background: rgba(212, 175, 55, 0.08); border-color: rgba(212, 175, 55, 0.2); }
+        .kpi-mini.kpi-danger   { background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.15); }
 
+        /* EMPTY STATE */
         .empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
         .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
 
+        /* BTN EXPORT */
         .btn-export {
             background: var(--gradient-gold); color: #1e293b;
             border: none; font-weight: 700; border-radius: 10px;
@@ -262,6 +292,7 @@
         }
         .btn-export:hover { color: #1e293b; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(212, 175, 55, 0.4); }
 
+        /* STATUS TIMELINE */
         .status-timeline {
             display: flex; gap: 0.25rem; height: 8px;
             border-radius: 4px; overflow: hidden;
@@ -276,15 +307,32 @@
             display: inline-block; margin-right: 0.4rem;
         }
 
-        .container-fluid { width: 100% !important; max-width: 100% !important; }
-        @media (min-width: 1920px) {
-            .container-fluid { padding-left: 3rem !important; padding-right: 3rem !important; }
+        /* ALERT BANNER STOCK */
+        .alert-banner-stock {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
         }
+        .alert-banner-stock .alert-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(220,38,38,0.2);
+            display: flex; justify-content: space-between;
+            align-items: center; flex-wrap: wrap; gap: 0.75rem;
+        }
+
+        /* RESPONSIVE */
+        .container-fluid { width: 100% !important; max-width: 100% !important; }
+        @media (min-width: 1920px) { .container-fluid { padding-left: 3rem !important; padding-right: 3rem !important; } }
         @media (max-width: 1200px) {
             .container-fluid { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
             .dg-hero { padding: 1.75rem 1.5rem; }
             .dg-hero h1 { font-size: 1.6rem; }
         }
+
+        /* ═══════════════════════════════════════════════════════
+           BREAKPOINT MOBILE — MENU OVERLAY
+        ═══════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
             .container-fluid { padding-left: 1rem !important; padding-right: 1rem !important; }
             .navbar-modern { padding-left: 0.75rem; padding-right: 0.75rem; }
@@ -292,24 +340,125 @@
             .navbar-brand-modern img { height: 32px !important; }
             .dg-hero { padding: 1.25rem 1.15rem; border-radius: 18px; }
             .dg-hero h1 { font-size: 1.35rem; }
-            .dg-hero p { font-size: 0.85rem; }
-            .dg-hero-meta { gap: 0.75rem; }
-            .dg-hero-meta-item { font-size: 0.78rem; }
-            .stat-card { padding: 1.1rem; }
             .stat-card h3 { font-size: 1.6rem !important; }
-            .stat-icon { width: 46px; height: 46px; font-size: 1.2rem; }
-            .treso-card { padding: 1rem 1.15rem; }
-            .treso-card .treso-value { font-size: 1.35rem; }
-            .nav-tabs-modern .nav-link { font-size: 0.82rem; padding: 0.85rem 0.75rem; }
-            .nav-tabs-modern .nav-link i { margin-right: 0.3rem; }
-            .table-modern thead th,
-            .table-modern tbody td { padding: 0.75rem 0.6rem; font-size: 0.82rem; }
-            .kpi-mini { padding: 0.85rem 0.75rem; }
+            .table-modern thead th, .table-modern tbody td { padding: 0.75rem 0.6rem; font-size: 0.82rem; }
             .kpi-mini .kpi-value { font-size: 1.35rem; }
-            .kpi-mini .kpi-label { font-size: 0.65rem; }
-            .main-card { border-radius: 16px; }
             .main-card > .p-4 { padding: 1rem !important; }
+
+            /* 🎯 Cacher les onglets horizontaux */
+            .nav-tabs-modern { display: none !important; }
+
+            /* 🎯 Bouton toggle mobile */
+            .mobile-tab-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 1rem 1.15rem;
+                background: var(--gradient-dg);
+                border: none;
+                border-bottom: 3px solid transparent;
+                border-image: var(--gradient-gold) 1;
+                color: #fff;
+                font-weight: 700;
+                font-size: 0.92rem;
+                cursor: pointer;
+                text-align: left;
+                letter-spacing: -0.2px;
+            }
+            .mobile-tab-toggle:hover { background: linear-gradient(135deg, #1e293b, #2c3e50); }
+            .mobile-tab-toggle .toggle-left {
+                display: flex; align-items: center; gap: 0.6rem;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+                max-width: calc(100% - 40px);
+            }
+            .mobile-tab-toggle .toggle-left i { color: #f9d976; flex-shrink: 0; }
+            .mobile-tab-toggle .fa-chevron-down {
+                font-size: 0.85rem;
+                color: #f9d976;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                flex-shrink: 0;
+            }
+            .mobile-tab-toggle.open .fa-chevron-down {
+                transform: rotate(180deg);
+            }
+
+            /* 🎯 Panneau overlay superposé */
+            .mobile-tab-overlay {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                z-index: 1050;
+                background: #fff;
+                box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 8px 16px rgba(15, 23, 42, 0.08);
+                max-height: 70vh;
+                overflow-y: auto;
+                border-radius: 0 0 16px 16px;
+                border: 1px solid #e2e8f0;
+                border-top: none;
+            }
+            .mobile-tab-overlay.show {
+                display: block;
+                animation: slideDownMenu 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            @keyframes slideDownMenu {
+                from { opacity: 0; transform: translateY(-10px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+
+            .mobile-tab-overlay .overlay-item {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                padding: 1rem 1.15rem;
+                border: none;
+                background: none;
+                width: 100%;
+                text-align: left;
+                font-weight: 600;
+                color: #475569;
+                border-bottom: 1px solid #f1f5f9;
+                cursor: pointer;
+                font-size: 0.92rem;
+                border-left: 4px solid transparent;
+            }
+            .mobile-tab-overlay .overlay-item:last-child { border-bottom: none; }
+            .mobile-tab-overlay .overlay-item:hover {
+                background: #f8fafc;
+                color: #1e293b;
+            }
+            .mobile-tab-overlay .overlay-item.active {
+                background: linear-gradient(90deg, rgba(212, 175, 55, 0.10), rgba(212, 175, 55, 0.01));
+                color: #1e293b;
+                border-left-color: #d4af37;
+            }
+            .mobile-tab-overlay .overlay-item i {
+                width: 22px; text-align: center;
+                font-size: 1rem; flex-shrink: 0;
+            }
+            .mobile-tab-overlay .overlay-item .tab-badge {
+                margin-left: auto;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 22px; height: 22px;
+                padding: 0 7px;
+                border-radius: 11px;
+                background: linear-gradient(135deg, #ef4444, #dc2626);
+                color: #fff;
+                font-size: 0.68rem;
+                font-weight: 800;
+                line-height: 1;
+                box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+            }
+            .mobile-tab-overlay .overlay-item span:first-of-type {
+                flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
         }
+
         @media (max-width: 576px) {
             .container-fluid { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
             .dg-hero { padding: 1rem 1rem; }
@@ -317,23 +466,13 @@
             .dg-hero-badge { font-size: 0.65rem; padding: 0.3rem 0.75rem; }
             .dg-hero-meta { flex-direction: column; gap: 0.5rem; }
             .stat-card h3 { font-size: 1.4rem !important; }
-            .stat-card h6 { font-size: 0.62rem !important; }
             .treso-card { flex-direction: column; align-items: flex-start !important; gap: 0.5rem; }
             .treso-card .treso-icon { display: none; }
             .treso-card .treso-value { font-size: 1.2rem; }
-            .nav-tabs-modern { padding: 0 0.5rem; }
-            .nav-tabs-modern .nav-link { font-size: 0.75rem; padding: 0.75rem 0.6rem; }
-            .nav-tabs-modern .nav-link i { display: none; }
-            .nav-tabs-modern .nav-link.active::after { left: 0.4rem; right: 0.4rem; }
-            .filter-bar { padding: 0.75rem; }
-            .table-modern thead th,
-            .table-modern tbody td { padding: 0.6rem 0.5rem; font-size: 0.75rem; }
-            .badge-soft { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
-            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            .stat-icon { width: 38px; height: 38px; font-size: 1rem; }
         }
         @media print {
-            .navbar-modern, .nav-tabs-modern, .filter-bar, .btn-export, .no-print { display: none !important; }
+            .navbar-modern, .nav-tabs-modern, .filter-bar, .btn-export, .no-print,
+            .mobile-tab-toggle, .mobile-tab-overlay { display: none !important; }
             .main-card { box-shadow: none; }
             .tab-content > .tab-pane { display: block !important; opacity: 1 !important; }
             .tab-pane { page-break-inside: avoid; margin-bottom: 2rem; }
@@ -343,26 +482,90 @@
 </head>
 <body>
 
+{# ═══════════════════════════════════════════════════════
+   CALCUL DES COMPTEURS
+   ⚠️ La constante PHP Devis::STATUT_ATTENTE_DIR a pour valeur 'ATTENTE_DIRECTEUR'
+═══════════════════════════════════════════════════════ #}
+{% set msgsDevisAttente = devisListe|default([])|filter(d => d.statut == 'ATTENTE_DIRECTEUR')|length %}
+{% set msgsAlertesStock = nbAlertesStock|default(0) %}
+{% set msgsRdv = isPDG|default(false) ? mesRdv|default([])|length : 0 %}
+{% set totalMessages = msgsDevisAttente + msgsAlertesStock + msgsRdv %}
+
+{# ═══ NAVBAR ═══ #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
             Dispro<span class="text-primary">malt</span>
             <span class="fw-light fs-6 text-white-50 ms-2">
-                | {% if isPDG|default(false) %}Direction Générale (PDG){% else %}Direction Générale{% endif %}
+                | {% if isPDG|default(false) %}PDG{% else %}Direction Générale{% endif %}
             </span>
         </a>
+
         <div class="d-flex align-items-center gap-3">
+            {# Cloche notifications — VUE GLOBALE #}
+            <div class="dropdown">
+                <button class="notification-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell"></i>
+                    {% if totalMessages > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">{{ totalMessages }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
+                    {# Section Devis #}
+                    {% if msgsDevisAttente > 0 %}
+                        <li class="dropdown-header text-danger fw-bold small"><i class="fas fa-gavel me-1"></i>Devis à arbitrer ({{ msgsDevisAttente }})</li>
+                        {% for devis in devisListe|default([])|filter(d => d.statut == 'ATTENTE_DIRECTEUR')|slice(0, 3) %}
+                            <li>
+                                <a class="dropdown-item p-2 rounded mb-1 bg-light" href="?tab=devis">
+                                    <div class="fw-bold text-danger small">Devis #{{ devis.id }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">{{ devis.montant|number_format(2, ',', ' ') }} {{ devis.devise }}</div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+
+                    {# Section Stock #}
+                    {% if msgsAlertesStock > 0 %}
+                        <li class="dropdown-header text-warning fw-bold small mt-2"><i class="fas fa-exclamation-triangle me-1"></i>Alertes stock ({{ msgsAlertesStock }})</li>
+                        {% for art in articlesEnAlerte|slice(0, 3) %}
+                            <li>
+                                <a class="dropdown-item p-2 rounded mb-1" href="?tab=stock">
+                                    <div class="fw-bold text-dark small">{{ art.nom }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;">Stock : <strong class="text-danger">{{ art.quantite }}</strong> / Seuil : {{ art.seuilAlerte }}</div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+
+                    {# Section RDV (PDG uniquement) #}
+                    {% if isPDG|default(false) and msgsRdv > 0 %}
+                        <li class="dropdown-header text-primary fw-bold small mt-2"><i class="fas fa-calendar-check me-1"></i>Rendez-vous ({{ msgsRdv }})</li>
+                        {% for rdv in mesRdv|default([])|slice(0, 3) %}
+                            <li>
+                                <a class="dropdown-item p-2 rounded mb-1" href="?tab=rdv">
+                                    <div class="fw-bold text-dark small">{{ rdv.nomVisiteur }}</div>
+                                    <div class="text-muted" style="font-size: 0.72rem;"><i class="far fa-clock me-1"></i>{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}</div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if totalMessages == 0 %}
+                        <li class="text-center text-muted py-3 small"><i class="fas fa-check-circle text-success mb-1 d-block"></i>Aucune notification.</li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <a href="{{ path('app_historique_reappro') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
+                <i class="fas fa-history me-1"></i> Historique
+            </a>
+
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-crown me-2"></i>
                 <span>{% if isPDG|default(false) %}PDG{% else %}{{ userRole }}{% endif %}</span>
             </div>
-            <a href="{{ path('app_historique_reappro') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
-                <i class="fas fa-history me-1"></i> Historique Réappro
-            </a>
-            <button onclick="window.print()" class="btn btn-outline-light btn-sm rounded-pill px-3 d-none d-md-inline-flex align-items-center">
-                <i class="fas fa-print me-1"></i> Imprimer
-            </button>
+
             <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
                 <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
@@ -372,6 +575,7 @@
 
 <div class="container-fluid py-4" style="max-width: 100%; padding-left: 2rem; padding-right: 2rem;">
 
+    {# ═══ HERO ═══ #}
     <div class="dg-hero">
         <div class="dg-hero-content">
             <div class="dg-hero-badge">
@@ -389,13 +593,17 @@
                     <i class="fas fa-shield-alt"></i>
                     <span>Accès : <strong>{% if isPDG|default(false) %}PDG — supervision + agenda{% else %}Supervision totale{% endif %}</strong></span>
                 </div>
+                {% if totalMessages > 0 %}
+                <div class="dg-hero-meta-item" style="color:#fca5a5;">
+                    <i class="fas fa-bell"></i>
+                    <span><strong>{{ totalMessages }}</strong> notification{{ totalMessages > 1 ? 's' : '' }} en attente</span>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
-    {# ═══════════════════════════════════════════════════════
-       TRÉSORERIE — 3 cartes
-    ═══════════════════════════════════════════════════════ #}
+    {# ═══ TRÉSORERIE ═══ #}
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="treso-card treso-usd">
@@ -438,17 +646,14 @@
 
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
-                <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> {{ message }}
+            <div class="alert alert-{{ label == 'danger' ? 'danger' : (label == 'warning' ? 'warning' : 'success') }} alert-dismissible fade show shadow-sm mb-4 border-0 rounded-3" role="alert">
+                <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : (label == 'warning' ? 'fa-info-circle' : 'fa-check-circle') }} me-2"></i> {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
             </div>
         {% endfor %}
     {% endfor %}
 
-    {# ═══════════════════════════════════════════════════════
-       STATS GLOBALES — 4 cartes
-       La 4ème change selon PDG ou DG
-    ═══════════════════════════════════════════════════════ #}
+    {# ═══ STATS GLOBALES ═══ #}
     <div class="row g-3 mb-4">
         <div class="col-md-6 col-xl-3">
             <div class="stat-card stat-warning">
@@ -456,7 +661,7 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Demandes totales</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ demandes|length }}</h3>
-                        <span class="stat-trend stat-trend-up"><i class="fas fa-chart-line"></i> Activité en cours</span>
+                        <span class="badge badge-soft badge-soft-warning mt-2"><i class="fas fa-chart-line me-1"></i>Activité en cours</span>
                     </div>
                     <div class="stat-icon stat-icon-warning"><i class="fas fa-boxes"></i></div>
                 </div>
@@ -468,7 +673,7 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Bons de sortie</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ bonsSortie|default([])|length }}</h3>
-                        <span class="stat-trend stat-trend-info"><i class="fas fa-truck"></i> Logistique</span>
+                        <span class="badge badge-soft badge-soft-primary mt-2"><i class="fas fa-truck me-1"></i>Logistique</span>
                     </div>
                     <div class="stat-icon stat-icon-primary"><i class="fas fa-file-signature"></i></div>
                 </div>
@@ -480,7 +685,7 @@
                     <div>
                         <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis émis</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|default([])|length }}</h3>
-                        <span class="stat-trend stat-trend-up"><i class="fas fa-file-invoice-dollar"></i> Financier</span>
+                        <span class="badge badge-soft badge-soft-success mt-2"><i class="fas fa-file-invoice-dollar me-1"></i>Financier</span>
                     </div>
                     <div class="stat-icon stat-icon-success"><i class="fas fa-file-invoice-dollar"></i></div>
                 </div>
@@ -488,19 +693,17 @@
         </div>
         <div class="col-md-6 col-xl-3">
             {% if isPDG|default(false) %}
-                {# Carte RDV — visible seulement pour le PDG #}
                 <div class="stat-card stat-gold">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Mes rendez-vous</h6>
                             <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ mesRdv|default([])|length }}</h3>
-                            <span class="stat-trend stat-trend-info"><i class="fas fa-calendar-check"></i> Agenda PDG</span>
+                            <span class="badge badge-soft badge-soft-gold mt-2"><i class="fas fa-calendar-check me-1"></i>Agenda PDG</span>
                         </div>
                         <div class="stat-icon stat-icon-gold"><i class="fas fa-calendar-check"></i></div>
                     </div>
                 </div>
             {% else %}
-                {# Carte Départements — visible pour le DG normal #}
                 <div class="stat-card stat-gold">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -514,7 +717,7 @@
                                 {% endfor %}
                                 {{ depts|length }}
                             </h3>
-                            <span class="stat-trend stat-trend-info"><i class="fas fa-building"></i> Multi-services</span>
+                            <span class="badge badge-soft badge-soft-gold mt-2"><i class="fas fa-building me-1"></i>Multi-services</span>
                         </div>
                         <div class="stat-icon stat-icon-gold"><i class="fas fa-sitemap"></i></div>
                     </div>
@@ -523,45 +726,116 @@
         </div>
     </div>
 
-    {# ═══════════════════════════════════════════════════════
-       CARTE PRINCIPALE — ONGLETS
-    ═══════════════════════════════════════════════════════ #}
+    {# ═══ ALERTES STOCK BANNIÈRE ═══ #}
+    {% if nbAlertesStock|default(0) > 0 %}
+    <div class="alert-banner-stock mb-4">
+        <div class="alert-header">
+            <div>
+                <h6 class="fw-bold text-danger m-0"><i class="fas fa-exclamation-triangle me-2"></i>{{ nbAlertesStock }} article(s) sous le seuil critique</h6>
+                <small class="text-muted">Suivi du réapprovisionnement géré par la comptabilité.</small>
+            </div>
+            <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" data-bs-toggle="collapse" data-bs-target="#alerteCollapseDG">
+                <i class="fas fa-eye me-1"></i> Voir le détail
+            </button>
+        </div>
+        <div class="collapse" id="alerteCollapseDG">
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle m-0 bg-white">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Article</th>
+                            <th class="text-center">Stock</th>
+                            <th class="text-center">Seuil</th>
+                            <th class="text-center">Statut réappro</th>
+                            <th>Date prévue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for art in articlesEnAlerte %}
+                            <tr>
+                                <td class="ps-3 fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                <td class="text-center"><span class="badge bg-danger">{{ art.quantite }}</span></td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">{{ art.seuilAlerte }}</span></td>
+                                <td class="text-center">
+                                    {% if art.reapprovisionnementEnCours %}
+                                        <span class="badge bg-primary"><i class="fas fa-truck-loading me-1"></i>En cours</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary"><i class="fas fa-hourglass-start me-1"></i>Non lancé</span>
+                                    {% endif %}
+                                </td>
+                                <td>{% if art.dateReapprovisionnement %}<strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ═══ CARTE PRINCIPALE ═══ #}
     <div class="main-card">
 
+        {# ═══ TOGGLE MOBILE + OVERLAY (visible ≤ 768px) ═══ #}
+        <div style="position: relative;">
+            <button class="mobile-tab-toggle" type="button" id="mobileTabToggle" aria-expanded="false">
+                <span class="toggle-left">
+                    <i class="fas fa-bars"></i>
+                    <span id="currentMobileTabLabel">Vue d'ensemble</span>
+                </span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="mobile-tab-overlay" id="mobileTabOverlay">
+                {# Rempli dynamiquement par JS depuis les onglets existants #}
+            </div>
+        </div>
+
         <ul class="nav nav-tabs nav-tabs-modern" id="dgTabs" role="tablist">
+
+            {# Onglet Vue d'ensemble #}
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab">
+                <button class="nav-link active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
                     <i class="fas fa-chart-pie text-warning"></i>Vue d'ensemble
                 </button>
             </li>
 
-            {# ── Onglet RDV — UNIQUEMENT pour le PDG ── #}
+            {# Onglet RDV — badge RDV (PDG uniquement) #}
             {% if isPDG|default(false) %}
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-rdv" data-bs-toggle="tab" data-bs-target="#pane-rdv" type="button" role="tab">
+                <button class="nav-link" id="tab-rdv" data-bs-toggle="tab" data-bs-target="#rdv-pane" type="button" role="tab">
                     <i class="fas fa-calendar-check text-primary"></i>Mes Rendez-vous
+                    {% if msgsRdv > 0 %}<span class="tab-badge">{{ msgsRdv }}</span>{% endif %}
                 </button>
             </li>
             {% endif %}
 
+            {# Onglet Demandes Globales #}
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#pane-demandes" type="button" role="tab">
+                <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#demandes-pane" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Demandes Globales
                 </button>
             </li>
+
+            {# Onglet Bons de Sortie #}
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#pane-bons" type="button" role="tab">
+                <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#bons-pane" type="button" role="tab">
                     <i class="fas fa-file-signature text-success"></i>Bons de Sortie
                 </button>
             </li>
+
+            {# Onglet Devis & Finances — badge devis entrants #}
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-devis" data-bs-toggle="tab" data-bs-target="#pane-devis" type="button" role="tab">
+                <button class="nav-link" id="tab-devis" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
+                    {% if msgsDevisAttente > 0 %}<span class="tab-badge">{{ msgsDevisAttente }}</span>{% endif %}
                 </button>
             </li>
+
+            {# Onglet État du Stock — badge alertes stock #}
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#pane-stock" type="button" role="tab">
+                <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#stock-pane" type="button" role="tab">
                     <i class="fas fa-warehouse text-success"></i>État du Stock
+                    {% if msgsAlertesStock > 0 %}<span class="tab-badge">{{ msgsAlertesStock }}</span>{% endif %}
                 </button>
             </li>
         </ul>
@@ -572,8 +846,8 @@
                 {# ═══════════════════════════════════════════════
                    ONGLET 1 : VUE D'ENSEMBLE
                 ═══════════════════════════════════════════════ #}
-                <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-chart-pie text-warning me-2"></i>Synthèse de l'activité</h5>
                             <small class="text-muted">Aperçu consolidé sur la période sélectionnée.</small>
@@ -685,63 +959,16 @@
                             </div>
                         </div>
                     </div>
-
-                    {% if nbAlertesStock|default(0) > 0 %}
-                    <div class="p-3 rounded-3 border mb-4 mt-4" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <h6 class="fw-bold text-danger mb-0">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Alertes de Stock Critiques — {{ nbAlertesStock }} article(s)
-                            </h6>
-                            <span class="badge badge-soft badge-soft-danger px-3 py-2">Action comptable en cours</span>
-                        </div>
-                        <div class="row g-3">
-                            {% for art in articlesEnAlerte %}
-                                <div class="col-md-6 col-xl-4">
-                                    <div class="p-3 bg-white rounded-3 border h-100">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div class="fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</div>
-                                            <span class="badge bg-danger">{{ art.quantite }} / {{ art.seuilAlerte }}</span>
-                                        </div>
-                                        <div class="small text-muted mb-2"><i class="fas fa-info-circle me-1"></i>Stock sous le seuil critique</div>
-                                        {% if art.reapprovisionnementEnCours %}
-                                            <span class="badge badge-soft badge-soft-primary"><i class="fas fa-truck-loading me-1"></i>Réappro en cours</span>
-                                            {% if art.dateReapprovisionnement %}
-                                                <div class="small text-muted mt-2">
-                                                    Prévision : <strong class="text-primary">{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong>
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <span class="badge badge-soft badge-soft-secondary"><i class="fas fa-hourglass-start me-1"></i>Non lancé</span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <div class="row g-3 mt-2">
-                        <div class="col-6 col-md-3">
-                            <div class="kpi-mini" style="background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.15);">
-                                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
-                                <div class="kpi-label">Alertes stock</div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {# ═══════════════════════════════════════════════
-                   ONGLET 2 : MES RENDEZ-VOUS — UNIQUEMENT PDG
+                   ONGLET 2 : MES RENDEZ-VOUS (PDG uniquement)
                 ═══════════════════════════════════════════════ #}
                 {% if isPDG|default(false) %}
-                <div class="tab-pane fade" id="pane-rdv" role="tabpanel">
-
+                <div class="tab-pane fade" id="rdv-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
-                            <h5 class="fw-bold text-dark m-0">
-                                <i class="fas fa-calendar-check text-primary me-2"></i>Mes rendez-vous
-                            </h5>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-calendar-check text-primary me-2"></i>Mes rendez-vous</h5>
                             <small class="text-muted">Rendez-vous et réunions planifiés par le secrétariat / la caisse.</small>
                         </div>
                         <span class="badge badge-soft badge-soft-primary px-3 py-2">
@@ -777,9 +1004,7 @@
                     </div>
 
                     <div class="p-3 bg-white rounded-3 border mb-4">
-                        <h6 class="fw-bold text-dark mb-3">
-                            <i class="fas fa-inbox text-primary me-2"></i>Rendez-vous qui me sont destinés
-                        </h6>
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-inbox text-primary me-2"></i>Rendez-vous qui me sont destinés</h6>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover mb-0">
                                 <thead>
@@ -807,22 +1032,15 @@
                                                     {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier|split('@')|first : '?' }}
                                                 </span>
                                             {% elseif rdv.statut == 'RESERVE' %}
-                                                <span class="badge badge-soft badge-soft-primary">
-                                                    <i class="fas fa-calendar me-1"></i>Réservé
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-primary"><i class="fas fa-calendar me-1"></i>Réservé</span>
                                             {% elseif rdv.statut == 'TERMINE' %}
-                                                <span class="badge badge-soft badge-soft-success">
-                                                    <i class="fas fa-check me-1"></i>Terminé
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-success"><i class="fas fa-check me-1"></i>Terminé</span>
                                             {% else %}
                                                 <span class="badge badge-soft badge-soft-secondary">{{ rdv.statut }}</span>
                                             {% endif %}
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ path('app_caisse_rdv_imprimer', {id: rdv.id}) }}"
-                                               target="_blank"
-                                               class="btn btn-sm btn-outline-secondary"
-                                               title="Imprimer">
+                                            <a href="{{ path('app_caisse_rdv_imprimer', {id: rdv.id}) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimer">
                                                 <i class="fas fa-print"></i>
                                             </a>
                                         </td>
@@ -845,19 +1063,12 @@
 
                     {% if rdvDelegues|default([])|length > 0 %}
                         <div class="p-3 rounded-3 border" style="background: rgba(250, 112, 154, 0.04); border-color: rgba(250, 112, 154, 0.15) !important;">
-                            <h6 class="fw-bold text-dark mb-3">
-                                <i class="fas fa-share-nodes text-warning me-2"></i>
-                                Rendez-vous que j'ai délégués
-                            </h6>
+                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-share-nodes text-warning me-2"></i>Rendez-vous que j'ai délégués</h6>
                             <div class="table-responsive">
                                 <table class="table table-modern table-hover mb-0">
                                     <thead>
                                         <tr>
-                                            <th>Date</th>
-                                            <th>Visiteur</th>
-                                            <th>Objet</th>
-                                            <th>Délégué à</th>
-                                            <th>Motif</th>
+                                            <th>Date</th><th>Visiteur</th><th>Objet</th><th>Délégué à</th><th>Motif</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -866,11 +1077,7 @@
                                             <td>{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
                                             <td><i class="fas fa-user-circle text-muted me-2"></i>{{ rdv.nomVisiteur }}</td>
                                             <td>{{ rdv.motif ?? '—' }}</td>
-                                            <td>
-                                                <span class="badge badge-soft badge-soft-info">
-                                                    {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier : '—' }}
-                                                </span>
-                                            </td>
+                                            <td><span class="badge badge-soft badge-soft-info">{{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier : '—' }}</span></td>
                                             <td class="text-muted small">{{ rdv.motifDelegation ?? '—' }}</td>
                                         </tr>
                                     {% endfor %}
@@ -879,41 +1086,41 @@
                             </div>
                         </div>
                     {% endif %}
-
                 </div>
                 {% endif %}
 
                 {# ═══════════════════════════════════════════════
                    ONGLET 3 : DEMANDES GLOBALES
                 ═══════════════════════════════════════════════ #}
-                <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="tab-pane fade" id="demandes-pane" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>Toutes les demandes de matériel</h5>
                             <small class="text-muted">Vue consolidée de tous les services de l'imprimerie.</small>
                         </div>
                     </div>
 
-                    <form method="get" class="filter-bar no-print">
-                        <div>
-                            <label class="form-label">Du</label>
+                    <form method="get" action="{{ path('app_dashboard') }}" class="filter-bar row g-2 align-items-end mb-4 no-print">
+                        <input type="hidden" name="tab" value="demandes">
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Du</label>
                             <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
                         </div>
-                        <div>
-                            <label class="form-label">Au</label>
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i>Au</label>
                             <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
                         </div>
-                        <div>
-                            <label class="form-label">Localisation</label>
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Localisation</label>
                             <select name="localisation" class="form-select">
                                 <option value="">Toutes</option>
                                 <option value="sedwe">Sedwe</option>
                                 <option value="bonagere">Bonagère</option>
                             </select>
                         </div>
-                        <div class="ms-auto d-flex gap-2">
-                            <button type="submit" class="btn btn-primary rounded-3 fw-bold"><i class="fas fa-search me-1"></i> Filtrer</button>
-                            <a href="{{ path('app_dashboard') }}" class="btn btn-outline-secondary rounded-3"><i class="fas fa-undo"></i></a>
+                        <div class="col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1 fw-bold rounded-pill"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                            <a href="{{ path('app_dashboard', {'tab': 'demandes'}) }}" class="btn btn-outline-secondary rounded-pill" title="Réinitialiser"><i class="fas fa-rotate"></i></a>
                         </div>
                     </form>
 
@@ -921,13 +1128,8 @@
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Département</th>
-                                    <th>Localisation</th>
-                                    <th>Matériel</th>
-                                    <th class="text-center">Quantité</th>
-                                    <th>Statut</th>
-                                    <th>Date</th>
+                                    <th>ID</th><th>Département</th><th>Localisation</th><th>Matériel</th>
+                                    <th class="text-center">Quantité</th><th>Statut</th><th>Date</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -978,8 +1180,8 @@
                 {# ═══════════════════════════════════════════════
                    ONGLET 4 : BONS DE SORTIE
                 ═══════════════════════════════════════════════ #}
-                <div class="tab-pane fade" id="pane-bons" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="tab-pane fade" id="bons-pane" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-signature text-success me-2"></i>Registre des bons de sortie</h5>
                             <small class="text-muted">Toutes les sorties de matériel de l'entreprise.</small>
@@ -993,11 +1195,7 @@
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>Code</th>
-                                    <th>Nom de l'agent</th>
-                                    <th>Département</th>
-                                    <th>Date création</th>
-                                    <th>État</th>
+                                    <th>Code</th><th>Nom de l'agent</th><th>Département</th><th>Date création</th><th>État</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1036,14 +1234,19 @@
                 </div>
 
                 {# ═══════════════════════════════════════════════
-                   ONGLET 5 : DEVIS & FINANCES
+                   ONGLET 5 : DEVIS & FINANCES — VALIDATION DG
                 ═══════════════════════════════════════════════ #}
-                <div class="tab-pane fade" id="pane-devis" role="tabpanel">
+                <div class="tab-pane fade" id="devis-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis & situation financière</h5>
                             <small class="text-muted">Suivi consolidé des devis émis dans l'entreprise.</small>
                         </div>
+                        {% if msgsDevisAttente > 0 %}
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2">
+                                <i class="fas fa-bell me-1"></i>{{ msgsDevisAttente }} devis en attente d'arbitrage
+                            </span>
+                        {% endif %}
                     </div>
 
                     <div class="row g-3 mb-4">
@@ -1054,25 +1257,21 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-danger">
+                                <div class="kpi-value text-danger">{{ msgsDevisAttente }}</div>
+                                <div class="kpi-label">À arbitrer</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-success">
-                                <div class="kpi-value text-success">
-                                    {{ devisListe|default([])|filter(d => d.statut == 'DECAISSE')|length }}
-                                </div>
+                                <div class="kpi-value text-success">{{ devisListe|default([])|filter(d => d.statut == 'DECAISSE')|length }}</div>
                                 <div class="kpi-label">Décaissés</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-warning">
-                                <div class="kpi-value text-warning">
-                                    {{ devisListe|default([])|filter(d => d.statut != 'DECAISSE' and d.statut != 'REJETE')|length }}
-                                </div>
+                                <div class="kpi-value text-warning">{{ devisListe|default([])|filter(d => d.statut != 'DECAISSE' and d.statut != 'REJETE')|length }}</div>
                                 <div class="kpi-label">En cours</div>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
-                                <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
-                                <div class="kpi-label">Alertes stock</div>
                             </div>
                         </div>
                     </div>
@@ -1081,18 +1280,14 @@
                         <table class="table table-modern table-hover">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Date</th>
-                                    <th>Demandeur</th>
-                                    <th>Description</th>
-                                    <th>Statut</th>
-                                    <th class="text-end">Montant</th>
+                                    <th>ID</th><th>Date</th><th>Demandeur</th><th>Description</th>
+                                    <th>Statut</th><th class="text-end">Montant</th>
                                     <th class="text-center" style="min-width: 240px;">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for devis in devisListe|default([]) %}
-                                    <tr>
+                                    <tr {% if devis.statut == 'ATTENTE_DIRECTEUR' %}class="row-pending"{% endif %}>
                                         <td class="fw-bold text-secondary">#{{ devis.id }}</td>
                                         <td class="text-muted small">{{ devis.createdAt ? devis.createdAt|date('d/m/Y') : '-' }}</td>
                                         <td>
@@ -1107,6 +1302,10 @@
                                                 <span class="badge badge-soft badge-soft-success"><i class="fas fa-check-double me-1"></i>Décaissé</span>
                                             {% elseif devis.statut == 'REJETE' %}
                                                 <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
+                                            {% elseif devis.statut == 'ATTENTE_DIRECTEUR' %}
+                                                <span class="badge badge-soft badge-soft-danger"><i class="fas fa-gavel me-1"></i>Chez le DG</span>
+                                            {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
+                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-hand-holding-usd me-1"></i>À décaisser</span>
                                             {% elseif devis.statut == 'VALIDÉ_CHEF_SERVICE' %}
                                                 <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i>Validé Chef</span>
                                             {% else %}
@@ -1120,7 +1319,8 @@
                                         <td class="text-center">
                                             {% if devis.statut == 'ATTENTE_DIRECTEUR' %}
                                                 <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}"
-                                                      class="d-inline-flex gap-2 justify-content-center align-items-center mb-1">
+                                                      class="d-inline-flex gap-2 justify-content-center align-items-center mb-1 flex-wrap"
+                                                      onsubmit="return confirm('Confirmer la validation de ce devis ?');">
                                                     <div class="input-group input-group-sm" style="max-width: 140px;">
                                                         <input type="number" step="0.01" name="nouveau_montant"
                                                                class="form-control text-end fw-bold"
@@ -1131,6 +1331,7 @@
                                                         <i class="fas fa-check me-1"></i> Valider
                                                     </button>
                                                 </form>
+
                                                 <form method="POST" action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}"
                                                       class="d-inline"
                                                       onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
@@ -1138,6 +1339,7 @@
                                                         <i class="fas fa-ban"></i> Rejeter
                                                     </button>
                                                 </form>
+
                                             {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
                                                 <span class="badge badge-soft badge-soft-info">
                                                     <i class="fas fa-check-circle me-1"></i>Validé — chez la Compta
@@ -1154,7 +1356,7 @@
                                             {% elseif devis.statut == 'REJETE' %}
                                                 <span class="badge badge-soft badge-soft-danger"><i class="fas fa-ban me-1"></i>Rejeté</span>
                                             {% else %}
-                                                <span class="text-muted small"><i class="fas fa-hourglass-half me-1"></i>En cours de traitement</span>
+                                                <span class="text-muted small"><i class="fas fa-hourglass-half me-1"></i>En cours</span>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -1177,7 +1379,7 @@
                 {# ═══════════════════════════════════════════════
                    ONGLET 6 : ÉTAT DU STOCK
                 ═══════════════════════════════════════════════ #}
-                <div class="tab-pane fade" id="pane-stock" role="tabpanel">
+                <div class="tab-pane fade" id="stock-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock</h5>
@@ -1208,7 +1410,7 @@
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
-                            <div class="kpi-mini" style="background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15);">
+                            <div class="kpi-mini kpi-danger">
                                 <div class="kpi-value text-danger">{{ nbAlertesStock|default(0) }}</div>
                                 <div class="kpi-label">Alertes critiques</div>
                             </div>
@@ -1320,68 +1522,285 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+    // ═══════════════════════════════════════════════════════
+    // 1) GESTION DES ONGLETS — mémorisation via ?tab=xxx
+    // ═══════════════════════════════════════════════════════
     document.addEventListener("DOMContentLoaded", function() {
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
         const urlHash = window.location.hash;
-        if (urlHash) {
+
+        // Priorité au paramètre ?tab=
+        if (tabParam) {
+            const triggerEl = document.querySelector(`#dgTabs button[data-bs-target="#${tabParam}-pane"]`);
+            if (triggerEl) new bootstrap.Tab(triggerEl).show();
+        }
+        // Fallback : hash legacy
+        else if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
             if (triggerEl) new bootstrap.Tab(triggerEl).show();
         }
+
+        // Mémorisation à chaque changement
         document.querySelectorAll('#dgTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
-                history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
+                const target = e.target.getAttribute('data-bs-target').replace('#', '').replace('-pane', '');
+                const url = new URL(window.location);
+                url.searchParams.set('tab', target);
+                history.replaceState(null, null, url.toString());
             });
         });
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // 2) MENU MOBILE SUPERPOSÉ (OVERLAY)
+    //    - Synchronise les onglets desktop → overlay mobile
+    //    - Ferme au clic extérieur
+    //    - Met à jour le libellé du bouton
+    // ═══════════════════════════════════════════════════════
+    document.addEventListener("DOMContentLoaded", function() {
+        const toggle    = document.getElementById('mobileTabToggle');
+        const overlay   = document.getElementById('mobileTabOverlay');
+        const labelEl   = document.getElementById('currentMobileTabLabel');
+        const tabsRoot  = document.getElementById('dgTabs');
+
+        if (!toggle || !overlay || !tabsRoot) return;
+
+        // Récupère le texte « pur » d'un onglet (sans le badge compteur)
+        function getTabLabel(tab) {
+            // On clone pour ne pas altérer le DOM original
+            const clone = tab.cloneNode(true);
+            // Retire le badge compteur s'il existe
+            clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
+            return clone.textContent.trim();
+        }
+
+        // Récupère l'icône d'un onglet
+        function getTabIconClass(tab) {
+            const icon = tab.querySelector('i');
+            if (!icon) return '';
+            // Retire les classes utilitaires text-*
+            return icon.className.split(' ').filter(c => !c.startsWith('text-')).join(' ');
+        }
+
+        // Récupère la couleur text-* d'un onglet pour la propager à l'icône
+        function getTabIconColorClass(tab) {
+            const icon = tab.querySelector('i');
+            if (!icon) return '';
+            return icon.className.split(' ').filter(c => c.startsWith('text-')).join(' ');
+        }
+
+        // Construit l'overlay à partir des onglets réels
+        function buildOverlay() {
+            overlay.innerHTML = '';
+
+            tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
+                const target = tab.getAttribute('data-bs-target');
+                if (!target) return;
+
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
+                item.setAttribute('data-target', target);
+
+                const iconClass = getTabIconClass(tab);
+                const iconColor = getTabIconColorClass(tab);
+                const label     = getTabLabel(tab);
+                const badge     = tab.querySelector('.tab-badge');
+
+                item.innerHTML = `
+                    ${iconClass ? `<i class="${iconClass} ${iconColor}"></i>` : ''}
+                    <span>${label}</span>
+                    ${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}
+                `;
+
+                item.addEventListener('click', () => {
+                    const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
+                    if (trigger) new bootstrap.Tab(trigger).show();
+                    closeOverlay();
+                });
+
+                overlay.appendChild(item);
+            });
+        }
+
+        // Met à jour le libellé du bouton + l'état actif
+        function updateToggleLabel(tab) {
+            if (!tab || !labelEl) return;
+            labelEl.textContent = getTabLabel(tab);
+
+            const target = tab.getAttribute('data-bs-target');
+            overlay.querySelectorAll('.overlay-item').forEach(item => {
+                item.classList.toggle('active', item.getAttribute('data-target') === target);
+            });
+        }
+
+        function openOverlay() {
+            overlay.classList.add('show');
+            toggle.classList.add('open');
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function closeOverlay() {
+            overlay.classList.remove('show');
+            toggle.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        // Toggle au clic sur le bouton
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (overlay.classList.contains('show')) {
+                closeOverlay();
+            } else {
+                openOverlay();
+            }
+        });
+
+        // Fermeture au clic extérieur
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) {
+                if (overlay.classList.contains('show')) closeOverlay();
+            }
+        });
+
+        // Fermeture à l'appui sur Échap
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay();
+        });
+
+        // Synchronisation quand un onglet desktop change
+        tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', e => {
+                updateToggleLabel(e.target);
+                // Si la fenêtre est en mobile, on ferme l'overlay après sélection
+                if (window.matchMedia('(max-width: 768px)').matches) {
+                    closeOverlay();
+                }
+            });
+        });
+
+        // Reconstruction si la taille de la fenêtre change (optionnel)
+        let lastIsMobile = window.matchMedia('(max-width: 768px)').matches;
+        window.addEventListener('resize', () => {
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            if (isMobile !== lastIsMobile) {
+                closeOverlay();
+                lastIsMobile = isMobile;
+            }
+        });
+
+        // Initialisation
+        buildOverlay();
+        const initialActive = tabsRoot.querySelector('.nav-link.active');
+        if (initialActive) updateToggleLabel(initialActive);
     });
 </script>
 
 <script>
+    // ═══════════════════════════════════════════════════════
+    // 3) GRAPHIQUES — Top 10 + Répartition par catégorie
+    // ═══════════════════════════════════════════════════════
     document.addEventListener("DOMContentLoaded", function () {
+
         const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
         const canvas1 = document.getElementById('chartTopArticles');
+
         if (canvas1 && topArticlesData.length > 0) {
             new Chart(canvas1, {
                 type: 'bar',
                 data: {
-                    labels: topArticlesData.map(a => a.nom.length > 18 ? a.nom.substring(0, 18) + '…' : a.nom),
+                    labels: topArticlesData.map(function (a) {
+                        const nom = a.nom || '—';
+                        const machine = a.machine || '';
+                        const full = machine ? (nom + ' [' + machine + ']') : nom;
+                        return full.length > 28 ? full.substring(0, 28) + '…' : full;
+                    }),
                     datasets: [{
                         label: 'Quantité en stock',
                         data: topArticlesData.map(a => a.quantite),
                         backgroundColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'),
-                        borderColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'),
-                        borderWidth: 1, borderRadius: 6,
+                        borderColor:     topArticlesData.map(a => a.quantite <= a.seuil ? 'rgb(220, 38, 38)'        : 'rgb(5, 150, 105)'),
+                        borderWidth: 1,
+                        borderRadius: 6,
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        tooltip: { callbacks: { afterLabel: function(context) {
-                            const art = topArticlesData[context.dataIndex];
-                            return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
-                        }}}
+                        tooltip: {
+                            callbacks: {
+                                title: function (items) {
+                                    const a = topArticlesData[items[0].dataIndex];
+                                    const m = a.machine ? ' — ' + a.machine : '';
+                                    return (a.nom || '—') + m;
+                                },
+                                label: function (ctx) { return 'Quantité : ' + ctx.parsed.y; },
+                                afterLabel: function (context) {
+                                    const art = topArticlesData[context.dataIndex];
+                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
+                                }
+                            }
+                        }
                     },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: {
+                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } }
+                        }
+                    }
                 }
             });
         }
-        const categoriesLabels   = {{ categoriesLabels|default([])|json_encode|raw }};
+
+        const categoriesLabels    = {{ categoriesLabels|default([])|json_encode|raw }};
         const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvas2 = document.getElementById('chartCategories');
-        if (canvas2 && categoriesLabels.length > 0) {
-            const palette = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2','#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c','#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'];
+
+        if (canvas2 && categoriesLabels.length > 0 && categoriesQuantites.length > 0) {
+            const palette = [
+                '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
+                '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
+                '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
+            ];
+            const totalCat = categoriesQuantites.reduce(function (s, q) { return s + q; }, 0);
+
             new Chart(canvas2, {
                 type: 'doughnut',
                 data: {
                     labels: categoriesLabels,
                     datasets: [{
                         data: categoriesQuantites,
-                        backgroundColor: categoriesLabels.map((_, i) => palette[i % palette.length]),
-                        borderWidth: 2, borderColor: '#fff',
+                        backgroundColor: categoriesLabels.map(function (_, i) {
+                            return palette[i % palette.length];
+                        }),
+                        borderWidth: 2,
+                        borderColor: '#fff',
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '55%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    const val = ctx.parsed || 0;
+                                    const pct = totalCat > 0 ? ((val / totalCat) * 100).toFixed(1) : 0;
+                                    return ' ' + ctx.label + ' : ' + val.toLocaleString('fr-FR') + ' unités (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
