@@ -28,3 +28,16 @@
 /public/site.*.webmanifest
 /public/sw.js
 ###< spomky-labs/pwa-bundle ###
+
+# Secrets
+.env
+.env.dev
+/.env
+/.env.dev
+
+# Dumps SQL (ne jamais commiter)
+*.sql
+backup.sql
+sauvegarde*.sql
+base_propre_prod.sql
+imprimerie_db_production.sql
