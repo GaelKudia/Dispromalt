@@ -687,7 +687,7 @@
                                 </td>
                                 <td class="cell-action">
                                     {% if v.statut == 'A_L_ACCUEIL' %}
-                                        <form action="{{ path('app_visite_valider_guerite', {'id': v.id}) }}" method="POST" class="d-inline">
+                                        <form action="{{ path('app_visite_accueillir', {'id': v.id}) }}" method="POST" class="d-inline">
                                             <button type="submit" class="btn-app btn-app-primary btn-app-sm">
                                                 <i class="fas fa-check"></i> Valider
                                             </button>

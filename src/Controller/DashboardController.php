@@ -185,6 +185,8 @@ class DashboardController extends AbstractController
         $demandes = [];
         $bonsSortie = [];
         $visites = [];
+        $visitesAccueillies = [];
+        $historiqueVisites = [];
         $rapportGlobal = [];
         $articles = [];
         $attributs = [];
@@ -244,7 +246,7 @@ class DashboardController extends AbstractController
                     $visiteGuerite->setDateArrivee(new \DateTime());
                     $em->persist($visiteGuerite);
                     $em->flush();
-                    $this->addFlash('success', '✅ Visiteur enregistré avec succès !');
+                    $this->addFlash('success', '✅ Visiteur enregistré — transmis à l\'accueil.');
                     return $this->redirectToRoute('app_dashboard');
                 }
                 $formVisiteGueriteView = $formVisiteGuerite->createView();
@@ -257,10 +259,11 @@ class DashboardController extends AbstractController
                 ]);
                 $formVisite->handleRequest($request);
                 if ($formVisite->isSubmitted() && $formVisite->isValid()) {
-                    $visite->setStatut('RESERVE');
+                    $visite->setStatut('VALIDE');
+                    $visite->setDateArrivee(new \DateTime());
                     $em->persist($visite);
                     $em->flush();
-                    $this->addFlash('success', '🗓️ Visite réservée.');
+                    $this->addFlash('success', '✅ Visiteur enregistré et accueilli.');
                     return $this->redirectToRoute('app_dashboard');
                 }
                 $formVisiteView = $formVisite->createView();
@@ -694,20 +697,60 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // --- POUR L'ACCUEIL / RECEPTION ---
+        // ============================================================
+        // ✅ ACCUEIL / RECEPTION
+        //    - Onglet 1 : visiteurs envoyés par la guérite (A_L_ACCUEIL)
+        //                 + visiteurs déjà accueillis (VALIDE)
+        //    - Onglet 2 : enregistrement d'un passage direct
+        //    - Onglet 3 : RDV réservés par les agents (RESERVE)
+        //    - Onglet 4 : HISTORIQUE (VALIDE + TERMINE filtré par date)
+        // ============================================================
         if ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
-            $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
-            $rdvReserves = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
+
+            // 🔹 Visiteurs à accueillir (transmis par la guérite)
+            $visites = $em->getRepository(Visite::class)
+                ->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
+
+            // 🔹 Visiteurs déjà accueillis (présents dans l'enceinte)
+            $visitesAccueillies = $em->getRepository(Visite::class)
+                ->findBy(['statut' => 'VALIDE'], ['dateArrivee' => 'DESC']);
+
+            // 🔹 Rendez-vous réservés par les agents (à honorer)
+            $rdvReserves = $em->getRepository(Visite::class)
+                ->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
+
+            // 🔹 ✅ HISTORIQUE : visiteurs ayant transité par l'accueil
+            //    Filtre UNIQUEMENT sur la date d'ARRIVÉE (champ existant)
+            $dateHistorique = $request->query->get('date_historique', (new \DateTime('today'))->format('Y-m-d'));
+
+            $qbHistorique = $em->getRepository(Visite::class)->createQueryBuilder('v')
+                ->where('v.statut IN (:statuts)')
+                ->setParameter('statuts', ['VALIDE', 'TERMINE']);
+
+            if ($dateHistorique) {
+                $qbHistorique
+                    ->andWhere('v.dateArrivee BETWEEN :debut AND :fin')
+                    ->setParameter('debut', new \DateTime($dateHistorique . ' 00:00:00'))
+                    ->setParameter('fin',   new \DateTime($dateHistorique . ' 23:59:59'));
+            }
+
+            $historiqueVisites = $qbHistorique
+                ->orderBy('v.dateArrivee', 'DESC')
+                ->getQuery()
+                ->getResult();
 
             return $this->render('dashboard/accueil.html.twig', [
-                'visites' => $visites,
-                'chefsService' => $chefsService,
-                'rdvReserves' => $rdvReserves,
-                'userRole' => $roleLabel,
-                'stats' => $stats,
-                'formVisite' => $formVisiteView,
-                'formBon' => $formBonView,
-                'estSiteDistant' => $estSiteDistant,
+                'visites'            => $visites,
+                'visitesAccueillies' => $visitesAccueillies,
+                'chefsService'       => $chefsService,
+                'rdvReserves'        => $rdvReserves,
+                'historiqueVisites'  => $historiqueVisites,
+                'date_historique'    => $dateHistorique,
+                'userRole'           => $roleLabel,
+                'stats'              => $stats,
+                'formVisite'         => $formVisiteView,
+                'formBon'            => $formBonView,
+                'estSiteDistant'     => $estSiteDistant,
             ]);
         }
 
@@ -1062,20 +1105,12 @@ class DashboardController extends AbstractController
         // DG & PDG
         //    🔒 RÈGLE MÉTIER : le DG ne voit que les devis qui lui
         //       ont été transmis dans les 7 derniers jours.
-        //       Au-delà d'une semaine, le devis disparaît de son
-        //       tableau de bord (mais reste en base et accessible
-        //       via d'autres canaux : Compta, Admin, historique).
         // ============================================================
         if ($this->isGranted('ROLE_DG')) {
 
-            // Fenêtre de visibilité : 7 jours en arrière à partir d'aujourd'hui
             $limiteUneSemaine = (new \DateTime('today'))->modify('-7 days')->setTime(0, 0, 0);
             $finAujourdhuiDG  = new \DateTime('today 23:59:59');
 
-            // 📋 Devis visibles par le DG :
-            //   → Uniquement ceux passés par le DG (passageDG = true)
-            //   → ET dont la création est dans les 7 derniers jours
-            //   (logique originale conservée, on ajoute SEULEMENT la limite 7 jours)
             $devisListeDG = $em->getRepository(Devis::class)->createQueryBuilder('d')
                 ->leftJoin('d.user', 'u')
                 ->addSelect('u')
@@ -1112,7 +1147,6 @@ class DashboardController extends AbstractController
                 $articlesParCategorie[$catNom]['count']++;
                 $articlesParCategorie[$catNom]['quantite'] += $qte;
 
-                // 🖨️ Récupération de la machine associée à l'article
                 $machineNom = '';
                 if (method_exists($art, 'getMachine') && $art->getMachine()) {
                     $machineNom = $art->getMachine()->getNom();
@@ -1309,16 +1343,37 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    #[Route('/dashboard/visite/valider-guerite/{id}', name: 'app_visite_valider_guerite', methods: ['POST'])]
-    public function validerGuerite(Visite $visite, EntityManagerInterface $em): Response
+    // ═══════════════════════════════════════════════════════════════
+    // 🎯 ACCUEIL : attester l'accueil d'un visiteur
+    //    Accessible à : Accueil / Réception / Guérite
+    //    Gère 2 cas :
+    //      - Visiteur envoyé par la guérite   (statut A_L_ACCUEIL)
+    //      - Visiteur ayant un RDV réservé    (statut RESERVE)
+    //    → Passe le statut à VALIDE (entre dans l'historique)
+    // ═══════════════════════════════════════════════════════════════
+    #[Route('/dashboard/visite/accueillir/{id}', name: 'app_visite_accueillir', methods: ['POST'])]
+    public function accueillirVisite(Visite $visite, EntityManagerInterface $em): Response
     {
-        if (!$this->isGranted('ROLE_GUERITE')) {
+        if (
+            !$this->isGranted('ROLE_ACCUEIL') &&
+            !$this->isGranted('ROLE_RECEPTION') &&
+            !$this->isGranted('ROLE_GUERITE')
+        ) {
             throw $this->createAccessDeniedException('Accès refusé.');
         }
 
+        if (!in_array($visite->getStatut(), ['A_L_ACCUEIL', 'RESERVE'], true)) {
+            $this->addFlash('warning', '⚠️ Ce visiteur a déjà été accueilli.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
         $visite->setStatut('VALIDE');
+        if (!$visite->getDateArrivee()) {
+            $visite->setDateArrivee(new \DateTime());
+        }
         $em->flush();
-        $this->addFlash('success', '✅ La visite a été validée à la guérite.');
+
+        $this->addFlash('success', '✅ ' . $visite->getNomVisiteur() . ' a bien été accueilli(e).');
         return $this->redirectToRoute('app_dashboard');
     }
 
@@ -1360,13 +1415,59 @@ class DashboardController extends AbstractController
         );
     }
 
-    #[Route('/rapport/excel', name: 'app_rapport_excel')]
-    public function rapportExcel(Request $request): Response
-    {
-        $dateDebut = $request->query->get('date_debut');
-        $dateFin = $request->query->get('date_fin');
-        return new Response("Génération de l'Excel du $dateDebut au $dateFin");
+        #[Route('/rapport/excel', name: 'app_rapport_excel')]
+public function rapportExcel(Request $request, DemandeRepository $demandeRepository): Response
+{
+    $dateDebut = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
+    $dateFin   = $request->query->get('date_fin',   (new \DateTime('today'))->format('Y-m-d'));
+
+    $rapportGlobal = $demandeRepository->createQueryBuilder('d')
+        ->where('d.createdAt BETWEEN :start AND :end')
+        ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+        ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
+        ->orderBy('d.createdAt', 'DESC')
+        ->getQuery()
+        ->getResult();
+
+    // Construire le CSV en mémoire
+    $handle = fopen('php://temp', 'r+');
+
+    // BOM UTF-8 pour qu'Excel affiche correctement les accents
+    fwrite($handle, "\xEF\xBB\xBF");
+
+    // En-têtes de colonnes
+    fputcsv($handle, [
+        'ID',
+        'Date',
+        'Département',
+        'Matériel',
+        'Quantité',
+        'Statut',
+        'Destination',
+    ], ';');   // ⚠️ point-virgule = standard français pour Excel
+
+    // Lignes
+    foreach ($rapportGlobal as $d) {
+        fputcsv($handle, [
+            $d->getId(),
+            $d->getCreatedAt() ? $d->getCreatedAt()->format('d/m/Y H:i') : '',
+            $d->getDepartement(),
+            $d->getMateriel(),
+            $d->getQuantite() ?? 1,
+            $d->getStatut(),
+            $d->getDestination() ?? '—',
+        ], ';');
     }
+
+    rewind($handle);
+    $csvContent = stream_get_contents($handle);
+    fclose($handle);
+
+    return new Response($csvContent, 200, [
+        'Content-Type'        => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.csv"',
+    ]);
+}
 
     #[Route('/dashboard/compta/devis/aiguiller/{id}', name: 'app_devis_aiguiller', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]

@@ -222,6 +222,7 @@
         }
         .flash-ok { background: rgba(16,185,129,.08); border-color: rgba(16,185,129,.20); color: #065f46; }
         .flash-danger { background: rgba(244,63,94,.08); border-color: rgba(244,63,94,.20); color: #9f1239; }
+        .flash-warning { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.25); color: #92400e; }
         .flash-msg .btn-close { margin-left: auto; }
 
         .workspace {
@@ -266,6 +267,9 @@
             background: var(--line-2); color: var(--ink-500);
             padding: .15rem .55rem; border-radius: 999px;
             font-size: .7rem; font-weight: 800;
+        }
+        .side-tab-count.warn {
+            background: rgba(245,158,11,.15); color: #b45309;
         }
         .side-tab:hover { background: #f8faff; color: var(--ink-900); }
         .side-tab.active {
@@ -316,6 +320,14 @@
             background: var(--grad-indigo); color: #fff;
             box-shadow: 0 6px 16px rgba(99,102,241,.28);
         }
+        .chip-count.grad-amber {
+            background: var(--grad-amber); color: #fff;
+            box-shadow: 0 6px 16px rgba(245,158,11,.28);
+        }
+        .chip-count.grad-emerald {
+            background: var(--grad-emerald); color: #fff;
+            box-shadow: 0 6px 16px rgba(16,185,129,.28);
+        }
 
         .visitor-grid {
             display: grid;
@@ -335,6 +347,8 @@
             content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
             background: var(--grad-cyan);
         }
+        .v-card.is-waiting::before { background: var(--grad-amber); }
+        .v-card.is-present::before { background: var(--grad-emerald); }
         .v-card:hover {
             transform: translateY(-4px);
             box-shadow: var(--sh-lg);
@@ -349,6 +363,8 @@
             font-weight: 800; font-size: .95rem; flex-shrink: 0;
             box-shadow: 0 6px 14px rgba(6,182,212,.30);
         }
+        .v-avatar.warn { background: var(--grad-amber); box-shadow: 0 6px 14px rgba(245,158,11,.30); }
+        .v-avatar.ok { background: var(--grad-emerald); box-shadow: 0 6px 14px rgba(16,185,129,.30); }
         .v-name { font-weight: 700; color: var(--ink-900); font-size: .95rem; letter-spacing: -.2px; line-height: 1.2; }
         .v-dept { font-size: .72rem; color: var(--ink-400); font-weight: 600; letter-spacing: .3px; margin-top: .1rem; }
         .v-status {
@@ -359,9 +375,15 @@
             background: rgba(16,185,129,.12); color: #047857;
             letter-spacing: .3px; text-transform: uppercase;
         }
+        .v-status.pending {
+            background: rgba(245,158,11,.15); color: #b45309;
+        }
         .v-status .dot {
             width: 6px; height: 6px; background: #10b981; border-radius: 50%;
             box-shadow: 0 0 0 3px rgba(16,185,129,.20);
+        }
+        .v-status.pending .dot {
+            background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.20);
         }
         .v-body {
             display: flex; flex-direction: column; gap: .4rem;
@@ -370,6 +392,7 @@
         }
         .v-body .row-info { display: flex; align-items: center; gap: .5rem; }
         .v-body .row-info i { color: var(--indigo-2); width: 14px; text-align: center; }
+        .v-actions { display: flex; flex-direction: column; gap: .5rem; }
         .btn-depart {
             display: inline-flex; align-items: center; justify-content: center;
             gap: .5rem; width: 100%; padding: .65rem 1rem;
@@ -381,6 +404,32 @@
         .btn-depart:hover {
             background: var(--grad-indigo); transform: translateY(-2px);
             box-shadow: var(--sh-glow-indigo); color: #fff;
+        }
+        .btn-accueillir {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: .5rem; width: 100%; padding: .7rem 1rem;
+            border: none; border-radius: var(--r-md);
+            background: var(--grad-emerald); color: #fff;
+            font-weight: 800; font-size: .85rem; letter-spacing: .2px;
+            box-shadow: 0 6px 16px rgba(16,185,129,.32);
+        }
+        .btn-accueillir:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(16,185,129,.45); color: #fff;
+        }
+
+        .sub-section-title {
+            display: flex; align-items: center; gap: .6rem;
+            font-size: .95rem; font-weight: 800; color: var(--ink-900);
+            margin: 2rem 0 1rem;
+            padding-bottom: .6rem;
+            border-bottom: 1px solid var(--line);
+        }
+        .sub-section-title.mt-0 { margin-top: 0; }
+        .sub-section-title .badge-mini {
+            background: var(--line-2); color: var(--ink-500);
+            font-size: .7rem; padding: .2rem .6rem;
+            border-radius: 6px; font-weight: 700;
         }
 
         .empty-box { text-align: center; padding: clamp(3rem, 6vw, 5rem) 1rem; }
@@ -456,12 +505,6 @@
         }
         .form-wrap .form-control::placeholder { color: var(--ink-300); font-weight: 400; }
 
-        .form-wrap .form-control[readonly] {
-            background: #f8fafc;
-            color: var(--ink-500);
-            cursor: not-allowed;
-        }
-
         .btn-form-submit {
             display: inline-flex; align-items: center; justify-content: center;
             gap: .6rem; width: 100%; padding: .95rem 1.5rem;
@@ -504,6 +547,31 @@
         .tag-cyan { background: rgba(6,182,212,.10); color: #0e7490; }
         .tag-amber { background: rgba(245,158,11,.12); color: #b45309; }
         .tag-emerald { background: rgba(16,185,129,.12); color: #047857; }
+        .tag-rose { background: rgba(244,63,94,.10); color: #be123c; }
+
+        /* 📞 Lien téléphone cliquable */
+        .phone-link {
+            display: inline-flex; align-items: center; gap: .4rem;
+            color: var(--indigo);
+            text-decoration: none;
+            font-weight: 700; font-size: .85rem;
+            font-family: 'JetBrains Mono', 'Inter', monospace;
+            letter-spacing: -.3px;
+        }
+        .phone-link i {
+            font-size: .8rem;
+            color: var(--indigo-2);
+        }
+        .phone-link:hover {
+            color: var(--violet);
+            text-decoration: underline;
+        }
+        .phone-link:hover i { color: var(--violet); }
+        .phone-empty {
+            color: var(--ink-300);
+            font-style: italic;
+            font-size: .82rem;
+        }
 
         .btn-accept {
             display: inline-flex; align-items: center; gap: .4rem;
@@ -574,6 +642,111 @@
         }
         .chef-panel .field { margin-bottom: 0; }
 
+        /* ═══════════════════════════════════════════════════════
+           HISTORIQUE — FILTRE & STATS
+        ═══════════════════════════════════════════════════════ */
+        .filter-card {
+            background: linear-gradient(135deg, rgba(99,102,241,.05), rgba(6,182,212,.03));
+            border: 1px solid rgba(99,102,241,.18);
+            border-radius: var(--r-lg);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .filter-form {
+            display: flex;
+            gap: .75rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+        .filter-form .filter-field {
+            flex: 1;
+            min-width: 200px;
+        }
+        .filter-form .filter-field label {
+            display: block;
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--ink-500);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: .5rem;
+        }
+        .filter-form .filter-field input {
+            width: 100%;
+            padding: .7rem 1rem;
+            border: 1.5px solid var(--line);
+            border-radius: var(--r-md);
+            background: #fff;
+            font-size: .88rem;
+            font-weight: 500;
+            color: var(--ink-900);
+        }
+        .filter-form .filter-field input:focus {
+            outline: none;
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 4px rgba(99,102,241,.12);
+        }
+        .btn-filter {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .72rem 1.35rem;
+            border: none; border-radius: var(--r-md);
+            background: var(--grad-indigo); color: #fff;
+            font-weight: 700; font-size: .85rem;
+            box-shadow: 0 6px 16px rgba(99,102,241,.28);
+            white-space: nowrap;
+        }
+        .btn-filter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(99,102,241,.45); color: #fff;
+        }
+        .btn-reset {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px;
+            border: 1.5px solid var(--line); border-radius: var(--r-md);
+            background: #fff; color: var(--ink-500);
+            text-decoration: none;
+        }
+        .btn-reset:hover {
+            background: var(--line-2); color: var(--ink-900);
+            transform: translateY(-2px);
+        }
+
+        .histo-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .75rem;
+            margin-bottom: 1.5rem;
+        }
+        .histo-stat {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: var(--r-md);
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: .85rem;
+        }
+        .histo-stat-icon {
+            width: 44px; height: 44px; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 12px; color: #fff; font-size: 1rem;
+        }
+        .histo-stat-icon.indigo { background: var(--grad-indigo); box-shadow: 0 6px 14px rgba(99,102,241,.30); }
+        .histo-stat-icon.emerald { background: var(--grad-emerald); box-shadow: 0 6px 14px rgba(16,185,129,.30); }
+        .histo-stat-icon.amber { background: var(--grad-amber); box-shadow: 0 6px 14px rgba(245,158,11,.30); }
+        .histo-stat-text {
+            display: flex; flex-direction: column; line-height: 1.2;
+        }
+        .histo-stat-value {
+            font-size: 1.5rem; font-weight: 800; color: var(--ink-900);
+            letter-spacing: -.5px;
+        }
+        .histo-stat-label {
+            font-size: .72rem; color: var(--ink-400);
+            font-weight: 700; text-transform: uppercase;
+            letter-spacing: .5px; margin-top: 2px;
+        }
+
         @media (max-width: 992px) {
             .workspace { grid-template-columns: 1fr; gap: 1rem; }
             .side-nav {
@@ -585,6 +758,7 @@
             .side-tab { flex-shrink: 0; width: auto; padding: .65rem .9rem; margin: 0; }
             .side-tab-text { white-space: nowrap; font-size: .82rem; }
             .side-tab-icon { width: 32px; height: 32px; font-size: .78rem; }
+            .histo-stats { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
             .hero-inner { flex-direction: column; align-items: flex-start; }
@@ -597,6 +771,10 @@
             .visitor-grid { grid-template-columns: 1fr; }
             .form-hero-icon { width: 56px; height: 56px; font-size: 1.3rem; }
             .dest-grid { grid-template-columns: 1fr; }
+            .filter-form { flex-direction: column; align-items: stretch; }
+            .filter-form .filter-field { min-width: 0; }
+            .btn-filter { width: 100%; justify-content: center; }
+            .btn-reset { width: 100%; }
         }
         @media (max-width: 480px) {
             .app-shell { padding: 1rem .75rem; }
@@ -649,29 +827,39 @@
                     </div>
                     <h1 class="hero-title">Bienvenue à l'Accueil</h1>
                     <p class="hero-subtitle">
-                        Gérez le registre des présences, planifiez des visites et créez des bons de sortie de matériel — tout en un seul endroit.
+                        Accueillez les visiteurs validés par la guérite, enregistrez les passages directs et honorez les rendez-vous planifiés.
                     </p>
                 </div>
 
                 <div class="hero-stats">
                     <div class="hero-stat">
                         <div class="hero-stat-label">
-                            <i class="fas fa-users me-1"></i> Présents
+                            <i class="fas fa-hourglass-half me-1"></i> À accueillir
                         </div>
                         <div class="hero-stat-value">
-                            <i class="fas fa-user-check"></i>
-                            {{ visites|length }}
-                            <small>visiteur(s)</small>
+                            <i class="fas fa-user-clock"></i>
+                            {{ visites|default([])|length }}
+                            <small>en attente</small>
                         </div>
                     </div>
                     <div class="hero-stat">
                         <div class="hero-stat-label">
-                            <i class="fas fa-calendar me-1"></i> Réservations
+                            <i class="fas fa-user-check me-1"></i> Présents
+                        </div>
+                        <div class="hero-stat-value">
+                            <i class="fas fa-users"></i>
+                            {{ visitesAccueillies|default([])|length }}
+                            <small>dans l'enceinte</small>
+                        </div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-label">
+                            <i class="fas fa-calendar me-1"></i> RDV planifiés
                         </div>
                         <div class="hero-stat-value">
                             <i class="fas fa-calendar-check"></i>
                             {{ rdvReserves|default([])|length }}
-                            <small>RDV</small>
+                            <small>réservés</small>
                         </div>
                     </div>
                 </div>
@@ -681,8 +869,8 @@
         {# FLASH #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
-                <div class="flash-msg {% if label == 'danger' %}flash-danger{% else %}flash-ok{% endif %} alert-dismissible fade show" role="alert">
-                    <i class="fas {% if label == 'danger' %}fa-exclamation-triangle{% else %}fa-check-circle{% endif %}"></i>
+                <div class="flash-msg {% if label == 'danger' %}flash-danger{% elseif label == 'warning' %}flash-warning{% else %}flash-ok{% endif %} alert-dismissible fade show" role="alert">
+                    <i class="fas {% if label == 'danger' %}fa-exclamation-triangle{% elseif label == 'warning' %}fa-info-circle{% else %}fa-check-circle{% endif %}"></i>
                     <span>{{ message }}</span>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
                 </div>
@@ -701,9 +889,13 @@
                         data-bs-target="#registre-pane"
                         type="button" role="tab"
                         aria-controls="registre-pane" aria-selected="true">
-                    <span class="side-tab-icon"><i class="fas fa-users"></i></span>
-                    <span class="side-tab-text">Visiteurs présents</span>
-                    <span class="side-tab-count">{{ visites|length }}</span>
+                    <span class="side-tab-icon"><i class="fas fa-door-open"></i></span>
+                    <span class="side-tab-text">Registre visiteurs</span>
+                    {% if visites|default([])|length > 0 %}
+                        <span class="side-tab-count warn">{{ visites|length }}</span>
+                    {% elseif visitesAccueillies|default([])|length > 0 %}
+                        <span class="side-tab-count">{{ visitesAccueillies|length }}</span>
+                    {% endif %}
                 </button>
 
                 <button class="side-tab"
@@ -712,8 +904,8 @@
                         data-bs-target="#visite-pane"
                         type="button" role="tab"
                         aria-controls="visite-pane" aria-selected="false">
-                    <span class="side-tab-icon"><i class="fas fa-calendar-plus"></i></span>
-                    <span class="side-tab-text">Enregistrer visite</span>
+                    <span class="side-tab-icon"><i class="fas fa-user-plus"></i></span>
+                    <span class="side-tab-text">Enregistrer passage</span>
                 </button>
 
                 <button class="side-tab"
@@ -724,7 +916,23 @@
                         aria-controls="rdv-pane" aria-selected="false">
                     <span class="side-tab-icon"><i class="fas fa-calendar-check"></i></span>
                     <span class="side-tab-text">Rendez-vous</span>
-                    <span class="side-tab-count">{{ rdvReserves|default([])|length }}</span>
+                    {% if rdvReserves|default([])|length > 0 %}
+                        <span class="side-tab-count">{{ rdvReserves|length }}</span>
+                    {% endif %}
+                </button>
+
+                {# ═══ ONGLET HISTORIQUE ═══ #}
+                <button class="side-tab"
+                        id="historique-tab"
+                        data-bs-toggle="tab"
+                        data-bs-target="#historique-pane"
+                        type="button" role="tab"
+                        aria-controls="historique-pane" aria-selected="false">
+                    <span class="side-tab-icon"><i class="fas fa-history"></i></span>
+                    <span class="side-tab-text">Historique</span>
+                    {% if historiqueVisites|default([])|length > 0 %}
+                        <span class="side-tab-count">{{ historiqueVisites|length }}</span>
+                    {% endif %}
                 </button>
 
                 <button class="side-tab"
@@ -741,7 +949,9 @@
             <main class="content-area">
                 <div class="tab-content" id="accueilTabContent">
 
-                    {# ONGLET 1 : VISITEURS PRÉSENTS #}
+                    {# ═══════════════════════════════════════════════════════
+                       ONGLET 1 : REGISTRE DES VISITEURS
+                    ═══════════════════════════════════════════════════════ #}
                     <div class="tab-pane fade show active"
                          id="registre-pane"
                          role="tabpanel"
@@ -750,26 +960,74 @@
 
                         <div class="sec-head">
                             <div class="sec-head-left">
-                                <div class="sec-head-icon grad-cyan">
-                                    <i class="fas fa-user-check"></i>
+                                <div class="sec-head-icon grad-amber">
+                                    <i class="fas fa-user-clock"></i>
                                 </div>
                                 <div>
-                                    <h3 class="sec-head-title">Registre des visiteurs</h3>
-                                    <p class="sec-head-sub">Visiteurs actuellement présents dans l'enceinte</p>
+                                    <h3 class="sec-head-title">Visiteurs à accueillir</h3>
+                                    <p class="sec-head-sub">Personnes validées par la guérite, en attente de votre accueil</p>
                                 </div>
                             </div>
-                            <span class="chip-count grad">
-                                <i class="fas fa-circle" style="font-size:.5rem;"></i>
-                                {{ visites|length }} présent(s)
+                            <span class="chip-count grad-amber">
+                                <i class="fas fa-hourglass-half"></i>
+                                {{ visites|default([])|length }} en attente
                             </span>
                         </div>
 
-                        {% if visites|length > 0 %}
+                        {% if visites|default([])|length > 0 %}
                             <div class="visitor-grid">
                                 {% for v in visites %}
-                                    <article class="v-card">
+                                    <article class="v-card is-waiting">
                                         <div class="v-card-head">
-                                            <div class="v-avatar">{{ v.nomVisiteur|first|upper }}</div>
+                                            <div class="v-avatar warn">{{ v.nomVisiteur|first|upper }}</div>
+                                            <div style="min-width:0; flex:1;">
+                                                <div class="v-name text-truncate">{{ v.nomVisiteur }}</div>
+                                                <div class="v-dept text-truncate">{{ v.departement }}</div>
+                                            </div>
+                                            <span class="v-status pending"><span class="dot"></span> En attente</span>
+                                        </div>
+                                        <div class="v-body">
+                                            <div class="row-info"><i class="fas fa-info-circle"></i><span>{{ v.motif }}</span></div>
+                                            <div class="row-info">
+                                                <i class="fas fa-clock"></i>
+                                                <span>Enregistré à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span>
+                                            </div>
+                                            {% if v.telephone %}
+                                                <div class="row-info"><i class="fas fa-phone"></i><span>{{ v.telephone }}</span></div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="v-actions">
+                                            <form action="{{ path('app_visite_accueillir', {'id': v.id}) }}" method="POST">
+                                                <button type="submit" class="btn-accueillir">
+                                                    <i class="fas fa-check-circle"></i> Attester l'accueil
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-box">
+                                <div class="empty-illustration" style="background: var(--grad-emerald); box-shadow: 0 16px 40px rgba(16,185,129,.30);">
+                                    <i class="fas fa-check-double"></i>
+                                </div>
+                                <h4>Aucun visiteur en attente</h4>
+                                <p>Tous les visiteurs validés par la guérite ont été accueillis.</p>
+                            </div>
+                        {% endif %}
+
+                        {% if visitesAccueillies|default([])|length > 0 %}
+                            <div class="sub-section-title">
+                                <i class="fas fa-users" style="color: var(--emerald);"></i>
+                                <span>Visiteurs actuellement présents</span>
+                                <span class="badge-mini">{{ visitesAccueillies|length }}</span>
+                            </div>
+
+                            <div class="visitor-grid">
+                                {% for v in visitesAccueillies %}
+                                    <article class="v-card is-present">
+                                        <div class="v-card-head">
+                                            <div class="v-avatar ok">{{ v.nomVisiteur|first|upper }}</div>
                                             <div style="min-width:0; flex:1;">
                                                 <div class="v-name text-truncate">{{ v.nomVisiteur }}</div>
                                                 <div class="v-dept text-truncate">{{ v.departement }}</div>
@@ -778,26 +1036,31 @@
                                         </div>
                                         <div class="v-body">
                                             <div class="row-info"><i class="fas fa-info-circle"></i><span>{{ v.motif }}</span></div>
-                                            <div class="row-info"><i class="fas fa-clock"></i><span>Arrivée à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span></div>
+                                            <div class="row-info">
+                                                <i class="fas fa-clock"></i>
+                                                <span>Entrée à {{ v.dateArrivee ? v.dateArrivee|date('H:i') : 'N/A' }}</span>
+                                            </div>
+                                            {% if v.telephone %}
+                                                <div class="row-info"><i class="fas fa-phone"></i><span>{{ v.telephone }}</span></div>
+                                            {% endif %}
                                         </div>
-                                        <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST">
-                                            <button type="submit" class="btn-depart">
-                                                <i class="fas fa-door-open"></i>Signaler le départ
-                                            </button>
-                                        </form>
+                                        <div class="v-actions">
+                                            <form action="{{ path('app_visite_cloturer', {'id': v.id}) }}" method="POST"
+                                                  onsubmit="return confirm('Confirmer le départ de {{ v.nomVisiteur|e('js') }} ?');">
+                                                <button type="submit" class="btn-depart">
+                                                    <i class="fas fa-door-open"></i> Signaler le départ
+                                                </button>
+                                            </form>
+                                        </div>
                                     </article>
                                 {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="empty-box">
-                                <div class="empty-illustration"><i class="fas fa-user-clock"></i></div>
-                                <h4>Aucun visiteur présent</h4>
-                                <p>Les visiteurs enregistrés par la guérite apparaîtront ici automatiquement.</p>
                             </div>
                         {% endif %}
                     </div>
 
-                    {# ONGLET 2 : FORMULAIRE VISITE #}
+                    {# ═══════════════════════════════════════════════════════
+                       ONGLET 2 : ENREGISTRER UN PASSAGE DIRECT
+                    ═══════════════════════════════════════════════════════ #}
                     <div class="tab-pane fade"
                          id="visite-pane"
                          role="tabpanel"
@@ -805,9 +1068,12 @@
                          tabindex="0">
                         <div class="form-wrap">
                             <div class="form-hero">
-                                <div class="form-hero-icon grad-emerald"><i class="fas fa-id-card"></i></div>
-                                <h4>Nouvelle fiche visiteur</h4>
-                                <p>Planifier l'accès d'un tiers dans l'imprimerie</p>
+                                <div class="form-hero-icon grad-emerald"><i class="fas fa-user-plus"></i></div>
+                                <h4>Enregistrer un passage direct</h4>
+                                <p>
+                                    Pour un visiteur qui s'est présenté sans être tracé par la guérite.<br>
+                                    <span style="font-size:.78rem; color:var(--ink-300);">(Étape facultative — le visiteur entre immédiatement dans l'enceinte)</span>
+                                </p>
                             </div>
 
                             {% if formVisite is defined and formVisite is not null %}
@@ -818,7 +1084,7 @@
                                             {{ form_widget(formVisite.nomVisiteur, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Jean Dupont'}}) }}
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="field-label"><i class="fas fa-building"></i>Département <span class="req">*</span></label>
+                                            <label class="field-label"><i class="fas fa-building"></i>Département visité <span class="req">*</span></label>
                                             {{ form_widget(formVisite.departement, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Production'}}) }}
                                         </div>
                                         <div class="col-12">
@@ -839,18 +1105,20 @@
                                         </div>
                                     </div>
                                     <button type="submit" class="btn-form-submit">
-                                        <i class="fas fa-check-circle"></i>Enregistrer et réserver
+                                        <i class="fas fa-check-circle"></i>Enregistrer et accueillir
                                     </button>
                                 {{ form_end(formVisite) }}
                             {% else %}
                                 <div class="alert alert-warning rounded-3 border-0">
-                                    <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire de visite n'est pas disponible.
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Le formulaire n'est pas disponible.
                                 </div>
                             {% endif %}
                         </div>
                     </div>
 
-                    {# ONGLET 3 : RENDEZ-VOUS #}
+                    {# ═══════════════════════════════════════════════════════
+                       ONGLET 3 : RENDEZ-VOUS
+                    ═══════════════════════════════════════════════════════ #}
                     <div class="tab-pane fade"
                          id="rdv-pane"
                          role="tabpanel"
@@ -861,8 +1129,8 @@
                             <div class="sec-head-left">
                                 <div class="sec-head-icon grad-indigo"><i class="fas fa-calendar-alt"></i></div>
                                 <div>
-                                    <h3 class="sec-head-title">Rendez-vous réservés</h3>
-                                    <p class="sec-head-sub">Réservations planifiées en attente d'accueil</p>
+                                    <h3 class="sec-head-title">Rendez-vous planifiés</h3>
+                                    <p class="sec-head-sub">Réservations faites par les agents — à honorer à la présentation du visiteur</p>
                                 </div>
                             </div>
                             <span class="chip-count grad">
@@ -876,9 +1144,10 @@
                                     <thead>
                                         <tr>
                                             <th>Visiteur</th>
+                                            <th>Téléphone</th>
                                             <th>Département</th>
                                             <th>Motif</th>
-                                            <th>Date</th>
+                                            <th>Date prévue</th>
                                             <th>Statut</th>
                                             <th class="text-center">Action</th>
                                         </tr>
@@ -894,6 +1163,15 @@
                                                         <strong style="color:var(--ink-900);">{{ rdv.nomVisiteur }}</strong>
                                                     </div>
                                                 </td>
+                                                <td>
+                                                    {% if rdv.telephone %}
+                                                        <a href="tel:{{ rdv.telephone }}" class="phone-link">
+                                                            <i class="fas fa-phone"></i>{{ rdv.telephone }}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="phone-empty">Non renseigné</span>
+                                                    {% endif %}
+                                                </td>
                                                 <td><span class="tag tag-cyan">{{ rdv.departement }}</span></td>
                                                 <td style="color: var(--ink-500);">{{ rdv.motif }}</td>
                                                 <td style="color: var(--ink-500); font-size:.82rem;">
@@ -901,7 +1179,8 @@
                                                 </td>
                                                 <td><span class="tag tag-amber"><i class="fas fa-clock"></i> En attente</span></td>
                                                 <td class="text-center">
-                                                    <form action="{{ path('app_visite_valider_guerite', {'id': rdv.id}) }}" method="POST" class="d-inline">
+                                                    <form action="{{ path('app_visite_accueillir', {'id': rdv.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('Confirmer l\'accueil de {{ rdv.nomVisiteur|e('js') }} ?');">
                                                         <button type="submit" class="btn-accept">
                                                             <i class="fas fa-check"></i> Accueillir
                                                         </button>
@@ -910,13 +1189,13 @@
                                             </tr>
                                         {% else %}
                                             <tr>
-                                                <td colspan="6">
+                                                <td colspan="7">
                                                     <div class="empty-box" style="padding: 3rem 1rem;">
                                                         <div class="empty-illustration" style="width:80px;height:80px;font-size:1.8rem;">
                                                             <i class="fas fa-calendar-times"></i>
                                                         </div>
                                                         <h4 style="font-size:1.05rem;">Aucun rendez-vous réservé</h4>
-                                                        <p style="font-size:.85rem;">Les rendez-vous planifiés apparaîtront ici.</p>
+                                                        <p style="font-size:.85rem;">Les réservations faites par les agents apparaîtront ici.</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -927,7 +1206,175 @@
                         </div>
                     </div>
 
-                    {# ONGLET 4 : BON DE SORTIE — ✅ CORRIGÉ #}
+                    {# ═══════════════════════════════════════════════════════
+                       ✅ ONGLET 4 : HISTORIQUE DES PASSAGES
+                       Colonnes : # · Visiteur · Téléphone · Département ·
+                                  Motif · Arrivée · Statut
+                    ═══════════════════════════════════════════════════════ #}
+                    <div class="tab-pane fade"
+                         id="historique-pane"
+                         role="tabpanel"
+                         aria-labelledby="historique-tab"
+                         tabindex="0">
+
+                        <div class="sec-head">
+                            <div class="sec-head-left">
+                                <div class="sec-head-icon grad-cyan">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <div>
+                                    <h3 class="sec-head-title">Historique des passages</h3>
+                                    <p class="sec-head-sub">Tous les visiteurs passés par l'accueil — filtrables par date</p>
+                                </div>
+                            </div>
+                            <span class="chip-count grad">
+                                <i class="fas fa-list me-1"></i>{{ historiqueVisites|default([])|length }} entrée(s)
+                            </span>
+                        </div>
+
+                        {# 🔹 Filtre par date #}
+                        <div class="filter-card">
+                            <form method="get" action="{{ path('app_dashboard') }}" class="filter-form">
+                                <input type="hidden" name="tab" value="historique">
+
+                                <div class="filter-field">
+                                    <label for="date_historique">
+                                        <i class="fas fa-calendar-day me-1"></i>Choisir la date
+                                    </label>
+                                    <input type="date"
+                                           id="date_historique"
+                                           name="date_historique"
+                                           value="{{ date_historique|default('now'|date('Y-m-d')) }}">
+                                </div>
+
+                                <button type="submit" class="btn-filter">
+                                    <i class="fas fa-search"></i> Filtrer
+                                </button>
+
+                                <a href="{{ path('app_dashboard', {'tab': 'historique'}) }}"
+                                   class="btn-reset"
+                                   title="Aujourd'hui">
+                                    <i class="fas fa-rotate"></i>
+                                </a>
+                            </form>
+                        </div>
+
+                        {# 🔹 Statistiques du jour #}
+                        {% set totalHisto = historiqueVisites|default([])|length %}
+                        {% set totalPresents = historiqueVisites|default([])|filter(v => v.statut == 'VALIDE')|length %}
+                        {% set totalPartis = historiqueVisites|default([])|filter(v => v.statut == 'TERMINE')|length %}
+
+                        {% if totalHisto > 0 %}
+                        <div class="histo-stats">
+                            <div class="histo-stat">
+                                <div class="histo-stat-icon indigo"><i class="fas fa-users"></i></div>
+                                <div class="histo-stat-text">
+                                    <span class="histo-stat-value">{{ totalHisto }}</span>
+                                    <span class="histo-stat-label">Total passages</span>
+                                </div>
+                            </div>
+                            <div class="histo-stat">
+                                <div class="histo-stat-icon emerald"><i class="fas fa-user-check"></i></div>
+                                <div class="histo-stat-text">
+                                    <span class="histo-stat-value">{{ totalPresents }}</span>
+                                    <span class="histo-stat-label">Encore sur site</span>
+                                </div>
+                            </div>
+                            <div class="histo-stat">
+                                <div class="histo-stat-icon amber"><i class="fas fa-door-closed"></i></div>
+                                <div class="histo-stat-text">
+                                    <span class="histo-stat-value">{{ totalPartis }}</span>
+                                    <span class="histo-stat-label">Déjà sortis</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {# 🔹 Tableau de l'historique #}
+                        <div class="table-wrap">
+                            <div class="table-responsive">
+                                <table class="table-mod">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Visiteur</th>
+                                            <th>Téléphone</th>
+                                            <th>Département</th>
+                                            <th>Motif</th>
+                                            <th>Arrivée</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for v in historiqueVisites|default([]) %}
+                                            <tr>
+                                                <td style="color: var(--ink-400); font-weight: 700; font-size:.78rem;">
+                                                    {{ loop.index }}
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="v-avatar {% if v.statut == 'VALIDE' %}ok{% else %}warn{% endif %}"
+                                                             style="width:36px;height:36px;font-size:.8rem;border-radius:10px;">
+                                                            {{ v.nomVisiteur|first|upper }}
+                                                        </div>
+                                                        <strong style="color:var(--ink-900); font-weight:700;">
+                                                            {{ v.nomVisiteur }}
+                                                        </strong>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% if v.telephone %}
+                                                        <a href="tel:{{ v.telephone }}" class="phone-link">
+                                                            <i class="fas fa-phone"></i>{{ v.telephone }}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="phone-empty">Non renseigné</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td><span class="tag tag-cyan">{{ v.departement }}</span></td>
+                                                <td style="color: var(--ink-500); font-size:.85rem;">{{ v.motif }}</td>
+                                                <td style="color: var(--ink-500); font-size:.82rem;">
+                                                    <i class="far fa-clock me-1" style="color:var(--indigo-2);"></i>
+                                                    {{ v.dateArrivee ? v.dateArrivee|date('H:i') : '—' }}
+                                                </td>
+                                                <td>
+                                                    {% if v.statut == 'VALIDE' %}
+                                                        <span class="tag tag-emerald">
+                                                            <i class="fas fa-circle" style="font-size:.5rem;"></i> Présent
+                                                        </span>
+                                                    {% elseif v.statut == 'TERMINE' %}
+                                                        <span class="tag tag-rose">
+                                                            <i class="fas fa-check"></i> Sorti
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="tag">{{ v.statut }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="7">
+                                                    <div class="empty-box" style="padding: 3.5rem 1rem;">
+                                                        <div class="empty-illustration" style="width:90px;height:90px;font-size:1.9rem;">
+                                                            <i class="fas fa-calendar-times"></i>
+                                                        </div>
+                                                        <h4 style="font-size:1.05rem;">Aucun passage à cette date</h4>
+                                                        <p style="font-size:.85rem;">
+                                                            Modifiez la date du filtre pour consulter d'autres journées.
+                                                        </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ═══════════════════════════════════════════════════════
+                       ONGLET 5 : BON DE SORTIE
+                    ═══════════════════════════════════════════════════════ #}
                     <div class="tab-pane fade"
                          id="bon-pane"
                          role="tabpanel"
@@ -946,7 +1393,6 @@
                             {% if formBon is defined and formBon is not null %}
                                 {{ form_start(formBon) }}
 
-                                    {# ✅ NOM DE L'AGENT — ÉDITABLE #}
                                     <div class="field">
                                         <label class="field-label">
                                             <i class="fas fa-user"></i>Nom de l'agent <span class="req">*</span>
@@ -963,7 +1409,6 @@
                                         </small>
                                     </div>
 
-                                    {# ✅ DÉPARTEMENT DE L'AGENT — ÉDITABLE #}
                                     <div class="field">
                                         <label class="field-label">
                                             <i class="fas fa-building"></i>Département de l'agent <span class="req">*</span>
@@ -1083,8 +1528,21 @@
             });
         });
 
+        // 🔹 Priorité au paramètre ?tab=historique
+        const params = new URLSearchParams(window.location.search);
+        const tabParam = params.get('tab');
         const urlHash = window.location.hash;
-        if (urlHash) {
+
+        if (tabParam === 'historique') {
+            const trigger = document.querySelector('.side-tab[data-bs-target="#historique-pane"]');
+            if (trigger) {
+                document.querySelectorAll('.side-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show', 'active'));
+                trigger.classList.add('active');
+                const target = document.querySelector('#historique-pane');
+                if (target) target.classList.add('show', 'active');
+            }
+        } else if (urlHash) {
             const trigger = document.querySelector(`.side-tab[data-bs-target="${urlHash}"]`);
             if (trigger) {
                 document.querySelectorAll('.side-tab').forEach(b => b.classList.remove('active'));
@@ -1098,7 +1556,12 @@
         tabButtons.forEach(btn => {
             btn.addEventListener('shown.bs.tab', function () {
                 const target = this.getAttribute('data-bs-target');
-                if (target) history.replaceState(null, null, target);
+                if (target) {
+                    const tab = target.replace('#', '').replace('-pane', '');
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', tab);
+                    history.replaceState(null, null, url.toString());
+                }
             });
         });
     });
