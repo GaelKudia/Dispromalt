@@ -125,9 +125,9 @@ jobs:
       #   - head_repository == this repo   (pas de fork)
       # Aucun code non fiable ne peut donc atteindre cette étape.
       # ======================================================
-
+        
+      # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
       - name: Checkout tested commit
-        # nosemgrep: yaml.github-actions.security.workflow-run-target-code-checkout.workflow-run-target-code-checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
