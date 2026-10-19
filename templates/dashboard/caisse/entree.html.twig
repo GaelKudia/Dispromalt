@@ -1,88 +1,919 @@
 {% extends 'base.html.twig' %}
 {% block title %}Entrée de caisse - Dispromalt{% endblock %}
 
-{% block main_content %}
-<div class="container-fluid py-4">
+{% block stylesheets %}
+<style>
+    :root {
+        --primary: #10b981;
+        --primary-dark: #059669;
+        --primary-soft: rgba(16, 185, 129, 0.10);
+        --indigo: #6366f1;
+        --indigo-soft: rgba(99, 102, 241, 0.10);
+        --ink-900: #0f172a;
+        --ink-700: #334155;
+        --ink-500: #64748b;
+        --ink-400: #94a3b8;
+        --line: #e2e8f0;
+        --bg-soft: #f8fafc;
+    }
 
-    <div class="row mb-4">
-        <div class="col-12 d-flex justify-content-between align-items-center">
-            <div>
-                <h1 class="h3 fw-bold text-dark mb-1">
-                    <i class="fa-solid fa-arrow-down text-success me-2"></i>Nouvelle entrée de fonds
-                </h1>
-                <p class="text-muted mb-0">Enregistrez une entrée en caisse et imprimez le reçu.</p>
+    .entry-page {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       BANDEAU DE SUCCÈS
+    ═══════════════════════════════════════════════════════ */
+    .success-banner {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1.5px solid rgba(16, 185, 129, 0.35);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.75rem;
+        animation: slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 8px 20px -6px rgba(16, 185, 129, 0.25);
+    }
+    .success-banner-head {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 1.15rem;
+    }
+    .success-banner-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        box-shadow: 0 6px 14px rgba(16, 185, 129, 0.35);
+        flex-shrink: 0;
+        animation: checkPop 0.5s ease;
+    }
+    @keyframes checkPop {
+        0% { transform: scale(0); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+    .success-banner-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #065f46;
+        margin: 0;
+    }
+    .success-banner-sub {
+        font-size: 0.82rem;
+        color: #047857;
+        margin: 0.15rem 0 0;
+        font-weight: 500;
+    }
+    .success-banner-recap {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding: 0.85rem 1.15rem;
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 11px;
+        margin-bottom: 1.15rem;
+        border: 1px solid rgba(16, 185, 129, 0.20);
+    }
+    .success-recap-item {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.25;
+    }
+    .success-recap-label {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #047857;
+        margin-bottom: 0.15rem;
+    }
+    .success-recap-value {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #065f46;
+        letter-spacing: -0.2px;
+    }
+
+    .success-actions {
+        display: flex;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+    }
+    .btn-success-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.7rem 1.2rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.15s;
+        cursor: pointer;
+        border: none;
+    }
+    .btn-success-print {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+    .btn-success-print:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.45);
+        color: #fff;
+    }
+    .btn-success-new {
+        background: #fff;
+        color: var(--ink-700);
+        border: 1.5px solid rgba(16, 185, 129, 0.35);
+    }
+    .btn-success-new:hover {
+        background: rgba(16, 185, 129, 0.08);
+        color: var(--ink-900);
+    }
+
+    /* HERO */
+    .entry-hero {
+        position: relative;
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+        border: 1px solid rgba(16, 185, 129, 0.20);
+        border-radius: 20px;
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .entry-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.20), transparent 70%);
+        border-radius: 50%;
+    }
+    .entry-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: -40px;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
+        border-radius: 50%;
+    }
+    .entry-hero-inner { position: relative; z-index: 1; }
+    .entry-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        border: 1px solid rgba(16, 185, 129, 0.30);
+        color: var(--primary-dark);
+        padding: 0.35rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+    .entry-hero h1 {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: var(--ink-900);
+        letter-spacing: -0.5px;
+        margin: 0 0 0.4rem;
+    }
+    .entry-hero p {
+        color: var(--ink-500);
+        font-size: 0.92rem;
+        margin: 0;
+    }
+
+    /* TOOLBAR */
+    .entry-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-decoration: none;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--ink-700);
+        transition: all 0.15s;
+    }
+    .btn-ghost:hover {
+        background: var(--bg-soft);
+        border-color: #cbd5e1;
+        color: var(--ink-900);
+        transform: translateY(-1px);
+    }
+    .btn-ghost.primary {
+        border-color: rgba(99, 102, 241, 0.30);
+        color: var(--indigo);
+        background: var(--indigo-soft);
+    }
+    .btn-ghost.primary:hover {
+        background: rgba(99, 102, 241, 0.15);
+        color: #4338ca;
+    }
+
+    /* CARTE FORMULAIRE */
+    .form-card {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.06), 0 2px 8px -2px rgba(15, 23, 42, 0.03);
+        overflow: hidden;
+    }
+    .form-card-head {
+        padding: 1.35rem 2rem;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, #ffffff, #fafbfc);
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+    .form-card-head-icon {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.05rem;
+        box-shadow: 0 6px 14px rgba(16, 185, 129, 0.30);
+        flex-shrink: 0;
+    }
+    .form-card-head h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--ink-900);
+        letter-spacing: -0.2px;
+    }
+    .form-card-head small {
+        display: block;
+        color: var(--ink-400);
+        font-size: 0.78rem;
+        font-weight: 500;
+        margin-top: 1px;
+    }
+
+    .form-card-body { padding: 2rem; }
+
+    /* CHAMPS */
+    .field {
+        margin-bottom: 1.35rem;
+        position: relative;
+    }
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--ink-500);
+        margin-bottom: 0.55rem;
+    }
+    .field-label .req { color: #ef4444; margin-left: 2px; font-size: 0.85rem; }
+    .field-label i {
+        color: var(--primary);
+        font-size: 0.75rem;
+        width: 14px;
+        text-align: center;
+    }
+
+    .field-wrap { position: relative; }
+    .field-wrap .field-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--ink-400);
+        font-size: 0.9rem;
+        pointer-events: none;
+        transition: color 0.2s ease;
+        z-index: 2;
+    }
+    .field-wrap:focus-within .field-icon { color: var(--primary); }
+
+    .field-wrap input,
+    .field-wrap select {
+        width: 100%;
+        border-radius: 12px;
+        border: 1.5px solid var(--line);
+        padding: 0.85rem 1rem 0.85rem 2.75rem;
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: var(--ink-900);
+        background: #fff;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+    }
+    .field-wrap input::placeholder { color: var(--ink-400); font-weight: 400; }
+    .field-wrap input:hover,
+    .field-wrap select:hover {
+        border-color: #cbd5e1;
+        background: #fefefe;
+    }
+    .field-wrap input:focus,
+    .field-wrap select:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: #fff;
+        box-shadow:
+            0 0 0 4px var(--primary-soft),
+            0 2px 8px rgba(16, 185, 129, 0.08);
+        transform: translateY(-1px);
+    }
+    .field-wrap select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        padding-right: 2.75rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+    }
+    .field-wrap select:focus {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2310b981' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    }
+    .field-wrap input[type="date"] { padding-left: 2.75rem; cursor: pointer; }
+    .field-wrap input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
+    .field-wrap input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+    .field-wrap input[type="number"]::-webkit-outer-spin-button,
+    .field-wrap input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    .field-wrap input[type="number"] {
+        -moz-appearance: textfield;
+        font-variant-numeric: tabular-nums;
+    }
+
+    /* Erreurs */
+    .field-error {
+        color: #dc2626;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        display: block;
+        padding-left: 0.25rem;
+    }
+    .field-error ul { margin: 0; padding-left: 1rem; }
+
+    /* BLOC VENTE */
+    .vente-block {
+        display: none;
+        background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+        border: 1.5px dashed rgba(99, 102, 241, 0.45);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.35rem;
+        animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .vente-block.show { display: block; }
+
+    .vente-block-title {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--indigo);
+        margin-bottom: 1.15rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px dashed rgba(99, 102, 241, 0.25);
+    }
+    .vente-block-title i {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        background: rgba(99, 102, 241, 0.15);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+
+    .vente-block .field-label { color: var(--indigo); }
+    .vente-block .field-label i { color: var(--indigo); }
+    .vente-block .field-wrap .field-icon { color: var(--indigo); }
+    .vente-block .field-wrap input:focus {
+        border-color: var(--indigo);
+        box-shadow:
+            0 0 0 4px rgba(99, 102, 241, 0.12),
+            0 2px 8px rgba(99, 102, 241, 0.08);
+    }
+
+    .vente-hint {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 0.6rem;
+        font-size: 0.76rem;
+        color: var(--indigo);
+        font-weight: 500;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SOLDES */
+    .soldes-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px dashed var(--line);
+    }
+    .solde-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.15rem 1.25rem;
+        border-radius: 14px;
+        border: 1px solid;
+        transition: transform 0.15s;
+    }
+    .solde-card:hover { transform: translateY(-2px); }
+    .solde-card.usd {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border-color: rgba(16, 185, 129, 0.25);
+    }
+    .solde-card.cdf {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border-color: rgba(37, 99, 235, 0.20);
+    }
+    .solde-card-icon {
+        width: 44px; height: 44px;
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .solde-card.usd .solde-card-icon { background: rgba(16, 185, 129, 0.20); color: #047857; }
+    .solde-card.cdf .solde-card-icon { background: rgba(37, 99, 235, 0.20); color: #1e40af; }
+    .solde-card-text { display: flex; flex-direction: column; line-height: 1.2; }
+    .solde-card-label {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.15rem;
+    }
+    .solde-card.usd .solde-card-label { color: #047857; }
+    .solde-card.cdf .solde-card-label { color: #1e40af; }
+    .solde-card-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+    }
+    .solde-card.usd .solde-card-value { color: #065f46; }
+    .solde-card.cdf .solde-card-value { color: #1e3a8a; }
+
+    /* ACTIONS */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px dashed var(--line);
+    }
+    .btn-submit,
+    .btn-cancel-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.85rem 1.6rem;
+        border-radius: 11px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        border: none;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+    }
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.45);
+        color: #fff;
+    }
+    .btn-cancel-action {
+        background: var(--bg-soft);
+        color: var(--ink-700);
+        border: 1.5px solid var(--line);
+    }
+    .btn-cancel-action:hover {
+        background: #e2e8f0;
+        color: var(--ink-900);
+    }
+
+    @media (max-width: 768px) {
+        .entry-page { padding: 1.25rem 1rem 3rem; }
+        .entry-hero { padding: 1.5rem 1.25rem; border-radius: 16px; }
+        .entry-hero h1 { font-size: 1.25rem; }
+        .form-card-body { padding: 1.35rem; }
+        .form-card-head { padding: 1.1rem 1.35rem; }
+        .soldes-grid { grid-template-columns: 1fr; }
+        .form-actions { flex-direction: column-reverse; }
+        .form-actions .btn-submit,
+        .form-actions .btn-cancel-action { width: 100%; }
+        .entry-toolbar { justify-content: flex-start; }
+        .vente-block { padding: 1.15rem; }
+        .success-banner { padding: 1.15rem; }
+        .success-actions { flex-direction: column; }
+        .btn-success-action { width: 100%; justify-content: center; }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="entry-page">
+
+    {# ═══════════════════════════════════════════════════════
+       ✅ BANDEAU DE SUCCÈS — s'affiche APRÈS enregistrement
+       Parse le flash structuré "__ENTRY_SUCCESS__|id|montant|devise|provenance"
+    ═══════════════════════════════════════════════════════ #}
+    {% for message in app.flashes('success') %}
+        {% if message starts with '__ENTRY_SUCCESS__|' %}
+            {% set parts = message|split('|') %}
+            {% set entryId     = parts[1] %}
+            {% set entryAmount = parts[2] %}
+            {% set entryDevise = parts[3] %}
+            {% set entryProv   = parts[4] %}
+            <div class="success-banner">
+                <div class="success-banner-head">
+                    <div class="success-banner-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="success-banner-title">Entrée enregistrée avec succès</h3>
+                        <p class="success-banner-sub">Le mouvement #{{ entryId }} a été enregistré et le solde a été mis à jour.</p>
+                    </div>
+                </div>
+
+                <div class="success-banner-recap">
+                    <div class="success-recap-item">
+                        <span class="success-recap-label">Montant</span>
+                        <span class="success-recap-value">{{ entryAmount }} {{ entryDevise }}</span>
+                    </div>
+                    <div class="success-recap-item">
+                        <span class="success-recap-label">Provenance</span>
+                        <span class="success-recap-value">{{ entryProv }}</span>
+                    </div>
+                    <div class="success-recap-item">
+                        <span class="success-recap-label">Référence</span>
+                        <span class="success-recap-value">#{{ entryId }}</span>
+                    </div>
+                </div>
+
+                <div class="success-actions">
+                    <a href="{{ path('app_caisse_entree_imprimer', {'id': entryId}) }}"
+                       target="_blank"
+                       class="btn-success-action btn-success-print">
+                        <i class="fa-solid fa-print"></i>
+                        Imprimer le reçu
+                    </a>
+                    <a href="{{ path('app_caisse_mouvements') }}"
+                       class="btn-success-action btn-success-new">
+                        <i class="fa-solid fa-list"></i>
+                        Voir mes mouvements
+                    </a>
+                </div>
             </div>
-            <a href="{{ path('app_caisse_mouvements') }}" class="btn btn-outline-secondary shadow-sm">
-                <i class="fa-solid fa-arrow-left me-1"></i> Voir les mouvements
-            </a>
+        {% else %}
+            {# Flash classique non structuré (autres cas) #}
+            <div class="alert alert-success alert-dismissible fade show border-0 rounded-3 mb-3" role="alert">
+                <i class="fa-solid fa-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {# Flash danger classique #}
+    {% for message in app.flashes('danger') %}
+        <div class="alert alert-danger alert-dismissible fade show border-0 rounded-3 mb-3" role="alert">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# HERO #}
+    <div class="entry-hero">
+        <div class="entry-hero-inner">
+            <div class="entry-hero-badge">
+                <i class="fa-solid fa-arrow-down"></i>
+                Encaissement
+            </div>
+            <h1>Nouvelle entrée de fonds</h1>
+            <p>Enregistrez une entrée en caisse — le reçu sera généré automatiquement.</p>
         </div>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-success text-white py-3 rounded-top-4">
-                    <h5 class="card-title mb-0 fw-semibold">
-                        <i class="fa-solid fa-money-bill-wave me-2"></i> Formulaire d'entrée
-                    </h5>
+    {# TOOLBAR #}
+    <div class="entry-toolbar">
+        <a href="{{ path('app_caisse_historique') }}" class="btn-ghost primary">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            Historique des entrées
+        </a>
+        <a href="{{ path('app_caisse_mouvements') }}" class="btn-ghost">
+            <i class="fa-solid fa-arrow-left"></i>
+            Retour aux mouvements
+        </a>
+    </div>
+
+    {# FORMULAIRE #}
+    <div class="form-card">
+        <div class="form-card-head">
+            <div class="form-card-head-icon">
+                <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <div>
+                <h5>Formulaire d'entrée</h5>
+                <small>Tous les champs marqués d'un <span style="color:#ef4444;">*</span> sont obligatoires</small>
+            </div>
+        </div>
+
+        <div class="form-card-body">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'entreeForm'}}) }}
+
+            <div class="row g-3">
+
+                {# ═══ MONTANT ═══ #}
+                <div class="col-md-4">
+                    <div class="field">
+                        <label class="field-label" for="mouvement_caisse_montant">
+                            <i class="fa-solid fa-coins"></i>Montant <span class="req">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fa-solid fa-coins field-icon"></i>
+                            {{ form_widget(form.montant, {'attr': {
+                                'class': 'form-control',
+                                'placeholder': '0.00',
+                                'autocomplete': 'off'
+                            }}) }}
+                        </div>
+                        {{ form_errors(form.montant) }}
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
 
+                {# ═══ DEVISE ═══ #}
+                <div class="col-md-4">
+                    <div class="field">
+                        <label class="field-label" for="mouvement_caisse_devise">
+                            <i class="fa-solid fa-dollar-sign"></i>Devise <span class="req">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fa-solid fa-dollar-sign field-icon"></i>
+                            {{ form_widget(form.devise, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        {{ form_errors(form.devise) }}
+                    </div>
+                </div>
+
+                {# ═══ CATÉGORIE ═══ #}
+                <div class="col-md-4">
+                    <div class="field">
+                        <label class="field-label" for="mouvement_caisse_categorie">
+                            <i class="fa-solid fa-tag"></i>Catégorie <span class="req">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fa-solid fa-tag field-icon"></i>
+                            {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                        </div>
+                        {{ form_errors(form.categorie) }}
+                    </div>
+                </div>
+
+                {# ═══ N° DE FACTURE / RÉFÉRENCE ═══ #}
+                <div class="col-md-6">
+                    <div class="field">
+                        <label class="field-label" for="mouvement_caisse_reference">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            <span id="referenceLabel">Référence</span>
+                            <span class="req" id="referenceReq" style="display:none;">*</span>
+                        </label>
+                        <div class="field-wrap">
+                            <i class="fa-solid fa-file-invoice field-icon"></i>
+                            {{ form_widget(form.reference, {'attr': {
+                                'class': 'form-control',
+                                'id': 'referenceField',
+                                'placeholder': 'Ex : FAC-2026-0042, BON-2026-12…'
+                            }}) }}
+                        </div>
+                        {{ form_errors(form.reference) }}
+                        <small id="referenceHint" style="display:none; color: var(--indigo); font-size: 0.76rem; margin-top: 0.35rem;">
+                            <i class="fa-solid fa-info-circle"></i>
+                            Obligatoire pour une vente.
+                        </small>
+                    </div>
+                </div>
+
+                {# ═══════════════════════════════════════════════════════
+                   BLOC VENTE — Nom du client
+                ═══════════════════════════════════════════════════════ #}
+                <div class="col-12">
+                    <div class="vente-block" id="venteBlock">
+
+                        <div class="vente-block-title">
+                            <i class="fa-solid fa-store"></i>
+                            Détails de la vente
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="field">
+                                    <label class="field-label" for="mouvement_caisse_provenance">
+                                        <i class="fa-solid fa-user"></i>Nom du client <span class="req">*</span>
+                                    </label>
+                                    <div class="field-wrap">
+                                        <i class="fa-solid fa-user field-icon"></i>
+                                        {{ form_widget(form.provenance, {'attr': {
+                                            'class': 'form-control',
+                                            'id': 'provenanceField',
+                                            'placeholder': 'Ex : Société ABC, M. Dupont…'
+                                        }}) }}
+                                    </div>
+                                    {{ form_errors(form.provenance) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <span class="vente-hint">
+                            <i class="fa-solid fa-info-circle"></i>
+                            Le nom du client sera enregistré dans la provenance du mouvement.
+                        </span>
+
+                    </div>
+                </div>
+
+                {# ═══════════════════════════════════════════════════════
+                   BLOC STANDARD — Provenance + Date
+                ═══════════════════════════════════════════════════════ #}
+                <div class="col-12" id="standardBlock">
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Montant</label>
-                            {{ form_widget(form.montant, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
-                            {{ form_errors(form.montant) }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Devise</label>
-                            {{ form_widget(form.devise, {'attr': {'class': 'form-select rounded-3 py-2'}}) }}
-                            {{ form_errors(form.devise) }}
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Catégorie</label>
-                            {{ form_widget(form.categorie, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
-                            {{ form_errors(form.categorie) }}
-                        </div>
+
                         <div class="col-md-8">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Provenance</label>
-                            {{ form_widget(form.provenance, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
-                            {{ form_errors(form.provenance) }}
+                            <div class="field">
+                                <label class="field-label" for="mouvement_caisse_provenance_std">
+                                    <i class="fa-solid fa-location-dot"></i>Provenance <span class="req">*</span>
+                                </label>
+                                <div class="field-wrap">
+                                    <i class="fa-solid fa-location-dot field-icon"></i>
+                                    <input type="text"
+                                           id="mouvement_caisse_provenance_std"
+                                           class="form-control"
+                                           placeholder="Ex : Subvention DG, Remboursement…"
+                                           autocomplete="off">
+                                </div>
+                            </div>
                         </div>
+
                         <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary small text-uppercase">Date du mouvement</label>
-                            {{ form_widget(form.dateMouvement, {'attr': {'class': 'form-control rounded-3 py-2'}}) }}
-                            {{ form_errors(form.dateMouvement) }}
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <a href="{{ path('app_caisse_mouvements') }}" class="btn btn-light px-4 rounded-3">Annuler</a>
-                        <button type="submit" class="btn btn-success px-4 rounded-3 shadow-sm">
-                            <i class="fa-solid fa-check me-1"></i> Enregistrer & imprimer
-                        </button>
-                    </div>
-
-                    {{ form_end(form) }}
-
-                    <div class="row mt-4 pt-3 border-top">
-                        <div class="col-md-6">
-                            <div class="alert alert-success mb-0 rounded-3">
-                                <i class="fa-solid fa-dollar-sign me-1"></i>
-                                Solde USD : <strong>{{ soldes.USD|number_format(2, ',', ' ') }} $</strong>
+                            <div class="field">
+                                <label class="field-label" for="mouvement_caisse_dateMouvement">
+                                    <i class="fa-solid fa-calendar"></i>Date <span class="req">*</span>
+                                </label>
+                                <div class="field-wrap">
+                                    <i class="fa-solid fa-calendar field-icon"></i>
+                                    {{ form_widget(form.dateMouvement, {'attr': {'class': 'form-control'}}) }}
+                                </div>
+                                {{ form_errors(form.dateMouvement) }}
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="alert alert-info mb-0 rounded-3">
-                                <i class="fa-solid fa-coins me-1"></i>
-                                Solde CDF : <strong>{{ soldes.CDF|number_format(2, ',', ' ') }} FC</strong>
-                            </div>
-                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+            {# SOLDES #}
+            <div class="soldes-grid">
+                <div class="solde-card usd">
+                    <div class="solde-card-icon">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                    <div class="solde-card-text">
+                        <span class="solde-card-label">Solde USD</span>
+                        <span class="solde-card-value">{{ soldes.USD|number_format(2, ',', ' ') }} $</span>
+                    </div>
+                </div>
+                <div class="solde-card cdf">
+                    <div class="solde-card-icon">
+                        <i class="fa-solid fa-coins"></i>
+                    </div>
+                    <div class="solde-card-text">
+                        <span class="solde-card-label">Solde CDF</span>
+                        <span class="solde-card-value">{{ soldes.CDF|number_format(2, ',', ' ') }} FC</span>
                     </div>
                 </div>
             </div>
+
+            {# ACTIONS #}
+            <div class="form-actions">
+                <a href="{{ path('app_caisse_mouvements') }}" class="btn-cancel-action">
+                    <i class="fa-solid fa-xmark"></i>
+                    Annuler
+                </a>
+                <button type="submit" class="btn-submit">
+                    <i class="fa-solid fa-check"></i>
+                    Enregistrer l'entrée
+                </button>
+            </div>
+
+            {{ form_end(form) }}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const categorieField   = document.getElementById('mouvement_caisse_categorie');
+    const venteBlock       = document.getElementById('venteBlock');
+    const standardBlock    = document.getElementById('standardBlock');
+    const provenanceField  = document.getElementById('provenanceField');
+    const provenanceStd    = document.getElementById('mouvement_caisse_provenance_std');
+    const referenceField   = document.getElementById('referenceField');
+    const referenceLabel   = document.getElementById('referenceLabel');
+    const referenceReq     = document.getElementById('referenceReq');
+    const referenceHint    = document.getElementById('referenceHint');
+
+    if (!categorieField || !venteBlock || !standardBlock) return;
+
+    const provenanceReal = document.getElementById('mouvement_caisse_provenance');
+
+    function toggleBlocks() {
+        const estVente = categorieField.value === 'VENTE';
+
+        if (estVente) {
+            venteBlock.classList.add('show');
+            standardBlock.style.display = 'none';
+
+            if (referenceField) referenceField.setAttribute('required', 'required');
+            if (provenanceReal) provenanceReal.setAttribute('required', 'required');
+
+            if (referenceLabel) referenceLabel.textContent = 'N° de facture';
+            if (referenceReq) referenceReq.style.display = 'inline';
+            if (referenceHint) referenceHint.style.display = 'block';
+            if (referenceField) {
+                referenceField.setAttribute('placeholder', 'Ex : FAC-2026-0042');
+            }
+
+        } else {
+            venteBlock.classList.remove('show');
+            standardBlock.style.display = 'block';
+
+            if (provenanceStd) provenanceStd.setAttribute('required', 'required');
+
+            if (referenceField) referenceField.removeAttribute('required');
+            if (provenanceReal) provenanceReal.removeAttribute('required');
+
+            if (referenceLabel) referenceLabel.textContent = 'Référence';
+            if (referenceReq) referenceReq.style.display = 'none';
+            if (referenceHint) referenceHint.style.display = 'none';
+            if (referenceField) {
+                referenceField.setAttribute('placeholder', 'Ex : BON-2026-12, RBT-2026-04…');
+            }
+        }
+    }
+
+    if (provenanceStd && provenanceReal) {
+        provenanceStd.addEventListener('input', function () {
+            provenanceReal.value = this.value;
+        });
+    }
+
+    categorieField.addEventListener('change', toggleBlocks);
+    toggleBlocks();
+});
+</script>
 {% endblock %}

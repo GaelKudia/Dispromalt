@@ -91,8 +91,20 @@ class MouvementCaisse
     public function setEffectuePar(?User $u): static { $this->effectuePar = $u; return $this; }
 
     public function getDateMouvement(): ?\DateTimeInterface { return $this->dateMouvement; }
-    public function setDateMouvement(\DateTimeInterface $d): static { $this->dateMouvement = $d; return $this; }
+
+    // ✅ CORRECTION : le paramètre est désormais nullable
+    public function setDateMouvement(?\DateTimeInterface $d): static
+    {
+        $this->dateMouvement = $d;
+        return $this;
+    }
 
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
-    public function setCreatedAt(\DateTimeInterface $d): static { $this->createdAt = $d; return $this; }
+
+    // ✅ CORRECTION : le paramètre est désormais nullable
+    public function setCreatedAt(?\DateTimeInterface $d): static
+    {
+        $this->createdAt = $d;
+        return $this;
+    }
 }

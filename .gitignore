@@ -29,11 +29,14 @@
 /public/sw.js
 ###< spomky-labs/pwa-bundle ###
 
-# Secrets
-.env
+
+
+# Secrets (local overrides uniquement — .env lui-même est commité)
+.env.local
+.env.local.php
+.env.*.local
 .env.dev
-/.env
-/.env.dev
+.env.prod
 
 # Dumps SQL (ne jamais commiter)
 *.sql

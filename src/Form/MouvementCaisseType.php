@@ -34,11 +34,15 @@ class MouvementCaisseType extends AbstractType
             ->add('provenance', TextType::class, [
                 'label' => 'Provenance',
             ])
-            ->add('dateMouvement', DateType::class, [
-                'label' => 'Date',
-                'widget' => 'single_text',
-            ])
-
+                ->add('dateMouvement', DateType::class, [
+    'label' => 'Date du mouvement',
+    'widget' => 'single_text',
+    'required' => true,
+    'attr' => [
+        'class' => 'form-control',
+        'value' => (new \DateTime())->format('Y-m-d'),
+    ],
+])
             ->add('reference', TextType::class, [
     'label' => 'Référence',
     'required' => false,

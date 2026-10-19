@@ -1,0 +1,659 @@
+{% extends 'base.html.twig' %}
+{% block title %}Historique des entrées - Dispromalt{% endblock %}
+
+{% block stylesheets %}
+<style>
+    :root {
+        --primary: #10b981;
+        --primary-dark: #059669;
+        --primary-soft: rgba(16, 185, 129, 0.10);
+        --indigo: #6366f1;
+        --indigo-soft: rgba(99, 102, 241, 0.10);
+        --ink-900: #0f172a;
+        --ink-700: #334155;
+        --ink-500: #64748b;
+        --ink-400: #94a3b8;
+        --line: #e2e8f0;
+        --bg-soft: #f8fafc;
+    }
+
+    .histo-page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+    }
+
+    /* HERO */
+    .histo-hero {
+        position: relative;
+        background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+        border: 1px solid rgba(99, 102, 241, 0.20);
+        border-radius: 20px;
+        padding: 2rem 2.25rem;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .histo-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 200px; height: 200px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.20), transparent 70%);
+        border-radius: 50%;
+    }
+    .histo-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: -40px;
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.12), transparent 70%);
+        border-radius: 50%;
+    }
+    .histo-hero-inner { position: relative; z-index: 1; }
+    .histo-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: #fff;
+        border: 1px solid rgba(99, 102, 241, 0.30);
+        color: var(--indigo);
+        padding: 0.35rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.75rem;
+    }
+    .histo-hero h1 {
+        font-size: 1.55rem;
+        font-weight: 800;
+        color: var(--ink-900);
+        letter-spacing: -0.5px;
+        margin: 0 0 0.4rem;
+    }
+    .histo-hero p {
+        color: var(--ink-500);
+        font-size: 0.92rem;
+        margin: 0;
+    }
+
+    /* TOOLBAR */
+    .histo-toolbar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .btn-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-decoration: none;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--ink-700);
+        transition: all 0.15s;
+    }
+    .btn-ghost:hover {
+        background: var(--bg-soft);
+        border-color: #cbd5e1;
+        color: var(--ink-900);
+        transform: translateY(-1px);
+    }
+    .btn-ghost.primary {
+        border-color: rgba(16, 185, 129, 0.30);
+        color: var(--primary-dark);
+        background: var(--primary-soft);
+    }
+    .btn-ghost.primary:hover {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--primary-dark);
+    }
+
+    /* STATS */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.15rem 1.25rem;
+        border-radius: 14px;
+        border: 1px solid;
+        transition: transform 0.15s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card.usd {
+        background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+        border-color: rgba(16, 185, 129, 0.25);
+    }
+    .stat-card.cdf {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border-color: rgba(37, 99, 235, 0.20);
+    }
+    .stat-card.count {
+        background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+        border-color: rgba(99, 102, 241, 0.20);
+    }
+    .stat-card-icon {
+        width: 44px; height: 44px;
+        border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .stat-card.usd .stat-card-icon { background: rgba(16, 185, 129, 0.20); color: #047857; }
+    .stat-card.cdf .stat-card-icon { background: rgba(37, 99, 235, 0.20); color: #1e40af; }
+    .stat-card.count .stat-card-icon { background: rgba(99, 102, 241, 0.20); color: #4338ca; }
+    .stat-card-text { display: flex; flex-direction: column; line-height: 1.2; }
+    .stat-card-label {
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.15rem;
+    }
+    .stat-card.usd .stat-card-label { color: #047857; }
+    .stat-card.cdf .stat-card-label { color: #1e40af; }
+    .stat-card.count .stat-card-label { color: #4338ca; }
+    .stat-card-value {
+        font-size: 1.15rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+    }
+    .stat-card.usd .stat-card-value { color: #065f46; }
+    .stat-card.cdf .stat-card-value { color: #1e3a8a; }
+    .stat-card.count .stat-card-value { color: #3730a3; }
+
+    /* FILTRES */
+    .filter-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.04);
+    }
+    .filter-label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--ink-500);
+        margin-bottom: 0.5rem;
+    }
+    .filter-label i { color: var(--indigo); margin-right: 0.3rem; }
+    .filter-card .form-control {
+        border-radius: 10px;
+        border: 1.5px solid var(--line);
+        padding: 0.65rem 0.9rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .filter-card .form-control:focus {
+        border-color: var(--indigo);
+        box-shadow: 0 0 0 4px var(--indigo-soft);
+        outline: none;
+    }
+    .btn-filter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.65rem 1.15rem;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: none;
+        background: linear-gradient(135deg, var(--indigo), #8b5cf6);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.30);
+        transition: all 0.15s;
+    }
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.45);
+        color: #fff;
+    }
+    .btn-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.65rem 0.9rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--ink-500);
+        font-size: 0.85rem;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+    .btn-reset:hover {
+        background: var(--bg-soft);
+        color: var(--ink-900);
+        transform: translateY(-2px);
+    }
+
+    /* TABLEAU */
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+        box-shadow: 0 4px 12px -4px rgba(15, 23, 42, 0.04);
+    }
+    .table-card-head {
+        padding: 1.15rem 1.5rem;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, #ffffff, #fafbfc);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .table-card-head h5 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--ink-900);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .table-card-head h5 i { color: var(--indigo); }
+    .table-card-head .result-count {
+        font-size: 0.78rem;
+        color: var(--ink-500);
+        font-weight: 600;
+    }
+
+    .table-histo {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+    .table-histo thead th {
+        background: #f8fafc;
+        color: var(--ink-500);
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 0.9rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap;
+    }
+    .table-histo tbody td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.88rem;
+        vertical-align: middle;
+    }
+    .table-histo tbody tr:hover {
+        background: #f8fafc;
+    }
+    .table-histo tbody tr:last-child td { border-bottom: none; }
+
+    /* Badges */
+    .badge-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+    .badge-cat.vente   { background: rgba(16, 185, 129, 0.12); color: #047857; }
+    .badge-cat.autre   { background: var(--bg-soft); color: var(--ink-600); }
+    .badge-devise {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.55rem;
+        border-radius: 5px;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+    .badge-devise.usd { background: rgba(16, 185, 129, 0.12); color: #047857; }
+    .badge-devise.cdf { background: rgba(37, 99, 235, 0.12); color: #1e40af; }
+
+    .ref-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.28rem 0.6rem;
+        border-radius: 6px;
+        background: var(--indigo-soft);
+        color: var(--indigo);
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+
+    .cell-amount {
+        font-weight: 800;
+        color: var(--ink-900);
+        font-variant-numeric: tabular-nums;
+    }
+    .cell-date { color: var(--ink-500); font-size: 0.82rem; }
+    .cell-muted { color: var(--ink-400); font-size: 0.82rem; }
+
+    .btn-print-row {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.4rem 0.65rem;
+        border-radius: 7px;
+        border: 1.5px solid var(--line);
+        background: #fff;
+        color: var(--ink-500);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+    .btn-print-row:hover {
+        background: var(--bg-soft);
+        color: var(--indigo);
+        border-color: rgba(99, 102, 241, 0.30);
+        transform: translateY(-1px);
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+        text-align: center;
+        padding: 3.5rem 1rem;
+        color: var(--ink-400);
+    }
+    .empty-state i {
+        font-size: 2.5rem;
+        color: var(--ink-300);
+        margin-bottom: 1rem;
+        display: block;
+        opacity: 0.5;
+    }
+    .empty-state .title {
+        font-weight: 700;
+        color: var(--ink-500);
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+    .empty-state .sub {
+        font-size: 0.83rem;
+        color: var(--ink-400);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 992px) {
+        .stats-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+        .histo-page { padding: 1.25rem 1rem 3rem; }
+        .histo-hero { padding: 1.5rem 1.25rem; border-radius: 16px; }
+        .histo-hero h1 { font-size: 1.25rem; }
+        .table-card-head { padding: 1rem 1.1rem; }
+        .table-histo thead th,
+        .table-histo tbody td {
+            padding: 0.7rem 0.65rem;
+            font-size: 0.8rem;
+        }
+        .histo-toolbar { justify-content: flex-start; }
+    }
+</style>
+{% endblock %}
+
+{% block main_content %}
+<div class="histo-page">
+
+    {# ═══════════════════════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════════════════════ #}
+    <div class="histo-hero">
+        <div class="histo-hero-inner">
+            <div class="histo-hero-badge">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Historique
+            </div>
+            <h1>Historique des entrées de fonds</h1>
+            <p>Consultez, recherchez et filtrez toutes les entrées enregistrées en caisse.</p>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       TOOLBAR
+    ═══════════════════════════════════════════════════════ #}
+    <div class="histo-toolbar">
+        <a href="{{ path('app_caisse_entree') }}" class="btn-ghost primary">
+            <i class="fa-solid fa-plus"></i>
+            Nouvelle entrée
+        </a>
+        <a href="{{ path('app_caisse_mouvements') }}" class="btn-ghost">
+            <i class="fa-solid fa-list"></i>
+            Mes mouvements
+        </a>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       STATS
+    ═══════════════════════════════════════════════════════ #}
+    <div class="stats-grid">
+        <div class="stat-card count">
+            <div class="stat-card-icon">
+                <i class="fa-solid fa-hashtag"></i>
+            </div>
+            <div class="stat-card-text">
+                <span class="stat-card-label">Entrées trouvées</span>
+                <span class="stat-card-value">{{ entrees|length }}</span>
+            </div>
+        </div>
+        <div class="stat-card usd">
+            <div class="stat-card-icon">
+                <i class="fa-solid fa-dollar-sign"></i>
+            </div>
+            <div class="stat-card-text">
+                <span class="stat-card-label">Total USD</span>
+                <span class="stat-card-value">{{ totalUSD|number_format(2, ',', ' ') }} $</span>
+            </div>
+        </div>
+        <div class="stat-card cdf">
+            <div class="stat-card-icon">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div class="stat-card-text">
+                <span class="stat-card-label">Total CDF</span>
+                <span class="stat-card-value">{{ totalCDF|number_format(2, ',', ' ') }} FC</span>
+            </div>
+        </div>
+    </div>
+
+    {# ═══════════════════════════════════════════════════════
+       FILTRES
+    ═══════════════════════════════════════════════════════ #}
+    <form method="get" class="filter-card">
+        <div class="row g-3 align-items-end">
+
+            <div class="col-md-4">
+                <label class="filter-label" for="filterSearch">
+                    <i class="fa-solid fa-magnifying-glass"></i>Recherche
+                </label>
+                <input type="text"
+                       id="filterSearch"
+                       name="q"
+                       class="form-control"
+                       value="{{ recherche }}"
+                       placeholder="Client, n° facture, catégorie…"
+                       autocomplete="off">
+            </div>
+
+            <div class="col-md-2">
+                <label class="filter-label" for="filterDateDebut">
+                    <i class="fa-solid fa-calendar"></i>Du
+                </label>
+                <input type="date"
+                       id="filterDateDebut"
+                       name="date_debut"
+                       class="form-control"
+                       value="{{ date_debut }}">
+            </div>
+
+            <div class="col-md-2">
+                <label class="filter-label" for="filterDateFin">
+                    <i class="fa-solid fa-calendar"></i>Au
+                </label>
+                <input type="date"
+                       id="filterDateFin"
+                       name="date_fin"
+                       class="form-control"
+                       value="{{ date_fin }}">
+            </div>
+
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn-filter flex-grow-1">
+                    <i class="fa-solid fa-filter"></i>
+                    Filtrer
+                </button>
+                <a href="{{ path('app_caisse_historique') }}"
+                   class="btn-reset"
+                   title="Réinitialiser les filtres">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
+            </div>
+
+        </div>
+    </form>
+
+    {# ═══════════════════════════════════════════════════════
+       TABLEAU
+    ═══════════════════════════════════════════════════════ #}
+    <div class="table-card">
+
+        <div class="table-card-head">
+            <h5>
+                <i class="fa-solid fa-list"></i>
+                Résultats
+            </h5>
+            <span class="result-count">
+                {{ entrees|length }} entrée{{ entrees|length > 1 ? 's' : '' }} affichée{{ entrees|length > 1 ? 's' : '' }}
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table-histo">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Client / Provenance</th>
+                        <th>Catégorie</th>
+                        <th>N° Facture / Réf.</th>
+                        <th class="text-end">Montant</th>
+                        <th>Enregistré par</th>
+                        <th class="text-center">Reçu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entree in entrees %}
+                        <tr>
+                            <td class="cell-date">
+                                <i class="fa-regular fa-calendar me-1"></i>
+                                {{ entree.dateMouvement ? entree.dateMouvement|date('d/m/Y') : '—' }}
+                            </td>
+
+                            <td>
+                                <div class="fw-bold" style="color: var(--ink-900); font-size: 0.88rem;">
+                                    {{ entree.provenance ?: '—' }}
+                                </div>
+                            </td>
+
+                            <td>
+                                {% if entree.categorie %}
+                                    {% if entree.categorie == 'VENTE' %}
+                                        <span class="badge-cat vente">
+                                            <i class="fa-solid fa-store"></i>
+                                            Vente
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-cat autre">
+                                            {{ entree.categorie }}
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="cell-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if entree.reference %}
+                                    <span class="ref-chip">
+                                        <i class="fa-solid fa-file-invoice"></i>
+                                        {{ entree.reference }}
+                                    </span>
+                                {% else %}
+                                    <span class="cell-muted">—</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">
+                                <div class="cell-amount">
+                                    {{ entree.montant|number_format(2, ',', ' ') }}
+                                </div>
+                                <div style="margin-top: 2px;">
+                                    <span class="badge-devise {{ entree.devise == 'USD' ? 'usd' : 'cdf' }}">
+                                        {{ entree.devise }}
+                                    </span>
+                                </div>
+                            </td>
+
+                            <td class="cell-muted">
+                                {% if entree.effectuePar %}
+                                    <i class="fa-solid fa-user me-1"></i>
+                                    {{ entree.effectuePar.userIdentifier|split('@')|first }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center">
+                                <a href="{{ path('app_caisse_entree_imprimer', {'id': entree.id}) }}"
+                                   target="_blank"
+                                   class="btn-print-row"
+                                   title="Imprimer le reçu">
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-inbox"></i>
+                                    <div class="title">Aucune entrée trouvée</div>
+                                    <div class="sub">
+                                        {% if recherche or date_debut != 'now'|date('Y-m-d') or date_fin != 'now'|date('Y-m-d') %}
+                                            Modifiez la recherche ou la plage de dates.
+                                        {% else %}
+                                            Aucune entrée enregistrée sur cette période.
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

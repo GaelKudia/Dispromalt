@@ -11,82 +11,278 @@
     <style>
         body { overflow-x: hidden; font-family: 'Source Sans Pro', sans-serif; background-color: #f4f6f9; }
         .login-page { background-color: #e3f2fd !important; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .sidebar { width: 250px; height: 100vh; position: fixed; top: 0; left: 0; background-color: #343a40; color: #c2c7d0; z-index: 1000; transition: all 0.3s ease-in-out; overflow-y: auto; }
-        .sidebar .brand-link { padding: 15px; font-size: 1.25rem; background-color: #22252a; color: #fff; text-decoration: none; display: block; border-bottom: 1px solid #4b545c; }
-        .sidebar .nav-link { color: #c2c7d0; padding: 10px 15px; display: block; text-decoration: none; font-size: 0.94rem; }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background-color: rgba(255,255,255,0.1); color: #fff; border-left: 3px solid #0d6efd; }
-        .sidebar .nav-section-title { color: #8a939c; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 14px 15px 6px; }
-        .main-wrapper { margin-left: 250px; min-height: 100vh; transition: all 0.3s ease-in-out; }
-        .top-navbar { background-color: #fff; border-bottom: 1px solid #dee2e6; padding: 10px 20px; }
+
+        /* ═══════════════════════════════════════════════════════
+           SIDEBAR — Desktop
+        ═══════════════════════════════════════════════════════ */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            color: #c2c7d0;
+            z-index: 1040;
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        /* ✅ Brand link avec logo */
+        .sidebar .brand-link {
+            padding: 15px;
+            font-size: 1.25rem;
+            background-color: #22252a;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-bottom: 1px solid #4b545c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .sidebar .brand-link img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+        }
+        .sidebar .brand-link .brand-text {
+            display: inline-flex;
+            align-items: baseline;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .sidebar .nav-link {
+            color: #c2c7d0;
+            padding: 10px 15px;
+            display: block;
+            text-decoration: none;
+            font-size: 0.94rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+        }
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            color: #fff;
+            border-left: 3px solid #0d6efd;
+        }
+        .sidebar .nav-section-title {
+            color: #8a939c;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 14px 15px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           MAIN WRAPPER
+        ═══════════════════════════════════════════════════════ */
+        .main-wrapper {
+            margin-left: 250px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        .main-wrapper.full-width {
+            margin-left: 0;
+        }
+
+        .top-navbar {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+
         .content-body { padding: 20px; }
-        .sidebar.collapsed { left: -250px; }
-        .main-wrapper.expanded { margin-left: 0; }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1030;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           RESPONSIVE — Mobile (≤ 992px)
+        ═══════════════════════════════════════════════════════ */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 1045;
+                box-shadow: 2px 0 20px rgba(0,0,0,0.25);
+                width: 85vw;
+                max-width: 320px;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+            .main-wrapper.full-width {
+                margin-left: 0;
+            }
+            .sidebar-overlay {
+                display: block;
+            }
+        }
+
+        @media (min-width: 993px) {
+            .sidebar-overlay { display: none !important; }
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           RESPONSIVE — Smartphone (≤ 768px)
+        ═══════════════════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .content-body {
+                padding: 12px;
+            }
+            .top-navbar {
+                padding: 8px 12px;
+            }
+            .content-body h1.h3,
+            .content-body h1.h2 {
+                font-size: 1.15rem !important;
+                line-height: 1.3;
+            }
+            .content-body h3 { font-size: 1.05rem; }
+            .content-body h4 { font-size: 1rem; }
+            .content-body h5 { font-size: 0.95rem; }
+
+            .card-body {
+                padding: 1rem !important;
+            }
+
+            .table {
+                font-size: 0.82rem;
+            }
+            .table th,
+            .table td {
+                padding: 0.55rem 0.5rem;
+            }
+
+            .badge {
+                font-size: 0.7rem;
+                padding: 0.35em 0.6em;
+            }
+            .btn {
+                font-size: 0.85rem;
+                padding: 0.5rem 0.85rem;
+            }
+
+            .form-label {
+                font-size: 0.78rem;
+            }
+            .form-control,
+            .form-select {
+                font-size: 0.9rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .content-body .row > .col-12.d-flex.justify-content-between {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 10px;
+            }
+            .content-body .row > .col-12.d-flex .d-flex.gap-2 {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .content-body {
+                padding: 10px;
+            }
+            .container-fluid {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+            /* Logo légèrement réduit sur très petit écran */
+            .sidebar .brand-link img {
+                height: 34px;
+            }
+            .sidebar .brand-link {
+                font-size: 1.1rem;
+            }
+        }
+
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 
     {% block stylesheets %}{% endblock %}
 
-    {# ═══════════════════════════════════════════════════════
-       ✅ PWA — Helper du bundle SpomkyLabs/PwaBundle
-       Injecte automatiquement :
-       - <link rel="manifest">  (URL locale correcte)
-       - <meta name="theme-color">
-       - Favicons (32, 192, 512)
-       - Apple touch icons
-       - Enregistrement du Service Worker
-    ═══════════════════════════════════════════════════════ #}
-    {# ═══════════════════════════════════════════════════════
-   PWA — Configuration MANUELLE
-   ═══════════════════════════════════════════════════════ #}
-<meta name="theme-color" content="#317EFB">
-<link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="/images/icons/32.png">
-<link rel="icon" type="image/png" sizes="192x192" href="/images/icons/192.png">
-<link rel="apple-touch-icon" href="/images/icons/512.png">
+    {# PWA #}
+    <meta name="theme-color" content="#317EFB">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/icons/32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/192.png">
+    <link rel="apple-touch-icon" href="/images/icons/512.png">
 
-{# ═══════════════════════════════════════════════════════
-   SERVICE WORKER — uniquement en PROD, avec kill-switch
-   ═══════════════════════════════════════════════════════ #}
-{% if app.environment == 'prod' %}
-<script>
-(function () {
-    if (!('serviceWorker' in navigator)) return;
-
-    window.addEventListener('load', function () {
-        // 1️⃣ Nettoie UNIQUEMENT les anciens SW Workbox
-        navigator.serviceWorker.getRegistrations().then(function (regs) {
-            var pending = [];
-            regs.forEach(function (reg) {
-                var url = (reg.active && reg.active.scriptURL) || '';
-                // Désinscrit seulement si ce n'est pas le nôtre
-                if (url.indexOf('/sw.js') === -1 || url.indexOf('workbox') !== -1) {
-                    pending.push(reg.unregister());
-                }
+    {% if app.environment == 'prod' %}
+    <script>
+    (function () {
+        if (!('serviceWorker' in navigator)) return;
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+                var pending = [];
+                regs.forEach(function (reg) {
+                    var url = (reg.active && reg.active.scriptURL) || '';
+                    if (url.indexOf('/sw.js') === -1 || url.indexOf('workbox') !== -1) {
+                        pending.push(reg.unregister());
+                    }
+                });
+                return Promise.all(pending);
+            }).then(function () {
+                return navigator.serviceWorker.register('/sw.js', {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+            }).then(function (reg) {
+                reg.update();
+            }).catch(function (err) {
+                console.warn('SW KO:', err);
             });
-            return Promise.all(pending);
-        }).then(function () {
-            // 2️⃣ Enregistre notre SW custom
-            return navigator.serviceWorker.register('/sw.js', {
-                scope: '/',
-                updateViaCache: 'none'
-            });
-        }).then(function (reg) {
-            reg.update();
-        }).catch(function (err) {
-            console.warn('SW KO:', err);
         });
-    });
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (refreshing) return;
+            refreshing = true;
+            window.location.reload();
+        });
+    })();
+    </script>
+    {% endif %}
 
-    // 3️⃣ Recharge UNE SEULE FOIS si un nouveau SW prend le contrôle
-    var refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-    });
-})();
-</script>
-{% endif %}{# ✅ Composant Web universel pour la bannière d'installation
-       Compatible Chrome, Edge, Firefox, Safari, Opera #}
     <script type="module" src="https://cdn.jsdelivr.net/npm/@khmyznikov/pwa-install@0.4.5/dist/index.min.js"></script>
 </head>
 <body class="{% if app.request.attributes.get('_route') == 'app_login' %}login-page{% endif %}">
@@ -94,9 +290,17 @@
     {% if app.request.attributes.get('_route') == 'app_login' %}
         {% block body %}{% endblock %}
     {% else %}
-        <div class="sidebar">
-            <a href="{{ path('app_dashboard') }}" class="brand-link text-center fw-bold">
-                <i class="fas fa-print text-primary me-2"></i>Dispro<span class="text-primary">malt</span>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <div class="sidebar" id="sidebar">
+            {# ✅ LOGO + NOM DANS LA SIDEBAR #}
+            <a href="{{ path('app_dashboard') }}" class="brand-link">
+                <img src="{{ asset('images/logo.png') }}"
+                     alt="Logo Dispromalt">
+                <span class="brand-text">
+                    Dispro<span class="text-primary">malt</span>
+                </span>
             </a>
             <div class="p-3">
                 <nav class="nav flex-column">
@@ -113,11 +317,7 @@
                         <i class="fa-solid fa-layer-group me-2"></i> Catégories
                     </a>
 
-                    {# ═══════════════════════════════════════════════════════
-                       ESPACE CAISSE
-                       → Uniquement pour le caissier nommé via /admin
-                       → Plus ROLE_COMPTA : la comptabilité a son propre espace
-                    ═══════════════════════════════════════════════════════ #}
+                    {# ── Espace Caisse ── #}
                     {% if is_granted('ROLE_CAISSIER') or is_granted('ROLE_ADMIN') %}
                         <div class="nav-section-title">Espace Caisse</div>
 
@@ -131,6 +331,11 @@
                             <i class="fa-solid fa-arrow-down me-2"></i> Enregistrer une entrée
                         </a>
 
+                        <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_historique' %}active{% endif %} mb-1 rounded"
+                           href="{{ path('app_caisse_historique') }}">
+                            <i class="fa-solid fa-clock-rotate-left me-2"></i> Historique entrées
+                        </a>
+
                         <a class="nav-link {% if app.request.attributes.get('_route') == 'app_caisse_rdv_dg' %}active{% endif %} mb-1 rounded"
                            href="{{ path('app_caisse_rdv_dg') }}">
                             <i class="fa-solid fa-calendar-days me-2"></i> Planning RDV DG
@@ -142,11 +347,7 @@
                         </a>
                     {% endif %}
 
-                    {# ═══════════════════════════════════════════════════════
-                       ESPACE COMPTABILITÉ
-                       → Uniquement pour les comptables et chefs comptables
-                       → Ils gardent leur tableau de bord /dashboard
-                    ═══════════════════════════════════════════════════════ #}
+                    {# ── Espace Comptabilité ── #}
                     {% if is_granted('ROLE_COMPTA') or is_granted('ROLE_CHEF_COMPTA') %}
                         <div class="nav-section-title">Comptabilité</div>
 
@@ -171,23 +372,26 @@
             </div>
         </div>
 
-        <div class="main-wrapper">
+        <div class="main-wrapper" id="mainWrapper">
             <div class="top-navbar d-flex justify-content-between align-items-center shadow-sm">
-                <button class="btn btn-link text-dark" id="toggleSidebar"><i class="fa-solid fa-bars"></i></button>
+                <button class="btn btn-link text-dark p-1" id="toggleSidebar" aria-label="Ouvrir le menu">
+                    <i class="fa-solid fa-bars fs-5"></i>
+                </button>
                 {% if app.user %}
                     <div class="d-flex align-items-center gap-3">
-                        <span class="text-muted small">
+                        <span class="text-muted small d-none d-sm-inline">
                             <i class="fa-solid fa-user me-1"></i>{{ app.user.userIdentifier }}
                         </span>
-                        <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">Deconnection</a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-power-off me-1"></i>
+                            <span class="d-none d-sm-inline">Déconnexion</span>
+                        </a>
                     </div>
                 {% endif %}
             </div>
 
             <div class="content-body">
-                {# ═══════════════════════════════════════════════════════
-                   AFFICHAGE DES MESSAGES FLASH
-                ═══════════════════════════════════════════════════════ #}
+                {# AFFICHAGE DES MESSAGES FLASH #}
                 {% for type, messages in app.flashes %}
                     {% for message in messages %}
                         <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
@@ -204,14 +408,87 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const toggleBtn = document.getElementById('toggleSidebar');
-        if (toggleBtn) {
-            toggleBtn.addEventListener('click', function(e) {
+        (function () {
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar   = document.getElementById('sidebar');
+            const overlay   = document.getElementById('sidebarOverlay');
+            const wrapper   = document.getElementById('mainWrapper');
+
+            if (!toggleBtn || !sidebar) return;
+
+            function isMobile() {
+                return window.matchMedia('(max-width: 992px)').matches;
+            }
+
+            function openSidebar() {
+                sidebar.classList.add('show');
+                if (overlay) overlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('show');
+                if (overlay) overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            // ═══════════════════════════════════════════════════════
+            // ✅ GESTION DU CLICK SUR LE BOUTON HAMBURGER
+            //   → Mobile  : ouvre/ferme l'overlay
+            //   → Desktop : cache/affiche complètement la sidebar
+            // ═══════════════════════════════════════════════════════
+            toggleBtn.addEventListener('click', function (e) {
                 e.preventDefault();
-                document.querySelector('.sidebar').classList.toggle('collapsed');
-                document.querySelector('.main-wrapper').classList.toggle('expanded');
+
+                if (isMobile()) {
+                    if (sidebar.classList.contains('show')) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                } else {
+                    if (sidebar.classList.contains('collapsed')) {
+                        // Afficher la sidebar
+                        sidebar.classList.remove('collapsed');
+                        sidebar.style.transform = 'translateX(0)';
+                        if (wrapper) wrapper.classList.remove('full-width');
+                    } else {
+                        // Cacher la sidebar
+                        sidebar.classList.add('collapsed');
+                        sidebar.style.transform = 'translateX(-100%)';
+                        if (wrapper) wrapper.classList.add('full-width');
+                    }
+                }
             });
-        }
+
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+
+            sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    if (isMobile()) closeSidebar();
+                });
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('show')) {
+                    closeSidebar();
+                }
+            });
+
+            let lastIsMobile = isMobile();
+            window.addEventListener('resize', function () {
+                const nowMobile = isMobile();
+                if (lastIsMobile !== nowMobile) {
+                    closeSidebar();
+                    sidebar.classList.remove('collapsed');
+                    sidebar.style.transform = '';
+                    if (wrapper) wrapper.classList.remove('full-width');
+                    lastIsMobile = nowMobile;
+                }
+            });
+        })();
     </script>
     {% block javascripts %}{% endblock %}
 </body>
