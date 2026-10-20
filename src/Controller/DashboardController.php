@@ -117,14 +117,15 @@ class DashboardController extends AbstractController
             ->orderBy('d.id', 'DESC');
         $devisListe = $qbDevis->getQuery()->getResult();
 
+        // ✅ CORRECTION #1 : utiliser les constantes au lieu des chaînes en dur
         $totalDevisUSD = 0;
         $totalDevisCDF = 0;
         foreach ($devisListe as $d) {
-            if (in_array($d->getStatut(), ['Validé Compta', 'Decaissé'])) {
+            if (in_array($d->getStatut(), [Devis::STATUT_DECAISSE, 'Validé Compta'], true)) {
                 if ($d->getDevise() === 'CDF') {
-                    $totalDevisCDF += $d->getMontant();
+                    $totalDevisCDF += (float) $d->getMontant();
                 } else {
-                    $totalDevisUSD += $d->getMontant();
+                    $totalDevisUSD += (float) $d->getMontant();
                 }
             }
         }
@@ -699,28 +700,18 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // ✅ ACCUEIL / RECEPTION
-        //    - Onglet 1 : visiteurs envoyés par la guérite (A_L_ACCUEIL)
-        //                 + visiteurs déjà accueillis (VALIDE)
-        //    - Onglet 2 : enregistrement d'un passage direct
-        //    - Onglet 3 : RDV réservés par les agents (RESERVE)
-        //    - Onglet 4 : HISTORIQUE (VALIDE + TERMINE filtré par date)
         // ============================================================
         if ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
 
-            // 🔹 Visiteurs à accueillir (transmis par la guérite)
             $visites = $em->getRepository(Visite::class)
                 ->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
 
-            // 🔹 Visiteurs déjà accueillis (présents dans l'enceinte)
             $visitesAccueillies = $em->getRepository(Visite::class)
                 ->findBy(['statut' => 'VALIDE'], ['dateArrivee' => 'DESC']);
 
-            // 🔹 Rendez-vous réservés par les agents (à honorer)
             $rdvReserves = $em->getRepository(Visite::class)
                 ->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
 
-            // 🔹 ✅ HISTORIQUE : visiteurs ayant transité par l'accueil
-            //    Filtre UNIQUEMENT sur la date d'ARRIVÉE (champ existant)
             $dateHistorique = $request->query->get('date_historique', (new \DateTime('today'))->format('Y-m-d'));
 
             $qbHistorique = $em->getRepository(Visite::class)->createQueryBuilder('v')
@@ -1108,6 +1099,50 @@ class DashboardController extends AbstractController
         // ============================================================
         if ($this->isGranted('ROLE_DG')) {
 
+            // ✅ Mouvements de caisse (ROLE_CAISSIER) pour la DG
+            $mouvementsCaisse = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
+                ->leftJoin('m.effectuePar', 'u')->addSelect('u')
+                ->where('u.roles LIKE :caissier')
+                ->setParameter('caissier', '%ROLE_CAISSIER%')
+                ->orderBy('m.dateMouvement', 'DESC')
+                ->setMaxResults(50)
+                ->getQuery()->getResult();
+
+            $mouvementsCaisseData = [];
+            $totalEntreesCaisseUSD = 0;
+            $totalSortiesCaisseUSD = 0;
+            $totalEntreesCaisseCDF = 0;
+            $totalSortiesCaisseCDF = 0;
+
+            foreach ($mouvementsCaisse as $m) {
+                $isEntree = $m->getType() === MouvementCaisse::TYPE_ENTREE;
+                $montant  = (float) $m->getMontant();
+
+                if ($m->getDevise() === MouvementCaisse::DEVISE_USD) {
+                    if ($isEntree) {
+                        $totalEntreesCaisseUSD += $montant;
+                    } else {
+                        $totalSortiesCaisseUSD += $montant;
+                    }
+                } else {
+                    if ($isEntree) {
+                        $totalEntreesCaisseCDF += $montant;
+                    } else {
+                        $totalSortiesCaisseCDF += $montant;
+                    }
+                }
+
+                $mouvementsCaisseData[] = [
+                    'date'        => $m->getDateMouvement(),
+                    'isEntree'    => $isEntree,
+                    'montant'     => $montant,
+                    'devise'      => $m->getDevise(),
+                    'provenance'  => $m->getProvenance(),
+                    'categorie'   => $m->getCategorie(),
+                    'effectuePar' => $m->getEffectuePar() ? $m->getEffectuePar()->getUserIdentifier() : '—',
+                ];
+            }
+
             $limiteUneSemaine = (new \DateTime('today'))->modify('-7 days')->setTime(0, 0, 0);
             $finAujourdhuiDG  = new \DateTime('today 23:59:59');
 
@@ -1122,6 +1157,19 @@ class DashboardController extends AbstractController
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
+
+            // ✅ CORRECTION #2 & #5 : recalcul spécifique pour le DG
+            $totalDevisUSD_DG = 0;
+            $totalDevisCDF_DG = 0;
+            foreach ($devisListeDG as $d) {
+                if (in_array($d->getStatut(), [Devis::STATUT_DECAISSE, 'Validé Compta'], true)) {
+                    if ($d->getDevise() === 'CDF') {
+                        $totalDevisCDF_DG += (float) $d->getMontant();
+                    } else {
+                        $totalDevisUSD_DG += (float) $d->getMontant();
+                    }
+                }
+            }
 
             $articlesDG = $em->getRepository(Article::class)->findAll();
 
@@ -1200,20 +1248,37 @@ class DashboardController extends AbstractController
                 'estSiteDistant'       => $estSiteDistant,
                 'soldeUSD'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD),
                 'soldeCDF'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF),
+                // ✅ CORRECTION #2 & #5 : totaux décaissés calculés sur devisListeDG
+                'totalDevisUSD'        => $totalDevisUSD_DG,
+                'totalDevisCDF'        => $totalDevisCDF_DG,
+                // ✅ Détail des mouvements de caisse (rôle CAISSIER) pour réconciliation
+                'mouvementsCaisseData' => $mouvementsCaisseData,
+                'totalEntreesCaisseUSD' => $totalEntreesCaisseUSD,
+                'totalSortiesCaisseUSD' => $totalSortiesCaisseUSD,
+                'totalEntreesCaisseCDF' => $totalEntreesCaisseCDF,
+                'totalSortiesCaisseCDF' => $totalSortiesCaisseCDF,
             ];
 
             if ($estVraimentPDG) {
+                // ✅ RDV du jour et à venir uniquement.
+                //    Les RDV passés disparaissent automatiquement le lendemain.
+                $debutJourPDG = new \DateTime('today 00:00:00');
+
                 $vars['mesRdv'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
                     ->where('v.avecDG = :oui')
+                    ->andWhere('v.dateArrivee >= :debutJour OR v.dateArrivee IS NULL')
                     ->setParameter('oui', true)
-                    ->orderBy('v.dateArrivee', 'DESC')
+                    ->setParameter('debutJour', $debutJourPDG)
+                    ->orderBy('v.dateArrivee', 'ASC')
                     ->setMaxResults(50)
                     ->getQuery()
                     ->getResult();
 
                 $vars['rdvDelegues'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
                     ->where('v.responsableDelegue IS NOT NULL')
-                    ->orderBy('v.dateArrivee', 'DESC')
+                    ->andWhere('v.dateArrivee >= :debutJour OR v.dateArrivee IS NULL')
+                    ->setParameter('debutJour', $debutJourPDG)
+                    ->orderBy('v.dateArrivee', 'ASC')
                     ->setMaxResults(50)
                     ->getQuery()
                     ->getResult();
@@ -1343,14 +1408,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 🎯 ACCUEIL : attester l'accueil d'un visiteur
-    //    Accessible à : Accueil / Réception / Guérite
-    //    Gère 2 cas :
-    //      - Visiteur envoyé par la guérite   (statut A_L_ACCUEIL)
-    //      - Visiteur ayant un RDV réservé    (statut RESERVE)
-    //    → Passe le statut à VALIDE (entre dans l'historique)
-    // ═══════════════════════════════════════════════════════════════
     #[Route('/dashboard/visite/accueillir/{id}', name: 'app_visite_accueillir', methods: ['POST'])]
     public function accueillirVisite(Visite $visite, EntityManagerInterface $em): Response
     {
@@ -1415,59 +1472,54 @@ class DashboardController extends AbstractController
         );
     }
 
-        #[Route('/rapport/excel', name: 'app_rapport_excel')]
-public function rapportExcel(Request $request, DemandeRepository $demandeRepository): Response
-{
-    $dateDebut = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
-    $dateFin   = $request->query->get('date_fin',   (new \DateTime('today'))->format('Y-m-d'));
+    #[Route('/rapport/excel', name: 'app_rapport_excel')]
+    public function rapportExcel(Request $request, DemandeRepository $demandeRepository): Response
+    {
+        $dateDebut = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
+        $dateFin   = $request->query->get('date_fin',   (new \DateTime('today'))->format('Y-m-d'));
 
-    $rapportGlobal = $demandeRepository->createQueryBuilder('d')
-        ->where('d.createdAt BETWEEN :start AND :end')
-        ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
-        ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
-        ->orderBy('d.createdAt', 'DESC')
-        ->getQuery()
-        ->getResult();
+        $rapportGlobal = $demandeRepository->createQueryBuilder('d')
+            ->where('d.createdAt BETWEEN :start AND :end')
+            ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
+            ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
+            ->orderBy('d.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
 
-    // Construire le CSV en mémoire
-    $handle = fopen('php://temp', 'r+');
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, "\xEF\xBB\xBF");
 
-    // BOM UTF-8 pour qu'Excel affiche correctement les accents
-    fwrite($handle, "\xEF\xBB\xBF");
-
-    // En-têtes de colonnes
-    fputcsv($handle, [
-        'ID',
-        'Date',
-        'Département',
-        'Matériel',
-        'Quantité',
-        'Statut',
-        'Destination',
-    ], ';');   // ⚠️ point-virgule = standard français pour Excel
-
-    // Lignes
-    foreach ($rapportGlobal as $d) {
         fputcsv($handle, [
-            $d->getId(),
-            $d->getCreatedAt() ? $d->getCreatedAt()->format('d/m/Y H:i') : '',
-            $d->getDepartement(),
-            $d->getMateriel(),
-            $d->getQuantite() ?? 1,
-            $d->getStatut(),
-            $d->getDestination() ?? '—',
+            'ID',
+            'Date',
+            'Département',
+            'Matériel',
+            'Quantité',
+            'Statut',
+            'Destination',
         ], ';');
+
+        foreach ($rapportGlobal as $d) {
+            fputcsv($handle, [
+                $d->getId(),
+                $d->getCreatedAt() ? $d->getCreatedAt()->format('d/m/Y H:i') : '',
+                $d->getDepartement(),
+                $d->getMateriel(),
+                $d->getQuantite() ?? 1,
+                $d->getStatut(),
+                $d->getDestination() ?? '—',
+            ], ';');
+        }
+
+        rewind($handle);
+        $csvContent = stream_get_contents($handle);
+        fclose($handle);
+
+        return new Response($csvContent, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.csv"',
+        ]);
     }
-
-    rewind($handle);
-    $csvContent = stream_get_contents($handle);
-    fclose($handle);
-
-    return new Response($csvContent, 200, [
-        'Content-Type'        => 'text/csv; charset=UTF-8',
-        'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.csv"',
-    ]);
-}
 
     #[Route('/dashboard/compta/devis/aiguiller/{id}', name: 'app_devis_aiguiller', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
@@ -1547,9 +1599,6 @@ public function rapportExcel(Request $request, DemandeRepository $demandeReposit
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 🔎 HELPER : retrouve le meilleur article correspondant à un libellé
-    // ═══════════════════════════════════════════════════════════════
     private function trouverArticleDepuisMateriel(string $materiel, EntityManagerInterface $em): ?Article
     {
         $materiel = trim($materiel);

@@ -27,24 +27,18 @@
                 radial-gradient(at 100% 100%, rgba(44, 62, 80, 0.06) 0px, transparent 50%);
             min-height: 100vh;
         }
-
-        /* NAVBAR */
         .navbar-modern {
             background: rgba(30, 41, 59, 0.98);
             backdrop-filter: blur(12px);
             border-bottom: 3px solid transparent;
             border-image: var(--gradient-gold) 1;
-            padding-left: 1.5rem;
-            padding-right: 1.5rem;
+            padding-left: 1.5rem; padding-right: 1.5rem;
         }
         .navbar-brand-modern { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.5px; }
         .role-pill {
-            background: var(--gradient-gold);
-            color: #1e293b;
-            padding: 8px 18px;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 800;
+            background: var(--gradient-gold); color: #1e293b;
+            padding: 8px 18px; border-radius: 50px;
+            font-size: 0.85rem; font-weight: 800;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
         }
         .notification-bell {
@@ -55,31 +49,20 @@
             color: #fff; position: relative;
         }
         .notification-bell:hover { background: rgba(212,175,55,0.9); color: #1e293b; transform: scale(1.05); }
-
-        /* HERO */
         .dg-hero {
-            background: var(--gradient-dg);
-            border-radius: 22px;
-            padding: 2rem 2.25rem;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-            margin-bottom: 1.75rem;
-            box-shadow: 0 15px 40px rgba(30, 41, 59, 0.2);
+            background: var(--gradient-dg); border-radius: 22px;
+            padding: 2rem 2.25rem; color: #fff;
+            position: relative; overflow: hidden;
+            margin-bottom: 1.75rem; box-shadow: 0 15px 40px rgba(30, 41, 59, 0.2);
         }
         .dg-hero::before {
-            content: '';
-            position: absolute; top: -50%; right: -10%;
-            width: 400px; height: 400px;
-            border-radius: 50%;
-            background: var(--gradient-gold);
-            opacity: 0.15; filter: blur(60px);
+            content: ''; position: absolute; top: -50%; right: -10%;
+            width: 400px; height: 400px; border-radius: 50%;
+            background: var(--gradient-gold); opacity: 0.15; filter: blur(60px);
         }
         .dg-hero::after {
-            content: '';
-            position: absolute; bottom: -60%; left: -5%;
-            width: 300px; height: 300px;
-            border-radius: 50%;
+            content: ''; position: absolute; bottom: -60%; left: -5%;
+            width: 300px; height: 300px; border-radius: 50%;
             background: linear-gradient(135deg, #667eea, #764ba2);
             opacity: 0.25; filter: blur(70px);
         }
@@ -88,22 +71,15 @@
             display: inline-flex; align-items: center; gap: 0.5rem;
             background: rgba(255,255,255,0.12);
             border: 1px solid rgba(255,255,255,0.2);
-            color: #f9d976;
-            padding: 0.4rem 1rem; border-radius: 50px;
+            color: #f9d976; padding: 0.4rem 1rem; border-radius: 50px;
             font-size: 0.72rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.1em;
-            margin-bottom: 1rem;
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;
         }
         .dg-hero h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; margin: 0 0 0.5rem; }
         .dg-hero p { color: rgba(255,255,255,0.75); margin: 0; font-size: 0.95rem; }
         .dg-hero-meta { display: flex; gap: 1.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
-        .dg-hero-meta-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            color: rgba(255,255,255,0.85); font-size: 0.85rem;
-        }
+        .dg-hero-meta-item { display: flex; align-items: center; gap: 0.5rem; color: rgba(255,255,255,0.85); font-size: 0.85rem; }
         .dg-hero-meta-item i { color: #f9d976; }
-
-        /* STAT CARDS */
         .stat-card {
             border: none; border-radius: 18px; padding: 1.4rem;
             position: relative; overflow: hidden;
@@ -117,7 +93,6 @@
         .stat-card.stat-primary::before { background: var(--gradient-3); }
         .stat-card.stat-success::before { background: var(--gradient-4); }
         .stat-card.stat-gold::before    { background: var(--gradient-gold); }
-        .stat-card.stat-danger::before  { background: linear-gradient(135deg, #dc2626, #ef4444); }
         .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
         .stat-icon {
             width: 56px; height: 56px; border-radius: 14px;
@@ -127,10 +102,7 @@
         .stat-icon-warning { background: rgba(250, 112, 154, 0.12); color: #f5576c; }
         .stat-icon-primary { background: rgba(79, 172, 254, 0.12); color: #3b82f6; }
         .stat-icon-success { background: rgba(67, 233, 123, 0.12); color: #10b981; }
-        .stat-icon-danger  { background: rgba(220, 38, 38, 0.12); color: #dc2626; }
         .stat-icon-gold    { background: rgba(212, 175, 55, 0.15); color: #b8860b; }
-
-        /* TRÉSORERIE */
         .treso-card {
             border-radius: 18px; padding: 1.15rem 1.4rem;
             display: flex; justify-content: space-between; align-items: center;
@@ -144,6 +116,7 @@
             font-size: 1.6rem; font-weight: 800; line-height: 1;
             letter-spacing: -0.5px;
         }
+        .treso-card .treso-hint { font-size: 0.68rem; margin-top: 0.35rem; font-weight: 500; opacity: 0.75; line-height: 1.2; }
         .treso-card .treso-icon { font-size: 2rem; opacity: 0.25; }
         .treso-usd { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid rgba(5, 150, 105, 0.25); }
         .treso-usd .treso-label { color: #065f46; }
@@ -154,17 +127,9 @@
         .treso-caisse { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid rgba(212, 175, 55, 0.35); }
         .treso-caisse .treso-label { color: #92400e; }
         .treso-caisse .treso-value { color: #78350f; }
-
-        /* MAIN CARD / TABS */
-        .main-card {
-            border: none; border-radius: 20px;
-            box-shadow: var(--shadow-soft); background: #fff;
-            overflow: visible; width: 100%;
-            position: relative;
-        }
+        .main-card { border: none; border-radius: 20px; box-shadow: var(--shadow-soft); background: #fff; overflow: visible; width: 100%; position: relative; }
         .nav-tabs-modern {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0 1rem; gap: 0.25rem;
+            border-bottom: 1px solid #e2e8f0; padding: 0 1rem; gap: 0.25rem;
             flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
         }
         .nav-tabs-modern::-webkit-scrollbar { display: none; }
@@ -177,68 +142,36 @@
         .nav-tabs-modern .nav-link:hover { color: #1e293b; }
         .nav-tabs-modern .nav-link.active { color: #1e293b !important; background: none; }
         .nav-tabs-modern .nav-link.active::after {
-            content: ''; position: absolute;
-            bottom: -1px; left: 1rem; right: 1rem;
-            height: 3px; background: var(--gradient-gold);
-            border-radius: 3px 3px 0 0;
+            content: ''; position: absolute; bottom: -1px; left: 1rem; right: 1rem;
+            height: 3px; background: var(--gradient-gold); border-radius: 3px 3px 0 0;
         }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
-
-        /* Badge compteur sur les onglets */
         .nav-tabs-modern .nav-link .tab-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 6px;
-            margin-left: 6px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: #fff;
-            font-size: 0.65rem;
-            font-weight: 800;
-            line-height: 1;
-            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
-            animation: pulseDot 2s infinite;
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px;
+            border-radius: 10px; background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff; font-size: 0.65rem; font-weight: 800; line-height: 1;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4); animation: pulseDot 2s infinite;
         }
         @keyframes pulseDot {
             0%, 100% { box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4); }
             50%      { box-shadow: 0 2px 12px rgba(220, 38, 38, 0.7); }
         }
-
-        /* ═══════════════════════════════════════════════════════
-           MENU MOBILE SUPERPOSÉ (OVERLAY)
-        ═══════════════════════════════════════════════════════ */
         .mobile-tab-toggle { display: none; }
         .mobile-tab-overlay { display: none; }
-
-        /* TABLES */
         .table-responsive { width: 100%; }
         .table-modern { margin: 0; width: 100% !important; }
         .table-modern thead th {
             background: #f8fafc; color: #475569;
             font-size: 0.72rem; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.06em;
-            padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0;
-            white-space: nowrap;
+            padding: 1rem 0.9rem; border-bottom: 2px solid #e2e8f0; white-space: nowrap;
         }
-        .table-modern tbody td {
-            padding: 1rem 0.9rem; vertical-align: middle;
-            border-color: #f1f5f9;
-        }
+        .table-modern tbody td { padding: 1rem 0.9rem; vertical-align: middle; border-color: #f1f5f9; }
         .table-modern tbody tr:hover { background: #f8fafc; }
-        .row-pending {
-            border-left: 4px solid #dc2626 !important;
-            background-color: #fef2f2 !important;
-        }
+        .row-pending { border-left: 4px solid #dc2626 !important; background-color: #fef2f2 !important; }
         .row-pending:hover { background-color: #fee2e2 !important; }
-
-        /* BADGES SOFT */
-        .badge-soft {
-            padding: 0.4rem 0.75rem; border-radius: 8px;
-            font-weight: 600; font-size: 0.75rem;
-        }
+        .badge-soft { padding: 0.4rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.75rem; }
         .badge-soft-warning { background: rgba(250, 112, 154, 0.12); color: #d63384; }
         .badge-soft-primary { background: rgba(79, 172, 254, 0.12); color: #2563eb; }
         .badge-soft-success { background: rgba(67, 233, 123, 0.15); color: #059669; }
@@ -246,44 +179,22 @@
         .badge-soft-info    { background: rgba(14, 165, 233, 0.12); color: #0284c7; }
         .badge-soft-secondary { background: #f1f5f9; color: #475569; }
         .badge-soft-gold    { background: rgba(212, 175, 55, 0.15); color: #8b6508; }
-
-        /* FILTER BAR */
-        .filter-bar {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 1rem;
-        }
+        .filter-bar { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1rem; }
         .filter-bar .form-label { font-size: 0.8rem; font-weight: 600; color: #475569; margin-bottom: 0.3rem; }
         .filter-bar .form-control,
         .filter-bar .form-select { font-size: 0.88rem; border-radius: 10px; border: 1px solid #e2e8f0; padding: 0.6rem 0.85rem; }
         .filter-bar .form-control:focus,
         .filter-bar .form-select:focus { border-color: #d4af37; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.10); }
-
-        /* KPI MINI */
-        .kpi-mini {
-            background: #f8fafc; border: 1px solid #eef2f7;
-            border-radius: 14px; padding: 1rem 1.15rem; text-align: center;
-        }
-        .kpi-mini .kpi-value {
-            font-size: 1.6rem; font-weight: 800; line-height: 1;
-            margin-bottom: 0.35rem; letter-spacing: -0.5px;
-        }
-        .kpi-mini .kpi-label {
-            font-size: 0.7rem; color: #64748b; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.05em;
-        }
+        .kpi-mini { background: #f8fafc; border: 1px solid #eef2f7; border-radius: 14px; padding: 1rem 1.15rem; text-align: center; }
+        .kpi-mini .kpi-value { font-size: 1.6rem; font-weight: 800; line-height: 1; margin-bottom: 0.35rem; letter-spacing: -0.5px; }
+        .kpi-mini .kpi-label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
         .kpi-mini.kpi-warning  { background: rgba(250, 112, 154, 0.06); border-color: rgba(250, 112, 154, 0.15); }
         .kpi-mini.kpi-primary  { background: rgba(79, 172, 254, 0.06); border-color: rgba(79, 172, 254, 0.15); }
         .kpi-mini.kpi-success  { background: rgba(67, 233, 123, 0.06); border-color: rgba(67, 233, 123, 0.15); }
         .kpi-mini.kpi-gold     { background: rgba(212, 175, 55, 0.08); border-color: rgba(212, 175, 55, 0.2); }
         .kpi-mini.kpi-danger   { background: rgba(220, 38, 38, 0.06); border-color: rgba(220, 38, 38, 0.15); }
-
-        /* EMPTY STATE */
         .empty-state { text-align: center; padding: 3rem 1rem; color: #94a3b8; }
         .empty-state i { font-size: 3rem; color: #cbd5e1; margin-bottom: 1rem; display: block; }
-
-        /* BTN EXPORT */
         .btn-export {
             background: var(--gradient-gold); color: #1e293b;
             border: none; font-weight: 700; border-radius: 10px;
@@ -291,37 +202,17 @@
             box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
         }
         .btn-export:hover { color: #1e293b; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(212, 175, 55, 0.4); }
-
-        /* STATUS TIMELINE */
-        .status-timeline {
-            display: flex; gap: 0.25rem; height: 8px;
-            border-radius: 4px; overflow: hidden;
-            margin-top: 0.75rem; background: #f1f5f9;
-        }
+        .status-timeline { display: flex; gap: 0.25rem; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 0.75rem; background: #f1f5f9; }
         .status-segment { height: 100%; }
         .status-seg-attente { background: #fa709a; }
         .status-seg-valide  { background: #4facfe; }
         .status-seg-livre   { background: #43e97b; }
-        .legend-dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            display: inline-block; margin-right: 0.4rem;
-        }
-
-        /* ALERT BANNER STOCK */
-        .alert-banner-stock {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            border-radius: 16px;
-            overflow: hidden;
-            border: none;
-        }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 0.4rem; }
+        .alert-banner-stock { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border-radius: 16px; overflow: hidden; border: none; }
         .alert-banner-stock .alert-header {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid rgba(220,38,38,0.2);
-            display: flex; justify-content: space-between;
-            align-items: center; flex-wrap: wrap; gap: 0.75rem;
+            padding: 1rem 1.25rem; border-bottom: 1px solid rgba(220,38,38,0.2);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
         }
-
-        /* RESPONSIVE */
         .container-fluid { width: 100% !important; max-width: 100% !important; }
         @media (min-width: 1920px) { .container-fluid { padding-left: 3rem !important; padding-right: 3rem !important; } }
         @media (max-width: 1200px) {
@@ -329,10 +220,6 @@
             .dg-hero { padding: 1.75rem 1.5rem; }
             .dg-hero h1 { font-size: 1.6rem; }
         }
-
-        /* ═══════════════════════════════════════════════════════
-           BREAKPOINT MOBILE — MENU OVERLAY
-        ═══════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
             .container-fluid { padding-left: 1rem !important; padding-right: 1rem !important; }
             .navbar-modern { padding-left: 0.75rem; padding-right: 0.75rem; }
@@ -344,121 +231,50 @@
             .table-modern thead th, .table-modern tbody td { padding: 0.75rem 0.6rem; font-size: 0.82rem; }
             .kpi-mini .kpi-value { font-size: 1.35rem; }
             .main-card > .p-4 { padding: 1rem !important; }
-
-            /* 🎯 Cacher les onglets horizontaux */
             .nav-tabs-modern { display: none !important; }
-
-            /* 🎯 Bouton toggle mobile */
             .mobile-tab-toggle {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                width: 100%;
-                padding: 1rem 1.15rem;
-                background: var(--gradient-dg);
-                border: none;
-                border-bottom: 3px solid transparent;
-                border-image: var(--gradient-gold) 1;
-                color: #fff;
-                font-weight: 700;
-                font-size: 0.92rem;
-                cursor: pointer;
-                text-align: left;
-                letter-spacing: -0.2px;
+                display: flex; align-items: center; justify-content: space-between;
+                width: 100%; padding: 1rem 1.15rem; background: var(--gradient-dg);
+                border: none; border-bottom: 3px solid transparent; border-image: var(--gradient-gold) 1;
+                color: #fff; font-weight: 700; font-size: 0.92rem;
+                cursor: pointer; text-align: left; letter-spacing: -0.2px;
             }
             .mobile-tab-toggle:hover { background: linear-gradient(135deg, #1e293b, #2c3e50); }
-            .mobile-tab-toggle .toggle-left {
-                display: flex; align-items: center; gap: 0.6rem;
-                overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-                max-width: calc(100% - 40px);
-            }
+            .mobile-tab-toggle .toggle-left { display: flex; align-items: center; gap: 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 40px); }
             .mobile-tab-toggle .toggle-left i { color: #f9d976; flex-shrink: 0; }
-            .mobile-tab-toggle .fa-chevron-down {
-                font-size: 0.85rem;
-                color: #f9d976;
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                flex-shrink: 0;
-            }
-            .mobile-tab-toggle.open .fa-chevron-down {
-                transform: rotate(180deg);
-            }
-
-            /* 🎯 Panneau overlay superposé */
+            .mobile-tab-toggle .fa-chevron-down { font-size: 0.85rem; color: #f9d976; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-shrink: 0; }
+            .mobile-tab-toggle.open .fa-chevron-down { transform: rotate(180deg); }
             .mobile-tab-overlay {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                z-index: 1050;
-                background: #fff;
-                box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 8px 16px rgba(15, 23, 42, 0.08);
-                max-height: 70vh;
-                overflow-y: auto;
-                border-radius: 0 0 16px 16px;
-                border: 1px solid #e2e8f0;
-                border-top: none;
+                display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;
+                background: #fff; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18), 0 8px 16px rgba(15, 23, 42, 0.08);
+                max-height: 70vh; overflow-y: auto; border-radius: 0 0 16px 16px;
+                border: 1px solid #e2e8f0; border-top: none;
             }
-            .mobile-tab-overlay.show {
-                display: block;
-                animation: slideDownMenu 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            @keyframes slideDownMenu {
-                from { opacity: 0; transform: translateY(-10px); }
-                to   { opacity: 1; transform: translateY(0); }
-            }
-
+            .mobile-tab-overlay.show { display: block; animation: slideDownMenu 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+            @keyframes slideDownMenu { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
             .mobile-tab-overlay .overlay-item {
-                display: flex;
-                align-items: center;
-                gap: 0.85rem;
-                padding: 1rem 1.15rem;
-                border: none;
-                background: none;
-                width: 100%;
-                text-align: left;
-                font-weight: 600;
-                color: #475569;
-                border-bottom: 1px solid #f1f5f9;
-                cursor: pointer;
-                font-size: 0.92rem;
+                display: flex; align-items: center; gap: 0.85rem;
+                padding: 1rem 1.15rem; border: none; background: none; width: 100%;
+                text-align: left; font-weight: 600; color: #475569;
+                border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 0.92rem;
                 border-left: 4px solid transparent;
             }
             .mobile-tab-overlay .overlay-item:last-child { border-bottom: none; }
-            .mobile-tab-overlay .overlay-item:hover {
-                background: #f8fafc;
-                color: #1e293b;
-            }
+            .mobile-tab-overlay .overlay-item:hover { background: #f8fafc; color: #1e293b; }
             .mobile-tab-overlay .overlay-item.active {
                 background: linear-gradient(90deg, rgba(212, 175, 55, 0.10), rgba(212, 175, 55, 0.01));
-                color: #1e293b;
-                border-left-color: #d4af37;
+                color: #1e293b; border-left-color: #d4af37;
             }
-            .mobile-tab-overlay .overlay-item i {
-                width: 22px; text-align: center;
-                font-size: 1rem; flex-shrink: 0;
-            }
+            .mobile-tab-overlay .overlay-item i { width: 22px; text-align: center; font-size: 1rem; flex-shrink: 0; }
             .mobile-tab-overlay .overlay-item .tab-badge {
-                margin-left: auto;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                min-width: 22px; height: 22px;
-                padding: 0 7px;
-                border-radius: 11px;
-                background: linear-gradient(135deg, #ef4444, #dc2626);
-                color: #fff;
-                font-size: 0.68rem;
-                font-weight: 800;
-                line-height: 1;
+                margin-left: auto; display: inline-flex; align-items: center; justify-content: center;
+                min-width: 22px; height: 22px; padding: 0 7px; border-radius: 11px;
+                background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;
+                font-size: 0.68rem; font-weight: 800; line-height: 1;
                 box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
             }
-            .mobile-tab-overlay .overlay-item span:first-of-type {
-                flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-            }
+            .mobile-tab-overlay .overlay-item span:first-of-type { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         }
-
         @media (max-width: 576px) {
             .container-fluid { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
             .dg-hero { padding: 1rem 1rem; }
@@ -482,28 +298,23 @@
 </head>
 <body>
 
-{# ═══════════════════════════════════════════════════════
-   CALCUL DES COMPTEURS
-   ⚠️ La constante PHP Devis::STATUT_ATTENTE_DIR a pour valeur 'ATTENTE_DIRECTEUR'
-═══════════════════════════════════════════════════════ #}
 {% set msgsDevisAttente = devisListe|default([])|filter(d => d.statut == 'ATTENTE_DIRECTEUR')|length %}
 {% set msgsAlertesStock = nbAlertesStock|default(0) %}
 {% set msgsRdv = isPDG|default(false) ? mesRdv|default([])|length : 0 %}
 {% set totalMessages = msgsDevisAttente + msgsAlertesStock + msgsRdv %}
 
-{# ═══ NAVBAR ═══ #}
+{# Réconciliation solde global #}
+{% set autresUSD = soldeCaisseUSD|default(0) - soldeUSD|default(0) - (totalEntreesCaisseUSD|default(0) - totalSortiesCaisseUSD|default(0)) %}
+{% set autresCDF = soldeCaisseCDF|default(0) - soldeCDF|default(0) - (totalEntreesCaisseCDF|default(0) - totalSortiesCaisseCDF|default(0)) %}
+
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
             <img src="{{ asset('images/logo.png') }}" alt="Logo Dispromalt" style="height: 40px; width: auto; margin-right: 10px;">
             Dispro<span class="text-primary">malt</span>
-            <span class="fw-light fs-6 text-white-50 ms-2">
-                | {% if isPDG|default(false) %}PDG{% else %}Direction Générale{% endif %}
-            </span>
+            <span class="fw-light fs-6 text-white-50 ms-2">| {% if isPDG|default(false) %}PDG{% else %}Direction Générale{% endif %}</span>
         </a>
-
         <div class="d-flex align-items-center gap-3">
-            {# Cloche notifications — VUE GLOBALE #}
             <div class="dropdown">
                 <button class="notification-bell" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-bell"></i>
@@ -512,7 +323,6 @@
                     {% endif %}
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
-                    {# Section Devis #}
                     {% if msgsDevisAttente > 0 %}
                         <li class="dropdown-header text-danger fw-bold small"><i class="fas fa-gavel me-1"></i>Devis à arbitrer ({{ msgsDevisAttente }})</li>
                         {% for devis in devisListe|default([])|filter(d => d.statut == 'ATTENTE_DIRECTEUR')|slice(0, 3) %}
@@ -524,8 +334,6 @@
                             </li>
                         {% endfor %}
                     {% endif %}
-
-                    {# Section Stock #}
                     {% if msgsAlertesStock > 0 %}
                         <li class="dropdown-header text-warning fw-bold small mt-2"><i class="fas fa-exclamation-triangle me-1"></i>Alertes stock ({{ msgsAlertesStock }})</li>
                         {% for art in articlesEnAlerte|slice(0, 3) %}
@@ -537,8 +345,6 @@
                             </li>
                         {% endfor %}
                     {% endif %}
-
-                    {# Section RDV (PDG uniquement) #}
                     {% if isPDG|default(false) and msgsRdv > 0 %}
                         <li class="dropdown-header text-primary fw-bold small mt-2"><i class="fas fa-calendar-check me-1"></i>Rendez-vous ({{ msgsRdv }})</li>
                         {% for rdv in mesRdv|default([])|slice(0, 3) %}
@@ -550,22 +356,18 @@
                             </li>
                         {% endfor %}
                     {% endif %}
-
                     {% if totalMessages == 0 %}
                         <li class="text-center text-muted py-3 small"><i class="fas fa-check-circle text-success mb-1 d-block"></i>Aucune notification.</li>
                     {% endif %}
                 </ul>
             </div>
-
             <a href="{{ path('app_historique_reappro') }}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold">
                 <i class="fas fa-history me-1"></i> Historique
             </a>
-
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-crown me-2"></i>
                 <span>{% if isPDG|default(false) %}PDG{% else %}{{ userRole }}{% endif %}</span>
             </div>
-
             <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
                 <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
@@ -575,7 +377,7 @@
 
 <div class="container-fluid py-4" style="max-width: 100%; padding-left: 2rem; padding-right: 2rem;">
 
-    {# ═══ HERO ═══ #}
+    {# HERO #}
     <div class="dg-hero">
         <div class="dg-hero-content">
             <div class="dg-hero-badge">
@@ -603,7 +405,7 @@
         </div>
     </div>
 
-    {# ═══ TRÉSORERIE ═══ #}
+    {# TRÉSORERIE #}
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="treso-card treso-usd">
@@ -613,6 +415,7 @@
                         {{ soldeUSD|default(0)|number_format(2, ',', ' ') }}
                         <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">$</small>
                     </div>
+                    <div class="treso-hint text-success"><i class="fas fa-check-circle me-1"></i>Argent géré par la Comptabilité</div>
                 </div>
                 <i class="fas fa-dollar-sign treso-icon"></i>
             </div>
@@ -625,6 +428,7 @@
                         {{ soldeCDF|default(0)|number_format(0, ',', ' ') }}
                         <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">FC</small>
                     </div>
+                    <div class="treso-hint" style="color: #1e40af;"><i class="fas fa-check-circle me-1"></i>Argent géré par la Comptabilité</div>
                 </div>
                 <i class="fas fa-coins treso-icon"></i>
             </div>
@@ -632,12 +436,13 @@
         <div class="col-md-4">
             <div class="treso-card treso-caisse">
                 <div>
-                    <div class="treso-label"><i class="fas fa-cash-register me-1"></i>Solde Caisse (global)</div>
+                    <div class="treso-label"><i class="fas fa-cash-register me-1"></i>Solde Global (tout l'argent)</div>
                     <div class="treso-value" style="font-size: 1.15rem;">
                         {{ soldeCaisseUSD|default(0)|number_format(2, ',', ' ') }} $
                         <span style="opacity:0.5;">•</span>
                         {{ soldeCaisseCDF|default(0)|number_format(0, ',', ' ') }} FC
                     </div>
+                    <div class="treso-hint" style="color: #92400e;"><i class="fas fa-info-circle me-1"></i>Total de toutes les caisses</div>
                 </div>
                 <i class="fas fa-vault treso-icon"></i>
             </div>
@@ -653,7 +458,7 @@
         {% endfor %}
     {% endfor %}
 
-    {# ═══ STATS GLOBALES ═══ #}
+    {# STATS GLOBALES #}
     <div class="row g-3 mb-4">
         <div class="col-md-6 col-xl-3">
             <div class="stat-card stat-warning">
@@ -683,9 +488,9 @@
             <div class="stat-card stat-success">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis émis</h6>
+                        <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.7rem; letter-spacing: 0.05em;">Devis transmis DG</h6>
                         <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">{{ devisListe|default([])|length }}</h3>
-                        <span class="badge badge-soft badge-soft-success mt-2"><i class="fas fa-file-invoice-dollar me-1"></i>Financier</span>
+                        <span class="badge badge-soft badge-soft-success mt-2"><i class="fas fa-clock me-1"></i>7 derniers jours</span>
                     </div>
                     <div class="stat-icon stat-icon-success"><i class="fas fa-file-invoice-dollar"></i></div>
                 </div>
@@ -711,9 +516,7 @@
                             <h3 class="fw-bold m-0 text-dark" style="font-size: 2rem;">
                                 {% set depts = [] %}
                                 {% for d in demandes %}
-                                    {% if d.departement not in depts %}
-                                        {% set depts = depts|merge([d.departement]) %}
-                                    {% endif %}
+                                    {% if d.departement not in depts %}{% set depts = depts|merge([d.departement]) %}{% endif %}
                                 {% endfor %}
                                 {{ depts|length }}
                             </h3>
@@ -726,7 +529,7 @@
         </div>
     </div>
 
-    {# ═══ ALERTES STOCK BANNIÈRE ═══ #}
+    {# ALERTES STOCK BANNIÈRE #}
     {% if nbAlertesStock|default(0) > 0 %}
     <div class="alert-banner-stock mb-4">
         <div class="alert-header">
@@ -742,13 +545,7 @@
             <div class="table-responsive">
                 <table class="table table-sm table-hover align-middle m-0 bg-white">
                     <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">Article</th>
-                            <th class="text-center">Stock</th>
-                            <th class="text-center">Seuil</th>
-                            <th class="text-center">Statut réappro</th>
-                            <th>Date prévue</th>
-                        </tr>
+                        <tr><th class="ps-3">Article</th><th class="text-center">Stock</th><th class="text-center">Seuil</th><th class="text-center">Statut réappro</th><th>Date prévue</th></tr>
                     </thead>
                     <tbody>
                         {% for art in articlesEnAlerte %}
@@ -773,10 +570,9 @@
     </div>
     {% endif %}
 
-    {# ═══ CARTE PRINCIPALE ═══ #}
+    {# CARTE PRINCIPALE #}
     <div class="main-card">
 
-        {# ═══ TOGGLE MOBILE + OVERLAY (visible ≤ 768px) ═══ #}
         <div style="position: relative;">
             <button class="mobile-tab-toggle" type="button" id="mobileTabToggle" aria-expanded="false">
                 <span class="toggle-left">
@@ -785,21 +581,15 @@
                 </span>
                 <i class="fas fa-chevron-down"></i>
             </button>
-            <div class="mobile-tab-overlay" id="mobileTabOverlay">
-                {# Rempli dynamiquement par JS depuis les onglets existants #}
-            </div>
+            <div class="mobile-tab-overlay" id="mobileTabOverlay"></div>
         </div>
 
         <ul class="nav nav-tabs nav-tabs-modern" id="dgTabs" role="tablist">
-
-            {# Onglet Vue d'ensemble #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#overview-pane" type="button" role="tab">
                     <i class="fas fa-chart-pie text-warning"></i>Vue d'ensemble
                 </button>
             </li>
-
-            {# Onglet RDV — badge RDV (PDG uniquement) #}
             {% if isPDG|default(false) %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-rdv" data-bs-toggle="tab" data-bs-target="#rdv-pane" type="button" role="tab">
@@ -808,34 +598,31 @@
                 </button>
             </li>
             {% endif %}
-
-            {# Onglet Demandes Globales #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-demandes" data-bs-toggle="tab" data-bs-target="#demandes-pane" type="button" role="tab">
                     <i class="fas fa-boxes text-primary"></i>Demandes Globales
                 </button>
             </li>
-
-            {# Onglet Bons de Sortie #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-bons" data-bs-toggle="tab" data-bs-target="#bons-pane" type="button" role="tab">
                     <i class="fas fa-file-signature text-success"></i>Bons de Sortie
                 </button>
             </li>
-
-            {# Onglet Devis & Finances — badge devis entrants #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-devis" data-bs-toggle="tab" data-bs-target="#devis-pane" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
                     {% if msgsDevisAttente > 0 %}<span class="tab-badge">{{ msgsDevisAttente }}</span>{% endif %}
                 </button>
             </li>
-
-            {# Onglet État du Stock — badge alertes stock #}
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-stock" data-bs-toggle="tab" data-bs-target="#stock-pane" type="button" role="tab">
                     <i class="fas fa-warehouse text-success"></i>État du Stock
                     {% if msgsAlertesStock > 0 %}<span class="tab-badge">{{ msgsAlertesStock }}</span>{% endif %}
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-caisse" data-bs-toggle="tab" data-bs-target="#caisse-pane" type="button" role="tab">
+                    <i class="fas fa-cash-register text-success"></i>Caisse & Trésorerie
                 </button>
             </li>
         </ul>
@@ -843,9 +630,7 @@
         <div class="p-4">
             <div class="tab-content">
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 1 : VUE D'ENSEMBLE
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 1 : VUE D'ENSEMBLE ═══ #}
                 <div class="tab-pane fade show active" id="overview-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
@@ -895,13 +680,9 @@
                                 {% set nb_valide = 0 %}
                                 {% set nb_livre = 0 %}
                                 {% for d in demandes %}
-                                    {% if 'attente' in d.statut|lower %}
-                                        {% set nb_attente = nb_attente + 1 %}
-                                    {% elseif 'livr' in d.statut|lower %}
-                                        {% set nb_livre = nb_livre + 1 %}
-                                    {% else %}
-                                        {% set nb_valide = nb_valide + 1 %}
-                                    {% endif %}
+                                    {% if 'attente' in d.statut|lower %}{% set nb_attente = nb_attente + 1 %}
+                                    {% elseif 'livr' in d.statut|lower %}{% set nb_livre = nb_livre + 1 %}
+                                    {% else %}{% set nb_valide = nb_valide + 1 %}{% endif %}
                                 {% endfor %}
                                 {% if nb_total > 0 %}
                                     <div class="d-flex justify-content-between mb-2 small fw-bold">
@@ -923,64 +704,73 @@
                             <div class="p-3 bg-light rounded-3 border h-100">
                                 <h6 class="fw-bold text-dark mb-3"><i class="fas fa-coins text-warning me-2"></i>Performance financière</h6>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-muted">Devis totaux émis</span>
+                                    <span class="small text-muted">Devis transmis DG (7 j)</span>
                                     <span class="fw-bold text-dark">{{ devisListe|default([])|length }}</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted">Bons de sortie traités</span>
                                     <span class="fw-bold text-dark">{{ bonsSortie|default([])|length }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
                                     <span class="small text-muted">Période analysée</span>
                                     <span class="fw-bold text-dark small">{{ date_debut|date('d/m') }} → {{ date_fin|date('d/m') }}</span>
+                                </div>
+                                <hr class="my-2" style="opacity: 0.15;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted fw-semibold"><i class="fas fa-check-double text-success me-1"></i>Décaissé USD (7 j)</span>
+                                    <span class="fw-bold" style="color: #059669;">{{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }} $</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted fw-semibold"><i class="fas fa-check-double text-primary me-1"></i>Décaissé CDF (7 j)</span>
+                                    <span class="fw-bold" style="color: #2563eb;">{{ totalDevisCDF|default(0)|number_format(0, ',', ' ') }} FC</span>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-4">
                             <div class="p-3 rounded-3 border h-100" style="background: linear-gradient(135deg, #fef9e7 0%, #fdf2d0 100%); border-color: rgba(212, 175, 55, 0.3) !important;">
-                                <h6 class="fw-bold mb-3" style="color: #8b6508;"><i class="fas fa-vault me-2"></i>Trésorerie (Comptabilité)</h6>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="small text-muted fw-semibold">Solde USD</span>
-                                    <span class="fw-bold" style="color: #059669; font-size: 1.15rem;">
-                                        {{ soldeUSD|default(0)|number_format(2, ',', ' ') }} <small class="text-muted">$</small>
-                                    </span>
+                                <h6 class="fw-bold mb-3" style="color: #8b6508;"><i class="fas fa-vault me-2"></i>Où est l'argent ?</h6>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted fw-semibold"><i class="fas fa-hand-holding-usd text-info me-1"></i>Compta USD</span>
+                                    <span class="fw-bold" style="color: #2563eb;">{{ soldeUSD|default(0)|number_format(2, ',', ' ') }} $</span>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <span class="small text-muted fw-semibold">Solde CDF</span>
-                                    <span class="fw-bold" style="color: #2563eb; font-size: 1.15rem;">
-                                        {{ soldeCDF|default(0)|number_format(0, ',', ' ') }} <small class="text-muted">FC</small>
-                                    </span>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted fw-semibold"><i class="fas fa-cash-register text-success me-1"></i>Caisse USD</span>
+                                    <span class="fw-bold" style="color: #059669;">{{ (totalEntreesCaisseUSD|default(0) - totalSortiesCaisseUSD|default(0))|number_format(2, ',', ' ') }} $</span>
                                 </div>
                                 <hr class="my-2" style="opacity: 0.2;">
-                                <div class="d-flex align-items-center gap-2 small text-muted">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span>Solde = Σ entrées − Σ sorties</span>
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="small text-muted fw-semibold"><i class="fas fa-equals text-warning me-1"></i>Total USD</span>
+                                    <span class="fw-bold" style="color: #78350f; font-size: 1.1rem;">{{ soldeCaisseUSD|default(0)|number_format(2, ',', ' ') }} $</span>
+                                </div>
+                                {% if autresUSD|abs > 1 %}
+                                    <div class="small text-warning mt-1"><i class="fas fa-info-circle me-1"></i>+ {{ autresUSD|number_format(2, ',', ' ') }} $ d'autres opérations</div>
+                                {% endif %}
+                                <div class="d-flex align-items-center gap-2 small text-muted mt-2">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span><strong>Compta + Caisse = Total</strong> (tout l'argent)</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 2 : MES RENDEZ-VOUS (PDG uniquement)
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 2 : MES RENDEZ-VOUS (PDG) ═══ #}
                 {% if isPDG|default(false) %}
                 <div class="tab-pane fade" id="rdv-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-calendar-check text-primary me-2"></i>Mes rendez-vous</h5>
-                            <small class="text-muted">Rendez-vous et réunions planifiés par le secrétariat / la caisse.</small>
+                            <small class="text-muted">Rendez-vous et réunions planifiés par le secrétariat / la caisse. Les RDV passés sont automatiquement masqués.</small>
                         </div>
                         <span class="badge badge-soft badge-soft-primary px-3 py-2">
                             <i class="fas fa-list me-1"></i>{{ mesRdv|default([])|length }} RDV
                         </span>
                     </div>
-
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-primary">
                                 <div class="kpi-value text-primary">{{ mesRdv|default([])|length }}</div>
-                                <div class="kpi-label">RDV totaux</div>
+                                <div class="kpi-label">RDV à venir</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -1002,35 +792,22 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="p-3 bg-white rounded-3 border mb-4">
                         <h6 class="fw-bold text-dark mb-3"><i class="fas fa-inbox text-primary me-2"></i>Rendez-vous qui me sont destinés</h6>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover mb-0">
                                 <thead>
-                                    <tr>
-                                        <th>Date & heure</th>
-                                        <th>Visiteur</th>
-                                        <th>Objet</th>
-                                        <th>Statut</th>
-                                        <th class="text-center">Actions</th>
-                                    </tr>
+                                    <tr><th>Date & heure</th><th>Visiteur</th><th>Objet</th><th>Statut</th><th class="text-center">Actions</th></tr>
                                 </thead>
                                 <tbody>
                                 {% for rdv in mesRdv|default([]) %}
                                     <tr>
-                                        <td class="fw-semibold text-dark">
-                                            <i class="fas fa-clock text-muted me-1"></i>
-                                            {{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}
-                                        </td>
+                                        <td class="fw-semibold text-dark"><i class="fas fa-clock text-muted me-1"></i>{{ rdv.dateArrivee ? rdv.dateArrivee|date('d/m/Y H:i') : '—' }}</td>
                                         <td><i class="fas fa-user-circle text-muted me-2"></i>{{ rdv.nomVisiteur }}</td>
                                         <td>{{ rdv.motif ?? '—' }}</td>
                                         <td>
                                             {% if rdv.statut == 'DELEGUE' %}
-                                                <span class="badge badge-soft badge-soft-warning">
-                                                    <i class="fas fa-share me-1"></i>Délégué à
-                                                    {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier|split('@')|first : '?' }}
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-warning"><i class="fas fa-share me-1"></i>Délégué à {{ rdv.responsableDelegue ? rdv.responsableDelegue.userIdentifier|split('@')|first : '?' }}</span>
                                             {% elseif rdv.statut == 'RESERVE' %}
                                                 <span class="badge badge-soft badge-soft-primary"><i class="fas fa-calendar me-1"></i>Réservé</span>
                                             {% elseif rdv.statut == 'TERMINE' %}
@@ -1040,37 +817,22 @@
                                             {% endif %}
                                         </td>
                                         <td class="text-center">
-                                            <a href="{{ path('app_caisse_rdv_imprimer', {id: rdv.id}) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimer">
-                                                <i class="fas fa-print"></i>
-                                            </a>
+                                            <a href="{{ path('app_caisse_rdv_imprimer', {id: rdv.id}) }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Imprimer"><i class="fas fa-print"></i></a>
                                         </td>
                                     </tr>
                                 {% else %}
-                                    <tr>
-                                        <td colspan="5">
-                                            <div class="empty-state">
-                                                <i class="fas fa-calendar-xmark"></i>
-                                                <div class="fw-bold">Aucun rendez-vous planifié</div>
-                                                <small>Le secrétariat ou la caisse n'a encore rien enregistré pour vous.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-calendar-xmark"></i><div class="fw-bold">Aucun rendez-vous à venir</div><small>Le secrétariat ou la caisse n'a encore rien planifié pour vous.</small></div></td></tr>
                                 {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
-
                     {% if rdvDelegues|default([])|length > 0 %}
                         <div class="p-3 rounded-3 border" style="background: rgba(250, 112, 154, 0.04); border-color: rgba(250, 112, 154, 0.15) !important;">
                             <h6 class="fw-bold text-dark mb-3"><i class="fas fa-share-nodes text-warning me-2"></i>Rendez-vous que j'ai délégués</h6>
                             <div class="table-responsive">
                                 <table class="table table-modern table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th><th>Visiteur</th><th>Objet</th><th>Délégué à</th><th>Motif</th>
-                                        </tr>
-                                    </thead>
+                                    <thead><tr><th>Date</th><th>Visiteur</th><th>Objet</th><th>Délégué à</th><th>Motif</th></tr></thead>
                                     <tbody>
                                     {% for rdv in rdvDelegues %}
                                         <tr>
@@ -1089,9 +851,7 @@
                 </div>
                 {% endif %}
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 3 : DEMANDES GLOBALES
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 3 : DEMANDES GLOBALES ═══ #}
                 <div class="tab-pane fade" id="demandes-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
@@ -1099,7 +859,6 @@
                             <small class="text-muted">Vue consolidée de tous les services de l'imprimerie.</small>
                         </div>
                     </div>
-
                     <form method="get" action="{{ path('app_dashboard') }}" class="filter-bar row g-2 align-items-end mb-4 no-print">
                         <input type="hidden" name="tab" value="demandes">
                         <div class="col-md-3">
@@ -1123,14 +882,10 @@
                             <a href="{{ path('app_dashboard', {'tab': 'demandes'}) }}" class="btn btn-outline-secondary rounded-pill" title="Réinitialiser"><i class="fas fa-rotate"></i></a>
                         </div>
                     </form>
-
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
                             <thead>
-                                <tr>
-                                    <th>ID</th><th>Département</th><th>Localisation</th><th>Matériel</th>
-                                    <th class="text-center">Quantité</th><th>Statut</th><th>Date</th>
-                                </tr>
+                                <tr><th>ID</th><th>Département</th><th>Localisation</th><th>Matériel</th><th class="text-center">Quantité</th><th>Statut</th><th>Date</th></tr>
                             </thead>
                             <tbody>
                                 {% for d in rapportGlobal|default(demandes) %}
@@ -1162,42 +917,25 @@
                                         <td class="text-muted small">{{ d.createdAt ? d.createdAt|date('d/m/Y') : '-' }}</td>
                                     </tr>
                                 {% else %}
-                                    <tr>
-                                        <td colspan="7">
-                                            <div class="empty-state">
-                                                <i class="fas fa-inbox"></i>
-                                                <div class="fw-bold">Aucune demande sur cette période</div>
-                                                <small>Modifiez les filtres pour élargir la recherche.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><div class="fw-bold">Aucune demande sur cette période</div><small>Modifiez les filtres pour élargir la recherche.</small></div></td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 4 : BONS DE SORTIE
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 4 : BONS DE SORTIE ═══ #}
                 <div class="tab-pane fade" id="bons-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-signature text-success me-2"></i>Registre des bons de sortie</h5>
                             <small class="text-muted">Toutes les sorties de matériel de l'entreprise.</small>
                         </div>
-                        <span class="badge badge-soft badge-soft-success px-3 py-2">
-                            <i class="fas fa-list me-1"></i>{{ bonsSortie|default([])|length }} bon(s)
-                        </span>
+                        <span class="badge badge-soft badge-soft-success px-3 py-2"><i class="fas fa-list me-1"></i>{{ bonsSortie|default([])|length }} bon(s)</span>
                     </div>
-
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Code</th><th>Nom de l'agent</th><th>Département</th><th>Date création</th><th>État</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Code</th><th>Nom de l'agent</th><th>Département</th><th>Date création</th><th>État</th></tr></thead>
                             <tbody>
                                 {% for b in bonsSortie|default([]) %}
                                     <tr>
@@ -1218,42 +956,29 @@
                                         </td>
                                     </tr>
                                 {% else %}
-                                    <tr>
-                                        <td colspan="5">
-                                            <div class="empty-state">
-                                                <i class="fas fa-file-signature"></i>
-                                                <div class="fw-bold">Aucun bon de sortie</div>
-                                                <small>Aucun bon n'a été émis sur la période.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-file-signature"></i><div class="fw-bold">Aucun bon de sortie</div><small>Aucun bon n'a été émis sur la période.</small></div></td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 5 : DEVIS & FINANCES — VALIDATION DG
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 5 : DEVIS & FINANCES ═══ #}
                 <div class="tab-pane fade" id="devis-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-file-invoice-dollar text-warning me-2"></i>Devis & situation financière</h5>
-                            <small class="text-muted">Suivi consolidé des devis émis dans l'entreprise.</small>
+                            <small class="text-muted">Périmètre DG : 7 derniers jours, devis transmis à la Direction.</small>
                         </div>
                         {% if msgsDevisAttente > 0 %}
-                            <span class="badge badge-soft badge-soft-danger px-3 py-2">
-                                <i class="fas fa-bell me-1"></i>{{ msgsDevisAttente }} devis en attente d'arbitrage
-                            </span>
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2"><i class="fas fa-bell me-1"></i>{{ msgsDevisAttente }} devis en attente d'arbitrage</span>
                         {% endif %}
                     </div>
-
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-primary">
                                 <div class="kpi-value text-primary">{{ devisListe|default([])|length }}</div>
-                                <div class="kpi-label">Devis émis</div>
+                                <div class="kpi-label">Devis (7 j)</div>
                             </div>
                         </div>
                         <div class="col-6 col-md-3">
@@ -1275,27 +1000,39 @@
                             </div>
                         </div>
                     </div>
-
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="treso-card treso-usd">
+                                <div>
+                                    <div class="treso-label"><i class="fas fa-check-double me-1"></i>Total décaissé USD — 7 derniers jours</div>
+                                    <div class="treso-value">{{ totalDevisUSD|default(0)|number_format(2, ',', ' ') }} <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">$</small></div>
+                                    <div class="treso-hint text-success"><i class="fas fa-info-circle me-1"></i>Devis au statut « Décaissé » sur le périmètre DG</div>
+                                </div>
+                                <i class="fas fa-dollar-sign treso-icon"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="treso-card treso-cdf">
+                                <div>
+                                    <div class="treso-label"><i class="fas fa-check-double me-1"></i>Total décaissé CDF — 7 derniers jours</div>
+                                    <div class="treso-value">{{ totalDevisCDF|default(0)|number_format(0, ',', ' ') }} <small style="font-size:0.9rem; font-weight:600; opacity:0.6;">FC</small></div>
+                                    <div class="treso-hint" style="color: #1e40af;"><i class="fas fa-info-circle me-1"></i>Devis au statut « Décaissé » sur le périmètre DG</div>
+                                </div>
+                                <i class="fas fa-coins treso-icon"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-modern table-hover">
                             <thead>
-                                <tr>
-                                    <th>ID</th><th>Date</th><th>Demandeur</th><th>Description</th>
-                                    <th>Statut</th><th class="text-end">Montant</th>
-                                    <th class="text-center" style="min-width: 240px;">Action</th>
-                                </tr>
+                                <tr><th>ID</th><th>Date</th><th>Demandeur</th><th>Description</th><th>Statut</th><th class="text-end">Montant</th><th class="text-center" style="min-width: 240px;">Action</th></tr>
                             </thead>
                             <tbody>
                                 {% for devis in devisListe|default([]) %}
                                     <tr {% if devis.statut == 'ATTENTE_DIRECTEUR' %}class="row-pending"{% endif %}>
                                         <td class="fw-bold text-secondary">#{{ devis.id }}</td>
                                         <td class="text-muted small">{{ devis.createdAt ? devis.createdAt|date('d/m/Y') : '-' }}</td>
-                                        <td>
-                                            <span class="badge badge-soft badge-soft-secondary">
-                                                <i class="fas fa-user me-1"></i>
-                                                {{ devis.user ? devis.user.userIdentifier : (devis.createdBy|default('N/A')) }}
-                                            </span>
-                                        </td>
+                                        <td><span class="badge badge-soft badge-soft-secondary"><i class="fas fa-user me-1"></i>{{ devis.user ? devis.user.userIdentifier : (devis.createdBy|default('N/A')) }}</span></td>
                                         <td class="fw-semibold text-dark">{{ devis.description }}</td>
                                         <td>
                                             {% if devis.statut == 'DECAISSE' %}
@@ -1318,39 +1055,23 @@
                                         </td>
                                         <td class="text-center">
                                             {% if devis.statut == 'ATTENTE_DIRECTEUR' %}
-                                                <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}"
-                                                      class="d-inline-flex gap-2 justify-content-center align-items-center mb-1 flex-wrap"
-                                                      onsubmit="return confirm('Confirmer la validation de ce devis ?');">
+                                                <form method="POST" action="{{ path('app_devis_valider_dg', {'id': devis.id}) }}" class="d-inline-flex gap-2 justify-content-center align-items-center mb-1 flex-wrap" onsubmit="return confirm('Confirmer la validation de ce devis ?');">
                                                     <div class="input-group input-group-sm" style="max-width: 140px;">
-                                                        <input type="number" step="0.01" name="nouveau_montant"
-                                                               class="form-control text-end fw-bold"
-                                                               value="{{ devis.montant }}" required>
+                                                        <input type="number" step="0.01" name="nouveau_montant" class="form-control text-end fw-bold" value="{{ devis.montant }}" required>
                                                         <span class="input-group-text bg-light small fw-bold" style="font-size:0.7rem;">{{ devis.devise }}</span>
                                                     </div>
-                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3">
-                                                        <i class="fas fa-check me-1"></i> Valider
-                                                    </button>
+                                                    <button type="submit" class="btn btn-sm btn-success fw-bold rounded-pill px-3"><i class="fas fa-check me-1"></i> Valider</button>
                                                 </form>
-
-                                                <form method="POST" action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 mt-1">
-                                                        <i class="fas fa-ban"></i> Rejeter
-                                                    </button>
+                                                <form method="POST" action="{{ path('app_devis_rejeter_dg', {'id': devis.id}) }}" class="d-inline" onsubmit="return confirm('Confirmer le rejet définitif de ce devis ?');">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 mt-1"><i class="fas fa-ban"></i> Rejeter</button>
                                                 </form>
-
                                             {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
-                                                <span class="badge badge-soft badge-soft-info">
-                                                    <i class="fas fa-check-circle me-1"></i>Validé — chez la Compta
-                                                </span>
+                                                <span class="badge badge-soft badge-soft-info"><i class="fas fa-check-circle me-1"></i>Validé — chez la Compta</span>
                                             {% elseif devis.statut == 'DECAISSE' %}
                                                 <span class="badge badge-soft badge-soft-success">
                                                     <i class="fas fa-check-double me-1"></i>Décaissé
                                                     {% if devis.decaissePar %}
-                                                        <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">
-                                                            par {{ devis.decaissePar.userIdentifier|split('@')|first }}
-                                                        </span>
+                                                        <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">par {{ devis.decaissePar.userIdentifier|split('@')|first }}</span>
                                                     {% endif %}
                                                 </span>
                                             {% elseif devis.statut == 'REJETE' %}
@@ -1361,35 +1082,22 @@
                                         </td>
                                     </tr>
                                 {% else %}
-                                    <tr>
-                                        <td colspan="7">
-                                            <div class="empty-state">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                                <div class="fw-bold">Aucun devis sur cette période</div>
-                                                <small>Aucun devis n'a été émis.</small>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <tr><td colspan="7"><div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><div class="fw-bold">Aucun devis sur cette période</div><small>Aucun devis n'a été transmis à la DG ces 7 derniers jours.</small></div></td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 6 : ÉTAT DU STOCK
-                ═══════════════════════════════════════════════ #}
+                {# ═══ ONGLET 6 : ÉTAT DU STOCK (retour position originale) ═══ #}
                 <div class="tab-pane fade" id="stock-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
                             <h5 class="fw-bold text-dark m-0"><i class="fas fa-warehouse text-success me-2"></i>État consolidé du stock</h5>
                             <small class="text-muted">Vue synthétique de l'inventaire pour la Direction Générale.</small>
                         </div>
-                        <a href="{{ path('app_historique_reappro') }}" class="btn btn-export">
-                            <i class="fas fa-history me-1"></i> Historique Réappro
-                        </a>
+                        <a href="{{ path('app_historique_reappro') }}" class="btn btn-export"><i class="fas fa-history me-1"></i> Historique Réappro</a>
                     </div>
-
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi-mini kpi-primary">
@@ -1416,7 +1124,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="row g-3 mb-4">
                         <div class="col-lg-7">
                             <div class="p-3 bg-white rounded-3 border h-100">
@@ -1431,19 +1138,11 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="p-3 bg-white rounded-3 border mb-4">
                         <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list text-secondary me-2"></i>Synthèse par catégorie</h6>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Catégorie</th>
-                                        <th class="text-center">Nb articles</th>
-                                        <th class="text-center">Quantité totale</th>
-                                        <th class="text-center">Part</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Catégorie</th><th class="text-center">Nb articles</th><th class="text-center">Quantité totale</th><th class="text-center">Part</th></tr></thead>
                                 <tbody>
                                     {% set totalGlobal = totalQuantiteStock > 0 ? totalQuantiteStock : 1 %}
                                     {% for cat, data in articlesParCategorie|sort((a, b) => b.quantite <=> a.quantite) %}
@@ -1467,7 +1166,6 @@
                             </table>
                         </div>
                     </div>
-
                     {% if nbAlertesStock|default(0) > 0 %}
                     <div class="p-3 rounded-3 border" style="background: rgba(220, 38, 38, 0.04); border-color: rgba(220, 38, 38, 0.15) !important;">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -1476,15 +1174,7 @@
                         </div>
                         <div class="table-responsive">
                             <table class="table table-modern table-hover mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Article</th>
-                                        <th class="text-center">Stock actuel</th>
-                                        <th class="text-center">Seuil</th>
-                                        <th class="text-center">Écart</th>
-                                        <th>Réappro</th>
-                                    </tr>
-                                </thead>
+                                <thead><tr><th>Article</th><th class="text-center">Stock actuel</th><th class="text-center">Seuil</th><th class="text-center">Écart</th><th>Réappro</th></tr></thead>
                                 <tbody>
                                     {% for art in articlesEnAlerte %}
                                         <tr>
@@ -1495,9 +1185,7 @@
                                             <td>
                                                 {% if art.reapprovisionnementEnCours %}
                                                     <span class="badge badge-soft badge-soft-primary"><i class="fas fa-truck-loading me-1"></i>En cours</span>
-                                                    {% if art.dateReapprovisionnement %}
-                                                        <div class="small text-muted mt-1">Prévu : <strong>{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong></div>
-                                                    {% endif %}
+                                                    {% if art.dateReapprovisionnement %}<div class="small text-muted mt-1">Prévu : <strong>{{ art.dateReapprovisionnement|date('d/m/Y') }}</strong></div>{% endif %}
                                                 {% else %}
                                                     <span class="badge badge-soft badge-soft-secondary">Non lancé</span>
                                                 {% endif %}
@@ -1511,6 +1199,177 @@
                     {% endif %}
                 </div>
 
+                {# ═══ ONGLET 7 : CAISSE & TRÉSORERIE ═══ #}
+                <div class="tab-pane fade" id="caisse-pane" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold text-dark m-0"><i class="fas fa-cash-register text-success me-2"></i>Caisse & Trésorerie</h5>
+                            <small class="text-muted">Le détail de tous les mouvements d'argent pour bien comprendre le solde global.</small>
+                        </div>
+                        <span class="badge badge-soft badge-soft-success px-3 py-2">
+                            <i class="fas fa-list me-1"></i>{{ mouvementsCaisseData|default([])|length }} mouvement(s)
+                        </span>
+                    </div>
+
+                    <div class="alert border-0 rounded-3 mb-4" style="background: rgba(14, 165, 233, 0.08);">
+                        <div class="d-flex gap-2 align-items-start mb-3">
+                            <i class="fas fa-lightbulb text-info mt-1" style="font-size: 1.3rem;"></i>
+                            <div class="fw-bold" style="color: #0c4a6e; font-size: 1rem;">Comment lire les 3 montants ci-dessous ?</div>
+                        </div>
+                        <div class="d-flex flex-column gap-2 ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background: #2563eb; min-width: 110px; font-size: 0.8rem;">🔵 Compta</span>
+                                <span class="small">= l'argent géré par le <strong>Comptable</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background: #059669; min-width: 110px; font-size: 0.8rem;">🟢 Caisse</span>
+                                <span class="small">= l'argent géré par le <strong>Caissier</strong></span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge" style="background: #78350f; min-width: 110px; font-size: 0.8rem;">🟡 Global</span>
+                                <span class="small"><strong>= Compta + Caisse</strong> = le vrai total disponible</span>
+                            </div>
+                        </div>
+                        <div class="small text-muted mt-3 ps-4">
+                            <i class="fas fa-check-circle text-success me-1"></i>
+                            Si <strong>Compta + Caisse = Global</strong>, tout est cohérent. Sinon, le message jaune ci-dessous explique l'écart.
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="treso-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid rgba(37, 99, 235, 0.25);">
+                                <div style="flex:1;">
+                                    <div class="treso-label" style="color: #1e40af;"><i class="fas fa-hand-holding-usd me-1"></i>Compta</div>
+                                    <div class="treso-value" style="color: #2563eb; font-size: 1.2rem;">
+                                        {{ soldeUSD|default(0)|number_format(2, ',', ' ') }} $
+                                        <div style="font-size: 0.8rem; margin-top: 0.2rem;">{{ soldeCDF|default(0)|number_format(0, ',', ' ') }} FC</div>
+                                    </div>
+                                    <div class="treso-hint" style="color: #1e40af;"><i class="fas fa-user-tie me-1"></i>Géré par le Comptable</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="treso-card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid rgba(5, 150, 105, 0.25);">
+                                <div style="flex:1;">
+                                    <div class="treso-label" style="color: #065f46;"><i class="fas fa-cash-register me-1"></i>Caisse</div>
+                                    <div class="treso-value" style="color: #059669; font-size: 1.2rem;">
+                                        {{ (totalEntreesCaisseUSD|default(0) - totalSortiesCaisseUSD|default(0))|number_format(2, ',', ' ') }} $
+                                        <div style="font-size: 0.8rem; margin-top: 0.2rem;">{{ (totalEntreesCaisseCDF|default(0) - totalSortiesCaisseCDF|default(0))|number_format(0, ',', ' ') }} FC</div>
+                                    </div>
+                                    <div class="treso-hint text-success"><i class="fas fa-user-tie me-1"></i>Géré par le Caissier</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="treso-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid rgba(212, 175, 55, 0.4);">
+                                <div style="flex:1;">
+                                    <div class="treso-label" style="color: #92400e;"><i class="fas fa-equals me-1"></i>Total (Global)</div>
+                                    <div class="treso-value" style="color: #78350f; font-size: 1.2rem;">
+                                        {{ soldeCaisseUSD|default(0)|number_format(2, ',', ' ') }} $
+                                        <div style="font-size: 0.8rem; margin-top: 0.2rem;">{{ soldeCaisseCDF|default(0)|number_format(0, ',', ' ') }} FC</div>
+                                    </div>
+                                    <div class="treso-hint" style="color: #92400e;"><i class="fas fa-info-circle me-1"></i>Tout l'argent disponible</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if autresUSD|abs > 1 or autresCDF|abs > 1 %}
+                        <div class="alert alert-warning border-0 rounded-3 mb-4 d-flex gap-2 align-items-start">
+                            <i class="fas fa-info-circle mt-1"></i>
+                            <div class="small">
+                                <strong>💡 Petit écart normal :</strong>
+                                il reste <strong>{{ autresUSD|number_format(2, ',', ' ') }} $</strong>
+                                et <strong>{{ autresCDF|number_format(0, ',', ' ') }} FC</strong>
+                                qui proviennent d'autres opérations (ni Compta, ni Caisse). Rien d'anormal.
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-success">
+                                <div class="kpi-value text-success">{{ totalEntreesCaisseUSD|default(0)|number_format(2, ',', ' ') }} $</div>
+                                <div class="kpi-label">Entrées USD</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-danger">
+                                <div class="kpi-value text-danger">{{ totalSortiesCaisseUSD|default(0)|number_format(2, ',', ' ') }} $</div>
+                                <div class="kpi-label">Sorties USD</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-success">
+                                <div class="kpi-value text-success">{{ totalEntreesCaisseCDF|default(0)|number_format(0, ',', ' ') }} FC</div>
+                                <div class="kpi-label">Entrées CDF</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="kpi-mini kpi-danger">
+                                <div class="kpi-value text-danger">{{ totalSortiesCaisseCDF|default(0)|number_format(0, ',', ' ') }} FC</div>
+                                <div class="kpi-label">Sorties CDF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-white rounded-3 border">
+                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list text-success me-2"></i>Derniers mouvements de caisse (50 max)</h6>
+                        <div class="table-responsive">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Provenance / Motif</th>
+                                        <th>Catégorie</th>
+                                        <th class="text-end">Montant</th>
+                                        <th>Effectué par</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for m in mouvementsCaisseData|default([]) %}
+                                        <tr>
+                                            <td class="text-muted small">{{ m.date ? m.date|date('d/m/Y H:i') : '—' }}</td>
+                                            <td>
+                                                {% if m.isEntree %}
+                                                    <span class="badge badge-soft badge-soft-success"><i class="fas fa-arrow-down me-1"></i>Entrée</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-danger"><i class="fas fa-arrow-up me-1"></i>Sortie</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="fw-semibold text-dark">{{ m.provenance ?? '—' }}</td>
+                                            <td>
+                                                {% if m.categorie %}
+                                                    <span class="badge badge-soft badge-soft-secondary">{{ m.categorie }}</span>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end font-monospace fw-bold {% if m.isEntree %}text-success{% else %}text-danger{% endif %}">
+                                                {% if m.isEntree %}+{% else %}−{% endif %}{{ m.montant|number_format(2, ',', ' ') }}
+                                                <span class="small text-muted">{{ m.devise }}</span>
+                                            </td>
+                                            <td class="text-muted small">{{ m.effectuePar }}</td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-cash-register"></i>
+                                                    <div class="fw-bold">Aucun mouvement de caisse</div>
+                                                    <small>La caisse n'a encore enregistré aucune transaction.</small>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -1522,289 +1381,141 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-    // ═══════════════════════════════════════════════════════
-    // 1) GESTION DES ONGLETS — mémorisation via ?tab=xxx
-    // ═══════════════════════════════════════════════════════
-    document.addEventListener("DOMContentLoaded", function() {
-        const params = new URLSearchParams(window.location.search);
-        const tabParam = params.get('tab');
-        const urlHash = window.location.hash;
-
-        // Priorité au paramètre ?tab=
-        if (tabParam) {
-            const triggerEl = document.querySelector(`#dgTabs button[data-bs-target="#${tabParam}-pane"]`);
-            if (triggerEl) new bootstrap.Tab(triggerEl).show();
-        }
-        // Fallback : hash legacy
-        else if (urlHash) {
-            const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
-            if (triggerEl) new bootstrap.Tab(triggerEl).show();
-        }
-
-        // Mémorisation à chaque changement
-        document.querySelectorAll('#dgTabs button[data-bs-toggle="tab"]').forEach(btn => {
-            btn.addEventListener('shown.bs.tab', e => {
-                const target = e.target.getAttribute('data-bs-target').replace('#', '').replace('-pane', '');
-                const url = new URL(window.location);
-                url.searchParams.set('tab', target);
-                history.replaceState(null, null, url.toString());
-            });
+document.addEventListener("DOMContentLoaded", function() {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const urlHash = window.location.hash;
+    if (tabParam) {
+        const triggerEl = document.querySelector(`#dgTabs button[data-bs-target="#${tabParam}-pane"]`);
+        if (triggerEl) new bootstrap.Tab(triggerEl).show();
+    } else if (urlHash) {
+        const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
+        if (triggerEl) new bootstrap.Tab(triggerEl).show();
+    }
+    document.querySelectorAll('#dgTabs button[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', e => {
+            const target = e.target.getAttribute('data-bs-target').replace('#', '').replace('-pane', '');
+            const url = new URL(window.location);
+            url.searchParams.set('tab', target);
+            history.replaceState(null, null, url.toString());
         });
     });
+});
 
-    // ═══════════════════════════════════════════════════════
-    // 2) MENU MOBILE SUPERPOSÉ (OVERLAY)
-    //    - Synchronise les onglets desktop → overlay mobile
-    //    - Ferme au clic extérieur
-    //    - Met à jour le libellé du bouton
-    // ═══════════════════════════════════════════════════════
-    document.addEventListener("DOMContentLoaded", function() {
-        const toggle    = document.getElementById('mobileTabToggle');
-        const overlay   = document.getElementById('mobileTabOverlay');
-        const labelEl   = document.getElementById('currentMobileTabLabel');
-        const tabsRoot  = document.getElementById('dgTabs');
-
-        if (!toggle || !overlay || !tabsRoot) return;
-
-        // Récupère le texte « pur » d'un onglet (sans le badge compteur)
-        function getTabLabel(tab) {
-            // On clone pour ne pas altérer le DOM original
-            const clone = tab.cloneNode(true);
-            // Retire le badge compteur s'il existe
-            clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
-            return clone.textContent.trim();
-        }
-
-        // Récupère l'icône d'un onglet
-        function getTabIconClass(tab) {
-            const icon = tab.querySelector('i');
-            if (!icon) return '';
-            // Retire les classes utilitaires text-*
-            return icon.className.split(' ').filter(c => !c.startsWith('text-')).join(' ');
-        }
-
-        // Récupère la couleur text-* d'un onglet pour la propager à l'icône
-        function getTabIconColorClass(tab) {
-            const icon = tab.querySelector('i');
-            if (!icon) return '';
-            return icon.className.split(' ').filter(c => c.startsWith('text-')).join(' ');
-        }
-
-        // Construit l'overlay à partir des onglets réels
-        function buildOverlay() {
-            overlay.innerHTML = '';
-
-            tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
-                const target = tab.getAttribute('data-bs-target');
-                if (!target) return;
-
-                const item = document.createElement('button');
-                item.type = 'button';
-                item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
-                item.setAttribute('data-target', target);
-
-                const iconClass = getTabIconClass(tab);
-                const iconColor = getTabIconColorClass(tab);
-                const label     = getTabLabel(tab);
-                const badge     = tab.querySelector('.tab-badge');
-
-                item.innerHTML = `
-                    ${iconClass ? `<i class="${iconClass} ${iconColor}"></i>` : ''}
-                    <span>${label}</span>
-                    ${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}
-                `;
-
-                item.addEventListener('click', () => {
-                    const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
-                    if (trigger) new bootstrap.Tab(trigger).show();
-                    closeOverlay();
-                });
-
-                overlay.appendChild(item);
-            });
-        }
-
-        // Met à jour le libellé du bouton + l'état actif
-        function updateToggleLabel(tab) {
-            if (!tab || !labelEl) return;
-            labelEl.textContent = getTabLabel(tab);
-
+document.addEventListener("DOMContentLoaded", function() {
+    const toggle    = document.getElementById('mobileTabToggle');
+    const overlay   = document.getElementById('mobileTabOverlay');
+    const labelEl   = document.getElementById('currentMobileTabLabel');
+    const tabsRoot  = document.getElementById('dgTabs');
+    if (!toggle || !overlay || !tabsRoot) return;
+    function getTabLabel(tab) {
+        const clone = tab.cloneNode(true);
+        clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
+        return clone.textContent.trim();
+    }
+    function getTabIconClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => !c.startsWith('text-')).join(' ') : ''; }
+    function getTabIconColorClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => c.startsWith('text-')).join(' ') : ''; }
+    function buildOverlay() {
+        overlay.innerHTML = '';
+        tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
             const target = tab.getAttribute('data-bs-target');
-            overlay.querySelectorAll('.overlay-item').forEach(item => {
-                item.classList.toggle('active', item.getAttribute('data-target') === target);
-            });
-        }
-
-        function openOverlay() {
-            overlay.classList.add('show');
-            toggle.classList.add('open');
-            toggle.setAttribute('aria-expanded', 'true');
-        }
-
-        function closeOverlay() {
-            overlay.classList.remove('show');
-            toggle.classList.remove('open');
-            toggle.setAttribute('aria-expanded', 'false');
-        }
-
-        // Toggle au clic sur le bouton
-        toggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (overlay.classList.contains('show')) {
+            if (!target) return;
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
+            item.setAttribute('data-target', target);
+            const ic = getTabIconClass(tab), icc = getTabIconColorClass(tab), label = getTabLabel(tab), badge = tab.querySelector('.tab-badge');
+            item.innerHTML = `${ic ? `<i class="${ic} ${icc}"></i>` : ''}<span>${label}</span>${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}`;
+            item.addEventListener('click', () => {
+                const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
+                if (trigger) new bootstrap.Tab(trigger).show();
                 closeOverlay();
-            } else {
-                openOverlay();
-            }
-        });
-
-        // Fermeture au clic extérieur
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) {
-                if (overlay.classList.contains('show')) closeOverlay();
-            }
-        });
-
-        // Fermeture à l'appui sur Échap
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay();
-        });
-
-        // Synchronisation quand un onglet desktop change
-        tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', e => {
-                updateToggleLabel(e.target);
-                // Si la fenêtre est en mobile, on ferme l'overlay après sélection
-                if (window.matchMedia('(max-width: 768px)').matches) {
-                    closeOverlay();
-                }
             });
+            overlay.appendChild(item);
         });
-
-        // Reconstruction si la taille de la fenêtre change (optionnel)
-        let lastIsMobile = window.matchMedia('(max-width: 768px)').matches;
-        window.addEventListener('resize', () => {
-            const isMobile = window.matchMedia('(max-width: 768px)').matches;
-            if (isMobile !== lastIsMobile) {
-                closeOverlay();
-                lastIsMobile = isMobile;
-            }
+    }
+    function updateToggleLabel(tab) {
+        if (!tab || !labelEl) return;
+        labelEl.textContent = getTabLabel(tab);
+        const target = tab.getAttribute('data-bs-target');
+        overlay.querySelectorAll('.overlay-item').forEach(item => item.classList.toggle('active', item.getAttribute('data-target') === target));
+    }
+    function openOverlay() { overlay.classList.add('show'); toggle.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); }
+    function closeOverlay() { overlay.classList.remove('show'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }
+    toggle.addEventListener('click', (e) => { e.stopPropagation(); overlay.classList.contains('show') ? closeOverlay() : openOverlay(); });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) { if (overlay.classList.contains('show')) closeOverlay(); } });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay(); });
+    tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', e => {
+            updateToggleLabel(e.target);
+            if (window.matchMedia('(max-width: 768px)').matches) closeOverlay();
         });
-
-        // Initialisation
-        buildOverlay();
-        const initialActive = tabsRoot.querySelector('.nav-link.active');
-        if (initialActive) updateToggleLabel(initialActive);
     });
-</script>
-
-<script>
-    // ═══════════════════════════════════════════════════════
-    // 3) GRAPHIQUES — Top 10 + Répartition par catégorie
-    // ═══════════════════════════════════════════════════════
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
-        const canvas1 = document.getElementById('chartTopArticles');
-
-        if (canvas1 && topArticlesData.length > 0) {
-            new Chart(canvas1, {
-                type: 'bar',
-                data: {
-                    labels: topArticlesData.map(function (a) {
-                        const nom = a.nom || '—';
-                        const machine = a.machine || '';
-                        const full = machine ? (nom + ' [' + machine + ']') : nom;
-                        return full.length > 28 ? full.substring(0, 28) + '…' : full;
-                    }),
-                    datasets: [{
-                        label: 'Quantité en stock',
-                        data: topArticlesData.map(a => a.quantite),
-                        backgroundColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'),
-                        borderColor:     topArticlesData.map(a => a.quantite <= a.seuil ? 'rgb(220, 38, 38)'        : 'rgb(5, 150, 105)'),
-                        borderWidth: 1,
-                        borderRadius: 6,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                title: function (items) {
-                                    const a = topArticlesData[items[0].dataIndex];
-                                    const m = a.machine ? ' — ' + a.machine : '';
-                                    return (a.nom || '—') + m;
-                                },
-                                label: function (ctx) { return 'Quantité : ' + ctx.parsed.y; },
-                                afterLabel: function (context) {
-                                    const art = topArticlesData[context.dataIndex];
-                                    return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : '');
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } },
-                        x: {
-                            ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } }
-                        }
-                    }
-                }
-            });
-        }
-
-        const categoriesLabels    = {{ categoriesLabels|default([])|json_encode|raw }};
-        const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
-        const canvas2 = document.getElementById('chartCategories');
-
-        if (canvas2 && categoriesLabels.length > 0 && categoriesQuantites.length > 0) {
-            const palette = [
-                '#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2',
-                '#7c3aed', '#be185d', '#0d9488', '#65a30d', '#ea580c',
-                '#1e40af', '#9333ea', '#c026d3', '#0f766e', '#b45309'
-            ];
-            const totalCat = categoriesQuantites.reduce(function (s, q) { return s + q; }, 0);
-
-            new Chart(canvas2, {
-                type: 'doughnut',
-                data: {
-                    labels: categoriesLabels,
-                    datasets: [{
-                        data: categoriesQuantites,
-                        backgroundColor: categoriesLabels.map(function (_, i) {
-                            return palette[i % palette.length];
-                        }),
-                        borderWidth: 2,
-                        borderColor: '#fff',
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '55%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { boxWidth: 12, padding: 10, font: { size: 11 } }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (ctx) {
-                                    const val = ctx.parsed || 0;
-                                    const pct = totalCat > 0 ? ((val / totalCat) * 100).toFixed(1) : 0;
-                                    return ' ' + ctx.label + ' : ' + val.toLocaleString('fr-FR') + ' unités (' + pct + '%)';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
+    let lastIsMobile = window.matchMedia('(max-width: 768px)').matches;
+    window.addEventListener('resize', () => {
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile !== lastIsMobile) { closeOverlay(); lastIsMobile = isMobile; }
     });
+    buildOverlay();
+    const initialActive = tabsRoot.querySelector('.nav-link.active');
+    if (initialActive) updateToggleLabel(initialActive);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
+    const canvas1 = document.getElementById('chartTopArticles');
+    if (canvas1 && topArticlesData.length > 0) {
+        new Chart(canvas1, {
+            type: 'bar',
+            data: {
+                labels: topArticlesData.map(function (a) {
+                    const nom = a.nom || '—';
+                    const machine = a.machine || '';
+                    const full = machine ? (nom + ' [' + machine + ']') : nom;
+                    return full.length > 28 ? full.substring(0, 28) + '…' : full;
+                }),
+                datasets: [{
+                    label: 'Quantité en stock',
+                    data: topArticlesData.map(a => a.quantite),
+                    backgroundColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgba(220, 38, 38, 0.7)' : 'rgba(5, 150, 105, 0.7)'),
+                    borderColor: topArticlesData.map(a => a.quantite <= a.seuil ? 'rgb(220, 38, 38)' : 'rgb(5, 150, 105)'),
+                    borderWidth: 1, borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: {
+                        title: function (items) { const a = topArticlesData[items[0].dataIndex]; return (a.nom || '—') + (a.machine ? ' — ' + a.machine : ''); },
+                        label: function (ctx) { return 'Quantité : ' + ctx.parsed.y; },
+                        afterLabel: function (context) { const art = topArticlesData[context.dataIndex]; return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : ''); }
+                    } }
+                },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } } } }
+            }
+        });
+    }
+    const categoriesLabels = {{ categoriesLabels|default([])|json_encode|raw }};
+    const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
+    const canvas2 = document.getElementById('chartCategories');
+    if (canvas2 && categoriesLabels.length > 0 && categoriesQuantites.length > 0) {
+        const palette = ['#4f46e5','#059669','#d97706','#dc2626','#0891b2','#7c3aed','#be185d','#0d9488','#65a30d','#ea580c','#1e40af','#9333ea','#c026d3','#0f766e','#b45309'];
+        const totalCat = categoriesQuantites.reduce(function (s, q) { return s + q; }, 0);
+        new Chart(canvas2, {
+            type: 'doughnut',
+            data: { labels: categoriesLabels, datasets: [{ data: categoriesQuantites, backgroundColor: categoriesLabels.map((_, i) => palette[i % palette.length]), borderWidth: 2, borderColor: '#fff' }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '55%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 10, font: { size: 11 } } },
+                    tooltip: { callbacks: { label: function (ctx) { const val = ctx.parsed || 0; const pct = totalCat > 0 ? ((val / totalCat) * 100).toFixed(1) : 0; return ' ' + ctx.label + ' : ' + val.toLocaleString('fr-FR') + ' unités (' + pct + '%)'; } } }
+                }
+            }
+        });
+    }
+});
 </script>
 </body>
 </html>
