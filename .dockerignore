@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gitattributes
+vendor/
+node_modules/
+var/
+.idea/
+.vscode/
+*.log
+.env.local
+.env.*.local
+coverage/
+.phpunit.result.cache
