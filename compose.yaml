@@ -1,4 +1,21 @@
 services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: dispromalt_app
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      DATABASE_URL: "mysql://app_user:app_password@database:3306/dispromalt_db?serverVersion=8.0&charset=utf8mb4"
+      APP_SECRET: "un_secret_local_pour_le_conteneur"
+
   database:
     image: mysql:8.0
     container_name: dispromalt_mysql
@@ -17,6 +34,14 @@ services:
       start_period: 30s
     volumes:
       - database_data:/var/lib/mysql
+
+  mailer:
+    image: axllent/mailpit
+    container_name: dispromalt-mailer
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
 
 volumes:
   database_data:
