@@ -1,5 +1,4 @@
-FROM dunglas/frankenphp:latest-php8.2.35-alpine
-
+FROM dunglas/frankenphp:latest-php8.2-bookworm
 
 # ============================================================
 # 1. Extensions PHP nécessaires
