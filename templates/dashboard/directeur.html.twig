@@ -339,7 +339,15 @@
                         {% for art in articlesEnAlerte|slice(0, 3) %}
                             <li>
                                 <a class="dropdown-item p-2 rounded mb-1" href="?tab=stock">
-                                    <div class="fw-bold text-dark small">{{ art.nom }}</div>
+                                    <div class="fw-bold text-dark small">
+                                        {{ art.nom }}
+                                        {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
+                                        {% if art.machine is defined and art.machine is not null %}
+                                            {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
+                                                <span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem;"><i class="fas fa-cog"></i> {{ art.machine.nom }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
                                     <div class="text-muted" style="font-size: 0.72rem;">Stock : <strong class="text-danger">{{ art.quantite }}</strong> / Seuil : {{ art.seuilAlerte }}</div>
                                 </a>
                             </li>
@@ -550,7 +558,18 @@
                     <tbody>
                         {% for art in articlesEnAlerte %}
                             <tr>
-                                <td class="ps-3 fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                <td class="ps-3 fw-bold text-dark">
+                                    <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                                    {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
+                                    {% if art.machine is defined and art.machine is not null %}
+                                        {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
+                                            <br>
+                                            <span class="badge badge-soft badge-soft-secondary mt-1" style="font-size: 0.7rem;">
+                                                <i class="fas fa-cog me-1"></i>Machine : {{ art.machine.nom }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
                                 <td class="text-center"><span class="badge bg-danger">{{ art.quantite }}</span></td>
                                 <td class="text-center"><span class="badge bg-warning text-dark">{{ art.seuilAlerte }}</span></td>
                                 <td class="text-center">
@@ -1089,7 +1108,7 @@
                     </div>
                 </div>
 
-                {# ═══ ONGLET 6 : ÉTAT DU STOCK (retour position originale) ═══ #}
+                {# ═══ ONGLET 6 : ÉTAT DU STOCK ═══ #}
                 <div class="tab-pane fade" id="stock-pane" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                         <div>
@@ -1178,7 +1197,18 @@
                                 <tbody>
                                     {% for art in articlesEnAlerte %}
                                         <tr>
-                                            <td class="fw-semibold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                                                {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
+                                                {% if art.machine is defined and art.machine is not null %}
+                                                    {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
+                                                        <br>
+                                                        <span class="badge badge-soft badge-soft-secondary mt-1" style="font-size: 0.7rem;">
+                                                            <i class="fas fa-cog me-1"></i>Machine : {{ art.machine.nom }}
+                                                        </span>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </td>
                                             <td class="text-center"><span class="badge badge-soft badge-soft-danger">{{ art.quantite }}</span></td>
                                             <td class="text-center"><span class="badge badge-soft badge-soft-warning">{{ art.seuilAlerte }}</span></td>
                                             <td class="text-center fw-bold text-danger">-{{ art.seuilAlerte - art.quantite }}</td>
