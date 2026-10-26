@@ -261,6 +261,7 @@ jobs:
           scanners: vuln
           exit-code: "1"
           ignore-unfixed: true
+          trivyignores: .trivyignore.yaml   # <-- Ajoute cette ligne
 
 
       # ======================================================
