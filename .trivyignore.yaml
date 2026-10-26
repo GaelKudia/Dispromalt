@@ -1,0 +1,9 @@
+# .trivyignore.yaml
+vulnerabilities:
+  - id: CVE-2026-XXXXX
+    expired_at: "2026-12-31"
+    statement: "CVE dans libfoo, non exploitable car la fonction vulnérable n'est jamais appelée par notre application. Vérifié le 2026-10-23."
+
+  - id: CVE-2026-YYYYY
+    expired_at: "2026-12-31"
+    statement: "Faux positif avéré : la bibliothèque n'est pas chargée au runtime."
