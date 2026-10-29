@@ -235,7 +235,7 @@
                 <table class="table table-sm table-hover align-middle m-0 bg-white">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">Article</th>
+                            <th class="ps-3">Article & Machine</th>
                             <th class="text-center">Stock</th>
                             <th class="text-center">Seuil</th>
                             <th class="text-center">Statut réappro</th>
@@ -246,7 +246,19 @@
                     <tbody>
                         {% for art in articlesEnAlerte %}
                             <tr>
-                                <td class="ps-3 fw-bold text-dark"><i class="fas fa-box text-danger me-2"></i>{{ art.nom }}</td>
+                                <td class="ps-3 fw-bold text-dark">
+                                    <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
+                                    
+                                    {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres (ou si l'article y est lié) #}
+                                    {% if art.machine is defined and art.machine is not null %}
+                                        {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
+                                            <br>
+                                            <span class="badge badge-soft badge-soft-secondary mt-1" style="font-size: 0.7rem;">
+                                                <i class="fas fa-cog me-1"></i>Machine : {{ art.machine.nom }}
+                                            </span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
                                 <td class="text-center"><span class="badge bg-danger">{{ art.quantite }}</span></td>
                                 <td class="text-center"><span class="badge bg-warning text-dark">{{ art.seuilAlerte }}</span></td>
                                 <td class="text-center">
