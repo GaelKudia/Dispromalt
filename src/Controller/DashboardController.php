@@ -290,6 +290,9 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // 2. FORMULAIRE STOCK
+        //    ✅ CORRIGÉ : l'unicité est désormais basée sur
+        //       (nom + machine + sous-catégorie + SIGNATURE DES ATTRIBUTS)
+        //       et non plus sur le nom seul.
         // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $article = new Article();
@@ -300,8 +303,15 @@ class DashboardController extends AbstractController
                 $nomArticle      = $article->getNom();
                 $quantiteAjoutee = $article->getQuantite() ?? 0;
 
-                $criteria = ['nom' => $nomArticle];
+                // Attributs soumis (peuvent être vides)
+                $attributsSoumis = [];
+                foreach ($article->getAttributs() as $attr) {
+                    $attr->setArticle($article);
+                    $attributsSoumis[] = $attr;
+                }
 
+                // Critères de recherche de base (nom + machine + sous-catégorie)
+                $criteria = ['nom' => $nomArticle];
                 if ($article->getMachine() !== null) {
                     $criteria['machine'] = $article->getMachine();
                 }
@@ -309,42 +319,96 @@ class DashboardController extends AbstractController
                     $criteria['subCategory'] = $article->getSubCategory();
                 }
 
-                $articleExistant = $em->getRepository(Article::class)->findOneBy($criteria);
+                // 🔎 Recherche : on ne retient QUE les articles dont la signature
+                //    d'attributs correspond exactement à celle soumise.
+                $articleExistant = null;
+                foreach ($em->getRepository(Article::class)->findBy($criteria) as $candidat) {
+                    if ($this->articleCorrespond($candidat, $attributsSoumis)) {
+                        $articleExistant = $candidat;
+                        break;
+                    }
+                }
 
+                // =====================================================
+                // CAS 1 : article existant avec MÊME nom ET MÊMES attributs
+                // =====================================================
                 if ($articleExistant) {
-                    $articleExistant->setQuantite($articleExistant->getQuantite() + $quantiteAjoutee);
+                    // Incrément global
+                    $articleExistant->setQuantite(
+                        ($articleExistant->getQuantite() ?? 0) + $quantiteAjoutee
+                    );
                     if ($article->getSeuilAlerte()) {
                         $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
                     }
 
-                    if ($articleExistant->getAttributs()->isEmpty()) {
+                    // Incrément par attribut
+                    foreach ($attributsSoumis as $attrSoumis) {
+                        $signature    = $this->getAttributSignature($attrSoumis);
+                        $quantiteAttr = $attrSoumis->getQuantite() ?? $quantiteAjoutee;
+
+                        $matched = false;
+                        foreach ($articleExistant->getAttributs() as $attrExistant) {
+                            if ($this->getAttributSignature($attrExistant) === $signature) {
+                                $attrExistant->setQuantite(
+                                    ($attrExistant->getQuantite() ?? 0) + $quantiteAttr
+                                );
+                                $matched = true;
+                                break;
+                            }
+                        }
+
+                        // Si l'attribut n'existe pas encore sur l'article → on l'ajoute
+                        if (!$matched) {
+                            $newAttr = new \App\Entity\ArticleAttribut();
+                            $newAttr->setArticle($articleExistant);
+                            $newAttr->setDimension($attrSoumis->getDimension());
+                            $newAttr->setGrammage($attrSoumis->getGrammage());
+                            $newAttr->setCouleur($attrSoumis->getCouleur());
+                            $newAttr->setLongueur($attrSoumis->getLongueur());
+                            $newAttr->setKilogramme($attrSoumis->getKilogramme());
+                            $newAttr->setQuantite($quantiteAttr);
+                            $em->persist($newAttr);
+                        }
+                    }
+
+                    // Aucun attribut soumis + article sans attributs → "Standard"
+                    if (empty($attributsSoumis) && $articleExistant->getAttributs()->isEmpty()) {
                         $attr = new \App\Entity\ArticleAttribut();
                         $attr->setArticle($articleExistant);
                         $attr->setCouleur('Standard');
-                        if (method_exists($attr, 'setQuantite')) {
-                            $attr->setQuantite($articleExistant->getQuantite());
-                        }
+                        $attr->setQuantite($articleExistant->getQuantite());
                         $em->persist($attr);
                     }
 
                     $em->flush();
+
                     $this->addFlash('success', '📥 Article existant « ' . $nomArticle . ' »'
                         . ($article->getMachine() ? ' [' . $article->getMachine()->getNom() . ']' : '')
                         . ' — Stock incrémenté de ' . $quantiteAjoutee
                         . ' (total : ' . $articleExistant->getQuantite() . ')');
 
+                // =====================================================
+                // CAS 2 : aucun article avec ce nom + ces attributs → création
+                // =====================================================
                 } else {
                     $em->persist($article);
                     $em->flush();
 
                     if ($article->getAttributs()->isEmpty()) {
+                        // Fallback "Standard"
                         $attr = new \App\Entity\ArticleAttribut();
                         $attr->setArticle($article);
                         $attr->setCouleur('Standard');
-                        if (method_exists($attr, 'setQuantite')) {
-                            $attr->setQuantite($article->getQuantite());
-                        }
+                        $attr->setQuantite($article->getQuantite());
                         $em->persist($attr);
+                        $em->flush();
+                    } else {
+                        // Attributs soumis : forcer une quantité si absente
+                        foreach ($article->getAttributs() as $attr) {
+                            if ($attr->getQuantite() === null) {
+                                $attr->setQuantite($article->getQuantite());
+                            }
+                        }
                         $em->flush();
                     }
 
@@ -1310,6 +1374,57 @@ class DashboardController extends AbstractController
             'date_fin'       => $dateFinFiltre,
             'isChefService'  => false,
             'estSiteDistant' => $estSiteDistant,
+        ]);
+    }
+
+    // ============================================================
+    // ✅ NOUVELLES MÉTHODES PRIVÉES POUR LA GESTION DES ATTRIBUTS
+    // ============================================================
+
+    /**
+     * Vérifie si un article existant a la même signature d'attributs
+     * que celle soumise (l'ordre n'a pas d'importance).
+     */
+    private function articleCorrespond(Article $articleExistant, array $attributsSoumis): bool
+    {
+        $signaturesSoumises = array_map(
+            fn($a) => $this->getAttributSignature($a),
+            $attributsSoumis
+        );
+        sort($signaturesSoumises);
+
+        $signaturesExistantes = [];
+        foreach ($articleExistant->getAttributs() as $a) {
+            $signaturesExistantes[] = $this->getAttributSignature($a);
+        }
+        sort($signaturesExistantes);
+
+        // Aucun attribut soumis
+        if (empty($signaturesSoumises)) {
+            if (empty($signaturesExistantes)) {
+                return true; // article sans attribut
+            }
+            // Uniquement un "Standard" auto-créé → compatible
+            if (count($signaturesExistantes) === 1 && $signaturesExistantes[0] === '||||') {
+                return true;
+            }
+            return false;
+        }
+
+        return $signaturesSoumises === $signaturesExistantes;
+    }
+
+    /**
+     * Signature unique d'un attribut (tous les champs, normalisés).
+     */
+    private function getAttributSignature(\App\Entity\ArticleAttribut $attr): string
+    {
+        return implode('|', [
+            mb_strtolower(trim((string) ($attr->getDimension()  ?? ''))),
+            mb_strtolower(trim((string) ($attr->getGrammage()   ?? ''))),
+            mb_strtolower(trim((string) ($attr->getCouleur()    ?? ''))),
+            mb_strtolower(trim((string) ($attr->getLongueur()   ?? ''))),
+            mb_strtolower(trim((string) ($attr->getKilogramme() ?? ''))),
         ]);
     }
 
