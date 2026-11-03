@@ -290,9 +290,7 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // 2. FORMULAIRE STOCK
-        //    ✅ CORRIGÉ : l'unicité est désormais basée sur
-        //       (nom + machine + sous-catégorie + SIGNATURE DES ATTRIBUTS)
-        //       et non plus sur le nom seul.
+        //    ✅ Unicité basée sur (nom + machine + sous-catégorie + SIGNATURE ATTRIBUTS)
         // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $article = new Article();
@@ -303,14 +301,12 @@ class DashboardController extends AbstractController
                 $nomArticle      = $article->getNom();
                 $quantiteAjoutee = $article->getQuantite() ?? 0;
 
-                // Attributs soumis (peuvent être vides)
                 $attributsSoumis = [];
                 foreach ($article->getAttributs() as $attr) {
                     $attr->setArticle($article);
                     $attributsSoumis[] = $attr;
                 }
 
-                // Critères de recherche de base (nom + machine + sous-catégorie)
                 $criteria = ['nom' => $nomArticle];
                 if ($article->getMachine() !== null) {
                     $criteria['machine'] = $article->getMachine();
@@ -319,8 +315,6 @@ class DashboardController extends AbstractController
                     $criteria['subCategory'] = $article->getSubCategory();
                 }
 
-                // 🔎 Recherche : on ne retient QUE les articles dont la signature
-                //    d'attributs correspond exactement à celle soumise.
                 $articleExistant = null;
                 foreach ($em->getRepository(Article::class)->findBy($criteria) as $candidat) {
                     if ($this->articleCorrespond($candidat, $attributsSoumis)) {
@@ -329,11 +323,7 @@ class DashboardController extends AbstractController
                     }
                 }
 
-                // =====================================================
-                // CAS 1 : article existant avec MÊME nom ET MÊMES attributs
-                // =====================================================
                 if ($articleExistant) {
-                    // Incrément global
                     $articleExistant->setQuantite(
                         ($articleExistant->getQuantite() ?? 0) + $quantiteAjoutee
                     );
@@ -341,7 +331,6 @@ class DashboardController extends AbstractController
                         $articleExistant->setSeuilAlerte($article->getSeuilAlerte());
                     }
 
-                    // Incrément par attribut
                     foreach ($attributsSoumis as $attrSoumis) {
                         $signature    = $this->getAttributSignature($attrSoumis);
                         $quantiteAttr = $attrSoumis->getQuantite() ?? $quantiteAjoutee;
@@ -357,7 +346,6 @@ class DashboardController extends AbstractController
                             }
                         }
 
-                        // Si l'attribut n'existe pas encore sur l'article → on l'ajoute
                         if (!$matched) {
                             $newAttr = new \App\Entity\ArticleAttribut();
                             $newAttr->setArticle($articleExistant);
@@ -371,7 +359,6 @@ class DashboardController extends AbstractController
                         }
                     }
 
-                    // Aucun attribut soumis + article sans attributs → "Standard"
                     if (empty($attributsSoumis) && $articleExistant->getAttributs()->isEmpty()) {
                         $attr = new \App\Entity\ArticleAttribut();
                         $attr->setArticle($articleExistant);
@@ -387,15 +374,11 @@ class DashboardController extends AbstractController
                         . ' — Stock incrémenté de ' . $quantiteAjoutee
                         . ' (total : ' . $articleExistant->getQuantite() . ')');
 
-                // =====================================================
-                // CAS 2 : aucun article avec ce nom + ces attributs → création
-                // =====================================================
                 } else {
                     $em->persist($article);
                     $em->flush();
 
                     if ($article->getAttributs()->isEmpty()) {
-                        // Fallback "Standard"
                         $attr = new \App\Entity\ArticleAttribut();
                         $attr->setArticle($article);
                         $attr->setCouleur('Standard');
@@ -403,7 +386,6 @@ class DashboardController extends AbstractController
                         $em->persist($attr);
                         $em->flush();
                     } else {
-                        // Attributs soumis : forcer une quantité si absente
                         foreach ($article->getAttributs() as $attr) {
                             if ($attr->getQuantite() === null) {
                                 $attr->setQuantite($article->getQuantite());
@@ -1158,12 +1140,9 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // DG & PDG
-        //    🔒 RÈGLE MÉTIER : le DG ne voit que les devis qui lui
-        //       ont été transmis dans les 7 derniers jours.
         // ============================================================
         if ($this->isGranted('ROLE_DG')) {
 
-            // ✅ Mouvements de caisse (ROLE_CAISSIER) pour la DG
             $mouvementsCaisse = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
                 ->leftJoin('m.effectuePar', 'u')->addSelect('u')
                 ->where('u.roles LIKE :caissier')
@@ -1222,7 +1201,6 @@ class DashboardController extends AbstractController
                 ->getQuery()
                 ->getResult();
 
-            // ✅ CORRECTION #2 & #5 : recalcul spécifique pour le DG
             $totalDevisUSD_DG = 0;
             $totalDevisCDF_DG = 0;
             foreach ($devisListeDG as $d) {
@@ -1264,13 +1242,50 @@ class DashboardController extends AbstractController
                     $machineNom = $art->getMachine()->getNom();
                 }
 
-                $topArticles[] = [
-                    'nom'       => $art->getNom(),
-                    'machine'   => $machineNom,
-                    'quantite'  => $qte,
-                    'seuil'     => $art->getSeuilAlerte() ?? 0,
-                    'categorie' => $catNom,
-                ];
+                // ✅ NOUVEAU : récupération des attributs de l'article
+                $attributsArticle = [];
+                foreach ($art->getAttributs() as $attr) {
+                    $details = [];
+                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
+                    $label = implode(' - ', $details) ?: 'Standard';
+
+                    $attributsArticle[] = [
+                        'label'    => $label,
+                        'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
+                    ];
+                }
+
+                    // ✅ NOUVEAU : récupération des attributs de l'article
+$attributsArticle = [];
+foreach ($art->getAttributs() as $attr) {
+    $details = [];
+    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
+    $label = implode(' - ', $details) ?: 'Standard';
+
+    $attributsArticle[] = [
+        'label'    => $label,
+        'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
+    ];
+}
+
+$topArticles[] = [
+    'nom'       => $art->getNom(),
+    'machine'   => $machineNom,
+    'quantite'  => $qte,
+    'seuil'     => $art->getSeuilAlerte() ?? 0,
+    'categorie' => $catNom,
+    'attributs' => $attributsArticle,   // ✅ AJOUT
+];
             }
 
             usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
@@ -1312,10 +1327,8 @@ class DashboardController extends AbstractController
                 'estSiteDistant'       => $estSiteDistant,
                 'soldeUSD'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_USD),
                 'soldeCDF'             => $mouvementRepo->getSoldeComptabilite(MouvementCaisse::DEVISE_CDF),
-                // ✅ CORRECTION #2 & #5 : totaux décaissés calculés sur devisListeDG
                 'totalDevisUSD'        => $totalDevisUSD_DG,
                 'totalDevisCDF'        => $totalDevisCDF_DG,
-                // ✅ Détail des mouvements de caisse (rôle CAISSIER) pour réconciliation
                 'mouvementsCaisseData' => $mouvementsCaisseData,
                 'totalEntreesCaisseUSD' => $totalEntreesCaisseUSD,
                 'totalSortiesCaisseUSD' => $totalSortiesCaisseUSD,
@@ -1324,8 +1337,6 @@ class DashboardController extends AbstractController
             ];
 
             if ($estVraimentPDG) {
-                // ✅ RDV du jour et à venir uniquement.
-                //    Les RDV passés disparaissent automatiquement le lendemain.
                 $debutJourPDG = new \DateTime('today 00:00:00');
 
                 $vars['mesRdv'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
@@ -1378,13 +1389,9 @@ class DashboardController extends AbstractController
     }
 
     // ============================================================
-    // ✅ NOUVELLES MÉTHODES PRIVÉES POUR LA GESTION DES ATTRIBUTS
+    // ✅ MÉTHODES PRIVÉES POUR LA GESTION DES ATTRIBUTS
     // ============================================================
 
-    /**
-     * Vérifie si un article existant a la même signature d'attributs
-     * que celle soumise (l'ordre n'a pas d'importance).
-     */
     private function articleCorrespond(Article $articleExistant, array $attributsSoumis): bool
     {
         $signaturesSoumises = array_map(
@@ -1399,12 +1406,10 @@ class DashboardController extends AbstractController
         }
         sort($signaturesExistantes);
 
-        // Aucun attribut soumis
         if (empty($signaturesSoumises)) {
             if (empty($signaturesExistantes)) {
-                return true; // article sans attribut
+                return true;
             }
-            // Uniquement un "Standard" auto-créé → compatible
             if (count($signaturesExistantes) === 1 && $signaturesExistantes[0] === '||||') {
                 return true;
             }
@@ -1414,9 +1419,6 @@ class DashboardController extends AbstractController
         return $signaturesSoumises === $signaturesExistantes;
     }
 
-    /**
-     * Signature unique d'un attribut (tous les champs, normalisés).
-     */
     private function getAttributSignature(\App\Entity\ArticleAttribut $attr): string
     {
         return implode('|', [

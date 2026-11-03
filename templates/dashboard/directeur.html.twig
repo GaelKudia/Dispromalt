@@ -341,7 +341,6 @@
                                 <a class="dropdown-item p-2 rounded mb-1" href="?tab=stock">
                                     <div class="fw-bold text-dark small">
                                         {{ art.nom }}
-                                        {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
                                         {% if art.machine is defined and art.machine is not null %}
                                             {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
                                                 <span class="badge bg-light text-dark border ms-1" style="font-size:0.6rem;"><i class="fas fa-cog"></i> {{ art.machine.nom }}</span>
@@ -560,7 +559,6 @@
                             <tr>
                                 <td class="ps-3 fw-bold text-dark">
                                     <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                                    {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
                                     {% if art.machine is defined and art.machine is not null %}
                                         {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
                                             <br>
@@ -1199,7 +1197,6 @@
                                         <tr>
                                             <td class="fw-semibold text-dark">
                                                 <i class="fas fa-box text-danger me-2"></i>{{ art.nom }}
-                                                {# ✅ CORRECTIF : Afficher la machine uniquement pour les encres #}
                                                 {% if art.machine is defined and art.machine is not null %}
                                                     {% if 'encre' in art.nom|lower or (art.subCategory is defined and art.subCategory and 'encre' in art.subCategory.nom|lower) %}
                                                         <br>
@@ -1413,6 +1410,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // Tabs logic
     const params = new URLSearchParams(window.location.search);
     const tabParam = params.get('tab');
     const urlHash = window.location.hash;
@@ -1431,69 +1429,67 @@ document.addEventListener("DOMContentLoaded", function() {
             history.replaceState(null, null, url.toString());
         });
     });
-});
 
-document.addEventListener("DOMContentLoaded", function() {
+    // Mobile menu logic
     const toggle    = document.getElementById('mobileTabToggle');
     const overlay   = document.getElementById('mobileTabOverlay');
     const labelEl   = document.getElementById('currentMobileTabLabel');
     const tabsRoot  = document.getElementById('dgTabs');
-    if (!toggle || !overlay || !tabsRoot) return;
-    function getTabLabel(tab) {
-        const clone = tab.cloneNode(true);
-        clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
-        return clone.textContent.trim();
-    }
-    function getTabIconClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => !c.startsWith('text-')).join(' ') : ''; }
-    function getTabIconColorClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => c.startsWith('text-')).join(' ') : ''; }
-    function buildOverlay() {
-        overlay.innerHTML = '';
-        tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
-            const target = tab.getAttribute('data-bs-target');
-            if (!target) return;
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
-            item.setAttribute('data-target', target);
-            const ic = getTabIconClass(tab), icc = getTabIconColorClass(tab), label = getTabLabel(tab), badge = tab.querySelector('.tab-badge');
-            item.innerHTML = `${ic ? `<i class="${ic} ${icc}"></i>` : ''}<span>${label}</span>${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}`;
-            item.addEventListener('click', () => {
-                const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
-                if (trigger) new bootstrap.Tab(trigger).show();
-                closeOverlay();
+    if (toggle && overlay && tabsRoot) {
+        function getTabLabel(tab) {
+            const clone = tab.cloneNode(true);
+            clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
+            return clone.textContent.trim();
+        }
+        function getTabIconClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => !c.startsWith('text-')).join(' ') : ''; }
+        function getTabIconColorClass(tab) { const i = tab.querySelector('i'); return i ? i.className.split(' ').filter(c => c.startsWith('text-')).join(' ') : ''; }
+        function buildOverlay() {
+            overlay.innerHTML = '';
+            tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
+                const target = tab.getAttribute('data-bs-target');
+                if (!target) return;
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
+                item.setAttribute('data-target', target);
+                const ic = getTabIconClass(tab), icc = getTabIconColorClass(tab), label = getTabLabel(tab), badge = tab.querySelector('.tab-badge');
+                item.innerHTML = `${ic ? `<i class="${ic} ${icc}"></i>` : ''}<span>${label}</span>${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}`;
+                item.addEventListener('click', () => {
+                    const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
+                    if (trigger) new bootstrap.Tab(trigger).show();
+                    closeOverlay();
+                });
+                overlay.appendChild(item);
             });
-            overlay.appendChild(item);
+        }
+        function updateToggleLabel(tab) {
+            if (!tab || !labelEl) return;
+            labelEl.textContent = getTabLabel(tab);
+            const target = tab.getAttribute('data-bs-target');
+            overlay.querySelectorAll('.overlay-item').forEach(item => item.classList.toggle('active', item.getAttribute('data-target') === target));
+        }
+        function openOverlay() { overlay.classList.add('show'); toggle.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); }
+        function closeOverlay() { overlay.classList.remove('show'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }
+        toggle.addEventListener('click', (e) => { e.stopPropagation(); overlay.classList.contains('show') ? closeOverlay() : openOverlay(); });
+        document.addEventListener('click', (e) => { if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) { if (overlay.classList.contains('show')) closeOverlay(); } });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay(); });
+        tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', e => {
+                updateToggleLabel(e.target);
+                if (window.matchMedia('(max-width: 768px)').matches) closeOverlay();
+            });
         });
+        buildOverlay();
+        const initialActive = tabsRoot.querySelector('.nav-link.active');
+        if (initialActive) updateToggleLabel(initialActive);
     }
-    function updateToggleLabel(tab) {
-        if (!tab || !labelEl) return;
-        labelEl.textContent = getTabLabel(tab);
-        const target = tab.getAttribute('data-bs-target');
-        overlay.querySelectorAll('.overlay-item').forEach(item => item.classList.toggle('active', item.getAttribute('data-target') === target));
-    }
-    function openOverlay() { overlay.classList.add('show'); toggle.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); }
-    function closeOverlay() { overlay.classList.remove('show'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }
-    toggle.addEventListener('click', (e) => { e.stopPropagation(); overlay.classList.contains('show') ? closeOverlay() : openOverlay(); });
-    document.addEventListener('click', (e) => { if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) { if (overlay.classList.contains('show')) closeOverlay(); } });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay(); });
-    tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', e => {
-            updateToggleLabel(e.target);
-            if (window.matchMedia('(max-width: 768px)').matches) closeOverlay();
-        });
-    });
-    let lastIsMobile = window.matchMedia('(max-width: 768px)').matches;
-    window.addEventListener('resize', () => {
-        const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile !== lastIsMobile) { closeOverlay(); lastIsMobile = isMobile; }
-    });
-    buildOverlay();
-    const initialActive = tabsRoot.querySelector('.nav-link.active');
-    if (initialActive) updateToggleLabel(initialActive);
-});
 
-document.addEventListener("DOMContentLoaded", function () {
+    // ✅ GRAPHIQUE TOP ARTICLES (Modifié)
     const topArticlesData = {{ topArticles|default([])|json_encode|raw }};
+    
+    // On l'expose globalement pour que tu puisses vérifier dans la console
+    window.topArticlesData = topArticlesData; 
+
     const canvas1 = document.getElementById('chartTopArticles');
     if (canvas1 && topArticlesData.length > 0) {
         new Chart(canvas1, {
@@ -1514,19 +1510,50 @@ document.addEventListener("DOMContentLoaded", function () {
                 }]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
+                responsive: true, 
+                maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: {
-                        title: function (items) { const a = topArticlesData[items[0].dataIndex]; return (a.nom || '—') + (a.machine ? ' — ' + a.machine : ''); },
-                        label: function (ctx) { return 'Quantité : ' + ctx.parsed.y; },
-                        afterLabel: function (context) { const art = topArticlesData[context.dataIndex]; return 'Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : ''); }
-                    } }
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.97)',
+                        titleColor: '#f9d976',
+                        titleFont: { size: 13, weight: 'bold' },
+                        bodyFont: { size: 12 },
+                        bodySpacing: 4,
+                        padding: 12,
+                        displayColors: false, // Enlève le carré de couleur
+                        callbacks: {
+                            title: function (items) {
+                                const a = topArticlesData[items[0].dataIndex];
+                                return (a.nom || '—') + (a.machine ? ' — ' + a.machine : '');
+                            },
+                            label: function (ctx) {
+                                const art = topArticlesData[ctx.dataIndex];
+                                let lines = [];
+                                lines.push('📊 Quantité : ' + art.quantite);
+                                lines.push('🎯 Seuil : ' + art.seuil + (art.quantite <= art.seuil ? ' ⚠️ ALERTE' : ''));
+
+                                if (art.attributs && art.attributs.length > 0) {
+                                    lines.push(''); 
+                                    lines.push('📦 Attributs (' + art.attributs.length + ') :');
+                                    art.attributs.forEach(function (a) {
+                                        lines.push('  • ' + a.label + ' → ' + a.quantite + ' u.');
+                                    });
+                                }
+                                return lines;
+                            }
+                        }
+                    }
                 },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } } } }
+                scales: { 
+                    y: { beginAtZero: true, ticks: { precision: 0 } }, 
+                    x: { ticks: { autoSkip: false, maxRotation: 45, minRotation: 0, font: { size: 10 } } } 
+                }
             }
         });
     }
+
+    // ✅ GRAPHIQUE CATÉGORIES
     const categoriesLabels = {{ categoriesLabels|default([])|json_encode|raw }};
     const categoriesQuantites = {{ categoriesQuantites|default([])|json_encode|raw }};
     const canvas2 = document.getElementById('chartCategories');

@@ -194,15 +194,12 @@ class AdminController extends AbstractController
 
         // ═══════════════════════════════════════════════════════════════
         // ✅ SYNTHÈSE STOCK — SOURCE UNIQUE DE VÉRITÉ
-        //    ⚡ $articlesStock est LA référence.
-        //    Tout (KPI, tableaux, graphiques) en dérive.
         // ═══════════════════════════════════════════════════════════════
         $articlesStock = $em->getRepository(Article::class)->findAll();
 
         $totalQuantiteStock   = 0;
         $articlesParCategorie = [];
-        $topArticles          = []; // liste détaillée (peut contenir des doublons de nom)
-        $topArticlesAggreges  = []; // agrégé par nom+machine (pour le graphique)
+        $topArticles          = []; 
 
         foreach ($articlesStock as $art) {
             $qte = $art->getQuantite() ?? 0;
@@ -222,7 +219,7 @@ class AdminController extends AbstractController
             $articlesParCategorie[$catNom]['count']++;
             $articlesParCategorie[$catNom]['quantite'] += $qte;
 
-            // ─── Machine (pour unicité du graphique) ───
+            // ─── Machine ───
             $machineNom = '';
             if (method_exists($art, 'getMachine') && $art->getMachine()) {
                 $machineNom = $art->getMachine()->getNom();
@@ -230,35 +227,51 @@ class AdminController extends AbstractController
 
             $seuil = method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0;
 
-            // ─── Top articles détaillé (comme le tableau) ───
+            // ✅ Récupération des attributs pour le tooltip
+            $attributsArticle = [];
+            $attrLabels = [];
+            foreach ($art->getAttributs() as $attr) {
+                $details = [];
+                if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+                if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+                if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+                if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+                if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
+                $labelAttr = implode(' - ', $details) ?: 'Standard';
+                $attrLabels[] = $labelAttr;
+
+                $attributsArticle[] = [
+                    'label'    => $labelAttr,
+                    'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
+                ];
+            }
+            $attrStr = implode(', ', $attrLabels);
+
+            // ✅ Création d'un label unique pour le graphique
+            // Cela permet de différencier deux "BACHE" si elles ont des attributs différents
+            $labelUnique = $art->getNom();
+            if ($machineNom) $labelUnique .= ' [' . $machineNom . ']';
+            if ($attrStr)    $labelUnique .= ' - ' . $attrStr;
+
+            // On ajoute à la liste SANS REGROUPER (comme la DG)
             $topArticles[] = [
                 'nom'       => $art->getNom(),
+                'label'     => $labelUnique,
                 'machine'   => $machineNom,
                 'quantite'  => $qte,
                 'seuil'     => $seuil,
                 'categorie' => $catNom,
+                'attributs' => $attributsArticle,
             ];
-
-            // ─── Top articles AGRÉGÉ (par nom + machine) pour le graphique ───
-            $cle = $art->getNom() . ($machineNom ? ' [' . $machineNom . ']' : '');
-            if (!isset($topArticlesAggreges[$cle])) {
-                $topArticlesAggreges[$cle] = [
-                    'label'    => $cle,
-                    'quantite' => 0,
-                    'seuil'    => $seuil,
-                ];
-            }
-            $topArticlesAggreges[$cle]['quantite'] += $qte;
-            $topArticlesAggreges[$cle]['seuil'] = max($topArticlesAggreges[$cle]['seuil'], $seuil);
         }
 
-        // ─── Top 10 pour le graphique (agrégé + trié) ───
-        $topArticlesAggreges = array_values($topArticlesAggreges);
-        usort($topArticlesAggreges, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
-        $topArticlesTop10 = array_slice($topArticlesAggreges, 0, 10);
-        $topArticlesTotal = count($topArticlesAggreges);
+        // Tri par quantité et récupération du Top 10
+        usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
+        $topArticlesTop10 = array_slice($topArticles, 0, 10);
+        $topArticlesTotal = count($articlesStock);
 
-        // ─── Labels / quantités catégories (source unique) ───
+        // ─── Labels / quantités catégories ───
         $categoriesLabels    = [];
         $categoriesQuantites = [];
         foreach ($articlesParCategorie as $cat => $data) {
@@ -434,8 +447,8 @@ class AdminController extends AbstractController
             'articlesStock'        => $articlesStock,
             'totalQuantiteStock'   => $totalQuantiteStock,
             'articlesParCategorie' => $articlesParCategorie,
-            'topArticles'          => $topArticlesTop10,     // ⚡ AGRÉGÉ + TOP 10
-            'topArticlesTotal'     => $topArticlesTotal,     // ⚡ Nombre total d'articles référencés
+            'topArticles'          => $topArticlesTop10,     
+            'topArticlesTotal'     => $topArticlesTotal,     
             'categoriesLabels'     => $categoriesLabels,
             'categoriesQuantites'  => $categoriesQuantites,
             'articlesEnAlerte'     => $articlesEnAlerte,

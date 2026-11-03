@@ -2397,7 +2397,7 @@
                         borderRadius: 6,
                     }]
                 },
-                options: {
+                               options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -2410,20 +2410,39 @@
                             padding: { bottom: 10 }
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(30, 41, 59, 0.97)',
+                            titleColor: '#f9d976',
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            bodySpacing: 4,
+                            padding: 12,
+                            displayColors: false, // Enlève le petit carré de couleur
                             callbacks: {
+                                // 1. Le titre (Nom de l'article)
                                 title: function (items) {
                                     const a = topArticlesAdmin[items[0].dataIndex];
                                     return a.label || a.nom;
                                 },
+                                // 2. Le contenu (Quantité + Seuil + Attributs)
                                 label: function (ctx) {
                                     const a = topArticlesAdmin[ctx.dataIndex];
-                                    return 'Quantité : ' + a.quantite;
-                                },
-                                afterLabel: function (context) {
-                                    const a = topArticlesAdmin[context.dataIndex];
-                                    const seuilMsg = 'Seuil : ' + a.seuil
-                                        + (a.quantite <= a.seuil ? ' ⚠️ ALERTE' : '');
-                                    return seuilMsg;
+                                    let lines = [];
+
+                                    lines.push('📊 Quantité totale : ' + a.quantite);
+                                    lines.push('🎯 Seuil : ' + a.seuil + (a.quantite <= a.seuil ? '   ⚠️ ALERTE' : ''));
+
+                                    if (a.attributs && Array.isArray(a.attributs) && a.attributs.length > 0) {
+                                        lines.push('');
+                                        lines.push('📦 Attributs (' + a.attributs.length + ') :');
+                                        const MAX = 8;
+                                        a.attributs.slice(0, MAX).forEach(function (attr) {
+                                            lines.push('   • ' + attr.label + ' → ' + attr.quantite + ' u.');
+                                        });
+                                        if (a.attributs.length > MAX) {
+                                            lines.push('   … et ' + (a.attributs.length - MAX) + ' autre(s)');
+                                        }
+                                    }
+                                    return lines;
                                 }
                             }
                         }
@@ -2487,7 +2506,7 @@
                 }
             });
         }
-    });
+    }); 
 </script>
 </body>
 </html>
