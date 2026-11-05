@@ -194,12 +194,18 @@ class AdminController extends AbstractController
 
         // ═══════════════════════════════════════════════════════════════
         // ✅ SYNTHÈSE STOCK — SOURCE UNIQUE DE VÉRITÉ
+        //    ⚡ $articlesStock est LA référence.
+        //    Tout (KPI, tableaux, graphiques) en dérive.
+        // ═══════════════════════════════════════════════════════════════
+                // ═══════════════════════════════════════════════════════════════
+        // ✅ SYNTHÈSE STOCK — MÊME LOGIQUE QUE LA DG
+        //    → $topArticles contient CHAQUE variante (nom + machine + attributs)
         // ═══════════════════════════════════════════════════════════════
         $articlesStock = $em->getRepository(Article::class)->findAll();
 
         $totalQuantiteStock   = 0;
         $articlesParCategorie = [];
-        $topArticles          = []; 
+        $topArticles          = []; // liste détaillée (une ligne par variante)
 
         foreach ($articlesStock as $art) {
             $qte = $art->getQuantite() ?? 0;
@@ -227,9 +233,9 @@ class AdminController extends AbstractController
 
             $seuil = method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0;
 
-            // ✅ Récupération des attributs pour le tooltip
+            // ─── Attributs (identique à la DG) ───
             $attributsArticle = [];
-            $attrLabels = [];
+            $attrLabels       = [];
             foreach ($art->getAttributs() as $attr) {
                 $details = [];
                 if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
@@ -248,13 +254,11 @@ class AdminController extends AbstractController
             }
             $attrStr = implode(', ', $attrLabels);
 
-            // ✅ Création d'un label unique pour le graphique
-            // Cela permet de différencier deux "BACHE" si elles ont des attributs différents
+            // ─── Label unique (identique DG) ───
             $labelUnique = $art->getNom();
             if ($machineNom) $labelUnique .= ' [' . $machineNom . ']';
             if ($attrStr)    $labelUnique .= ' - ' . $attrStr;
 
-            // On ajoute à la liste SANS REGROUPER (comme la DG)
             $topArticles[] = [
                 'nom'       => $art->getNom(),
                 'label'     => $labelUnique,
@@ -266,19 +270,18 @@ class AdminController extends AbstractController
             ];
         }
 
-        // Tri par quantité et récupération du Top 10
+        // ─── Top 10 pour le graphique (une ligne par variante, comme la DG) ───
         usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
         $topArticlesTop10 = array_slice($topArticles, 0, 10);
         $topArticlesTotal = count($articlesStock);
 
-        // ─── Labels / quantités catégories ───
+        // ─── Labels / quantités catégories (source unique) ───
         $categoriesLabels    = [];
         $categoriesQuantites = [];
         foreach ($articlesParCategorie as $cat => $data) {
             $categoriesLabels[]    = $cat;
             $categoriesQuantites[] = $data['quantite'];
         }
-
         // ═══════════════════════════════════════════════════════
         // ✅ ALERTES STOCK ENRICHIES (qui a lancé le réappro)
         // ═══════════════════════════════════════════════════════
@@ -447,13 +450,14 @@ class AdminController extends AbstractController
             'articlesStock'        => $articlesStock,
             'totalQuantiteStock'   => $totalQuantiteStock,
             'articlesParCategorie' => $articlesParCategorie,
-            'topArticles'          => $topArticlesTop10,     
-            'topArticlesTotal'     => $topArticlesTotal,     
+            'topArticles'          => $topArticlesTop10,     // ⚡ AGRÉGÉ + TOP 10
+            'topArticlesTotal'     => $topArticlesTotal,     // ⚡ Nombre total d'articles référencés
             'categoriesLabels'     => $categoriesLabels,
             'categoriesQuantites'  => $categoriesQuantites,
             'articlesEnAlerte'     => $articlesEnAlerte,
             'alerteDetails'        => $alerteDetails,
             'nbAlertesStock'       => $nbAlertesStock,
+            'topArticlesAll'       => $topArticles,   // ✅ liste complète détaillée (comme la DG)
 
             // ✅ VUE 360° — VISITES
             'toutesVisites'     => $toutesVisites,

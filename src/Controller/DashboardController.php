@@ -66,6 +66,13 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
+        // ============================================================
+        // ✅ REDIRECTION ADMIN EN PREMIER (Corrige le bug du dashboard caissier)
+        // ============================================================
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
         // Définition du label du rôle
         $roleLabel = 'Utilisateur';
         if ($this->isGranted('ROLE_STOCK')) {
@@ -117,7 +124,6 @@ class DashboardController extends AbstractController
             ->orderBy('d.id', 'DESC');
         $devisListe = $qbDevis->getQuery()->getResult();
 
-        // ✅ CORRECTION #1 : utiliser les constantes au lieu des chaînes en dur
         $totalDevisUSD = 0;
         $totalDevisCDF = 0;
         foreach ($devisListe as $d) {
@@ -290,7 +296,6 @@ class DashboardController extends AbstractController
 
         // ============================================================
         // 2. FORMULAIRE STOCK
-        //    ✅ Unicité basée sur (nom + machine + sous-catégorie + SIGNATURE ATTRIBUTS)
         // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $article = new Article();
@@ -679,13 +684,6 @@ class DashboardController extends AbstractController
                 'isChefService'  => true,
                 'estSiteDistant' => $estSiteDistant,
             ]);
-        }
-
-        // ============================================================
-        // ADMIN
-        // ============================================================
-        if ($this->isGranted('ROLE_ADMIN')) {
-            return $this->redirectToRoute('app_admin_dashboard');
         }
 
         // ============================================================
@@ -1242,8 +1240,9 @@ class DashboardController extends AbstractController
                     $machineNom = $art->getMachine()->getNom();
                 }
 
-                // ✅ NOUVEAU : récupération des attributs de l'article
+                // ✅ Récupération des attributs de l'article (Code corrigé et unique)
                 $attributsArticle = [];
+                $attrLabels = [];
                 foreach ($art->getAttributs() as $attr) {
                     $details = [];
                     if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
@@ -1252,40 +1251,30 @@ class DashboardController extends AbstractController
                     if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
                     if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
 
-                    $label = implode(' - ', $details) ?: 'Standard';
+                    $labelAttr = implode(' - ', $details) ?: 'Standard';
+                    $attrLabels[] = $labelAttr;
 
                     $attributsArticle[] = [
-                        'label'    => $label,
+                        'label'    => $labelAttr,
                         'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
                     ];
                 }
+                $attrStr = implode(', ', $attrLabels);
 
-                    // ✅ NOUVEAU : récupération des attributs de l'article
-$attributsArticle = [];
-foreach ($art->getAttributs() as $attr) {
-    $details = [];
-    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
-    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
-    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
-    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
-    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+                // ✅ Création d'un label unique pour le graphique
+                $labelUnique = $art->getNom();
+                if ($machineNom) $labelUnique .= ' [' . $machineNom . ']';
+                if ($attrStr)    $labelUnique .= ' - ' . $attrStr;
 
-    $label = implode(' - ', $details) ?: 'Standard';
-
-    $attributsArticle[] = [
-        'label'    => $label,
-        'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
-    ];
-}
-
-$topArticles[] = [
-    'nom'       => $art->getNom(),
-    'machine'   => $machineNom,
-    'quantite'  => $qte,
-    'seuil'     => $art->getSeuilAlerte() ?? 0,
-    'categorie' => $catNom,
-    'attributs' => $attributsArticle,   // ✅ AJOUT
-];
+                $topArticles[] = [
+                    'nom'       => $art->getNom(),
+                    'label'     => $labelUnique,
+                    'machine'   => $machineNom,
+                    'quantite'  => $qte,
+                    'seuil'     => $art->getSeuilAlerte() ?? 0,
+                    'categorie' => $catNom,
+                    'attributs' => $attributsArticle,
+                ];
             }
 
             usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);

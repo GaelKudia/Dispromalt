@@ -39,7 +39,6 @@
             overflow-y: auto;
         }
 
-        /* Conteneur pleine largeur */
         .full-width-container {
             width: 100%;
             max-width: 100%;
@@ -112,10 +111,6 @@
             width: 100%;
         }
 
-        /* ═══════════════════════════════════════════════
-           ONGLETS : WRAP AUTOMATIQUE = TOUS VISIBLES
-           (plus de scroll horizontal, empilement vertical)
-        ═══════════════════════════════════════════════ */
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
             padding: 0.5rem 1rem;
@@ -124,9 +119,7 @@
             overflow: visible !important;
             display: flex;
         }
-        .nav-tabs-modern .nav-item {
-            flex: 0 1 auto;
-        }
+        .nav-tabs-modern .nav-item { flex: 0 1 auto; }
         .nav-tabs-modern .nav-link {
             border: 1px solid transparent !important;
             color: #64748b;
@@ -139,10 +132,7 @@
             background: #f8fafc;
             margin: 2px;
         }
-        .nav-tabs-modern .nav-link:hover {
-            color: var(--dg-primary);
-            background: #eef2f7;
-        }
+        .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); background: #eef2f7; }
         .nav-tabs-modern .nav-link.active {
             color: #fff !important;
             background: var(--gradient-1) !important;
@@ -151,21 +141,10 @@
         .nav-tabs-modern .nav-link.active::after { display: none; }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
-        /* Sur très petits écrans : onglets sur toute la largeur, empilés */
         @media (max-width: 575.98px) {
-            .nav-tabs-modern {
-                flex-direction: column;
-                gap: 0.4rem;
-                padding: 0.75rem;
-            }
-            .nav-tabs-modern .nav-item {
-                width: 100%;
-            }
-            .nav-tabs-modern .nav-link {
-                width: 100%;
-                text-align: left;
-                border-radius: 10px;
-            }
+            .nav-tabs-modern { flex-direction: column; gap: 0.4rem; padding: 0.75rem; }
+            .nav-tabs-modern .nav-item { width: 100%; }
+            .nav-tabs-modern .nav-link { width: 100%; text-align: left; border-radius: 10px; }
         }
 
         .table-modern { margin: 0; }
@@ -289,7 +268,6 @@
         .text-purple { color: #9333ea !important; }
         .bg-purple-soft { background: rgba(168, 85, 247, 0.12) !important; }
 
-        /* KPI 360 */
         .kpi360 {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 1.25rem; border-radius: 14px;
@@ -301,22 +279,27 @@
         .kpi360 .kpi360-label { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
         .kpi360 .kpi360-icon { font-size: 1.75rem; opacity: 0.4; }
 
-        /* Tableaux responsive : scroll horizontal UNIQUEMENT dans le tableau */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Le contenu des onglets défile verticalement avec la page */
         .tab-content { width: 100%; }
+
+        /* Animation spin pour le bouton actualiser */
+        @keyframes spinRefresh {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .fa-sync-alt.fa-spin {
+            animation: spinRefresh 0.6s linear infinite;
+        }
     </style>
 </head>
 <body>
 
-{# ============================================
-   NAVBAR
-============================================ #}
+{# NAVBAR #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
@@ -329,6 +312,16 @@
                 <i class="fas fa-user-shield text-warning me-2"></i>
                 <span class="fw-bold">Super-Administrateur</span>
             </div>
+
+            {# ✅ Bouton Actualiser (navbar) #}
+            <button type="button"
+                    onclick="this.querySelector('i').classList.add('fa-spin'); setTimeout(() => window.location.reload(), 250);"
+                    class="btn btn-light btn-sm fw-bold px-3 rounded-pill"
+                    title="Actualiser la page">
+                <i class="fas fa-sync-alt me-1"></i>
+                <span class="d-none d-sm-inline">Actualiser</span>
+            </button>
+
             <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
                 <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
@@ -336,9 +329,7 @@
     </div>
 </nav>
 
-{# ============================================
-   MAIN CONTAINER — PLEINE LARGEUR
-============================================ #}
+{# MAIN CONTAINER #}
 <div class="full-width-container">
 
     {# En-tête #}
@@ -347,8 +338,19 @@
             <h1 class="page-title">Tableau de Bord Général</h1>
             <p class="page-subtitle">Supervision des flux de l'imprimerie et gestion globale des identifiants.</p>
         </div>
-        <div class="text-muted small font-monospace">
-            <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {# ✅ Bouton Actualiser (grand format) #}
+            <button type="button"
+                    id="btnRefreshHeader"
+                    class="btn btn-modern btn-primary shadow-sm"
+                    title="Actualiser les données">
+                <i class="fas fa-sync-alt me-2"></i>Actualiser
+            </button>
+
+            <div class="text-muted small font-monospace">
+                <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+            </div>
         </div>
     </div>
 
@@ -410,9 +412,7 @@
         </div>
     </div>
 
-    {# ============================================
-       CARTE PRINCIPALE À ONGLETS
-    ============================================ #}
+    {# CARTE PRINCIPALE À ONGLETS #}
     <div class="main-card">
 
         <ul class="nav nav-tabs nav-tabs-modern" id="adminTabs" role="tablist">
@@ -476,9 +476,7 @@
         <div class="p-3 p-lg-4">
             <div class="tab-content">
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 0 : VUE 360°
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 0 : VUE 360° #}
                 <div class="tab-pane fade show active" id="pane-360" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -525,10 +523,8 @@
                         </div>
                     </div>
 
-                    {# TRÉSORERIE — 3 SOLDES SÉPARÉS #}
+                    {# TRÉSORERIE #}
                     <div class="row g-3 mb-4">
-
-                        {# Solde Comptabilité #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-success h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -555,7 +551,6 @@
                             </div>
                         </div>
 
-                        {# Solde Caisse #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-info h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -582,7 +577,6 @@
                             </div>
                         </div>
 
-                        {# Solde Global #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-primary h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -803,7 +797,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 1 : DEMANDES ============ #}
+                {# ONGLET 1 : DEMANDES #}
                 <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -892,7 +886,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 2 : BONS DE SORTIE ============ #}
+                {# ONGLET 2 : BONS DE SORTIE #}
                 <div class="tab-pane fade" id="pane-bons" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -953,9 +947,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 3 : VISITES & RDV
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 3 : VISITES & RDV #}
                 <div class="tab-pane fade" id="pane-visites" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1044,9 +1036,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 4 : DEVIS & FINANCES
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 4 : DEVIS & FINANCES #}
                 <div class="tab-pane fade" id="pane-devis-admin" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1141,9 +1131,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 5 : MOUVEMENTS DE CAISSE
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 5 : MOUVEMENTS DE CAISSE #}
                 <div class="tab-pane fade" id="pane-caisse-admin" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1211,7 +1199,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 6 : COMPTES AGENTS ============ #}
+                {# ONGLET 6 : COMPTES AGENTS #}
                 <div class="tab-pane fade" id="pane-agents" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-5">
@@ -1397,11 +1385,10 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 7 : NOMINATIONS ============ #}
+                {# ONGLET 7 : NOMINATIONS #}
                 <div class="tab-pane fade" id="pane-nominations" role="tabpanel">
                     <div class="row g-4">
 
-                        {# ──────── Nommer un Caissier ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1432,7 +1419,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Nommer un Chef Comptable ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1463,7 +1449,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Nommer le PDG ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1523,7 +1508,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Créer un Nouveau Service ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1547,7 +1531,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Rôles disponibles ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
@@ -1594,7 +1577,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 8 : CATÉGORIES ============ #}
+                {# ONGLET 8 : CATÉGORIES #}
                 <div class="tab-pane fade" id="pane-structure" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-6">
@@ -1760,7 +1743,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 9 : MACHINES ============ #}
+                {# ONGLET 9 : MACHINES #}
                 <div class="tab-pane fade" id="pane-machines" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-5">
@@ -1857,7 +1840,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 10 : ÉTAT DU STOCK ============ #}
+                {# ONGLET 10 : ÉTAT DU STOCK #}
                 <div class="tab-pane fade" id="pane-stock" role="tabpanel">
 
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -1919,7 +1902,7 @@
                         </div>
                     </div>
 
-                    {# ALERTES CRITIQUES PERSISTANTES #}
+                    {# ALERTES CRITIQUES #}
                     {% if nbAlertesStock|default(0) > 0 %}
                     <div class="form-card mb-4" style="background: rgba(220, 38, 38, 0.03); border-color: rgba(220, 38, 38, 0.15);">
                         <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
@@ -2111,6 +2094,84 @@
                         </div>
                     </div>
 
+                    {# DÉTAIL DES VARIANTES (VUE DIRECTION) #}
+                    <div class="form-card mb-4">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list-ul"></i></div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-dark">Détail des variantes (vue Direction)</h5>
+                                <small class="text-muted">Chaque variante (attributs) affichée séparément — identique à la vue DG</small>
+                            </div>
+                            <span class="badge badge-soft badge-soft-purple ms-auto">
+                                {{ topArticlesAll|default([])|length }} variante(s)
+                            </span>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Article</th>
+                                        <th>Machine</th>
+                                        <th>Variante / Attributs</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th class="text-center">Seuil</th>
+                                        <th class="text-center">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for art in topArticlesAll|default([]) %}
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="fas fa-box text-secondary me-2"></i>{{ art.nom }}
+                                            </td>
+                                            <td>
+                                                {% if art.machine %}
+                                                    <span class="badge badge-soft badge-soft-secondary">
+                                                        <i class="fas fa-cog me-1"></i>{{ art.machine }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if art.attributs|default([])|length > 0 %}
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        {% for att in art.attributs %}
+                                                            <span class="badge badge-soft badge-soft-primary">
+                                                                {{ att.label }}
+                                                                {% if att.quantite is defined %}
+                                                                    <strong class="ms-1">({{ att.quantite }})</strong>
+                                                                {% endif %}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-secondary">Standard</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center fw-bold text-dark">{{ art.quantite }}</td>
+                                            <td class="text-center">{{ art.seuil }}</td>
+                                            <td class="text-center">
+                                                {% if art.quantite <= art.seuil %}
+                                                    <span class="badge badge-soft badge-soft-danger">Bas</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-success">OK</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                Aucune variante enregistrée.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     {# LISTE DES ARTICLES AVEC CRUD #}
                     <div class="form-card">
                         <div class="form-card-header">
@@ -2184,9 +2245,7 @@
     </div>
 </div>
 
-{# ═══════════════════════════════════════════════════════════════
-   MODALS DE MODIFICATION
-═══════════════════════════════════════════════════════════════ #}
+{# MODALS DE MODIFICATION #}
 
 <!-- MODAL : Modifier une Catégorie -->
 <div class="modal fade" id="editCategoryModal" tabindex="-1">
@@ -2315,6 +2374,19 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+        // ✅ Bouton Actualiser (en-tête)
+        const btnRefreshHeader = document.getElementById('btnRefreshHeader');
+        if (btnRefreshHeader) {
+            btnRefreshHeader.addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                icon.classList.add('fa-spin');
+                this.disabled = true;
+                setTimeout(() => window.location.reload(), 300);
+            });
+        }
+
+        // Gestion des onglets + hash URL
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -2323,7 +2395,6 @@
         document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
-                // Remonter en haut de page lors du changement d'onglet
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
@@ -2368,10 +2439,7 @@
             });
         });
 
-        // Graphique Top Articles
-                    // ═══════════════════════════════════════════════════════
-        // GRAPHIQUE TOP 10 ARTICLES (agrégé par nom + machine)
-        // ═══════════════════════════════════════════════════════
+        // GRAPHIQUE TOP 10 ARTICLES
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const topArticlesTotal = {{ topArticlesTotal|default(0) }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
@@ -2397,7 +2465,7 @@
                         borderRadius: 6,
                     }]
                 },
-                               options: {
+                options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
@@ -2410,39 +2478,26 @@
                             padding: { bottom: 10 }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(30, 41, 59, 0.97)',
-                            titleColor: '#f9d976',
-                            titleFont: { size: 13, weight: 'bold' },
-                            bodyFont: { size: 12 },
-                            bodySpacing: 4,
-                            padding: 12,
-                            displayColors: false, // Enlève le petit carré de couleur
                             callbacks: {
-                                // 1. Le titre (Nom de l'article)
                                 title: function (items) {
                                     const a = topArticlesAdmin[items[0].dataIndex];
-                                    return a.label || a.nom;
+                                    return a.nom + (a.machine ? ' [' + a.machine + ']' : '');
                                 },
-                                // 2. Le contenu (Quantité + Seuil + Attributs)
                                 label: function (ctx) {
                                     const a = topArticlesAdmin[ctx.dataIndex];
-                                    let lines = [];
-
-                                    lines.push('📊 Quantité totale : ' + a.quantite);
-                                    lines.push('🎯 Seuil : ' + a.seuil + (a.quantite <= a.seuil ? '   ⚠️ ALERTE' : ''));
-
-                                    if (a.attributs && Array.isArray(a.attributs) && a.attributs.length > 0) {
-                                        lines.push('');
-                                        lines.push('📦 Attributs (' + a.attributs.length + ') :');
-                                        const MAX = 8;
-                                        a.attributs.slice(0, MAX).forEach(function (attr) {
-                                            lines.push('   • ' + attr.label + ' → ' + attr.quantite + ' u.');
+                                    return 'Quantité : ' + a.quantite;
+                                },
+                                afterLabel: function (context) {
+                                    const a = topArticlesAdmin[context.dataIndex];
+                                    const lignes = [];
+                                    if (a.categorie) lignes.push('Catégorie : ' + a.categorie);
+                                    lignes.push('Seuil : ' + a.seuil + (a.quantite <= a.seuil ? ' ⚠️ ALERTE' : ''));
+                                    if (a.attributs && a.attributs.length > 0) {
+                                        a.attributs.forEach(att => {
+                                            lignes.push('• ' + att.label + ' → ' + att.quantite);
                                         });
-                                        if (a.attributs.length > MAX) {
-                                            lines.push('   … et ' + (a.attributs.length - MAX) + ' autre(s)');
-                                        }
                                     }
-                                    return lines;
+                                    return lignes;
                                 }
                             }
                         }
@@ -2454,9 +2509,8 @@
                 }
             });
         }
-                // ═══════════════════════════════════════════════════════
-        // GRAPHIQUE RÉPARTITION PAR CATÉGORIE (source unique)
-        // ═══════════════════════════════════════════════════════
+
+        // GRAPHIQUE RÉPARTITION PAR CATÉGORIE
         const catLabelsAdmin    = {{ categoriesLabels|default([])|json_encode|raw }};
         const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvasCA = document.getElementById('chartCategoriesAdmin');
@@ -2493,9 +2547,7 @@
                             callbacks: {
                                 label: function (ctx) {
                                     const val = ctx.parsed || 0;
-                                    const pct = totalCat > 0
-                                        ? ((val / totalCat) * 100).toFixed(1)
-                                        : 0;
+                                    const pct = totalCat > 0 ? ((val / totalCat) * 100).toFixed(1) : 0;
                                     return ' ' + ctx.label + ' : '
                                         + val.toLocaleString('fr-FR')
                                         + ' unités (' + pct + '%)';
@@ -2506,7 +2558,7 @@
                 }
             });
         }
-    }); 
+    });
 </script>
 </body>
 </html>

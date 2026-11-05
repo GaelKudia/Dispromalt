@@ -22,7 +22,7 @@
             <span class="text-muted small"><i class="fas fa-lock me-1"></i> Espace Administrateur</span>
         </div>
 
-        {# ✅ BLOC DE MESSAGES (Succès / Erreurs) #}
+        {# ✅ BLOC DE MESSAGES (Succès / Erreurs Flash) #}
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm" role="alert">
@@ -48,6 +48,25 @@
             <div class="card-body p-4">
                 {# ✅ DÉBUT DU FORMULAIRE SYMFONY #}
                 {{ form_start(form) }}
+
+                    {# ✅ AFFICHAGE DES ERREURS GLOBALES (Très important pour comprendre pourquoi ça ne sauvegarde pas) #}
+                    {% if not form.vars.valid %}
+                        <div class="alert alert-danger mb-4 shadow-sm">
+                            <h6 class="fw-bold"><i class="fas fa-exclamation-circle me-1"></i> Veuillez corriger les erreurs suivantes :</h6>
+                            <ul class="mb-0 small">
+                                {# Erreurs globales du formulaire #}
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                                {# Erreurs spécifiques à chaque champ #}
+                                {% for child in form.children %}
+                                    {% for error in child.vars.errors %}
+                                        <li><strong>{{ child.vars.label|default(child.vars.name) }} :</strong> {{ error.message }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
 
                     {# ==========================================
                        EMAIL
@@ -143,13 +162,12 @@
             const chefCheckbox  = document.getElementById('isChefService');
             const chefWarning   = document.getElementById('chefWarning');
 
-            // Si un des éléments n'existe pas (ex: champ manquant), on arrête le script
             if(!roleSelect || !chefCheckbox) return;
 
             function updateUI() {
                 const role = roleSelect.value;
-                // On garde le bloc visible si le rôle est standard
-                // Adapte cette liste si tes rôles dans UserType sont différents
+                
+                // Attention : ces rôles doivent correspondre exactement à ceux du ChoiceType dans UserType.php
                 const rolesAvecService = [
                     'ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON',
                     'ROLE_COMPTA', 'ROLE_RECEPTION', 'ROLE_GUERITE', 'ROLE_CAISSIER'
