@@ -287,7 +287,6 @@
 
         .tab-content { width: 100%; }
 
-        /* Animation spin pour le bouton actualiser */
         @keyframes spinRefresh {
             from { transform: rotate(0deg); }
             to   { transform: rotate(360deg); }
@@ -313,7 +312,6 @@
                 <span class="fw-bold">Super-Administrateur</span>
             </div>
 
-            {# ✅ Bouton Actualiser (navbar) #}
             <button type="button"
                     onclick="this.querySelector('i').classList.add('fa-spin'); setTimeout(() => window.location.reload(), 250);"
                     class="btn btn-light btn-sm fw-bold px-3 rounded-pill"
@@ -340,7 +338,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            {# ✅ Bouton Actualiser (grand format) #}
             <button type="button"
                     id="btnRefreshHeader"
                     class="btn btn-modern btn-primary shadow-sm"
@@ -476,14 +473,13 @@
         <div class="p-3 p-lg-4">
             <div class="tab-content">
 
-                {# ONGLET 0 : VUE 360° #}
+                {# ONGLET 0 : VUE 360° (inchangé) #}
                 <div class="tab-pane fade show active" id="pane-360" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
                         <i class="fas fa-globe text-primary me-2"></i>Vue à 360° de l'activité
                     </h5>
 
-                    {# KPIs globaux #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi360">
@@ -523,7 +519,6 @@
                         </div>
                     </div>
 
-                    {# TRÉSORERIE #}
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-success h-100">
@@ -604,7 +599,6 @@
                         </div>
                     </div>
 
-                    {# OPÉRATIONS EN ATTENTE #}
                     {% if (devisAiguiller|default([])|length > 0)
                        or (devisPretsADecaisser|default([])|length > 0)
                        or (devisEnAttenteCaisse|default([])|length > 0) %}
@@ -745,7 +739,6 @@
                     </div>
                     {% endif %}
 
-                    {# Tableau récapitulatif par module #}
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
@@ -1304,6 +1297,8 @@
                                                     {% endif %}
                                                     {% if 'ROLE_CHEF_COMPTA' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-warning"><i class="fas fa-star me-1"></i>CHEF COMPTABLE</span>
+                                                    {% elseif 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-purple"><i class="fas fa-user-tie me-1"></i>ADJOINT CHEF COMPTA</span>
                                                     {% elseif 'ROLE_COMPTA' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-success">COMPTABLE</span>
                                                     {% endif %}
@@ -1325,7 +1320,18 @@
                                                         <span class="badge badge-soft badge-soft-gold"><i class="fas fa-crown me-1"></i>DG</span>
                                                     {% endif %}
 
-                                                    {% if not u.isPDG and 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles and 'ROLE_CAISSIER' not in u.roles and 'ROLE_STOCK' not in u.roles and 'ROLE_COORDON' not in u.roles and 'ROLE_DG' not in u.roles %}
+                                                    {% if not u.isPDG
+                                                          and 'ROLE_ADMIN' not in u.roles
+                                                          and 'ROLE_CHEF_COMPTA' not in u.roles
+                                                          and 'ROLE_ADJOINT_CHEF_COMPTA' not in u.roles
+                                                          and 'ROLE_COMPTA' not in u.roles
+                                                          and 'ROLE_RECEPTION' not in u.roles
+                                                          and 'ROLE_ACCUEIL' not in u.roles
+                                                          and 'ROLE_GUERITE' not in u.roles
+                                                          and 'ROLE_CAISSIER' not in u.roles
+                                                          and 'ROLE_STOCK' not in u.roles
+                                                          and 'ROLE_COORDON' not in u.roles
+                                                          and 'ROLE_DG' not in u.roles %}
                                                         <span class="badge badge-soft badge-soft-secondary font-monospace">{{ u.roles[0]|default('ROLE_USER') }}</span>
                                                     {% endif %}
                                                 </div>
@@ -1358,6 +1364,15 @@
                                                           onsubmit="return confirm('Retirer les privilèges de Chef Comptable ?');">
                                                         <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer Chef Compta">
                                                             <i class="fas fa-user-slash"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                {# ✅ NOUVEAU : Destituer Adjoint Chef Comptable #}
+                                                {% if 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}
+                                                    <form action="{{ path('app_admin_destituer_adjoint_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('Retirer le rôle Adjoint Chef Comptable à {{ u.email }} ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer Adjoint Chef Compta">
+                                                            <i class="fas fa-user-minus"></i>
                                                         </button>
                                                     </form>
                                                 {% endif %}
@@ -1446,6 +1461,65 @@
                                         </button>
                                     </div>
                                 </form>
+                            </div>
+                        </div>
+
+                        {# ✅ NOUVEAU : Nommer un Adjoint Chef Comptable #}
+                        <div class="col-12 col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-purple">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Nommer un Adjoint Chef Comptable</h5>
+                                        <small class="text-muted">Un seul adjoint peut être nommé à la fois.</small>
+                                    </div>
+                                </div>
+
+                                <form method="POST" action="{{ path('app_admin_assigner_adjoint_chef_compta') }}">
+                                    <label class="form-label small fw-bold text-secondary">Sélectionner un agent</label>
+                                    <div class="input-group">
+                                        <select name="user_id" class="form-select" required>
+                                            <option value="" disabled selected>Choisir un agent...</option>
+                                            {% for u in listeComptables|default(users) %}
+                                                {% if 'ROLE_ADJOINT_CHEF_COMPTA' not in u.roles
+                                                      and 'ROLE_CHEF_COMPTA' not in u.roles
+                                                      and 'ROLE_ADMIN' not in u.roles %}
+                                                    <option value="{{ u.id }}">{{ u.email }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-modern text-white" style="background: var(--gradient-purple);">
+                                            <i class="fas fa-user-tie me-1"></i> Nommer
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% set adjointActuel = null %}
+                                {% for u in users %}
+                                    {% if 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}{% set adjointActuel = u %}{% endif %}
+                                {% endfor %}
+
+                                {% if adjointActuel %}
+                                    <div class="alert alert-secondary rounded-3 mt-3 mb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <i class="fas fa-user-tie me-2 text-purple"></i>
+                                            <strong>Adjoint actuel :</strong> {{ adjointActuel.email }}
+                                        </div>
+                                        <form method="POST" action="{{ path('app_admin_destituer_adjoint_chef_compta', {'id': adjointActuel.id}) }}"
+                                              onsubmit="return confirm('Retirer le rôle Adjoint Chef Comptable à {{ adjointActuel.email }} ?');"
+                                              class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-user-minus me-1"></i> Destituer
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light rounded-3 mt-3 mb-0 text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i> Aucun Adjoint Chef Comptable nommé actuellement.
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -1562,6 +1636,14 @@
                                         <div class="small">
                                             <strong class="text-dark">Chef Comptable</strong>
                                             <div class="text-muted">Supervise la comptabilité et valide les budgets.</div>
+                                        </div>
+                                    </li>
+                                    {# ✅ NOUVEAU : Adjoint Chef Comptable #}
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-user-tie text-purple me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">Adjoint Chef Comptable</strong>
+                                            <div class="text-muted">Assiste le Chef Comptable. Un seul à la fois.</div>
                                         </div>
                                     </li>
                                     <li class="d-flex">
@@ -1852,7 +1934,6 @@
                         </div>
                     </div>
 
-                    {# KPI Stock #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="stat-card stat-primary">
@@ -1902,7 +1983,6 @@
                         </div>
                     </div>
 
-                    {# ALERTES CRITIQUES #}
                     {% if nbAlertesStock|default(0) > 0 %}
                     <div class="form-card mb-4" style="background: rgba(220, 38, 38, 0.03); border-color: rgba(220, 38, 38, 0.15);">
                         <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
@@ -2007,7 +2087,6 @@
                     </div>
                     {% endif %}
 
-                    {# Graphiques #}
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-lg-7">
                             <div class="form-card h-100">
@@ -2039,7 +2118,6 @@
                         </div>
                     </div>
 
-                    {# Synthèse par catégorie #}
                     <div class="form-card mb-4">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list"></i></div>
@@ -2094,7 +2172,6 @@
                         </div>
                     </div>
 
-                    {# DÉTAIL DES VARIANTES (VUE DIRECTION) #}
                     <div class="form-card mb-4">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list-ul"></i></div>
@@ -2172,7 +2249,6 @@
                         </div>
                     </div>
 
-                    {# LISTE DES ARTICLES AVEC CRUD #}
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-boxes"></i></div>
@@ -2375,7 +2451,6 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
-        // ✅ Bouton Actualiser (en-tête)
         const btnRefreshHeader = document.getElementById('btnRefreshHeader');
         if (btnRefreshHeader) {
             btnRefreshHeader.addEventListener('click', function () {
@@ -2386,7 +2461,6 @@
             });
         }
 
-        // Gestion des onglets + hash URL
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -2399,7 +2473,6 @@
             });
         });
 
-        // Catégorie
         document.querySelectorAll('[data-bs-target="#editCategoryModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editCategoryForm').action = '/admin/category/' + btn.dataset.id + '/edit';
@@ -2408,7 +2481,6 @@
             });
         });
 
-        // Sous-catégorie
         document.querySelectorAll('[data-bs-target="#editSubCategoryModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editSubCategoryForm').action = '/admin/sub-category/' + btn.dataset.id + '/edit';
@@ -2418,7 +2490,6 @@
             });
         });
 
-        // Machine
         document.querySelectorAll('[data-bs-target="#editMachineModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editMachineForm').action = '/admin/machine/' + btn.dataset.id + '/edit';
@@ -2428,7 +2499,6 @@
             });
         });
 
-        // Article
         document.querySelectorAll('[data-bs-target="#editArticleModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editArticleForm').action = '/admin/article/' + btn.dataset.id + '/edit';
@@ -2439,7 +2509,6 @@
             });
         });
 
-        // GRAPHIQUE TOP 10 ARTICLES
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const topArticlesTotal = {{ topArticlesTotal|default(0) }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
@@ -2510,7 +2579,6 @@
             });
         }
 
-        // GRAPHIQUE RÉPARTITION PAR CATÉGORIE
         const catLabelsAdmin    = {{ categoriesLabels|default([])|json_encode|raw }};
         const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvasCA = document.getElementById('chartCategoriesAdmin');

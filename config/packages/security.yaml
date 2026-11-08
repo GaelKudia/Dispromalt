@@ -1,20 +1,23 @@
 security:
 
     role_hierarchy:
-        ROLE_CAISSIER:       ROLE_USER
-        ROLE_CHEF_COMPTA:    [ROLE_USER, ROLE_COMPTA]
-        ROLE_COORDON:        ROLE_USER
-        ROLE_STOCK:          ROLE_USER
-        ROLE_COMPTA:         ROLE_USER
-        ROLE_GUERITE:        ROLE_USER
-        ROLE_ACCUEIL:        ROLE_USER
-        ROLE_RECEPTION:      ROLE_USER
-        ROLE_DG:             ROLE_USER
+        ROLE_CAISSIER:             ROLE_USER
+        ROLE_COMPTA:               ROLE_USER
+        ROLE_CHEF_COMPTA:          [ROLE_USER, ROLE_COMPTA]
+        ROLE_ADJOINT_CHEF_COMPTA:  [ROLE_USER, ROLE_COMPTA]   # ✅ NOUVEAU
+        ROLE_COORDON:              ROLE_USER
+        ROLE_STOCK:                ROLE_USER
+        ROLE_GUERITE:              ROLE_USER
+        ROLE_ACCUEIL:              ROLE_USER
+        ROLE_RECEPTION:            ROLE_USER
+        ROLE_DG:                   ROLE_USER
         ROLE_ADMIN:
             - ROLE_DG
             - ROLE_COORDON
             - ROLE_STOCK
             - ROLE_COMPTA
+            - ROLE_CHEF_COMPTA              # ✅ ajouté
+            - ROLE_ADJOINT_CHEF_COMPTA      # ✅ ajouté
             - ROLE_GUERITE
             - ROLE_ACCUEIL
             - ROLE_RECEPTION
@@ -31,7 +34,6 @@ security:
                 property: email
 
     firewalls:
-
         dev:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
@@ -54,14 +56,6 @@ security:
                         path: /
                         domain: null
 
-            # ✅ remember_me totalement retiré pour éviter le bug
-            # Si tu veux le remettre plus tard, ajoute :
-            # remember_me:
-            #     secret: '%kernel.secret%'
-            #     lifetime: 604800
-            #     path: /
-            #     always_remember_me: false    # ← JAMAIS "true"
-
     access_control:
 
         - { path: ^/dashboard/rapport/, roles: [ROLE_STOCK, ROLE_COMPTA] }
@@ -73,12 +67,13 @@ security:
                 ROLE_COORDON,
                 ROLE_STOCK,
                 ROLE_COMPTA,
+                ROLE_CHEF_COMPTA,
+                ROLE_ADJOINT_CHEF_COMPTA,    # ✅ ajouté
                 ROLE_GUERITE,
                 ROLE_ACCUEIL,
                 ROLE_RECEPTION,
                 ROLE_DG,
                 ROLE_CAISSIER,
-                ROLE_CHEF_COMPTA,
                 ROLE_USER
             ]
           }

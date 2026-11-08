@@ -2,14 +2,14 @@
 
 namespace App\Form;
 
-use App\Entity\User;
 use App\Entity\Service;
-use Symfony\Component\Form\AbstractType;
+use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -17,55 +17,56 @@ class UserType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $isEdit = $options['is_edit'];
+
         $builder
             ->add('email', EmailType::class, [
-                'attr' => ['class' => 'form-control', 'placeholder' => 'Adresse email']
+                'label' => 'Adresse Email'
             ])
             ->add('roles', ChoiceType::class, [
+                'label' => 'Rôle Assigné',
                 'choices' => [
-                    'Direction Générale (DG / Directeur)' => 'ROLE_DG',
-                    'Coordonnateur' => 'ROLE_COORDON',
-                    'Guérite / Sécurité' => 'ROLE_GUERITE',
-                    'Comptabilité' => 'ROLE_COMPTA',
-                    'Gérant de Stock' => 'ROLE_STOCK',
-                    'Utilisateur Standard' => 'ROLE_USER',
-                    'Accueil'                          => 'ROLE_ACCUEIL',
-                    'Administrateur' => 'ROLE_ADMIN',
+                    'Opérationnel'             => 'ROLE_USER',
+                    'Magasinier'               => 'ROLE_STOCK',
+                    'Coordonnateur'            => 'ROLE_COORDON',
+                    'Comptabilité'             => 'ROLE_COMPTA',
+                    'Chef Comptable'           => 'ROLE_CHEF_COMPTA',           // ✅ ajouté
+                    'Adjoint Chef Comptable'   => 'ROLE_ADJOINT_CHEF_COMPTA',   // ✅ ajouté
+                    'Réception'                => 'ROLE_RECEPTION',
+                    'Agent Guérite'            => 'ROLE_GUERITE',
+                    'Caissier'                 => 'ROLE_CAISSIER',
+                    'Directeur Général'        => 'ROLE_DG',
+                    'Administrateur'           => 'ROLE_ADMIN',
                 ],
-                'multiple' => true,
+                'multiple' => false,
                 'expanded' => false,
-                'label' => 'Attribuer un rôle / Service',
-                'attr' => ['class' => 'form-control']
+                'mapped'   => false,
             ])
-    ->add('password', PasswordType::class, [
-    'label' => 'Mot de passe provisoire',
-    'required' => true,
-    'mapped' => true,
-    'attr' => [
-        'class' => 'form-control',
-        'placeholder' => 'Saisissez le mot de passe à communiquer',
-    ],
-])
             ->add('service', EntityType::class, [
-                'class' => Service::class,
+                'class'        => Service::class,
                 'choice_label' => 'nom',
-                'label' => 'Service d\'appartenance',
-                'placeholder' => 'Sélectionner un service',
-                'required' => false,
-                'attr' => ['class' => 'form-select']
-            ])
-            ->add('isChefService', CheckboxType::class, [
-                'label' => 'Cet utilisateur est-il Chef de Service ?',
-                'required' => false,
+                'placeholder'  => '-- Aucun service --',
+                'required'     => false,
             ])
             ->add('localisation', ChoiceType::class, [
-                'choices'  => [
-                    'Agent de la Direction (Par défaut)' => null,
-                    'Site Sedwe' => 'sedwe',
-                    'Site Bonagère' => 'bonagere',
+                'label'       => 'Localisation géographique',
+                'choices'     => [
+                    'Direction (Siège)' => 'direction',
+                    'Sedwe'             => 'sedwe',
+                    'Bonagère'          => 'bonagere',
                 ],
+                'required'    => false,
+                'placeholder' => 'Direction (par défaut)',
+                'mapped'      => true,
+            ])
+            ->add('isChefService', CheckboxType::class, [
+                'label'    => 'Nommer comme Chef de service',
                 'required' => false,
-                'attr' => ['class' => 'form-select']
+            ])
+            ->add('password', PasswordType::class, [
+                'label'    => 'Changer le mot de passe',
+                'required' => !$isEdit,
+                'mapped'   => false,
             ]);
     }
 
@@ -73,7 +74,7 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
-            'is_edit' => false, // 👈 Déclaration de l'option pour éviter l'erreur
+            'is_edit'    => false,
         ]);
     }
 }

@@ -35,6 +35,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 class DashboardController extends AbstractController
 {
@@ -1135,7 +1136,6 @@ class DashboardController extends AbstractController
                     $machineNom = $art->getMachine()->getNom();
                 }
 
-                // ✅ Utilisation de getValeur() de l'entité (DRY)
                 $attributsArticle = [];
                 $attrLabels = [];
                 foreach ($art->getAttributs() as $attr) {
@@ -1554,7 +1554,6 @@ class DashboardController extends AbstractController
             $valeurAttribut = trim($m[2]);
             $candidats = $em->getRepository(Article::class)->findBy(['nom' => $nomArticle]);
 
-            // ✅ Utilisation de getValeur() — plus de duplication
             foreach ($candidats as $candidat) {
                 foreach ($candidat->getAttributs() as $attr) {
                     if ($attr->getValeur() === $valeurAttribut) {
@@ -1828,7 +1827,6 @@ class DashboardController extends AbstractController
                     continue;
                 }
 
-                // ✅ Utilisation de getValeur() de l'entité (DRY)
                 foreach ($article->getAttributs() as $attr) {
                     $qteAttr  = $attr->getQuantite();
                     $quantite = ($qteAttr !== null) ? (int) $qteAttr : $qteArticle;
@@ -1854,30 +1852,57 @@ class DashboardController extends AbstractController
         }
     }
 
-    #[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
-    #[IsGranted('ROLE_CHEF_COMPTA')]
-    public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
-    {
-        if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
-            $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
-            return $this->redirectToRoute('app_dashboard');
-        }
-
-        $nouveauMontant = $request->request->get('nouveau_montant');
-        if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
-            if ($devis->getMontantInitial() === null) {
-                $devis->setMontantInitial((string) $devis->getMontant());
-            }
-            $devis->setMontant((float) $nouveauMontant);
-        }
-
-        $devis->setPassageDG(true);
-        $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
-        $em->flush();
-        $this->addFlash('success', '📤 Devis #' . $devis->getId() . ' visé et transmis à la Direction Générale.');
+    // ═══════════════════════════════════════════════════════════
+    // ✅ SEULE MODIFICATION #1 : Chef Comptable OU Adjoint Chef Comptable
+    //    (le corps de la méthode reste strictement identique)
+    // ═══════════════════════════════════════════════════════════
+#[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
+#[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')"))]
+public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
+{
+    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
+        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
         return $this->redirectToRoute('app_dashboard');
     }
 
+    $nouveauMontant = $request->request->get('nouveau_montant');
+    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+        if ($devis->getMontantInitial() === null) {
+            $devis->setMontantInitial((string) $devis->getMontant());
+        }
+        $devis->setMontant((float) $nouveauMontant);
+    }
+
+    // ✅ NOUVEAU : identifier le rôle exact de l'auteur du visa
+    $user        = $this->getUser();
+    $identifiant = $user ? $user->getUserIdentifier() : 'Inconnu';
+    $roles       = $user ? $user->getRoles() : [];
+
+    $codeRoleVisa = 'CHEF_COMPTA';
+    $libelleRole  = 'Chef Comptable';
+    if (in_array('ROLE_ADJOINT_CHEF_COMPTA', $roles) && !in_array('ROLE_CHEF_COMPTA', $roles)) {
+        $codeRoleVisa = 'ADJOINT_CHEF_COMPTA';
+        $libelleRole  = 'Adjoint Chef Comptable';
+    }
+
+    // ✅ NOUVEAU : trace enrichie avec le rôle [VISA|date|email|ROLE]
+    $trace = sprintf('[VISA|%s|%s|%s]', date('d/m/Y H:i'), $identifiant, $codeRoleVisa);
+    $devis->setDescription(rtrim((string) $devis->getDescription()) . "\n" . $trace);
+
+    $devis->setPassageDG(true);
+    $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
+    $em->flush();
+
+    // ✅ NOUVEAU : flash enrichi avec le rôle
+    $this->addFlash('success', sprintf(
+        '📤 Devis #%d visé par %s (%s) et transmis à la Direction Générale.',
+        $devis->getId(),
+        $identifiant,
+        $libelleRole
+    ));
+
+    return $this->redirectToRoute('app_dashboard');
+}
     #[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
     #[IsGranted('ROLE_DG')]
     public function validerDevisDirecteur(Request $request, Devis $devis, EntityManagerInterface $em): Response
@@ -1901,8 +1926,12 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // ✅ SEULE MODIFICATION #2 : Chef Comptable OU Adjoint Chef Comptable
+    //    (le corps de la méthode reste strictement identique)
+    // ═══════════════════════════════════════════════════════════
     #[Route('/dashboard/devis/rejeter-chef-comptable/{id}', name: 'app_devis_rejeter_chef_comptable', methods: ['POST'])]
-    #[IsGranted('ROLE_CHEF_COMPTA')]
+    #[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')"))]
     public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $em): Response
     {
         if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {

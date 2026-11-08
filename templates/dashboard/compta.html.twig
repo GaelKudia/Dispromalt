@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         :root {
-            /* Neutres profonds */
             --ink-950: #0a0f1c;
             --ink-900: #0f172a;
             --ink-800: #1e293b;
@@ -24,7 +23,6 @@
             --ink-100: #f1f5f9;
             --ink-50:  #f8fafc;
 
-            /* Indigo raffiné */
             --primary: #4f46e5;
             --primary-dark: #4338ca;
             --primary-darker: #3730a3;
@@ -32,7 +30,6 @@
             --primary-soft: rgba(79, 70, 229, 0.10);
             --primary-softer: rgba(79, 70, 229, 0.05);
 
-            /* Sémantiques */
             --success: #059669;
             --success-soft: rgba(5, 150, 105, 0.10);
 
@@ -85,9 +82,6 @@
             margin: 0 auto;
         }
 
-        /* ═══════════════════════════════════════════════════════
-           NAVBAR — dégradé profond, glass, accents
-        ═══════════════════════════════════════════════════════ */
         .navbar-pro {
             background: linear-gradient(135deg, #0a0f1c 0%, #141b32 45%, #1e1b4b 100%);
             padding: 0.9rem 0;
@@ -219,12 +213,7 @@
             box-shadow: 0 6px 16px -4px rgba(220, 38, 38, 0.5);
         }
 
-        /* ═══════════════════════════════════════════════════════
-           PAGE HEADER
-        ═══════════════════════════════════════════════════════ */
-        .page-header {
-            padding: 2.25rem 0 1.75rem;
-        }
+        .page-header { padding: 2.25rem 0 1.75rem; }
         .page-header h1 {
             font-size: clamp(1.6rem, 2.4vw, 2.1rem);
             font-weight: 800;
@@ -258,10 +247,8 @@
             margin-bottom: 0.85rem;
             border: 1px solid rgba(99, 102, 241, 0.20);
         }
+        .page-header-badge i { color: var(--primary); }
 
-        /* ═══════════════════════════════════════════════════════
-           STAT TILES — icônes en pastille + accent coloré
-        ═══════════════════════════════════════════════════════ */
         .stat-tile {
             background: #fff;
             border: 1px solid var(--ink-200);
@@ -334,9 +321,6 @@
             font-weight: 500;
         }
 
-        /* ═══════════════════════════════════════════════════════
-           ALERT BANNER
-        ═══════════════════════════════════════════════════════ */
         .alert-banner {
             background: #fff;
             border: 1px solid var(--ink-200);
@@ -380,9 +364,6 @@
             box-shadow: 0 4px 12px -4px rgba(220, 38, 38, 0.5);
         }
 
-        /* ═══════════════════════════════════════════════════════
-           CARD PRO
-        ═══════════════════════════════════════════════════════ */
         .card-pro {
             background: #fff;
             border: 1px solid var(--ink-200);
@@ -393,9 +374,6 @@
         }
         .card-pro-body { padding: 1.6rem clamp(1rem, 2vw, 2rem); }
 
-        /* ═══════════════════════════════════════════════════════
-           TABS — style pill raffiné
-        ═══════════════════════════════════════════════════════ */
         .tabs-pro {
             border-bottom: 1px solid var(--ink-100);
             padding: 0.75rem 1rem 0;
@@ -432,16 +410,9 @@
             box-shadow: 0 6px 16px -6px rgba(79, 70, 229, 0.5);
         }
         .tabs-pro .nav-link.active::after { display: none; }
-        .tabs-pro .nav-link i {
-            font-size: 0.9rem;
-        }
-        .tabs-pro .nav-link.active i {
-            color: #fff;
-        }
+        .tabs-pro .nav-link i { font-size: 0.9rem; }
+        .tabs-pro .nav-link.active i { color: #fff; }
 
-        /* ═══════════════════════════════════════════════════════
-           TABLE PRO
-        ═══════════════════════════════════════════════════════ */
         .table-pro { margin: 0; font-size: 0.87rem; }
         .table-pro thead th {
             background: var(--ink-50);
@@ -461,18 +432,13 @@
             border-color: var(--ink-100);
             color: var(--ink-700);
         }
-        .table-pro tbody tr {
-            transition: background 0.15s ease;
-        }
+        .table-pro tbody tr { transition: background 0.15s ease; }
         .table-pro tbody tr:hover {
             background: linear-gradient(90deg, var(--primary-softer), transparent);
         }
         .table-pro .cell-strong { font-weight: 600; color: var(--ink-900); }
         .table-pro .cell-muted { color: var(--ink-400); font-size: 0.8rem; }
 
-        /* ═══════════════════════════════════════════════════════
-           TAGS
-        ═══════════════════════════════════════════════════════ */
         .tag {
             display: inline-flex;
             align-items: center;
@@ -494,9 +460,6 @@
         .tag-accent  { background: var(--primary-soft); color: var(--primary-dark); }
         .tag-neutral { background: var(--ink-100); color: var(--ink-500); }
 
-        /* ═══════════════════════════════════════════════════════
-           BOUTONS PRO
-        ═══════════════════════════════════════════════════════ */
         .btn-pro {
             font-weight: 600;
             font-size: 0.82rem;
@@ -559,9 +522,6 @@
         }
         .btn-pro-sm { padding: 0.45rem 0.9rem; font-size: 0.78rem; border-radius: 8px; }
 
-        /* ═══════════════════════════════════════════════════════
-           MENU DÉCISION
-        ═══════════════════════════════════════════════════════ */
         .decision-dropdown { position: relative; display: inline-block; }
         .decision-btn {
             display: inline-flex;
@@ -646,14 +606,9 @@
 
         .decision-sep { height: 1px; background: var(--ink-100); margin: 0.35rem 0.5rem; }
 
-        .decision-item.is-danger:hover {
-            background: var(--danger-soft);
-        }
+        .decision-item.is-danger:hover { background: var(--danger-soft); }
         .decision-item.is-danger:hover strong { color: var(--danger); }
 
-        /* ═══════════════════════════════════════════════════════
-           MODAL REJET
-        ═══════════════════════════════════════════════════════ */
         .modal-pro .modal-content {
             border: none;
             border-radius: 22px;
@@ -718,9 +673,6 @@
             box-shadow: 0 0 0 4px var(--danger-soft);
         }
 
-        /* ═══════════════════════════════════════════════════════
-           FORMS
-        ═══════════════════════════════════════════════════════ */
         .form-pro {
             border: 1.5px solid var(--ink-200);
             border-radius: 10px;
@@ -738,9 +690,6 @@
         }
         .form-select.form-pro { padding-right: 2.25rem; }
 
-        /* ═══════════════════════════════════════════════════════
-           TOTAL PANEL — dégradé sombre + accent
-        ═══════════════════════════════════════════════════════ */
         .total-panel {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border-radius: var(--radius);
@@ -780,13 +729,8 @@
             font-weight: 500;
             margin-left: 0.35rem;
         }
-        .total-panel.alt::before {
-            background: linear-gradient(180deg, #10b981, #34d399);
-        }
+        .total-panel.alt::before { background: linear-gradient(180deg, #10b981, #34d399); }
 
-        /* ═══════════════════════════════════════════════════════
-           EMPTY STATE
-        ═══════════════════════════════════════════════════════ */
         .empty-pro {
             text-align: center;
             padding: 3.5rem 1rem;
@@ -801,9 +745,6 @@
         .empty-pro .title { font-weight: 600; color: var(--ink-500); font-size: 0.95rem; }
         .empty-pro .sub { font-size: 0.83rem; color: var(--ink-400); margin-top: 4px; }
 
-        /* ═══════════════════════════════════════════════════════
-           SECTION HEADING
-        ═══════════════════════════════════════════════════════ */
         .section-heading {
             display: flex;
             justify-content: space-between;
@@ -841,12 +782,6 @@
             margin-left: 44px;
         }
 
-        /* Décor du badge chef */
-        .page-header-badge i { color: var(--primary); }
-
-        /* ═══════════════════════════════════════════════════════
-           RESPONSIVE
-        ═══════════════════════════════════════════════════════ */
         @media (max-width: 1200px) {
             .card-pro-body { padding: 1.35rem 1.25rem; }
         }
@@ -1415,7 +1350,11 @@
                                             {% if devis.entete is defined and devis.entete %}
                                                 <div class="cell-strong">{{ devis.entete }}</div>
                                             {% endif %}
-                                            <span class="cell-muted">{{ devis.description|nl2br }}</span>
+                                            {# ✅ Nettoie les traces [VISA|...] et [REJET|...] de la description affichée #}
+                                            {% set descAffichee = devis.description %}
+                                            {% if '[VISA|' in descAffichee %}{% set descAffichee = descAffichee|split('[VISA|')[0] %}{% endif %}
+                                            {% if '[REJET|' in descAffichee %}{% set descAffichee = descAffichee|split('[REJET|')[0] %}{% endif %}
+                                            <span class="cell-muted">{{ descAffichee|trim|nl2br }}</span>
                                         </td>
                                         <td class="cell-strong">
                                             {% if devis.devise == 'CDF' %}
@@ -1428,18 +1367,65 @@
                                         <td>
                                             {% if devis.statut == 'ATTENTE_COMPTA' %}
                                                 <span class="tag tag-accent"><i class="fas fa-hand-pointer"></i>À aiguiller</span>
+
                                             {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' %}
                                                 <span class="tag tag-neutral"><i class="fas fa-user-shield"></i>Chef compta</span>
+
                                             {% elseif devis.statut == 'ATTENTE_DIR' %}
+                                                {# ✅ Extraction du visa enrichi [VISA|date|email|ROLE] #}
+                                                {% set viseur = null %}
+                                                {% set dateVisa = null %}
+                                                {% set codeRoleVisa = 'CHEF_COMPTA' %}
+                                                {% if '[VISA|' in devis.description %}
+                                                    {% set vparts = devis.description|split('[VISA|') %}
+                                                    {% if vparts|length >= 2 %}
+                                                        {% set vdetails = vparts[1]|split(']')|first|split('|') %}
+                                                        {% if vdetails|length >= 1 %}{% set dateVisa = vdetails[0] %}{% endif %}
+                                                        {% if vdetails|length >= 2 %}{% set viseur = vdetails[1] %}{% endif %}
+                                                        {% if vdetails|length >= 3 and vdetails[2] is not empty %}{% set codeRoleVisa = vdetails[2] %}{% endif %}
+                                                    {% endif %}
+                                                {% endif %}
+
                                                 <span class="tag tag-accent"><i class="fas fa-gavel"></i>Direction</span>
+
+                                                {% if viseur %}
+                                                    <div class="cell-muted mt-1" style="font-size:0.7rem;">
+                                                        <i class="fas fa-user-check me-1 text-success"></i>Visé par
+                                                        <strong style="color:var(--ink-700);">{{ viseur|split('@')|first }}</strong>
+                                                    </div>
+
+                                                    {# ✅ Badge de rôle bien visible #}
+                                                    <div class="mt-1">
+                                                        {% if codeRoleVisa == 'ADJOINT_CHEF_COMPTA' %}
+                                                            <span class="tag" style="background: rgba(139, 92, 246, 0.14); color: #7c3aed; font-size:0.68rem; padding:0.28rem 0.6rem; font-weight:700;">
+                                                                <i class="fas fa-user-tie me-1"></i>Adjoint Chef Comptable
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="tag" style="background: rgba(217, 119, 6, 0.14); color: #b45309; font-size:0.68rem; padding:0.28rem 0.6rem; font-weight:700;">
+                                                                <i class="fas fa-user-shield me-1"></i>Chef Comptable
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    {% if dateVisa %}
+                                                        <div class="cell-muted mt-1" style="font-size:0.7rem;">
+                                                            <i class="far fa-clock me-1"></i>{{ dateVisa }}
+                                                        </div>
+                                                    {% endif %}
+                                                {% endif %}
+
                                             {% elseif devis.statut == 'ATTENTE_DECAISSEMENT' %}
                                                 <span class="tag tag-neutral"><i class="fas fa-hand-holding-usd"></i>À décaisser</span>
+
                                             {% elseif devis.statut == 'ATTENTE_CAISSE' %}
                                                 <span class="tag tag-accent"><i class="fas fa-money-check-alt"></i>Caisse</span>
+
                                             {% elseif devis.statut == 'DECAISSE' %}
                                                 <span class="tag tag-success"><i class="fas fa-check-double"></i>Décaissé</span>
+
                                             {% elseif devis.statut == 'REJETE' %}
                                                 <span class="tag tag-danger"><i class="fas fa-ban"></i>Rejeté</span>
+
                                             {% else %}
                                                 <span class="tag tag-neutral">{{ devis.statut }}</span>
                                             {% endif %}
@@ -1500,7 +1486,8 @@
                                                     </div>
                                                 </div>
 
-                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and is_granted('ROLE_CHEF_COMPTA') %}
+                                            {# ✅ Chef Comptable OU Adjoint Chef Comptable #}
+                                            {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and (is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')) %}
                                                 <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" class="d-inline"
                                                       onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');">
                                                     <button type="submit" class="btn-pro btn-pro-primary btn-pro-sm">
@@ -1924,7 +1911,7 @@
         document.getElementById('rejetRecapMontant').textContent = montant + ' ' + devise;
         document.getElementById('rejetRecapDesc').textContent = description || '—';
         document.getElementById('formRejetDevis').action = '/dashboard/compta/devis/aiguiller/' + devisId;
-        document.getElementById('motifRejet').value = '';
+        document.getElementById('rejetMotif') || (document.getElementById('motifRejet').value = '');
         const modal = new bootstrap.Modal(document.getElementById('modalRejetDevis'));
         modal.show();
         document.getElementById('modalRejetDevis').addEventListener('shown.bs.modal', function() {
