@@ -38,7 +38,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
-
     #[Route('/', name: 'app_home')]
     public function home(): Response
     {
@@ -66,14 +65,10 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        // ============================================================
-        // ✅ REDIRECTION ADMIN EN PREMIER (Corrige le bug du dashboard caissier)
-        // ============================================================
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        // Définition du label du rôle
         $roleLabel = 'Utilisateur';
         if ($this->isGranted('ROLE_STOCK')) {
             $roleLabel = 'Magasinier / Gestionnaire de stock';
@@ -91,32 +86,26 @@ class DashboardController extends AbstractController
             $roleLabel = 'Caissier';
         }
 
-        // 🚫 DÉTECTION DU SITE DISTANT (Sedwe / Bonagère)
         $userLocalisation = method_exists($currentUser, 'getLocalisation') ? $currentUser->getLocalisation() : null;
         $estSiteDistant = in_array(strtolower((string) $userLocalisation), ['sedwe', 'bonagere'], true);
 
-        // 🛡️ Sécurité : bloquer toute tentative POST de visite depuis un site distant
         if ($estSiteDistant && $request->isMethod('POST') && $request->request->has('visite')) {
             $this->addFlash('danger', '🚫 La réservation de visite n\'est pas autorisée depuis votre site distant.');
             return $this->redirectToRoute('app_dashboard');
         }
 
-        // STATS
         $stats = [
             'demandes_attente' => count($demandeRepository->findBy(['statut' => 'En attente'])),
             'bons_a_valider'   => count($bonSortieRepository->findBy(['statut' => 'Créé'])),
             'bons_guerite'     => count($bonSortieRepository->findBy(['statut' => 'Validé Coordon']))
         ];
 
-        // 🚨 ALERTES STOCK
         $articlesEnAlerte = $em->getRepository(Article::class)->findArticlesEnAlerte();
         $nbAlertesStock = count($articlesEnAlerte);
 
-        // FILTRES DATES
         $dateDebutFiltre = $request->query->get('date_debut', (new \DateTime('today'))->format('Y-m-d'));
         $dateFinFiltre = $request->query->get('date_fin', (new \DateTime('today'))->format('Y-m-d'));
 
-        // DEVIS (global, utilisé par plusieurs rôles)
         $qbDevis = $em->getRepository(Devis::class)->createQueryBuilder('d')
             ->where('d.createdAt BETWEEN :start AND :end')
             ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
@@ -136,11 +125,7 @@ class DashboardController extends AbstractController
             }
         }
 
-        // ============================================================
-        // REDIRECTION CAISSIER
-        // ============================================================
         if ($this->isGranted('ROLE_CAISSIER')) {
-            /** @var User $currentUser */
             $currentUser = $this->getUser();
 
             $devisCaisse = $em->getRepository(Devis::class)->createQueryBuilder('d')
@@ -180,15 +165,9 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // ============================================================
-        // DÉTERMINER LE DÉPARTEMENT DE L'UTILISATEUR
-        // ============================================================
         $userService = method_exists($currentUser, 'getService') ? $currentUser->getService() : null;
         $userDept    = $userService ? $userService->getNom() : '';
 
-        // ============================================================
-        // INITIALISATION DES VARIABLES
-        // ============================================================
         $demandes = [];
         $bonsSortie = [];
         $visites = [];
@@ -220,12 +199,7 @@ class DashboardController extends AbstractController
         $filtreDateFin   = $request->query->get('filtre_date_fin');
         $filtreStatut    = $request->query->get('filtre_statut');
 
-        $rolesAutorisesPourDeleguer = [
-            'ROLE_CAISSIER',
-            'ROLE_ACCUEIL',
-            'ROLE_RECEPTION',
-        ];
-
+        $rolesAutorisesPourDeleguer = ['ROLE_CAISSIER', 'ROLE_ACCUEIL', 'ROLE_RECEPTION'];
         $peutDeleguer = false;
         foreach ($rolesAutorisesPourDeleguer as $role) {
             if ($this->isGranted($role)) {
@@ -235,12 +209,9 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // TRAITEMENT DES FORMULAIRES
-        // ============================================================
-
         // 1. FORMULAIRE DE VISITE
+        // ============================================================
         if (!$estSiteDistant) {
-
             if ($this->isGranted('ROLE_GUERITE')) {
                 $visiteGuerite = new Visite();
                 $formVisiteGuerite = $this->createForm(VisiteType::class, $visiteGuerite, [
@@ -257,7 +228,6 @@ class DashboardController extends AbstractController
                     return $this->redirectToRoute('app_dashboard');
                 }
                 $formVisiteGueriteView = $formVisiteGuerite->createView();
-
             } elseif ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
                 $visite = new Visite();
                 $formVisite = $this->createForm(VisiteType::class, $visite, [
@@ -274,7 +244,6 @@ class DashboardController extends AbstractController
                     return $this->redirectToRoute('app_dashboard');
                 }
                 $formVisiteView = $formVisite->createView();
-
             } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_ADMIN')) {
                 $visite = new Visite();
                 $formVisite = $this->createForm(VisiteType::class, $visite, [
@@ -291,7 +260,6 @@ class DashboardController extends AbstractController
                 }
                 $formVisiteView = $formVisite->createView();
             }
-
         }
 
         // ============================================================
@@ -378,7 +346,6 @@ class DashboardController extends AbstractController
                         . ($article->getMachine() ? ' [' . $article->getMachine()->getNom() . ']' : '')
                         . ' — Stock incrémenté de ' . $quantiteAjoutee
                         . ' (total : ' . $articleExistant->getQuantite() . ')');
-
                 } else {
                     $em->persist($article);
                     $em->flush();
@@ -420,7 +387,6 @@ class DashboardController extends AbstractController
             $formBon->handleRequest($request);
 
             if ($formBon->isSubmitted() && $formBon->isValid()) {
-
                 $nomSaisi = trim((string) $bonSortie->getNomEmploye());
                 if ($nomSaisi === '') {
                     $bonSortie->setNomEmploye($currentUser->getUserIdentifier());
@@ -441,24 +407,18 @@ class DashboardController extends AbstractController
 
                     if ($chefService && method_exists($chefService, 'isChefService') && $chefService->isChefService()) {
                         $bonSortie->setStatut('ATTENTE_CHEF_SERVICE');
-
                         if (method_exists($bonSortie, 'setRaison')) {
                             $raison = $bonSortie->getRaison() ?: '';
-                            $bonSortie->setRaison(
-                                trim($raison . ' | Délégué à : ' . $chefService->getUserIdentifier())
-                            );
+                            $bonSortie->setRaison(trim($raison . ' | Délégué à : ' . $chefService->getUserIdentifier()));
                         }
-
                         $this->addFlash('success', '🚀 Bon transmis au chef de service : ' . $chefService->getUserIdentifier());
                     } else {
                         $bonSortie->setStatut('Créé');
                         $this->addFlash('warning', '⚠️ Chef de service introuvable — bon transmis au coordonnateur par défaut.');
                     }
-
                 } elseif ($destination === 'caisse') {
                     $bonSortie->setStatut('ATTENTE_CAISSE');
                     $this->addFlash('success', '🚀 Bon transmis à la Caisse.');
-
                 } else {
                     $bonSortie->setStatut('Créé');
                     $this->addFlash('success', '🚀 Le bon de sortie a été transmis au coordonnateur.');
@@ -472,12 +432,13 @@ class DashboardController extends AbstractController
         }
 
         // ============================================================
-        // 4. FORMULAIRE DEMANDE
+        // 4. FORMULAIRE DEMANDE (MEMBRE)
         // ============================================================
         if (!$this->isGranted('ROLE_COORDON') && !$this->isGranted('ROLE_STOCK') && !$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_GUERITE') && !$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_CAISSIER') && !$this->isGranted('ROLE_ADMIN')) {
             $demande = new Demande();
             $formDemande = $this->createForm(DemandeType::class, $demande);
             $formDemande->handleRequest($request);
+
             if ($formDemande->isSubmitted() && $formDemande->isValid()) {
                 $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                 $attribut = $formDemande->get('attribut')->getData();
@@ -497,24 +458,29 @@ class DashboardController extends AbstractController
                 }
 
                 if ($attribut && method_exists($attribut, 'getQuantite')) {
-                    if ($attribut->getQuantite() < $quantiteDemandee) {
-                        $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
+                    $stockAttribut = $attribut->getQuantite() ?? ($article ? ($article->getQuantite() ?? 0) : 0);
+                    $stockArticle  = $article ? ($article->getQuantite() ?? 0) : 0;
+                    $stockDispo    = max($stockAttribut, $stockArticle);
+
+                    if ($stockDispo < $quantiteDemandee) {
+                        $this->addFlash('danger', 'Stock insuffisant pour cette variante (' . $stockDispo . ' disponible, ' . $quantiteDemandee . ' demandé).');
                         return $this->redirectToRoute('app_dashboard');
                     }
-                    $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+
+                    $attribut->setQuantite(max(0, $stockAttribut - $quantiteDemandee));
 
                     if ($article) {
-                        $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
+                        $article->setQuantite(max(0, $stockArticle - $quantiteDemandee));
                     }
 
                     $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
                 } else {
                     if ($article) {
-                        if ($article->getQuantite() < $quantiteDemandee) {
+                        if (($article->getQuantite() ?? 0) < $quantiteDemandee) {
                             $this->addFlash('danger', 'Stock insuffisant pour cet article.');
                             return $this->redirectToRoute('app_dashboard');
                         }
-                        $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                        $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
                     }
                     $demande->setMateriel($nomMaterielSaisi);
                 }
@@ -544,7 +510,6 @@ class DashboardController extends AbstractController
         // ============================================================
         if ($currentUser->isChefService() && !$this->isGranted('ROLE_ADMIN')) {
             $serviceChef = $currentUser->getService();
-
             $userDept = $serviceChef ? $serviceChef->getNom() : '';
 
             $demandes = $demandeRepository->createQueryBuilder('d')
@@ -557,11 +522,7 @@ class DashboardController extends AbstractController
                 ->getResult();
 
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
-
-            $bonsChefService = $bonSortieRepository->findBy(
-                ['statut' => 'ATTENTE_CHEF_SERVICE'],
-                ['id' => 'DESC']
-            );
+            $bonsChefService = $bonSortieRepository->findBy(['statut' => 'ATTENTE_CHEF_SERVICE'], ['id' => 'DESC']);
 
             $devisServiceListe = [];
             $totalDevisUSD = 0;
@@ -606,6 +567,7 @@ class DashboardController extends AbstractController
                 $demande = new Demande();
                 $formDemande = $this->createForm(DemandeType::class, $demande);
                 $formDemande->handleRequest($request);
+
                 if ($formDemande->isSubmitted() && $formDemande->isValid()) {
                     $nomMaterielSaisi = $formDemande->get('materiel')->getData();
                     $attribut = $formDemande->get('attribut')->getData();
@@ -625,22 +587,27 @@ class DashboardController extends AbstractController
                     }
 
                     if ($attribut && method_exists($attribut, 'getQuantite')) {
-                        if ($attribut->getQuantite() < $quantiteDemandee) {
-                            $this->addFlash('danger', 'Stock insuffisant pour cette variante.');
+                        $stockAttribut = $attribut->getQuantite() ?? ($article ? ($article->getQuantite() ?? 0) : 0);
+                        $stockArticle  = $article ? ($article->getQuantite() ?? 0) : 0;
+                        $stockDispo    = max($stockAttribut, $stockArticle);
+
+                        if ($stockDispo < $quantiteDemandee) {
+                            $this->addFlash('danger', 'Stock insuffisant pour cette variante (' . $stockDispo . ' disponible, ' . $quantiteDemandee . ' demandé).');
                             return $this->redirectToRoute('app_dashboard');
                         }
-                        $attribut->setQuantite($attribut->getQuantite() - $quantiteDemandee);
+
+                        $attribut->setQuantite(max(0, $stockAttribut - $quantiteDemandee));
                         if ($article) {
-                            $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
+                            $article->setQuantite(max(0, $stockArticle - $quantiteDemandee));
                         }
                         $demande->setMateriel($nomMaterielSaisi . ' (' . $attribut->getValeur() . ')');
                     } else {
                         if ($article) {
-                            if ($article->getQuantite() < $quantiteDemandee) {
+                            if (($article->getQuantite() ?? 0) < $quantiteDemandee) {
                                 $this->addFlash('danger', 'Stock insuffisant pour cet article.');
                                 return $this->redirectToRoute('app_dashboard');
                             }
-                            $article->setQuantite($article->getQuantite() - $quantiteDemandee);
+                            $article->setQuantite(max(0, ($article->getQuantite() ?? 0) - $quantiteDemandee));
                         }
                         $demande->setMateriel($nomMaterielSaisi);
                     }
@@ -666,31 +633,29 @@ class DashboardController extends AbstractController
             }
 
             return $this->render('dashboard/membre.html.twig', [
-                'demandes'       => $demandes,
-                'bonsSortie'     => $bonsSortie,
-                'rapportGlobal'  => $rapportGlobal,
-                'articles'       => $articles,
-                'devisListe'     => $devisServiceListe,
-                'totalDevisUSD'  => $totalDevisUSD,
-                'totalDevisCDF'  => $totalDevisCDF,
-                'userRole'       => $roleLabel,
-                'stats'          => $stats,
-                'formDemande'    => $formDemandeView,
-                'formBon'        => $formBonView,
-                'formVisite'     => $formVisiteView,
-                'date_debut'     => $dateDebutFiltre,
-                'date_fin'       => $dateFinFiltre,
+                'demandes'        => $demandes,
+                'bonsSortie'      => $bonsSortie,
+                'rapportGlobal'   => $rapportGlobal,
+                'articles'        => $articles,
+                'devisListe'      => $devisServiceListe,
+                'totalDevisUSD'   => $totalDevisUSD,
+                'totalDevisCDF'   => $totalDevisCDF,
+                'userRole'        => $roleLabel,
+                'stats'           => $stats,
+                'formDemande'     => $formDemandeView,
+                'formBon'         => $formBonView,
+                'formVisite'      => $formVisiteView,
+                'date_debut'      => $dateDebutFiltre,
+                'date_fin'        => $dateFinFiltre,
                 'bonsChefService' => $bonsChefService,
-                'isChefService'  => true,
-                'estSiteDistant' => $estSiteDistant,
+                'isChefService'   => true,
+                'estSiteDistant'  => $estSiteDistant,
             ]);
         }
 
         // ============================================================
-        // INTERROGATION BASE DE DONNÉES (RÔLES RESTANTS)
+        // GUERITE
         // ============================================================
-
-        // --- POUR LA GUERITE ---
         if ($this->isGranted('ROLE_GUERITE')) {
             $qbBon = $bonSortieRepository->createQueryBuilder('b');
             if ($filtreDateDebut && $filtreDateFin) {
@@ -703,8 +668,7 @@ class DashboardController extends AbstractController
                     ->setParameter('fin', $finAujourdhui);
             }
             if ($filtreStatut && $filtreStatut !== 'tous') {
-                $qbBon->andWhere('b.statut = :statut')
-                    ->setParameter('statut', $filtreStatut);
+                $qbBon->andWhere('b.statut = :statut')->setParameter('statut', $filtreStatut);
             }
             $bonsSortie = $qbBon->orderBy('b.dateCreation', 'DESC')->getQuery()->getResult();
 
@@ -719,42 +683,33 @@ class DashboardController extends AbstractController
                     ->setParameter('fin', $finAujourdhui);
             }
             if ($filtreStatut && $filtreStatut !== 'tous') {
-                $qbVisite->andWhere('v.statut = :statut')
-                    ->setParameter('statut', $filtreStatut);
+                $qbVisite->andWhere('v.statut = :statut')->setParameter('statut', $filtreStatut);
             }
             $visites = $qbVisite->orderBy('v.dateArrivee', 'DESC')->getQuery()->getResult();
             $rdvReserves = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
             $visitesTerminees = count($em->getRepository(Visite::class)->findBy(['statut' => 'TERMINE']));
 
             return $this->render('dashboard/guerite.html.twig', [
-                'bonsSortie' => $bonsSortie,
-                'visites' => $visites,
-                'rdvReserves' => $rdvReserves,
-                'visitesTerminees' => $visitesTerminees,
-                'userRole' => $roleLabel,
-                'stats' => $stats,
-                'formVisiteGuerite' => $formVisiteGueriteView,
-                'filtre_date_debut' => $filtreDateDebut,
-                'filtre_date_fin' => $filtreDateFin,
-                'filtre_statut' => $filtreStatut,
-                'filtre_type' => $filtreType,
-                'estSiteDistant' => $estSiteDistant,
+                'bonsSortie'         => $bonsSortie,
+                'visites'            => $visites,
+                'rdvReserves'        => $rdvReserves,
+                'visitesTerminees'   => $visitesTerminees,
+                'userRole'           => $roleLabel,
+                'stats'              => $stats,
+                'formVisiteGuerite'  => $formVisiteGueriteView,
+                'filtre_date_debut'  => $filtreDateDebut,
+                'filtre_date_fin'    => $filtreDateFin,
+                'filtre_statut'      => $filtreStatut,
+                'filtre_type'        => $filtreType,
+                'estSiteDistant'     => $estSiteDistant,
             ]);
         }
 
-        // ============================================================
-        // ✅ ACCUEIL / RECEPTION
-        // ============================================================
+        // ACCUEIL / RECEPTION
         if ($this->isGranted('ROLE_ACCUEIL') || $this->isGranted('ROLE_RECEPTION')) {
-
-            $visites = $em->getRepository(Visite::class)
-                ->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
-
-            $visitesAccueillies = $em->getRepository(Visite::class)
-                ->findBy(['statut' => 'VALIDE'], ['dateArrivee' => 'DESC']);
-
-            $rdvReserves = $em->getRepository(Visite::class)
-                ->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
+            $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
+            $visitesAccueillies = $em->getRepository(Visite::class)->findBy(['statut' => 'VALIDE'], ['dateArrivee' => 'DESC']);
+            $rdvReserves = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['dateArrivee' => 'DESC']);
 
             $dateHistorique = $request->query->get('date_historique', (new \DateTime('today'))->format('Y-m-d'));
 
@@ -763,16 +718,12 @@ class DashboardController extends AbstractController
                 ->setParameter('statuts', ['VALIDE', 'TERMINE']);
 
             if ($dateHistorique) {
-                $qbHistorique
-                    ->andWhere('v.dateArrivee BETWEEN :debut AND :fin')
+                $qbHistorique->andWhere('v.dateArrivee BETWEEN :debut AND :fin')
                     ->setParameter('debut', new \DateTime($dateHistorique . ' 00:00:00'))
                     ->setParameter('fin',   new \DateTime($dateHistorique . ' 23:59:59'));
             }
 
-            $historiqueVisites = $qbHistorique
-                ->orderBy('v.dateArrivee', 'DESC')
-                ->getQuery()
-                ->getResult();
+            $historiqueVisites = $qbHistorique->orderBy('v.dateArrivee', 'DESC')->getQuery()->getResult();
 
             return $this->render('dashboard/accueil.html.twig', [
                 'visites'            => $visites,
@@ -789,22 +740,14 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // ============================================================
         // CHARGEMENT DES DEMANDES SELON LE RÔLE
-        // ============================================================
         if ($this->isGranted('ROLE_STOCK')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.statut IN (:statuts)')
-                ->setParameter('statuts', [
-                    'En attente',
-                    'Validé Chef',
-                    'Validé Coordon',
-                    'Validé Compta',
-                ])
+                ->setParameter('statuts', ['En attente', 'Validé Chef', 'Validé Coordon', 'Validé Compta'])
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
-
         } elseif ($this->isGranted('ROLE_COORDON')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.createdAt BETWEEN :debut AND :fin')
@@ -813,7 +756,6 @@ class DashboardController extends AbstractController
                 ->orderBy('d.id', 'DESC')
                 ->getQuery()
                 ->getResult();
-
         } elseif (!$this->isGranted('ROLE_DG') && !$this->isGranted('ROLE_COMPTA')) {
             $demandes = $demandeRepository->createQueryBuilder('d')
                 ->where('d.departement = :dept')
@@ -829,18 +771,13 @@ class DashboardController extends AbstractController
         if ($this->isGranted('ROLE_GUERITE')) {
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Validé Coordon'], ['id' => 'DESC']);
             $visites = $em->getRepository(Visite::class)->findBy(['statut' => 'RESERVE'], ['id' => 'DESC']);
-        } elseif (
-            $this->isGranted('ROLE_STOCK') ||
-            $this->isGranted('ROLE_COORDON')
-        ) {
+        } elseif ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON')) {
             $bonsSortie = $bonSortieRepository->findBy(['departement' => $userDept], ['id' => 'DESC']);
         } else {
             $bonsSortie = [];
         }
 
-        // ============================================================
-        // CHARGEMENT CATÉGORIES / SOUS-CATÉGORIES / ATTRIBUTS
-        // ============================================================
+        // CATÉGORIES / ATTRIBUTS
         if ($this->isGranted('ROLE_STOCK') || $this->isGranted('ROLE_COORDON') ||
             $this->isGranted('ROLE_DG') || $this->isGranted('ROLE_COMPTA')) {
 
@@ -872,39 +809,28 @@ class DashboardController extends AbstractController
             }
 
             if ($siteParam) {
-                $qbGlobal->andWhere('d.localisation = :site')
-                    ->setParameter('site', $siteParam);
+                $qbGlobal->andWhere('d.localisation = :site')->setParameter('site', $siteParam);
             }
 
             $rapportGlobal = $qbGlobal->orderBy('d.createdAt', 'DESC')->getQuery()->getResult();
         }
-
-        // ============================================================
-        // RENDU SELON LE RÔLE
-        // ============================================================
 
         // COORDONNATEUR
         if ($this->isGranted('ROLE_COORDON')) {
             $demandesCoordon = $demandeRepository->findBy(['statut' => 'Validé Chef'], ['id' => 'DESC']);
             $bonsSortie = $bonSortieRepository->findBy(['statut' => 'Créé'], ['id' => 'DESC']);
 
-            $statutsVisiblesParCoordon = [
-                Devis::STATUT_VALIDE_CHEF,
-                Devis::STATUT_ATTENTE_COMPTA,
-                Devis::STATUT_REJETE,
-            ];
+            $statutsVisiblesParCoordon = [Devis::STATUT_VALIDE_CHEF, Devis::STATUT_ATTENTE_COMPTA, Devis::STATUT_REJETE];
 
             $devisCoordon = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->leftJoin('d.user', 'u')
-                ->addSelect('u')
+                ->leftJoin('d.user', 'u')->addSelect('u')
                 ->where('d.statut IN (:statuts)')
                 ->andWhere('d.createdAt BETWEEN :start AND :end')
                 ->setParameter('statuts', $statutsVisiblesParCoordon)
                 ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
                 ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
                 ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+                ->getQuery()->getResult();
 
             $totalDevisUSD = 0;
             $totalDevisCDF = 0;
@@ -963,7 +889,6 @@ class DashboardController extends AbstractController
         if ($formEntree->isSubmitted() && $formEntree->isValid()) {
             $em->persist($mouvement);
             $em->flush();
-
             $this->addFlash('success', sprintf(
                 '✅ Entrée enregistrée : %s %s — %s',
                 number_format((float) $mouvement->getMontant(), 2, ',', ' '),
@@ -981,12 +906,10 @@ class DashboardController extends AbstractController
             ->setParameter('compta', '%ROLE_COMPTA%')
             ->setParameter('chef',   '%ROLE_CHEF_COMPTA%')
             ->orderBy('m.dateMouvement', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
 
         // COMPTABLE
         if ($this->isGranted('ROLE_COMPTA')) {
-            /** @var User $currentUser */
             $currentUser = $this->getUser();
 
             $mouvement = new MouvementCaisse();
@@ -1021,25 +944,21 @@ class DashboardController extends AbstractController
             ];
 
             $devisActifs = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->leftJoin('d.user', 'u')
-                ->addSelect('u')
+                ->leftJoin('d.user', 'u')->addSelect('u')
                 ->where('d.statut IN (:actifs)')
                 ->setParameter('actifs', $statutsActifs)
                 ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+                ->getQuery()->getResult();
 
             $devisHistorique = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->leftJoin('d.user', 'u')
-                ->addSelect('u')
+                ->leftJoin('d.user', 'u')->addSelect('u')
                 ->where('d.statut IN (:histo)')
                 ->andWhere('d.createdAt BETWEEN :start AND :end')
                 ->setParameter('histo', [Devis::STATUT_DECAISSE, Devis::STATUT_REJETE])
                 ->setParameter('start', new \DateTime($dateDebutFiltre . ' 00:00:00'))
                 ->setParameter('end',   new \DateTime($dateFinFiltre   . ' 23:59:59'))
                 ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+                ->getQuery()->getResult();
 
             $devisListe = array_merge($devisActifs, $devisHistorique);
 
@@ -1050,18 +969,10 @@ class DashboardController extends AbstractController
 
             foreach ($devisActifs as $d) {
                 $statut = $d->getStatut();
-
-                if ($statut === Devis::STATUT_ATTENTE_COMPTA) {
-                    $devisA_Aiguiller[] = $d;
-                }
-                if ($statut === Devis::STATUT_ATTENTE_DECAISSEMENT) {
-                    $devisPretsADecaisser[] = $d;
-                }
-                if ($statut === Devis::STATUT_ATTENTE_CAISSE) {
-                    $devisEnAttenteCaisse[] = $d;
-                }
+                if ($statut === Devis::STATUT_ATTENTE_COMPTA)       $devisA_Aiguiller[] = $d;
+                if ($statut === Devis::STATUT_ATTENTE_DECAISSEMENT) $devisPretsADecaisser[] = $d;
+                if ($statut === Devis::STATUT_ATTENTE_CAISSE)       $devisEnAttenteCaisse[] = $d;
             }
-
             foreach ($devisHistorique as $d) {
                 if ($d->getStatut() === Devis::STATUT_DECAISSE && $d->getDecaissePar() === $currentUser) {
                     $mesDecaissements[] = $d;
@@ -1083,8 +994,7 @@ class DashboardController extends AbstractController
                     ->where('d.statut IN (:statuts)')
                     ->setParameter('statuts', ['En attente', 'Validé Chef'])
                     ->orderBy('d.id', 'DESC')
-                    ->getQuery()
-                    ->getResult(),
+                    ->getQuery()->getResult(),
                 'rapportGlobal'        => $rapportGlobal,
                 'devisListe'           => $devisListe,
                 'mesDecaissements'     => $mesDecaissements,
@@ -1136,11 +1046,8 @@ class DashboardController extends AbstractController
             ]);
         }
 
-        // ============================================================
         // DG & PDG
-        // ============================================================
         if ($this->isGranted('ROLE_DG')) {
-
             $mouvementsCaisse = $em->getRepository(MouvementCaisse::class)->createQueryBuilder('m')
                 ->leftJoin('m.effectuePar', 'u')->addSelect('u')
                 ->where('u.roles LIKE :caissier')
@@ -1160,17 +1067,11 @@ class DashboardController extends AbstractController
                 $montant  = (float) $m->getMontant();
 
                 if ($m->getDevise() === MouvementCaisse::DEVISE_USD) {
-                    if ($isEntree) {
-                        $totalEntreesCaisseUSD += $montant;
-                    } else {
-                        $totalSortiesCaisseUSD += $montant;
-                    }
+                    if ($isEntree) $totalEntreesCaisseUSD += $montant;
+                    else           $totalSortiesCaisseUSD += $montant;
                 } else {
-                    if ($isEntree) {
-                        $totalEntreesCaisseCDF += $montant;
-                    } else {
-                        $totalSortiesCaisseCDF += $montant;
-                    }
+                    if ($isEntree) $totalEntreesCaisseCDF += $montant;
+                    else           $totalSortiesCaisseCDF += $montant;
                 }
 
                 $mouvementsCaisseData[] = [
@@ -1188,33 +1089,27 @@ class DashboardController extends AbstractController
             $finAujourdhuiDG  = new \DateTime('today 23:59:59');
 
             $devisListeDG = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->leftJoin('d.user', 'u')
-                ->addSelect('u')
+                ->leftJoin('d.user', 'u')->addSelect('u')
                 ->where('d.passageDG = :oui')
                 ->andWhere('d.createdAt BETWEEN :limite AND :fin')
                 ->setParameter('oui', true)
                 ->setParameter('limite', $limiteUneSemaine)
                 ->setParameter('fin',    $finAujourdhuiDG)
                 ->orderBy('d.id', 'DESC')
-                ->getQuery()
-                ->getResult();
+                ->getQuery()->getResult();
 
             $totalDevisUSD_DG = 0;
             $totalDevisCDF_DG = 0;
             foreach ($devisListeDG as $d) {
                 if (in_array($d->getStatut(), [Devis::STATUT_DECAISSE, 'Validé Compta'], true)) {
-                    if ($d->getDevise() === 'CDF') {
-                        $totalDevisCDF_DG += (float) $d->getMontant();
-                    } else {
-                        $totalDevisUSD_DG += (float) $d->getMontant();
-                    }
+                    if ($d->getDevise() === 'CDF') $totalDevisCDF_DG += (float) $d->getMontant();
+                    else                          $totalDevisUSD_DG += (float) $d->getMontant();
                 }
             }
 
             $articlesDG = $em->getRepository(Article::class)->findAll();
 
             $totalQuantiteStock = 0;
-            $valeurStockUSD     = 0;
             $articlesParCategorie = [];
             $topArticles = [];
 
@@ -1240,18 +1135,11 @@ class DashboardController extends AbstractController
                     $machineNom = $art->getMachine()->getNom();
                 }
 
-                // ✅ Récupération des attributs de l'article (Code corrigé et unique)
+                // ✅ Utilisation de getValeur() de l'entité (DRY)
                 $attributsArticle = [];
                 $attrLabels = [];
                 foreach ($art->getAttributs() as $attr) {
-                    $details = [];
-                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
-                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
-                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
-                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
-                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
-
-                    $labelAttr = implode(' - ', $details) ?: 'Standard';
+                    $labelAttr = $attr->getValeur();
                     $attrLabels[] = $labelAttr;
 
                     $attributsArticle[] = [
@@ -1261,7 +1149,6 @@ class DashboardController extends AbstractController
                 }
                 $attrStr = implode(', ', $attrLabels);
 
-                // ✅ Création d'un label unique pour le graphique
                 $labelUnique = $art->getNom();
                 if ($machineNom) $labelUnique .= ' [' . $machineNom . ']';
                 if ($attrStr)    $labelUnique .= ' - ' . $attrStr;
@@ -1290,8 +1177,7 @@ class DashboardController extends AbstractController
             $soldeCaisseUSD = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD);
             $soldeCaisseCDF = $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF);
 
-            $estVraimentPDG = method_exists($currentUser, 'isPDG')
-                && $currentUser->isPDG() === true;
+            $estVraimentPDG = method_exists($currentUser, 'isPDG') && $currentUser->isPDG() === true;
 
             $vars = [
                 'demandes'             => $demandes,
@@ -1335,8 +1221,7 @@ class DashboardController extends AbstractController
                     ->setParameter('debutJour', $debutJourPDG)
                     ->orderBy('v.dateArrivee', 'ASC')
                     ->setMaxResults(50)
-                    ->getQuery()
-                    ->getResult();
+                    ->getQuery()->getResult();
 
                 $vars['rdvDelegues'] = $em->getRepository(Visite::class)->createQueryBuilder('v')
                     ->where('v.responsableDelegue IS NOT NULL')
@@ -1344,8 +1229,7 @@ class DashboardController extends AbstractController
                     ->setParameter('debutJour', $debutJourPDG)
                     ->orderBy('v.dateArrivee', 'ASC')
                     ->setMaxResults(50)
-                    ->getQuery()
-                    ->getResult();
+                    ->getQuery()->getResult();
             } else {
                 $vars['mesRdv']      = [];
                 $vars['rdvDelegues'] = [];
@@ -1356,7 +1240,7 @@ class DashboardController extends AbstractController
             return $this->render('dashboard/directeur.html.twig', $vars);
         }
 
-        // PAR DÉFAUT
+        // PAR DÉFAUT (MEMBRE ORDINAIRE)
         return $this->render('dashboard/membre.html.twig', [
             'demandes'       => $demandes,
             'bonsSortie'     => $bonsSortie,
@@ -1378,15 +1262,11 @@ class DashboardController extends AbstractController
     }
 
     // ============================================================
-    // ✅ MÉTHODES PRIVÉES POUR LA GESTION DES ATTRIBUTS
+    // MÉTHODES PRIVÉES
     // ============================================================
-
     private function articleCorrespond(Article $articleExistant, array $attributsSoumis): bool
     {
-        $signaturesSoumises = array_map(
-            fn($a) => $this->getAttributSignature($a),
-            $attributsSoumis
-        );
+        $signaturesSoumises = array_map(fn($a) => $this->getAttributSignature($a), $attributsSoumis);
         sort($signaturesSoumises);
 
         $signaturesExistantes = [];
@@ -1396,12 +1276,8 @@ class DashboardController extends AbstractController
         sort($signaturesExistantes);
 
         if (empty($signaturesSoumises)) {
-            if (empty($signaturesExistantes)) {
-                return true;
-            }
-            if (count($signaturesExistantes) === 1 && $signaturesExistantes[0] === '||||') {
-                return true;
-            }
+            if (empty($signaturesExistantes)) return true;
+            if (count($signaturesExistantes) === 1 && $signaturesExistantes[0] === '||||') return true;
             return false;
         }
 
@@ -1421,11 +1297,8 @@ class DashboardController extends AbstractController
 
     #[Route('/dashboard/compta/article/reappro/{id}', name: 'app_article_reappro', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
-    public function updateReapprovisionnement(
-        Request $request,
-        Article $article,
-        EntityManagerInterface $em
-    ): Response {
+    public function updateReapprovisionnement(Request $request, Article $article, EntityManagerInterface $em): Response
+    {
         $dateReappro = $request->request->get('date_reapprovisionnement');
         $enCours = $request->request->get('reapprovisionnement_en_cours');
         $ancienneDate = $article->getDateReapprovisionnement();
@@ -1460,9 +1333,7 @@ class DashboardController extends AbstractController
             $h->setEffectuePar($this->getUser());
             $h->setQuantiteAuMoment($article->getQuantite());
             $h->setSeuilAuMoment($article->getSeuilAlerte());
-            $h->setCommentaire($article->isReapprovisionnementEnCours()
-                ? 'Réapprovisionnement lancé.'
-                : 'Réapprovisionnement terminé.');
+            $h->setCommentaire($article->isReapprovisionnementEnCours() ? 'Réapprovisionnement lancé.' : 'Réapprovisionnement terminé.');
             $em->persist($h);
         }
 
@@ -1489,9 +1360,8 @@ class DashboardController extends AbstractController
 
     #[Route('/dashboard/historique-reappro', name: 'app_historique_reappro')]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
-    public function historiqueReappro(
-        \App\Repository\HistoriqueReapprovisionnementRepository $repo
-    ): Response {
+    public function historiqueReappro(\App\Repository\HistoriqueReapprovisionnementRepository $repo): Response
+    {
         if (!$this->isGranted('ROLE_COMPTA') && !$this->isGranted('ROLE_DG')) {
             throw $this->createAccessDeniedException('Accès réservé au Comptable et à la DG.');
         }
@@ -1517,11 +1387,7 @@ class DashboardController extends AbstractController
     #[Route('/dashboard/visite/accueillir/{id}', name: 'app_visite_accueillir', methods: ['POST'])]
     public function accueillirVisite(Visite $visite, EntityManagerInterface $em): Response
     {
-        if (
-            !$this->isGranted('ROLE_ACCUEIL') &&
-            !$this->isGranted('ROLE_RECEPTION') &&
-            !$this->isGranted('ROLE_GUERITE')
-        ) {
+        if (!$this->isGranted('ROLE_ACCUEIL') && !$this->isGranted('ROLE_RECEPTION') && !$this->isGranted('ROLE_GUERITE')) {
             throw $this->createAccessDeniedException('Accès refusé.');
         }
 
@@ -1551,8 +1417,7 @@ class DashboardController extends AbstractController
             ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
             ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
             ->orderBy('d.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
 
         $html = $this->renderView('dashboard/rapport_pdf.html.twig', [
             'rapportGlobal' => $rapportGlobal,
@@ -1560,22 +1425,15 @@ class DashboardController extends AbstractController
             'date_fin'      => $dateFin,
         ]);
 
-        $dompdf = new \Dompdf\Dompdf([
-            'isRemoteEnabled' => true,
-            'defaultFont'     => 'Helvetica',
-        ]);
+        $dompdf = new \Dompdf\Dompdf(['isRemoteEnabled' => true, 'defaultFont' => 'Helvetica']);
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4', 'landscape');
         $dompdf->render();
 
-        return new Response(
-            $dompdf->output(),
-            200,
-            [
-                'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.pdf"',
-            ]
-        );
+        return new Response($dompdf->output(), 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="rapport_' . $dateDebut . '_' . $dateFin . '.pdf"',
+        ]);
     }
 
     #[Route('/rapport/excel', name: 'app_rapport_excel')]
@@ -1589,22 +1447,11 @@ class DashboardController extends AbstractController
             ->setParameter('start', new \DateTime($dateDebut . ' 00:00:00'))
             ->setParameter('end',   new \DateTime($dateFin   . ' 23:59:59'))
             ->orderBy('d.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->getQuery()->getResult();
 
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, "\xEF\xBB\xBF");
-
-        fputcsv($handle, [
-            'ID',
-            'Date',
-            'Département',
-            'Matériel',
-            'Quantité',
-            'Statut',
-            'Destination',
-        ], ';');
-
+        fputcsv($handle, ['ID', 'Date', 'Département', 'Matériel', 'Quantité', 'Statut', 'Destination'], ';');
         foreach ($rapportGlobal as $d) {
             fputcsv($handle, [
                 $d->getId(),
@@ -1616,7 +1463,6 @@ class DashboardController extends AbstractController
                 $d->getDestination() ?? '—',
             ], ';');
         }
-
         rewind($handle);
         $csvContent = stream_get_contents($handle);
         fclose($handle);
@@ -1643,12 +1489,10 @@ class DashboardController extends AbstractController
                 $devis->setStatut(Devis::STATUT_ATTENTE_CHEF_COMPTABLE);
                 $this->addFlash('success', '📤 Devis transmis au Chef Comptable.');
                 break;
-
             case 'bon_caisse':
                 $devis->setStatut(Devis::STATUT_ATTENTE_CAISSE);
                 $this->addFlash('success', '📤 Bon de demande transmis à la Caisse.');
                 break;
-
             case 'decaisser_direct':
                 $devise  = $devis->getDevise();
                 $montant = (float) $devis->getMontant();
@@ -1680,14 +1524,11 @@ class DashboardController extends AbstractController
                 $devis->setDateDecaissementPar(new \DateTime());
                 $devis->setDateDecaissement(new \DateTime());
                 $devis->setPassageDG(false);
-
                 $this->addFlash('success', '✅ Décaissement direct effectué — devis #' . $devis->getId() . '.');
                 break;
-
             case 'rejeter_devis':
                 $devis->setStatut(Devis::STATUT_REJETE);
                 $em->flush();
-
                 $this->addFlash('warning', sprintf(
                     '❌ Devis #%d rejeté par la comptabilité (montant : %s %s).',
                     $devis->getId(),
@@ -1695,7 +1536,6 @@ class DashboardController extends AbstractController
                     $devis->getDevise()
                 ));
                 return $this->redirectToRoute('app_dashboard');
-
             default:
                 $this->addFlash('danger', '❌ Choix invalide.');
                 return $this->redirectToRoute('app_dashboard');
@@ -1710,22 +1550,14 @@ class DashboardController extends AbstractController
         $materiel = trim($materiel);
 
         if (preg_match('/^(.+?)\s*\((.+)\)\s*$/', $materiel, $m)) {
-            $nomArticle      = trim($m[1]);
-            $valeurAttribut  = trim($m[2]);
-
+            $nomArticle     = trim($m[1]);
+            $valeurAttribut = trim($m[2]);
             $candidats = $em->getRepository(Article::class)->findBy(['nom' => $nomArticle]);
 
+            // ✅ Utilisation de getValeur() — plus de duplication
             foreach ($candidats as $candidat) {
                 foreach ($candidat->getAttributs() as $attr) {
-                    $details = [];
-                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
-                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
-                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
-                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
-                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
-
-                    $label = implode(' - ', $details) ?: 'Standard';
-                    if ($label === $valeurAttribut) {
+                    if ($attr->getValeur() === $valeurAttribut) {
                         return $candidat;
                     }
                 }
@@ -1744,7 +1576,6 @@ class DashboardController extends AbstractController
     public function validerCompta(Demande $demande, EntityManagerInterface $em): Response
     {
         $statutsAcceptes = ['En attente', 'Validé Chef'];
-
         if (!in_array($demande->getStatut(), $statutsAcceptes)) {
             $this->addFlash('danger', '❌ Cette demande ne peut pas être validée à cette étape (statut actuel : ' . $demande->getStatut() . ').');
             return $this->redirectToRoute('app_dashboard');
@@ -1760,7 +1591,6 @@ class DashboardController extends AbstractController
 
         $demande->setStatut('Validé Compta');
         $em->flush();
-
         $this->addFlash('success', '💰 Demande validée. Elle est transmise au dépôt pour livraison.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1775,7 +1605,6 @@ class DashboardController extends AbstractController
         }
 
         $article = $this->trouverArticleDepuisMateriel($demande->getMateriel(), $em);
-
         if (!$article) {
             $this->addFlash('warning', '⚠️ Article introuvable dans le stock.');
             return $this->redirectToRoute('app_dashboard');
@@ -1800,55 +1629,38 @@ class DashboardController extends AbstractController
 
         $doitCreerBon     = false;
         $statutInitialBon = 'Créé';
-
         if ($aUneDestination) {
-            $doitCreerBon     = true;
+            $doitCreerBon = true;
             $statutInitialBon = 'Créé';
         } elseif ($estSiteDistant) {
-            $doitCreerBon     = true;
+            $doitCreerBon = true;
             $statutInitialBon = 'Validé Coordon';
         }
 
         if ($doitCreerBon) {
             $bonSortie = new BonSortie();
-            $bonSortie->setNomEmploye(
-                $demande->getDemandeur()
-                    ? $demande->getDemandeur()->getUserIdentifier()
-                    : 'Demandeur inconnu'
-            );
+            $bonSortie->setNomEmploye($demande->getDemandeur() ? $demande->getDemandeur()->getUserIdentifier() : 'Demandeur inconnu');
             $bonSortie->setDepartement($departementDemandeur);
             $bonSortie->setDateCreation(new \DateTime());
             $bonSortie->setStatut($statutInitialBon);
-
             $bonSortie->setIsAllerSansRetour(false);
 
-            $description = 'Sortie stock : ' . $demande->getMateriel()
-                . ' (Qté: ' . $quantiteDemandee . ')'
-                . ' — Demande #' . $demande->getId();
-
+            $description = 'Sortie stock : ' . $demande->getMateriel() . ' (Qté: ' . $quantiteDemandee . ') — Demande #' . $demande->getId();
             if ($aUneDestination) {
                 $description .= ' → Destination : ' . strtoupper($destinationSaisie);
             }
-
             $bonSortie->setRaison($description);
-
             $em->persist($bonSortie);
         }
 
         $em->flush();
 
         if ($doitCreerBon && $aUneDestination) {
-            $this->addFlash('success',
-                '🚚 Matériel livré. Un bon de sortie a été créé et transmis au Coordonnateur pour validation.'
-            );
+            $this->addFlash('success', '🚚 Matériel livré. Un bon de sortie a été créé et transmis au Coordonnateur pour validation.');
         } elseif ($doitCreerBon) {
-            $this->addFlash('success',
-                '🚚 Matériel livré. Un bon de sortie pré-validé a été transmis à la guérite.'
-            );
+            $this->addFlash('success', '🚚 Matériel livré. Un bon de sortie pré-validé a été transmis à la guérite.');
         } else {
-            $this->addFlash('success',
-                '🚚 Matériel livré et déduit du stock (mouvement interne — pas de bon de sortie).'
-            );
+            $this->addFlash('success', '🚚 Matériel livré et déduit du stock (mouvement interne — pas de bon de sortie).');
         }
 
         return $this->redirectToRoute('app_dashboard');
@@ -1868,22 +1680,13 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_GUERITE')]
     public function sortieBon(BonSortie $bonSortie, EntityManagerInterface $em): Response
     {
-        $statutsPretsPourSortie = [
-            'Validé Coordon',
-            'Validé Chef Service',
-            'Validé Caisse',
-            'Validé Secrétariat',
-            'Valide Coordon',
-        ];
-
+        $statutsPretsPourSortie = ['Validé Coordon', 'Validé Chef Service', 'Validé Caisse', 'Validé Secrétariat', 'Valide Coordon'];
         if (!in_array($bonSortie->getStatut(), $statutsPretsPourSortie, true)) {
             $this->addFlash('danger', '❌ Ce bon n\'est pas prêt pour la sortie (statut actuel : ' . $bonSortie->getStatut() . ').');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $bonSortie->setStatut('Sortie effective');
         $em->flush();
-
         $this->addFlash('success', '✅ Sortie du matériel confirmée pour le bon #' . $bonSortie->getId() . '.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1892,22 +1695,18 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function traiterDemandeChefService(Request $request, Demande $demande, EntityManagerInterface $em): Response
     {
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         if (!$currentUser->isChefService()) {
             throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
 
         $demandeur = $demande->getDemandeur();
-
         if ($demandeur && $demandeur->getService() !== $currentUser->getService()) {
             $this->addFlash('danger', '🛑 Vous ne pouvez valider que les demandes des membres de votre service.');
             return $this->redirectToRoute('app_dashboard');
         }
 
         $action = $request->request->get('action');
-
         if ($action === 'valider') {
             $demande->setStatut('Validé Chef');
             $this->addFlash('success', '✅ Demande validée et transmise à la comptabilité.');
@@ -1920,17 +1719,13 @@ class DashboardController extends AbstractController
         }
 
         $em->flush();
-
         return $this->redirectToRoute('app_dashboard');
     }
 
     #[Route('/dashboard/coordonnateur/traiter-demande/{id}', name: 'app_coordonnateur_valider_demande', methods: ['POST'])]
     #[IsGranted('ROLE_COORDON')]
-    public function traiterDemandeCoordon(
-        Request $request,
-        Demande $demande,
-        EntityManagerInterface $em
-    ): Response {
+    public function traiterDemandeCoordon(Request $request, Demande $demande, EntityManagerInterface $em): Response
+    {
         if ($demande->getStatut() !== 'Validé Chef') {
             $this->addFlash('danger', sprintf(
                 '❌ Cette demande ne peut pas être traitée à cette étape (statut actuel : %s).',
@@ -1940,7 +1735,6 @@ class DashboardController extends AbstractController
         }
 
         $action = $request->request->get('action');
-
         if ($action === 'valider') {
             $demande->setStatut('Validé Coordon');
             $this->addFlash('success', '✅ Demande validée et transmise à la comptabilité.');
@@ -1953,7 +1747,6 @@ class DashboardController extends AbstractController
         }
 
         $em->flush();
-
         return $this->redirectToRoute('app_dashboard');
     }
 
@@ -1976,7 +1769,6 @@ class DashboardController extends AbstractController
 
         $devis->setStatut(Devis::STATUT_ATTENTE_COMPTA);
         $em->flush();
-
         $this->addFlash('success', '📤 Devis transmis au Comptable pour aiguillage.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -1989,10 +1781,8 @@ class DashboardController extends AbstractController
             $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $devis->setStatut(Devis::STATUT_REJETE);
         $em->flush();
-
         $this->addFlash('warning', '❌ Le devis a été rejeté par le Coordonnateur.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2007,16 +1797,13 @@ class DashboardController extends AbstractController
 
         try {
             $articles = $em->getRepository(Article::class)->createQueryBuilder('a')
-                ->leftJoin('a.attributs', 'attr')
-                ->addSelect('attr')
-                ->leftJoin('a.machine', 'm')
-                ->addSelect('m')
+                ->leftJoin('a.attributs', 'attr')->addSelect('attr')
+                ->leftJoin('a.machine', 'm')->addSelect('m')
                 ->where('a.nom LIKE :nom')
                 ->setParameter('nom', '%' . $nom . '%')
                 ->orderBy('a.id', 'ASC')
                 ->setMaxResults(10)
-                ->getQuery()
-                ->getResult();
+                ->getQuery()->getResult();
 
             if (empty($articles)) {
                 return new JsonResponse(['found' => false]);
@@ -2027,25 +1814,28 @@ class DashboardController extends AbstractController
 
             foreach ($articles as $article) {
                 $nomMachine = $article->getMachine() ? $article->getMachine()->getNom() : null;
+                $qteArticle = (int) ($article->getQuantite() ?? 0);
 
+                if ($article->getAttributs()->isEmpty()) {
+                    $attributsGlobal[] = [
+                        'id'       => null,
+                        'valeur'   => $article->getNom() . ' (Standard — stock : ' . $qteArticle . ')',
+                        'quantite' => $qteArticle,
+                        'article'  => $article->getNom(),
+                        'machine'  => $nomMachine,
+                        'standard' => true,
+                    ];
+                    continue;
+                }
+
+                // ✅ Utilisation de getValeur() de l'entité (DRY)
                 foreach ($article->getAttributs() as $attr) {
-                    $details = [];
-                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
-                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
-                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
-                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
-                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
-
-                    $label = implode(' - ', $details) ?: 'Standard';
-                    $quantite = method_exists($attr, 'getQuantite') ? $attr->getQuantite() : null;
-
-                    if (empty($details)) {
-                        $label = $article->getNom() . ' (stock : ' . $article->getQuantite() . ')';
-                    }
+                    $qteAttr  = $attr->getQuantite();
+                    $quantite = ($qteAttr !== null) ? (int) $qteAttr : $qteArticle;
 
                     $attributsGlobal[] = [
                         'id'       => $attr->getId(),
-                        'valeur'   => $label,
+                        'valeur'   => $attr->getValeur() . ' (stock : ' . $quantite . ')',
                         'quantite' => $quantite,
                         'article'  => $article->getNom(),
                         'machine'  => $nomMachine,
@@ -2059,12 +1849,8 @@ class DashboardController extends AbstractController
                 'quantite'  => $articles[0]->getQuantite(),
                 'attributs' => $attributsGlobal,
             ]);
-
         } catch (\Exception $e) {
-            return new JsonResponse([
-                'error'   => 'Erreur serveur',
-                'message' => $e->getMessage(),
-            ], 500);
+            return new JsonResponse(['error' => 'Erreur serveur', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -2088,18 +1874,14 @@ class DashboardController extends AbstractController
         $devis->setPassageDG(true);
         $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
         $em->flush();
-
         $this->addFlash('success', '📤 Devis #' . $devis->getId() . ' visé et transmis à la Direction Générale.');
         return $this->redirectToRoute('app_dashboard');
     }
 
     #[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
     #[IsGranted('ROLE_DG')]
-    public function validerDevisDirecteur(
-        Request $request,
-        Devis $devis,
-        EntityManagerInterface $em
-    ): Response {
+    public function validerDevisDirecteur(Request $request, Devis $devis, EntityManagerInterface $em): Response
+    {
         if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DIR) {
             $this->addFlash('danger', '❌ Ce devis n\'est pas en attente d\'arbitrage de la Direction.');
             return $this->redirectToRoute('app_dashboard');
@@ -2115,7 +1897,6 @@ class DashboardController extends AbstractController
 
         $devis->setStatut(Devis::STATUT_ATTENTE_DECAISSEMENT);
         $em->flush();
-
         $this->addFlash('success', '✍️ Devis #' . $devis->getId() . ' validé par la Direction — retourné à la Comptabilité pour décaissement.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2128,21 +1909,16 @@ class DashboardController extends AbstractController
             $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $devis->setStatut(Devis::STATUT_REJETE);
         $em->flush();
-
         $this->addFlash('warning', '❌ Le devis #' . $devis->getId() . ' a été rejeté par le Chef Comptable.');
         return $this->redirectToRoute('app_dashboard');
     }
 
     #[Route('/dashboard/devis/decaisser-compta/{id}', name: 'app_devis_compta_decaisser', methods: ['POST'])]
     #[IsGranted('ROLE_COMPTA')]
-    public function decaisserDevisCompta(
-        Devis $devis,
-        EntityManagerInterface $em,
-        MouvementCaisseRepository $mouvementRepo
-    ): Response {
+    public function decaisserDevisCompta(Devis $devis, EntityManagerInterface $em, MouvementCaisseRepository $mouvementRepo): Response
+    {
         if ($devis->getStatut() !== Devis::STATUT_ATTENTE_DECAISSEMENT) {
             $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le décaissement.');
             return $this->redirectToRoute('app_dashboard');
@@ -2173,9 +1949,7 @@ class DashboardController extends AbstractController
         $mouvement->setDateMouvement(new \DateTime());
         $em->persist($mouvement);
 
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         $devis->setStatut(Devis::STATUT_DECAISSE);
         $devis->setDecaissePar($currentUser);
         $devis->setDateDecaissementPar(new \DateTime());
@@ -2220,9 +1994,7 @@ class DashboardController extends AbstractController
         $mouvement->setDateMouvement(new \DateTime());
         $em->persist($mouvement);
 
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         $devis->setStatut(Devis::STATUT_DECAISSE);
         $devis->setDecaissePar($currentUser);
         $devis->setDateDecaissementPar(new \DateTime());
@@ -2233,11 +2005,8 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    private function verifierSoldeOuRefuser(
-        MouvementCaisseRepository $repo,
-        string $devise,
-        float $montant
-    ): ?Response {
+    private function verifierSoldeOuRefuser(MouvementCaisseRepository $repo, string $devise, float $montant): ?Response
+    {
         if (!$repo->peutDecaisser($devise, $montant)) {
             $solde = $repo->getSolde($devise);
             $this->addFlash('danger', sprintf(
@@ -2259,10 +2028,8 @@ class DashboardController extends AbstractController
             $this->addFlash('danger', '❌ Ce bon ne peut pas être rejeté à cette étape (statut actuel : ' . $bonSortie->getStatut() . ').');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $bonSortie->setStatut('Rejeté Coordon');
         $em->flush();
-
         $this->addFlash('warning', '❌ Le bon de sortie #' . $bonSortie->getId() . ' a été rejeté par le Coordonnateur.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2275,10 +2042,8 @@ class DashboardController extends AbstractController
             $this->addFlash('danger', '❌ Ce devis ne peut pas être rejeté à cette étape.');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $devis->setStatut(Devis::STATUT_REJETE);
         $em->flush();
-
         $this->addFlash('warning', '❌ Le devis #' . $devis->getId() . ' a été rejeté par la Direction Générale.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2287,9 +2052,7 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function chefServiceValiderDevis(Request $request, Devis $devis, EntityManagerInterface $em): Response
     {
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         if (!$currentUser->isChefService()) {
             throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
@@ -2315,7 +2078,6 @@ class DashboardController extends AbstractController
 
         $devis->setStatut(Devis::STATUT_VALIDE_CHEF);
         $em->flush();
-
         $this->addFlash('success', '✅ Devis validé et transmis au Coordonnateur.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2324,27 +2086,20 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function validerBonChefService(BonSortie $bonSortie, EntityManagerInterface $em): Response
     {
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         if (!$currentUser->isChefService()) {
             throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
-
         if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
             $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $bonSortie->setStatut('Validé Chef Service');
-
         if (method_exists($bonSortie, 'setRaison')) {
             $raison = $bonSortie->getRaison() ?: '';
             $bonSortie->setRaison(trim($raison . ' | Validé par chef : ' . $currentUser->getUserIdentifier()));
         }
-
         $em->flush();
-
         $this->addFlash('success', '✅ Bon #' . $bonSortie->getId() . ' validé — transmis au Coordonnateur.');
         return $this->redirectToRoute('app_dashboard');
     }
@@ -2353,22 +2108,16 @@ class DashboardController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function rejeterBonChefService(Request $request, BonSortie $bonSortie, EntityManagerInterface $em): Response
     {
-        /** @var User $currentUser */
         $currentUser = $this->getUser();
-
         if (!$currentUser->isChefService()) {
             throw $this->createAccessDeniedException('Accès réservé aux chefs de service.');
         }
-
         if ($bonSortie->getStatut() !== 'ATTENTE_CHEF_SERVICE') {
             $this->addFlash('danger', '❌ Ce bon n\'est pas en attente de votre validation.');
             return $this->redirectToRoute('app_dashboard');
         }
-
         $motif = trim((string) $request->request->get('motif_rejet', ''));
-
         $bonSortie->setStatut('Rejeté Chef Service');
-
         if (method_exists($bonSortie, 'setRaison')) {
             $raison = $bonSortie->getRaison() ?: '';
             $log = ' | Rejeté par chef : ' . $currentUser->getUserIdentifier();
@@ -2377,9 +2126,7 @@ class DashboardController extends AbstractController
             }
             $bonSortie->setRaison(trim($raison . $log));
         }
-
         $em->flush();
-
         $this->addFlash('warning', '❌ Bon #' . $bonSortie->getId() . ' rejeté.');
         return $this->redirectToRoute('app_dashboard');
     }

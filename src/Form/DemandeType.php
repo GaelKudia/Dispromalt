@@ -33,9 +33,10 @@ class DemandeType extends AbstractType
                 'class' => ArticleAttribut::class,
                 'required' => false,
                 'placeholder' => '-- Choisissez la variante / couleur --',
-                'choices' => [],
+                // ✅ Symfony appelle automatiquement __toString() de ArticleAttribut
+                //    → pas besoin de choice_label ici
                 'attr' => [
-                    'class' => 'form-select',
+                    'class' => 'form-select demande-attribut-select',
                     'id' => 'demande_attribut',
                 ],
             ])
