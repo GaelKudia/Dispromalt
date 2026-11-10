@@ -1,4 +1,4 @@
-```yaml
+
 # ============================================================
 # DAST SECURITY SCAN
 # OWASP ZAP BASELINE
@@ -262,4 +262,3 @@ jobs:
           echo "Target: ${TARGET_URL:-Not validated}"
           echo "Scanner: OWASP ZAP Baseline"
           echo "=========================================="
-```
