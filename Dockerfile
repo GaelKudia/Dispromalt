@@ -1,7 +1,7 @@
 # ============================================================
 # ÉTAPE 1 : BUILDER
 # ============================================================
-FROM dunglas/frankenphp:1.13.4-php8.2-alpine AS builder
+FROM dunglas/frankenphp:1.13.4-php8.4-alpine AS builder
 
 # Extensions PHP requises par composer.lock (dont ext-gd)
 RUN install-php-extensions \
@@ -38,7 +38,7 @@ RUN php bin/console asset-map:compile --env=prod --no-debug \
 # ============================================================
 # ÉTAPE 2 : PRODUCTION
 # ============================================================
-FROM dunglas/frankenphp:1.13.4-php8.2-alpine AS production
+FROM dunglas/frankenphp:1.13.4-php8.4-alpine AS production
 
 RUN install-php-extensions \
     pdo_mysql intl zip opcache mbstring gd imagick apcu
