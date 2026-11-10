@@ -24,6 +24,9 @@ use App\Repository\ServiceRepository;
 use App\Repository\UserRepository;
 use App\Repository\SubCategoryRepository;
 use App\Repository\HistoriqueReapprovisionnementRepository;
+use App\Repository\VisiteRepository;
+use App\Repository\DevisRepository;
+use App\Repository\MouvementCaisseRepository;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -35,6 +38,37 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class AdminController extends AbstractController
 {
+    /**
+     * ✅ SÉCURITÉ — Parse et valide un entier issu d'une requête HTTP.
+     *
+     * Empêche les injections de valeurs non numériques, négatives ou
+     * hors plage dans les identifiants et les quantités.
+     *
+     * @param mixed $raw Valeur brute issue de $request->request->get()
+     * @param int   $min Borne minimale autorisée (incluse)
+     * @param int   $max Borne maximale autorisée (incluse)
+     * @return int|null L'entier validé, ou null si invalide
+     */
+    private function parseIntValide($raw, int $min = 1, int $max = 2147483647): ?int
+    {
+        if ($raw === null) {
+            return null;
+        }
+        $raw = trim((string) $raw);
+        if ($raw === '' || !preg_match('/^\d+$/', $raw)) {
+            return null;
+        }
+        // Rejette les dépassements avant cast (évite le wrap-around de (int))
+        if (strlen($raw) > 10) {
+            return null;
+        }
+        $val = (int) $raw;
+        if ($val < $min || $val > $max) {
+            return null;
+        }
+        return $val;
+    }
+
     #[Route('/admin', name: 'app_admin_dashboard')]
     public function index(
         Request $request,
@@ -45,9 +79,9 @@ class AdminController extends AbstractController
         EntityManagerInterface $em,
         UserPasswordHasherInterface $hasher,
         HistoriqueReapprovisionnementRepository $historiqueRepo,
-        \App\Repository\VisiteRepository $visiteRepo,
-        \App\Repository\DevisRepository $devisRepo,
-        \App\Repository\MouvementCaisseRepository $mouvementRepo
+        VisiteRepository $visiteRepo,
+        DevisRepository $devisRepo,
+        MouvementCaisseRepository $mouvementRepo
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
@@ -95,11 +129,11 @@ class AdminController extends AbstractController
 
         $allBons  = $bonSortieRepository->findBy([], ['id' => 'DESC']);
         $allUsers = $userRepository->findAll();
-        $articles = $em->getRepository(Article::class)->findAll();
 
         $listeComptables = [];
         foreach ($allUsers as $u) {
-            if (in_array('ROLE_COMPTA', $u->getRoles()) && !in_array('ROLE_CHEF_COMPTA', $u->getRoles())) {
+            $roles = $u->getRoles();
+            if (in_array('ROLE_COMPTA', $roles) && !in_array('ROLE_CHEF_COMPTA', $roles)) {
                 $listeComptables[] = $u;
             }
         }
@@ -127,15 +161,23 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $plainPassword = $form->get('password')->getData();
 
-            if (!empty($plainPassword)) {
-                $hashedPassword = $hasher->hashPassword($newUser, $plainPassword);
-                $newUser->setPassword($hashedPassword);
-            } else {
-                $hashedPassword = $hasher->hashPassword($newUser, 'Passer123*');
-                $newUser->setPassword($hashedPassword);
+            $roleChoisi = $form->has('roles') ? $form->get('roles')->getData() : null;
+            if (!empty($roleChoisi)) {
+                $newUser->setRoles([$roleChoisi]);
             }
+
+            // ✅ SÉCURITÉ : Plus AUCUN mot de passe en dur.
+            // Si l'admin ne saisit pas de mot de passe, on en génère un aléatoire et fort.
+            $plainPassword = $form->has('password') ? $form->get('password')->getData() : null;
+            
+            if (empty($plainPassword)) {
+                $passwordReel = $this->genererMotDePasseFort(14);
+            } else {
+                $passwordReel = $plainPassword;
+            }
+
+            $newUser->setPassword($hasher->hashPassword($newUser, $passwordReel));
 
             if (method_exists($newUser, 'setActif')) {
                 $newUser->setActif(true);
@@ -146,7 +188,14 @@ class AdminController extends AbstractController
             $em->persist($newUser);
             $em->flush();
 
-            $this->addFlash('success', '✅ Compte créé pour ' . $newUser->getEmail() . ' — mot de passe : ' . $plainPassword);
+            $roleLabel = $roleChoisi ?: 'ROLE_USER';
+            $this->addFlash('success', sprintf(
+                '✅ Compte créé pour %s — rôle : %s — mot de passe : %s (Notez-le, il ne sera plus affiché)',
+                $newUser->getEmail(),
+                $roleLabel,
+                $passwordReel
+            ));
+
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-agents']);
         }
 
@@ -193,22 +242,18 @@ class AdminController extends AbstractController
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // ✅ SYNTHÈSE STOCK — SOURCE UNIQUE DE VÉRITÉ
-        //    ⚡ $articlesStock est LA référence.
-        //    Tout (KPI, tableaux, graphiques) en dérive.
+        // ✅ SYNTHÈSE STOCK — MÊME LOGIQUE QUE LA DG
         // ═══════════════════════════════════════════════════════════════
         $articlesStock = $em->getRepository(Article::class)->findAll();
 
         $totalQuantiteStock   = 0;
         $articlesParCategorie = [];
-        $topArticles          = []; // liste détaillée (peut contenir des doublons de nom)
-        $topArticlesAggreges  = []; // agrégé par nom+machine (pour le graphique)
+        $topArticles          = [];
 
         foreach ($articlesStock as $art) {
             $qte = $art->getQuantite() ?? 0;
             $totalQuantiteStock += $qte;
 
-            // ─── Catégorie (fallback subCategory) ───
             $catNom = 'Sans catégorie';
             if (method_exists($art, 'getCategory') && $art->getCategory()) {
                 $catNom = $art->getCategory()->getNom();
@@ -222,7 +267,6 @@ class AdminController extends AbstractController
             $articlesParCategorie[$catNom]['count']++;
             $articlesParCategorie[$catNom]['quantite'] += $qte;
 
-            // ─── Machine (pour unicité du graphique) ───
             $machineNom = '';
             if (method_exists($art, 'getMachine') && $art->getMachine()) {
                 $machineNom = $art->getMachine()->getNom();
@@ -230,35 +274,47 @@ class AdminController extends AbstractController
 
             $seuil = method_exists($art, 'getSeuilAlerte') ? ($art->getSeuilAlerte() ?? 0) : 0;
 
-            // ─── Top articles détaillé (comme le tableau) ───
+            $attributsArticle = [];
+            $attrLabels       = [];
+            if (method_exists($art, 'getAttributs')) {
+                foreach ($art->getAttributs() as $attr) {
+                    $details = [];
+                    if ($attr->getCouleur())    $details[] = 'Couleur: ' . $attr->getCouleur();
+                    if ($attr->getGrammage())   $details[] = 'Grammage: ' . $attr->getGrammage();
+                    if ($attr->getDimension())  $details[] = 'Dimension: ' . $attr->getDimension();
+                    if ($attr->getLongueur())   $details[] = 'Longueur: ' . $attr->getLongueur();
+                    if ($attr->getKilogramme()) $details[] = 'Kg: ' . $attr->getKilogramme();
+
+                    $labelAttr = implode(' - ', $details) ?: 'Standard';
+                    $attrLabels[] = $labelAttr;
+
+                    $attributsArticle[] = [
+                        'label'    => $labelAttr,
+                        'quantite' => method_exists($attr, 'getQuantite') ? ($attr->getQuantite() ?? 0) : 0,
+                    ];
+                }
+            }
+            $attrStr = implode(', ', $attrLabels);
+
+            $labelUnique = $art->getNom();
+            if ($machineNom) $labelUnique .= ' [' . $machineNom . ']';
+            if ($attrStr)    $labelUnique .= ' - ' . $attrStr;
+
             $topArticles[] = [
                 'nom'       => $art->getNom(),
+                'label'     => $labelUnique,
                 'machine'   => $machineNom,
                 'quantite'  => $qte,
                 'seuil'     => $seuil,
                 'categorie' => $catNom,
+                'attributs' => $attributsArticle,
             ];
-
-            // ─── Top articles AGRÉGÉ (par nom + machine) pour le graphique ───
-            $cle = $art->getNom() . ($machineNom ? ' [' . $machineNom . ']' : '');
-            if (!isset($topArticlesAggreges[$cle])) {
-                $topArticlesAggreges[$cle] = [
-                    'label'    => $cle,
-                    'quantite' => 0,
-                    'seuil'    => $seuil,
-                ];
-            }
-            $topArticlesAggreges[$cle]['quantite'] += $qte;
-            $topArticlesAggreges[$cle]['seuil'] = max($topArticlesAggreges[$cle]['seuil'], $seuil);
         }
 
-        // ─── Top 10 pour le graphique (agrégé + trié) ───
-        $topArticlesAggreges = array_values($topArticlesAggreges);
-        usort($topArticlesAggreges, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
-        $topArticlesTop10 = array_slice($topArticlesAggreges, 0, 10);
-        $topArticlesTotal = count($topArticlesAggreges);
+        usort($topArticles, fn($a, $b) => $b['quantite'] <=> $a['quantite']);
+        $topArticlesTop10 = array_slice($topArticles, 0, 10);
+        $topArticlesTotal = count($articlesStock);
 
-        // ─── Labels / quantités catégories (source unique) ───
         $categoriesLabels    = [];
         $categoriesQuantites = [];
         foreach ($articlesParCategorie as $cat => $data) {
@@ -276,7 +332,6 @@ class AdminController extends AbstractController
             return $art->getQuantite() <= $art->getSeuilAlerte();
         });
 
-        // Tri : non lancés d'abord, puis les plus critiques
         usort($articlesEnAlerte, function ($a, $b) {
             $aLance = method_exists($a, 'isReapprovisionnementEnCours') && $a->isReapprovisionnementEnCours();
             $bLance = method_exists($b, 'isReapprovisionnementEnCours') && $b->isReapprovisionnementEnCours();
@@ -290,7 +345,7 @@ class AdminController extends AbstractController
             if (method_exists($art, 'isReapprovisionnementEnCours') && $art->isReapprovisionnementEnCours()) {
                 $dernier = $historiqueRepo->findDernierLancement($art->getId());
                 if ($dernier) {
-                    $detail['lanceur'] = $dernier->getEffectuePar();
+                    $detail['lanceur']       = $dernier->getEffectuePar();
                     $detail['dateLancement'] = $dernier->getDateAction();
                 }
             }
@@ -302,10 +357,10 @@ class AdminController extends AbstractController
         // ✅ VUE 360° — VISITES & RDV
         // ═══════════════════════════════════════════════════════
         $toutesVisites     = $visiteRepo->findBy([], ['dateArrivee' => 'DESC']);
-        $visitesReservees  = $visiteRepo->findBy(['statut' => 'RESERVE'],  ['dateArrivee' => 'DESC']);
+        $visitesReservees  = $visiteRepo->findBy(['statut' => 'RESERVE'],     ['dateArrivee' => 'DESC']);
         $visitesAccueil    = $visiteRepo->findBy(['statut' => 'A_L_ACCUEIL'], ['dateArrivee' => 'DESC']);
-        $visitesTerminees  = $visiteRepo->findBy(['statut' => 'TERMINE'],  ['dateArrivee' => 'DESC']);
-        $visitesDeleguees  = $visiteRepo->findBy(['statut' => 'DELEGUE'],  ['dateArrivee' => 'DESC']);
+        $visitesTerminees  = $visiteRepo->findBy(['statut' => 'TERMINE'],     ['dateArrivee' => 'DESC']);
+        $visitesDeleguees  = $visiteRepo->findBy(['statut' => 'DELEGUE'],     ['dateArrivee' => 'DESC']);
         $nbVisitesTotal    = count($toutesVisites);
         $nbVisitesJour     = 0;
         $aujourdhui        = new \DateTime('today');
@@ -323,6 +378,42 @@ class AdminController extends AbstractController
             ->setMaxResults(200)
             ->getQuery()
             ->getResult();
+
+        // ═══════════════════════════════════════════════════════════
+        // ✅ Devis DÉCAISSÉS dont le délai de travaux est dépassé
+        //    - Uniquement statut = DECAISSE (argent sorti)
+        //    - Exclut ceux marqués [TERMINE:...] dans la description
+        //    - Extrait le délai initial depuis [DELAI:XX]
+        // ═══════════════════════════════════════════════════════════
+        $devisEnRetard    = [];
+        $aujourdhuiRetard = new \DateTime('today');
+
+        foreach ($tousDevis as $d) {
+            if ($d->getStatut() !== 'DECAISSE') continue;
+            if ($d->getDateLimite() === null) continue;
+
+            // Exclusion si marqué terminé
+            if (preg_match('/\[TERMINE:/', (string) $d->getDescription())) continue;
+
+            $dateLimit = clone $d->getDateLimite();
+            $dateLimit->setTime(0, 0, 0);
+            if ($dateLimit >= $aujourdhuiRetard) continue;
+
+            $joursRetard = (int) $aujourdhuiRetard->diff($dateLimit)->days;
+
+            $delaiInitial = null;
+            if (preg_match('/\[DELAI:(\d+)\]/', (string) $d->getDescription(), $m)) {
+                $delaiInitial = (int) $m[1];
+            }
+
+            $devisEnRetard[] = [
+                'devis'        => $d,
+                'joursRetard'  => $joursRetard,
+                'delaiInitial' => $delaiInitial,
+            ];
+        }
+        usort($devisEnRetard, fn($a, $b) => $b['joursRetard'] <=> $a['joursRetard']);
+        $nbDevisEnRetard = count($devisEnRetard);
 
         $nbDevisTotal     = count($tousDevis);
         $nbDevisEnCours   = 0;
@@ -392,7 +483,7 @@ class AdminController extends AbstractController
         }
 
         // ═══════════════════════════════════════════════════════
-        // ✅ VUE 360° — DEVIS EN ATTENTE (par étape du circuit)
+        // ✅ VUE 360° — DEVIS EN ATTENTE
         // ═══════════════════════════════════════════════════════
         $devisAiguiller       = [];
         $devisPretsADecaisser = [];
@@ -400,9 +491,9 @@ class AdminController extends AbstractController
 
         foreach ($tousDevis as $d) {
             $statut = $d->getStatut();
-            if ($statut === 'ATTENTE_COMPTA')        $devisAiguiller[]       = $d;
-            if ($statut === 'ATTENTE_DECAISSEMENT')  $devisPretsADecaisser[] = $d;
-            if ($statut === 'ATTENTE_CAISSE')        $devisEnAttenteCaisse[] = $d;
+            if ($statut === 'ATTENTE_COMPTA')       $devisAiguiller[]       = $d;
+            if ($statut === 'ATTENTE_DECAISSEMENT') $devisPretsADecaisser[] = $d;
+            if ($statut === 'ATTENTE_CAISSE')       $devisEnAttenteCaisse[] = $d;
         }
 
         $historiqueReappro = $historiqueRepo->findAllOrdered();
@@ -419,7 +510,7 @@ class AdminController extends AbstractController
             'users' => $allUsers,
             'tousLesUtilisateurs' => $allUsers,
             'listeComptables' => $listeComptables,
-            'articles' => $articles,
+            'articles' => $articlesStock,
             'rapportGlobal' => $rapportGlobal,
             'date_debut' => $dateDebutParam,
             'date_fin' => $dateFinParam,
@@ -430,19 +521,18 @@ class AdminController extends AbstractController
             'formMachine' => $formMachine->createView(),
             'machines' => $em->getRepository(Machine::class)->findAll(),
 
-            // ✅ STOCK — Source unique
             'articlesStock'        => $articlesStock,
             'totalQuantiteStock'   => $totalQuantiteStock,
             'articlesParCategorie' => $articlesParCategorie,
-            'topArticles'          => $topArticlesTop10,     // ⚡ AGRÉGÉ + TOP 10
-            'topArticlesTotal'     => $topArticlesTotal,     // ⚡ Nombre total d'articles référencés
+            'topArticles'          => $topArticlesTop10,
+            'topArticlesTotal'     => $topArticlesTotal,
             'categoriesLabels'     => $categoriesLabels,
             'categoriesQuantites'  => $categoriesQuantites,
             'articlesEnAlerte'     => $articlesEnAlerte,
             'alerteDetails'        => $alerteDetails,
             'nbAlertesStock'       => $nbAlertesStock,
+            'topArticlesAll'       => $topArticles,
 
-            // ✅ VUE 360° — VISITES
             'toutesVisites'     => $toutesVisites,
             'visitesReservees'  => $visitesReservees,
             'visitesAccueil'    => $visitesAccueil,
@@ -451,7 +541,6 @@ class AdminController extends AbstractController
             'nbVisitesTotal'    => $nbVisitesTotal,
             'nbVisitesJour'     => $nbVisitesJour,
 
-            // ✅ VUE 360° — DEVIS
             'tousDevis'         => $tousDevis,
             'nbDevisTotal'      => $nbDevisTotal,
             'nbDevisEnCours'    => $nbDevisEnCours,
@@ -460,7 +549,6 @@ class AdminController extends AbstractController
             'totalDevisUSD'     => $totalDevisUSD,
             'totalDevisCDF'     => $totalDevisCDF,
 
-            // ✅ VUE 360° — CAISSE
             'mouvementsCaisse'  => $mouvementsCaisse,
             'soldeCaisseUSD'    => $soldeCaisseUSD,
             'soldeCaisseCDF'    => $soldeCaisseCDF,
@@ -469,10 +557,8 @@ class AdminController extends AbstractController
             'totalSortiesUSD'   => $totalSortiesUSD,
             'totalSortiesCDF'   => $totalSortiesCDF,
 
-            // ✅ VUE 360° — HISTORIQUE
             'historiqueReappro' => $historiqueReappro,
 
-            // ✅ VUE 360° — SOLDES SÉPARÉS
             'soldeGlobalUSD'      => $soldeGlobalUSD,
             'soldeGlobalCDF'      => $soldeGlobalCDF,
             'soldeComptaUSD'      => $soldeComptaUSD,
@@ -482,10 +568,13 @@ class AdminController extends AbstractController
             'nbMvtCompta'         => $nbMvtCompta,
             'nbMvtCaissier'       => $nbMvtCaissier,
 
-            // ✅ VUE 360° — DEVIS EN ATTENTE
             'devisAiguiller'       => $devisAiguiller,
             'devisPretsADecaisser' => $devisPretsADecaisser,
             'devisEnAttenteCaisse' => $devisEnAttenteCaisse,
+
+            // ✅ NOUVEAU : devis en retard (décaissés dont délai dépassé)
+            'devisEnRetard'        => $devisEnRetard,
+            'nbDevisEnRetard'      => $nbDevisEnRetard,
         ]);
     }
 
@@ -507,18 +596,19 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function assignerChefCompta(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
     {
-        $userId = $request->request->get('user_id');
-        $user = $userRepository->find($userId);
+        // ✅ SÉCURITÉ : validation stricte de user_id
+        $userId = $this->parseIntValide($request->request->get('user_id'), 1);
+        $user   = $userId !== null ? $userRepository->find($userId) : null;
 
         if (!$user) {
-            $this->addFlash('danger', 'Utilisateur introuvable.');
+            $this->addFlash('danger', 'Utilisateur introuvable ou identifiant invalide.');
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
         $roles = $user->getRoles();
         if (!in_array('ROLE_CHEF_COMPTA', $roles)) {
             $roles[] = 'ROLE_CHEF_COMPTA';
-            $user->setRoles($roles);
+            $user->setRoles(array_values(array_unique($roles)));
             $em->flush();
             $this->addFlash('success', sprintf('L\'utilisateur %s a bien été promu Chef Comptable.', $user->getEmail()));
         } else {
@@ -581,7 +671,7 @@ class AdminController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $emailSaisi = $user->getEmail();
+            $emailSaisi   = $user->getEmail();
             $userExistant = $userRepository->findOneBy(['email' => $emailSaisi]);
 
             if ($userExistant && $userExistant->getId() !== $user->getId()) {
@@ -593,10 +683,19 @@ class AdminController extends AbstractController
                 ]);
             }
 
-            $plainPassword = $form->get('password')->getData();
-            if (!empty($plainPassword)) {
-                $user->setPassword($hasher->hashPassword($user, $plainPassword));
-                $this->addFlash('success', '🔑 Mot de passe mis à jour.');
+            if ($form->has('roles')) {
+                $roleChoisi = $form->get('roles')->getData();
+                if (!empty($roleChoisi)) {
+                    $user->setRoles([$roleChoisi]);
+                }
+            }
+
+            if ($form->has('password')) {
+                $plainPassword = $form->get('password')->getData();
+                if (!empty($plainPassword)) {
+                    $user->setPassword($hasher->hashPassword($user, $plainPassword));
+                    $this->addFlash('success', '🔑 Mot de passe mis à jour.');
+                }
             }
 
             $em->flush();
@@ -621,11 +720,14 @@ class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_dashboard');
         }
 
-        if ($this->isCsrfTokenValid('delete_user_'.$user->getId(), $request->request->get('_token'))) {
-            $em->remove($user);
-            $em->flush();
-            $this->addFlash('success', '🗑️ Le compte a été supprimé.');
+        if (!$this->isCsrfTokenValid('delete_user_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('danger', '❌ Token CSRF invalide — suppression annulée.');
+            return $this->redirectToRoute('app_admin_dashboard');
         }
+
+        $em->remove($user);
+        $em->flush();
+        $this->addFlash('success', '🗑️ Le compte a été supprimé.');
 
         return $this->redirectToRoute('app_admin_dashboard');
     }
@@ -634,11 +736,14 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function assignerCaissier(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
     {
-        $user = $userRepository->find($request->request->get('user_id'));
+        // ✅ SÉCURITÉ : validation stricte de user_id
+        $userId = $this->parseIntValide($request->request->get('user_id'), 1);
+        $user   = $userId !== null ? $userRepository->find($userId) : null;
+
         if ($user && !in_array('ROLE_CAISSIER', $user->getRoles())) {
-            $roles = $user->getRoles();
+            $roles   = $user->getRoles();
             $roles[] = 'ROLE_CAISSIER';
-            $user->setRoles($roles);
+            $user->setRoles(array_values(array_unique($roles)));
             $em->flush();
             $this->addFlash('success', 'Utilisateur promu Caissier.');
         }
@@ -666,13 +771,13 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function editCategory(Request $request, Category $category, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('edit_category_'.$category->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('edit_category_' . $category->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
-        $nom = trim($request->getPayload()->getString('nom'));
+        $nom = trim((string) $request->request->get('nom', ''));
         if ($nom === '') {
             $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
@@ -680,7 +785,7 @@ class AdminController extends AbstractController
 
         $category->setNom($nom);
         $em->flush();
-        $this->addFlash('success', '📝 Catégorie « '.$nom.' » mise à jour.');
+        $this->addFlash('success', '📝 Catégorie « ' . $nom . ' » mise à jour.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
     }
 
@@ -688,21 +793,21 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function deleteCategory(Request $request, Category $category, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('delete_category_'.$category->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('delete_category_' . $category->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
         if ($category->getSubCategories()->count() > 0) {
-            $this->addFlash('danger', '🛑 Impossible de supprimer « '.$category->getNom().' » : elle contient '.$category->getSubCategories()->count().' sous-catégorie(s).');
+            $this->addFlash('danger', '🛑 Impossible de supprimer « ' . $category->getNom() . ' » : elle contient ' . $category->getSubCategories()->count() . ' sous-catégorie(s).');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
         $nom = $category->getNom();
         $em->remove($category);
         $em->flush();
-        $this->addFlash('success', '🗑️ Catégorie « '.$nom.' » supprimée.');
+        $this->addFlash('success', '🗑️ Catégorie « ' . $nom . ' » supprimée.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
     }
 
@@ -713,26 +818,32 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function editSubCategory(Request $request, SubCategory $subCategory, EntityManagerInterface $em, CategoryRepository $categoryRepo): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('edit_sub_category_'.$subCategory->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('edit_sub_category_' . $subCategory->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
-        $nom = trim($request->getPayload()->getString('nom'));
-        $categoryId = $request->getPayload()->getInt('category_id');
-
+        $nom = trim((string) $request->request->get('nom', ''));
         if ($nom === '') {
             $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
+        // ✅ SÉCURITÉ : validation stricte de category_id
+        $categoryId = $this->parseIntValide($request->request->get('category_id'), 1);
+        if ($categoryId === null) {
+            $this->addFlash('danger', '❌ Identifiant de catégorie invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
+        }
+
         $subCategory->setNom($nom);
-        if ($categoryId) {
-            $category = $categoryRepo->find($categoryId);
-            if ($category) {
-                $subCategory->setCategory($category);
-            }
+        $category = $categoryRepo->find($categoryId);
+        if ($category) {
+            $subCategory->setCategory($category);
+        } else {
+            $this->addFlash('danger', '❌ Catégorie parente introuvable.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
 
         $em->flush();
@@ -744,8 +855,8 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function deleteSubCategory(Request $request, SubCategory $subCategory, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('delete_sub_category_'.$subCategory->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('delete_sub_category_' . $subCategory->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
         }
@@ -753,7 +864,7 @@ class AdminController extends AbstractController
         $nom = $subCategory->getNom();
         $em->remove($subCategory);
         $em->flush();
-        $this->addFlash('success', '🗑️ Sous-catégorie « '.$nom.' » supprimée.');
+        $this->addFlash('success', '🗑️ Sous-catégorie « ' . $nom . ' » supprimée.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-structure']);
     }
 
@@ -764,26 +875,32 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function editMachine(Request $request, Machine $machine, EntityManagerInterface $em, SubCategoryRepository $subCatRepo): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('edit_machine_'.$machine->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('edit_machine_' . $machine->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
         }
 
-        $nom = trim($request->getPayload()->getString('nom'));
-        $subCatId = $request->getPayload()->getInt('sub_category_id');
-
+        $nom = trim((string) $request->request->get('nom', ''));
         if ($nom === '') {
             $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
         }
 
+        // ✅ SÉCURITÉ : validation stricte de sub_category_id
+        $subCatId = $this->parseIntValide($request->request->get('sub_category_id'), 1);
+        if ($subCatId === null) {
+            $this->addFlash('danger', '❌ Identifiant de sous-catégorie invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
+        }
+
         $machine->setNom($nom);
-        if ($subCatId) {
-            $subCat = $subCatRepo->find($subCatId);
-            if ($subCat) {
-                $machine->setSubCategory($subCat);
-            }
+        $subCat = $subCatRepo->find($subCatId);
+        if ($subCat) {
+            $machine->setSubCategory($subCat);
+        } else {
+            $this->addFlash('danger', '❌ Sous-catégorie introuvable.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
         }
 
         $em->flush();
@@ -795,8 +912,8 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function deleteMachine(Request $request, Machine $machine, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('delete_machine_'.$machine->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('delete_machine_' . $machine->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
         }
@@ -804,7 +921,7 @@ class AdminController extends AbstractController
         $nom = $machine->getNom();
         $em->remove($machine);
         $em->flush();
-        $this->addFlash('success', '🗑️ Machine « '.$nom.' » supprimée.');
+        $this->addFlash('success', '🗑️ Machine « ' . $nom . ' » supprimée.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-machines']);
     }
 
@@ -815,18 +932,24 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function editArticle(Request $request, Article $article, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('edit_article_'.$article->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('edit_article_' . $article->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
         }
 
-        $nom = trim($request->getPayload()->getString('nom'));
-        $quantite = $request->getPayload()->getInt('quantite');
-        $seuil = $request->getPayload()->getInt('seuil_alerte');
-
+        $nom = trim((string) $request->request->get('nom', ''));
         if ($nom === '') {
             $this->addFlash('danger', '❌ Le nom ne peut pas être vide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
+        }
+
+        // ✅ SÉCURITÉ : validation stricte de quantite et seuil_alerte
+        $quantite = $this->parseIntValide($request->request->get('quantite'), 0, 1000000);
+        $seuil    = $this->parseIntValide($request->request->get('seuil_alerte'), 0, 1000000);
+
+        if ($quantite === null || $seuil === null) {
+            $this->addFlash('danger', '❌ Quantité ou seuil invalide (entiers entre 0 et 1 000 000 attendus).');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
         }
 
@@ -835,7 +958,7 @@ class AdminController extends AbstractController
         $article->setSeuilAlerte($seuil);
 
         $em->flush();
-        $this->addFlash('success', '📝 Article « '.$nom.' » mis à jour.');
+        $this->addFlash('success', '📝 Article « ' . $nom . ' » mis à jour.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
     }
 
@@ -843,8 +966,8 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function deleteArticle(Request $request, Article $article, EntityManagerInterface $em): Response
     {
-        $token = $request->getPayload()->getString('_token');
-        if (!$this->isCsrfTokenValid('delete_article_'.$article->getId(), $token)) {
+        $token = (string) $request->request->get('_token', '');
+        if (!$this->isCsrfTokenValid('delete_article_' . $article->getId(), $token)) {
             $this->addFlash('danger', '❌ Token CSRF invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
         }
@@ -852,7 +975,7 @@ class AdminController extends AbstractController
         $nom = $article->getNom();
         $em->remove($article);
         $em->flush();
-        $this->addFlash('success', '🗑️ Article « '.$nom.' » supprimé.');
+        $this->addFlash('success', '🗑️ Article « ' . $nom . ' » supprimé.');
         return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-stock']);
     }
 
@@ -863,11 +986,12 @@ class AdminController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function assignerPDG(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
     {
-        $userId = $request->request->get('user_id');
-        $user   = $userRepository->find($userId);
+        // ✅ SÉCURITÉ : validation stricte de user_id
+        $userId = $this->parseIntValide($request->request->get('user_id'), 1);
+        $user   = $userId !== null ? $userRepository->find($userId) : null;
 
         if (!$user) {
-            $this->addFlash('danger', '❌ Utilisateur introuvable.');
+            $this->addFlash('danger', '❌ Utilisateur introuvable ou identifiant invalide.');
             return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
         }
 
@@ -880,7 +1004,7 @@ class AdminController extends AbstractController
         $roles = $user->getRoles();
         if (!in_array('ROLE_DG', $roles)) {
             $roles[] = 'ROLE_DG';
-            $user->setRoles($roles);
+            $user->setRoles(array_values(array_unique($roles)));
         }
 
         $em->flush();
@@ -907,6 +1031,68 @@ class AdminController extends AbstractController
             $em->flush();
             $this->addFlash('success', sprintf(
                 'Le statut PDG a été retiré à %s.',
+                $user->getEmail()
+            ));
+        }
+
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ NOMMER UN ADJOINT CHEF COMPTABLE (un seul à la fois)
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/assigner-adjoint-chef-compta', name: 'app_admin_assigner_adjoint_chef_compta', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function assignerAdjointChefCompta(Request $request, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        // ✅ SÉCURITÉ : validation stricte de user_id
+        $userId = $this->parseIntValide($request->request->get('user_id'), 1);
+        $user   = $userId !== null ? $userRepository->find($userId) : null;
+
+        if (!$user) {
+            $this->addFlash('danger', '❌ Utilisateur introuvable ou identifiant invalide.');
+            return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+        }
+
+        foreach ($userRepository->findAll() as $u) {
+            if (in_array('ROLE_ADJOINT_CHEF_COMPTA', $u->getRoles())) {
+                $roles = array_diff($u->getRoles(), ['ROLE_ADJOINT_CHEF_COMPTA']);
+                $u->setRoles(array_values($roles));
+            }
+        }
+
+        $roles = $user->getRoles();
+        if (!in_array('ROLE_ADJOINT_CHEF_COMPTA', $roles)) {
+            $roles[] = 'ROLE_ADJOINT_CHEF_COMPTA';
+        }
+        $roles = array_diff($roles, ['ROLE_CHEF_COMPTA']);
+        $user->setRoles(array_values(array_unique($roles)));
+
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            '👔 %s a été nommé Adjoint Chef Comptable.',
+            $user->getEmail()
+        ));
+
+        return $this->redirectToRoute('app_admin_dashboard', ['_fragment' => 'pane-nominations']);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ DESTITUER L'ADJOINT CHEF COMPTABLE
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/admin/destituer-adjoint-chef-compta/{id}', name: 'app_admin_destituer_adjoint_chef_compta', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function destituerAdjointChefCompta(int $id, UserRepository $userRepository, EntityManagerInterface $em): Response
+    {
+        $user = $userRepository->find($id);
+
+        if ($user) {
+            $roles = array_diff($user->getRoles(), ['ROLE_ADJOINT_CHEF_COMPTA']);
+            $user->setRoles(array_values($roles));
+            $em->flush();
+            $this->addFlash('success', sprintf(
+                'Le rôle Adjoint Chef Comptable a été retiré à %s.',
                 $user->getEmail()
             ));
         }

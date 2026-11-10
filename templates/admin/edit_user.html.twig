@@ -6,30 +6,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        /* Chef toggle : switch bleu primary pour rester dans le thème */
-        .form-switch .form-check-input {
-            width: 48px;
-            height: 26px;
-            cursor: pointer;
-        }
-        .form-switch .form-check-input:checked {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-        .form-switch .form-check-input:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
+        .form-switch .form-check-input { width: 48px; height: 26px; cursor: pointer; }
+        .form-switch .form-check-input:checked { background-color: #0d6efd; border-color: #0d6efd; }
+        .form-switch .form-check-input:focus { border-color: #86b7fe; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
     </style>
 </head>
 <body class="bg-light">
     <div class="container py-5" style="max-width: 600px;">
+        
         <!-- Bouton Retour en haut -->
-        <div class="mb-3">
-            <a href="{{ path('app_admin_dashboard') }}" class="text-decoration-none text-secondary fw-bold">
-                <i class="fas fa-arrow-left me-1"></i> Retour au tableau de bord
+        <div class="mb-3 d-flex justify-content-between align-items-center">
+            <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary btn-sm fw-bold">
+                <i class="fas fa-arrow-left me-1"></i> Menu Principal
             </a>
+            <span class="text-muted small"><i class="fas fa-lock me-1"></i> Espace Administrateur</span>
         </div>
+
+        {# ✅ BLOC DE MESSAGES (Succès / Erreurs Flash) #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'danger' ? 'danger' : 'success' }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas {{ label == 'danger' ? 'fa-exclamation-triangle' : 'fa-check-circle' }} me-2"></i> 
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
@@ -44,14 +46,35 @@
             </div>
 
             <div class="card-body p-4">
-                <form method="POST">
+                {# ✅ DÉBUT DU FORMULAIRE SYMFONY #}
+                {{ form_start(form) }}
+
+                    {# ✅ AFFICHAGE DES ERREURS GLOBALES (Très important pour comprendre pourquoi ça ne sauvegarde pas) #}
+                    {% if not form.vars.valid %}
+                        <div class="alert alert-danger mb-4 shadow-sm">
+                            <h6 class="fw-bold"><i class="fas fa-exclamation-circle me-1"></i> Veuillez corriger les erreurs suivantes :</h6>
+                            <ul class="mb-0 small">
+                                {# Erreurs globales du formulaire #}
+                                {% for error in form.vars.errors %}
+                                    <li>{{ error.message }}</li>
+                                {% endfor %}
+                                {# Erreurs spécifiques à chaque champ #}
+                                {% for child in form.children %}
+                                    {% for error in child.vars.errors %}
+                                        <li><strong>{{ child.vars.label|default(child.vars.name) }} :</strong> {{ error.message }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
 
                     {# ==========================================
                        EMAIL
                     ========================================== #}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Adresse Email :</label>
-                        <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.email) }}
                     </div>
 
                     {# ==========================================
@@ -59,17 +82,8 @@
                     ========================================== #}
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary">Rôle Assigné :</label>
-                        <select name="role" class="form-select" id="roleSelect">
-                            <option value="ROLE_USER" {% if 'ROLE_USER' in user.roles %}selected{% endif %}>Opérationnel (ROLE_USER)</option>
-                            <option value="ROLE_STOCK" {% if 'ROLE_STOCK' in user.roles %}selected{% endif %}>Magasinier (ROLE_STOCK)</option>
-                            <option value="ROLE_COORDON" {% if 'ROLE_COORDON' in user.roles %}selected{% endif %}>Coordonnateur (ROLE_COORDON)</option>
-                            <option value="ROLE_COMPTA" {% if 'ROLE_COMPTA' in user.roles %}selected{% endif %}>Comptabilité (ROLE_COMPTA)</option>
-                            <option value="ROLE_RECEPTION" {% if 'ROLE_RECEPTION' in user.roles %}selected{% endif %}>Réception (ROLE_RECEPTION)</option>
-                            <option value="ROLE_GUERITE" {% if 'ROLE_GUERITE' in user.roles %}selected{% endif %}>Agent Guérite (ROLE_GUERITE)</option>
-                            <option value="ROLE_CAISSIER" {% if 'ROLE_CAISSIER' in user.roles %}selected{% endif %}>Caissier (ROLE_CAISSIER)</option>
-                            <option value="ROLE_DG" {% if 'ROLE_DG' in user.roles %}selected{% endif %}>Directeur Général (ROLE_DG)</option>
-                            <option value="ROLE_ADMIN" {% if 'ROLE_ADMIN' in user.roles %}selected{% endif %}>Administrateur (ROLE_ADMIN)</option>
-                        </select>
+                        {{ form_widget(form.roles, {'attr': {'class': 'form-select', 'id': 'roleSelect'}}) }}
+                        {{ form_errors(form.roles) }}
                     </div>
 
                     {# ==========================================
@@ -77,14 +91,8 @@
                     ========================================== #}
                     <div class="mb-3" id="serviceBlock">
                         <label class="form-label small fw-bold text-secondary">Service de rattachement :</label>
-                        <select name="service_id" class="form-select" id="serviceSelect">
-                            <option value="">-- Aucun service --</option>
-                            {% for service in services %}
-                                <option value="{{ service.id }}" {% if user.service and user.service.id == service.id %}selected{% endif %}>
-                                    {{ service.nom }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                        {{ form_widget(form.service, {'attr': {'class': 'form-select', 'id': 'serviceSelect'}}) }}
+                        {{ form_errors(form.service) }}
                         <div class="form-text text-muted">
                             <i class="fas fa-info-circle me-1"></i>
                             Obligatoire pour un agent opérationnel et pour être chef de service.
@@ -92,16 +100,14 @@
                     </div>
 
                     {# ==========================================
-                       NOMINATION CHEF DE SERVICE (NOUVEAU)
+                       NOMINATION CHEF DE SERVICE
                     ========================================== #}
                     <div class="mb-3" id="chefBlock">
                         <label class="form-label small fw-bold text-secondary">
                             <i class="fas fa-user-tie text-warning me-1"></i>Nomination au poste de Chef de Service :
                         </label>
                         <div class="form-check form-switch bg-light border rounded p-3 ps-4">
-                            <input class="form-check-input ms-0 me-2" type="checkbox" role="switch"
-                                   id="isChefService" name="isChefService" value="1"
-                                   {% if user.isChefService %}checked{% endif %}>
+                            {{ form_widget(form.isChefService, {'attr': {'class': 'form-check-input ms-0 me-2', 'id': 'isChefService'}}) }}
                             <label class="form-check-label small fw-bold text-dark" for="isChefService">
                                 Nommer cet agent comme <strong>Chef de son service</strong>
                             </label>
@@ -122,7 +128,8 @@
                     ========================================== #}
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-secondary">Changer le mot de passe :</label>
-                        <input type="password" name="password" class="form-control" placeholder="Laisser vide si inchangé">
+                        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Laisser vide si inchangé'}}) }}
+                        {{ form_errors(form.password) }}
                         <div class="form-text text-muted">
                             Saisir un mot de passe uniquement si l'employé demande une réinitialisation.
                         </div>
@@ -135,18 +142,17 @@
                         <button type="submit" class="btn btn-primary fw-bold flex-grow-1">
                             <i class="fas fa-save me-1"></i> Sauvegarder les modifications
                         </button>
-                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary fw-bold">
+                        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-danger fw-bold">
                             Annuler
                         </a>
                     </div>
-                </form>
+                {{ form_end(form) }}
+                {# ✅ FIN DU FORMULAIRE SYMFONY #}
             </div>
         </div>
     </div>
 
-    <!-- ============================================
-         SCRIPT : logique interactive
-    ============================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const roleSelect    = document.getElementById('roleSelect');
@@ -156,29 +162,25 @@
             const chefCheckbox  = document.getElementById('isChefService');
             const chefWarning   = document.getElementById('chefWarning');
 
-            // Rôles pouvant avoir un service
-            const rolesAvecService = [
-                'ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON',
-                'ROLE_COMPTA', 'ROLE_RECEPTION', 'ROLE_GUERITE', 'ROLE_CAISSIER'
-            ];
-
-            // Rôles pouvant être chef de service
-            const rolesChefPossible = ['ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON', 'ROLE_COMPTA'];
+            if(!roleSelect || !chefCheckbox) return;
 
             function updateUI() {
                 const role = roleSelect.value;
+                
+                // Attention : ces rôles doivent correspondre exactement à ceux du ChoiceType dans UserType.php
+                const rolesAvecService = [
+                    'ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON',
+                    'ROLE_COMPTA', 'ROLE_RECEPTION', 'ROLE_GUERITE', 'ROLE_CAISSIER'
+                ];
+                const rolesChefPossible = ['ROLE_USER', 'ROLE_STOCK', 'ROLE_COORDON', 'ROLE_COMPTA'];
 
-                // Bloc service
                 serviceBlock.style.display = rolesAvecService.includes(role) ? 'block' : 'none';
-
-                // Bloc chef
                 if (rolesChefPossible.includes(role)) {
                     chefBlock.style.display = 'block';
                 } else {
                     chefBlock.style.display = 'none';
                     chefCheckbox.checked = false;
                 }
-
                 verifierChef();
             }
 
@@ -192,12 +194,10 @@
                 }
             }
 
-            // Écouteurs
             roleSelect.addEventListener('change', updateUI);
             chefCheckbox.addEventListener('change', verifierChef);
             serviceSelect.addEventListener('change', verifierChef);
 
-            // Bloquer la soumission si chef sans service
             document.querySelector('form').addEventListener('submit', function(e) {
                 if (chefCheckbox.checked && (!serviceSelect.value || serviceSelect.value === '')) {
                     e.preventDefault();
@@ -207,7 +207,6 @@
                 }
             });
 
-            // État initial
             updateUI();
         });
     </script>

@@ -78,14 +78,13 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Transitions ciblées (plus performant que * { transition }) */
         .form-control,
         .form-select,
         .btn-devis,
         .btn-back,
         .montant-group,
-        .echeance-group,
-        .echeance-preview,
+        .delai-group,
+        .delai-preview,
         .devis-card,
         .step-item,
         .step-num {
@@ -402,7 +401,7 @@
             font-weight: 700;
             font-size: 1.02rem;
             color: var(--slate-800);
-            min-width: 0;            /* permet le shrink en flex */
+            min-width: 0;
             flex: 1 1 auto;
         }
         .montant-group .form-select {
@@ -417,10 +416,9 @@
         }
 
         /* ============================================
-           BLOC DATE D'ÉCHÉANCE
+           BLOC DÉLAI EN JOURS
         ============================================ */
-        .echeance-group {
-            position: relative;
+        .delai-group {
             display: flex;
             align-items: stretch;
             border: 2px solid var(--red-600);
@@ -430,10 +428,10 @@
             min-height: 50px;
             box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08);
         }
-        .echeance-group:focus-within {
+        .delai-group:focus-within {
             box-shadow: var(--ring-red), 0 4px 12px rgba(220, 38, 38, 0.12);
         }
-        .echeance-group .echeance-icon {
+        .delai-group .delai-icon {
             display: flex;
             align-items: center;
             justify-content: center;
@@ -444,76 +442,100 @@
             align-self: stretch;
             flex-shrink: 0;
         }
-        .echeance-group .form-control {
+        .delai-group .form-control {
             border: none;
             background: transparent;
             box-shadow: none;
             font-weight: 700;
             color: var(--red-700);
             font-family: 'Courier New', ui-monospace, monospace;
-            font-size: 0.95rem;
-            padding: 0.75rem 0.9rem;
+            font-size: 1.02rem;
+            padding: 0.75rem 1rem;
             min-height: auto;
-            cursor: pointer;
             min-width: 0;
             flex: 1 1 auto;
+            text-align: right;
         }
-        .echeance-group .form-control:focus {
+        .delai-group .form-control:focus {
             box-shadow: none;
             background: transparent;
             border-color: transparent;
         }
-        .echeance-group .form-control::-webkit-calendar-picker-indicator {
-            cursor: pointer;
-            opacity: 0.65;
-            filter: invert(18%) sepia(85%) saturate(2400%) hue-rotate(345deg);
+        .delai-group .delai-suffixe {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 1.15rem;
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: var(--red-700);
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            border-left: 1.5px dashed rgba(220, 38, 38, 0.25);
+            flex-shrink: 0;
         }
-        .echeance-group .form-control::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+        /* Masquer les flèches du input number */
+        .delai-group input[type=number]::-webkit-inner-spin-button,
+        .delai-group input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .delai-group input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
 
         /* ============================================
-           APERÇU "JOURS RESTANTS"
+           APERÇU DATE PROJETÉE
         ============================================ */
-        .echeance-preview {
+        .delai-preview {
             display: none;
             align-items: flex-start;
             gap: 0.55rem;
             margin-top: 0.6rem;
-            padding: 0.6rem 0.85rem;
+            padding: 0.7rem 0.9rem;
             background: #fff;
             border-radius: 10px;
-            border: 1px solid rgba(220, 38, 38, 0.20);
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--red-700);
-            line-height: 1.4;
+            border: 1px solid rgba(59, 130, 246, 0.20);
+            background: #eff6ff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1e40af;
+            line-height: 1.5;
         }
-        .echeance-preview.visible {
+        .delai-preview.visible {
             display: flex;
             animation: slideDown 0.35s ease;
         }
-        .echeance-preview i { flex-shrink: 0; font-size: 0.95rem; margin-top: 1px; }
-        .echeance-preview small { font-weight: 500; opacity: 0.78; }
+        .delai-preview i { flex-shrink: 0; font-size: 0.95rem; margin-top: 2px; }
+        .delai-preview small { font-weight: 500; opacity: 0.78; display: block; margin-top: 3px; }
+        .delai-preview strong { color: #1e3a8a; }
 
-        .echeance-preview.urgent {
+        .delai-preview.urgent {
             background: var(--red-50);
             border-color: var(--red-600);
             color: var(--red-700);
         }
-        .echeance-preview.urgent i { color: var(--red-600); }
+        .delai-preview.urgent i { color: var(--red-600); }
+        .delai-preview.urgent strong { color: var(--red-700); }
 
-        .echeance-preview.moyen {
+        .delai-preview.moyen {
             background: var(--amber-50);
             border-color: var(--amber-500);
             color: var(--amber-700);
         }
-        .echeance-preview.moyen i { color: var(--amber-600); }
+        .delai-preview.moyen i { color: var(--amber-600); }
+        .delai-preview.moyen strong { color: var(--amber-700); }
 
-        .echeance-preview.confortable {
+        .delai-preview.confortable {
             background: rgba(16, 185, 129, 0.08);
             border-color: var(--emerald-500);
             color: var(--emerald-600);
         }
-        .echeance-preview.confortable i { color: var(--emerald-600); }
+        .delai-preview.confortable i { color: var(--emerald-600); }
+        .delai-preview.confortable strong { color: var(--emerald-600); }
 
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-6px); }
@@ -634,6 +656,7 @@
             .step-item { padding: 0.3rem 0.5rem; font-size: 0.72rem; }
             .step-arrow { display: none; }
             .montant-group .form-select { width: 104px; padding-right: 1.7rem; }
+            .delai-group .delai-suffixe { padding: 0 0.75rem; font-size: 0.75rem; }
             .btn-devis { font-size: 0.94rem; padding: 0.9rem 1.25rem; }
         }
 
@@ -709,12 +732,14 @@
                         </div>
                     </div>
 
-                    {# Info banner #}
+                    {# ✅ Info banner : nouvelle logique basée sur le délai en jours #}
                     <div class="info-banner">
                         <i class="fas fa-info-circle"></i>
                         <p>
                             Les champs marqués d'un <strong class="text-danger">*</strong> sont obligatoires.
-                            La <strong>date d'échéance</strong> précise la date à laquelle les travaux doivent être terminés.
+                            Le <strong>délai de travaux</strong> indique en combien de jours les travaux doivent être terminés
+                            <em>après le décaissement des fonds</em>. La <strong>date limite réelle</strong> sera calculée
+                            automatiquement par le système au moment où l'argent est libéré.
                         </p>
                     </div>
 
@@ -754,7 +779,7 @@
                                 'class': 'form-control',
                                 'id': 'devis_description',
                                 'rows': '4',
-                                'placeholder': 'Détaillez précisément votre besoin (type de travaux, quantité, délais souhaités...)...',
+                                'placeholder': 'Détaillez précisément votre besoin (type de travaux, quantité, etc.)...',
                                 'required': 'required'
                             }}) }}
                             {% if form.description.vars.errors|length > 0 %}
@@ -763,7 +788,7 @@
                         </div>
 
                         {# ==========================================
-                           LIGNE : MONTANT + DEVISE | DATE D'ÉCHÉANCE
+                           LIGNE : MONTANT + DEVISE | DÉLAI EN JOURS
                         ========================================== #}
                         <div class="row g-3 g-lg-4 mb-4">
 
@@ -795,37 +820,44 @@
                                 {% endif %}
                             </div>
 
-                            {# --- Date d'échéance (colonne droite, OBLIGATOIRE) --- #}
+                            {# --- ✅ DÉLAI DE TRAVAUX EN JOURS (colonne droite, OBLIGATOIRE) --- #}
                             <div class="col-lg-6">
-                                <label class="form-label-modern" for="devis_echeance">
-                                    <i class="fas fa-hourglass-end" style="color:#dc2626;"></i>
-                                    Date d'échéance des travaux
+                                <label class="form-label-modern" for="devis_delaiJours">
+                                    <i class="fas fa-hourglass-half" style="color:#dc2626;"></i>
+                                    Délai de travaux
                                     <span class="required-star">*</span>
                                     <span class="required-badge">
                                         <i class="fas fa-lock" style="font-size:0.55rem;"></i> Obligatoire
                                     </span>
                                 </label>
 
-                                {% if form.echeance is defined %}
-                                <div class="echeance-group">
-                                    <div class="echeance-icon">
-                                        <i class="fas fa-calendar-day"></i>
+                                {% if form.delaiJours is defined %}
+                                <div class="delai-group">
+                                    <div class="delai-icon">
+                                        <i class="fas fa-clock"></i>
                                     </div>
-                                    {{ form_widget(form.echeance, {'attr': {
+                                    {{ form_widget(form.delaiJours, {'attr': {
                                         'class': 'form-control',
-                                        'id': 'devis_echeance',
-                                        'required': 'required'
+                                        'id': 'devis_delaiJours',
+                                        'placeholder': '30',
+                                        'required': 'required',
+                                        'min': '1',
+                                        'max': '365'
                                     }}) }}
+                                    <span class="delai-suffixe">jours</span>
                                 </div>
 
-                                {% if form.echeance.vars.errors|length > 0 %}
-                                    <div class="error-text">{{ form_errors(form.echeance) }}</div>
+                                {% if form.delaiJours.vars.errors|length > 0 %}
+                                    <div class="error-text">{{ form_errors(form.delaiJours) }}</div>
                                 {% endif %}
 
-                                {# Aperçu dynamique #}
-                                <div class="echeance-preview" id="echeancePreview">
-                                    <i class="fas fa-clock" id="echeancePreviewIcon"></i>
-                                    <span id="echeancePreviewText"></span>
+                                {# Aperçu dynamique : date projetée si décaissé aujourd'hui #}
+                                <div class="delai-preview" id="delaiPreview">
+                                    <i class="fas fa-calendar-check" id="delaiPreviewIcon"></i>
+                                    <span id="delaiPreviewText">
+                                        <strong>La date limite sera calculée automatiquement</strong>
+                                        <small>Le compte à rebours démarrera à la date du décaissement.</small>
+                                    </span>
                                 </div>
                                 {% endif %}
                             </div>
@@ -855,73 +887,69 @@
 </div>
 
 {# ============================================
-   SCRIPT : Aperçu dynamique + Validation
+   SCRIPT : Aperçu dynamique de la date projetée
 ============================================ #}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const echeanceInput  = document.getElementById('devis_echeance');
-        const preview        = document.getElementById('echeancePreview');
-        const previewIcon    = document.getElementById('echeancePreviewIcon');
-        const previewText    = document.getElementById('echeancePreviewText');
+        const delaiInput    = document.getElementById('devis_delaiJours');
+        const preview       = document.getElementById('delaiPreview');
+        const previewIcon   = document.getElementById('delaiPreviewIcon');
+        const previewText   = document.getElementById('delaiPreviewText');
 
-        if (!echeanceInput || !preview) return;
+        if (!delaiInput || !preview) return;
 
-        // Bloquer les dates dans le passé
-        const today = new Date().toISOString().split('T')[0];
-        echeanceInput.setAttribute('min', today);
+        // ✅ Affiche le preview dès le chargement (message d'aide)
+        preview.classList.add('visible');
 
         function updatePreview() {
-            const valeur = echeanceInput.value;
-            if (!valeur) {
-                preview.classList.remove('visible', 'urgent', 'moyen', 'confortable');
+            const jours = parseInt(delaiInput.value, 10);
+
+            // Cas : valeur invalide ou vide
+            if (!jours || jours < 1 || jours > 365) {
+                preview.classList.remove('urgent', 'moyen', 'confortable');
+                preview.classList.add('visible');
+                previewIcon.className = 'fas fa-calendar-check';
+                previewText.innerHTML = '<strong>La date limite sera calculée automatiquement</strong>' +
+                    '<small>Le compte à rebours démarrera à la date du décaissement.</small>';
                 return;
             }
 
-            const dateEcheance = new Date(valeur + 'T00:00:00');
-            const aujourdhui = new Date();
-            aujourdhui.setHours(0, 0, 0, 0);
+            // ✅ Calcul de la date projetée (si décaissement aujourd'hui)
+            const dateProjetee = new Date();
+            dateProjetee.setHours(0, 0, 0, 0);
+            dateProjetee.setDate(dateProjetee.getDate() + jours);
 
-            const diffMs    = dateEcheance - aujourdhui;
-            const diffJours = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const dateFormatee = dateProjetee.toLocaleDateString('fr-FR', options);
 
             preview.classList.add('visible');
             preview.classList.remove('urgent', 'moyen', 'confortable');
 
-            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
-            const dateFormatee = dateEcheance.toLocaleDateString('fr-FR', options);
-
-            if (diffJours < 0) {
+            // Classe selon la durée
+            if (jours <= 7) {
                 preview.classList.add('urgent');
                 previewIcon.className = 'fas fa-exclamation-triangle';
-                previewText.innerHTML = '<strong>Date invalide !</strong> L\'échéance ne peut pas être dans le passé.';
-            } else if (diffJours === 0) {
-                preview.classList.add('urgent');
-                previewIcon.className = 'fas fa-fire';
-                previewText.innerHTML = '<strong>Aujourd\'hui !</strong> Travaux à terminer aujourd\'hui.';
-            } else if (diffJours === 1) {
-                preview.classList.add('urgent');
-                previewIcon.className = 'fas fa-exclamation-circle';
-                previewText.innerHTML = '<strong>Demain !</strong> Il reste 1 jour.';
-            } else if (diffJours <= 7) {
-                preview.classList.add('urgent');
-                previewIcon.className = 'fas fa-hourglass-half';
-                previewText.innerHTML = 'Délai serré : <strong>' + diffJours + ' jours</strong> restants.';
-            } else if (diffJours <= 30) {
+            } else if (jours <= 30) {
                 preview.classList.add('moyen');
                 previewIcon.className = 'fas fa-clock';
-                previewText.innerHTML = '<strong>' + diffJours + ' jours</strong> avant l\'échéance.';
             } else {
                 preview.classList.add('confortable');
                 previewIcon.className = 'fas fa-check-circle';
-                previewText.innerHTML = 'Délai confortable : <strong>' + diffJours + ' jours</strong>.';
             }
 
-            previewText.innerHTML += '<br><small>📅 ' + dateFormatee + '</small>';
+            previewText.innerHTML =
+                'Si les fonds sont décaissés <strong>aujourd\'hui</strong>, les travaux devront être terminés le ' +
+                '<strong>' + dateFormatee + '</strong>' +
+                '<small><i class="fas fa-info-circle me-1"></i>Délai : ' + jours + ' jour' + (jours > 1 ? 's' : '') + '</small>';
         }
 
-        echeanceInput.addEventListener('change', updatePreview);
-        echeanceInput.addEventListener('input', updatePreview);
-        updatePreview();
+        delaiInput.addEventListener('input', updatePreview);
+        delaiInput.addEventListener('change', updatePreview);
+
+        // Bloquer la saisie de caractères non numériques
+        delaiInput.addEventListener('keypress', function (e) {
+            if (!/[0-9]/.test(e.key)) e.preventDefault();
+        });
     });
 </script>
 

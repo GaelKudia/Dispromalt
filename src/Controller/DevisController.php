@@ -8,11 +8,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * DevisController — UNIQUEMENT création + aperçu.
- * ⚠️ Toutes les routes de validation/décaissement/aiguillage sont dans DashboardController.
+ * DevisController — création + aperçu uniquement.
+ * Le reste (validation / décaissement / aiguillage) est dans DashboardController.
  */
 class DevisController extends AbstractController
 {
@@ -23,18 +23,29 @@ class DevisController extends AbstractController
     public function nouveauDevis(Request $request): Response
     {
         $devis = new Devis();
-        $form = $this->createForm(DevisType::class, $devis);
+        $form  = $this->createForm(DevisType::class, $devis);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entete = $form->has('entete') ? $form->get('entete')->getData() : '';
+            $entete = $form->has('entete') ? ($form->get('entete')->getData() ?? '') : '';
 
+            // ✅ Récupération du délai de travaux (jours)
+            $delaiJours = 0;
+            if ($form->has('delaiJours')) {
+                $delaiJours = (int) $form->get('delaiJours')->getData();
+            }
+
+            // ✅ On stocke TOUT en session (y compris le délai)
             $request->getSession()->set('devis_brouillon', [
-                'entete'      => $entete ?: 'Nouveau Devis',
+                'entete'      => $entete !== '' ? $entete : 'Nouveau Devis',
                 'description' => $devis->getDescription(),
                 'montant'     => $devis->getMontant(),
-                'devise'      => $form->get('devise')->getData() ?? 'USD',
+                'devise'      => $form->has('devise')
+                                    ? ($form->get('devise')->getData() ?? 'USD')
+                                    : 'USD',
+                'delaiJours'  => $delaiJours,
             ]);
+
             return $this->redirectToRoute('app_devis_apercu');
         }
 
@@ -68,15 +79,21 @@ class DevisController extends AbstractController
             $devis->setCreatedAt(new \DateTime());
             $devis->setUser($this->getUser());
             $devis->setCreatedBy($this->getUser()->getUserIdentifier());
-
-            // 🎯 Statut initial : en attente du chef de service
             $devis->setStatut(Devis::STATUT_ATTENTE_CHEF);
+
+            // ✅ On injecte le délai dans la description (workaround actuel)
+            $delaiJours = (int) ($sessionData['delaiJours'] ?? 0);
+            if ($delaiJours > 0) {
+                $description = rtrim((string) $devis->getDescription());
+                $devis->setDescription($description . "\n[DELAI:" . $delaiJours . "]");
+            }
 
             $em->persist($devis);
             $em->flush();
 
             $request->getSession()->remove('devis_brouillon');
             $this->addFlash('success', '🚀 Votre devis a été envoyé au circuit de validation.');
+
             return $this->redirectToRoute('app_dashboard');
         }
 

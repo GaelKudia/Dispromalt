@@ -26,9 +26,6 @@
             min-height: 100vh;
         }
 
-        /* ═══════════════════════════════════════════════════════
-           CONTENEUR PRINCIPAL — PLEINE LARGEUR (toutes tailles)
-        ═══════════════════════════════════════════════════════ */
         .main-wrapper {
             width: 100% !important;
             max-width: 100% !important;
@@ -90,9 +87,14 @@
             50% { opacity: .6; transform: scale(1.1); }
         }
 
-        /* ═══════════════════════════════════════════════════════
-           MENU MOBILE SUPERPOSÉ (OVERLAY)
-        ═══════════════════════════════════════════════════════ */
+        @keyframes spinRefresh {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .fa-sync-alt.fa-spin {
+            animation: spinRefresh 0.6s linear infinite;
+        }
+
         .mobile-tab-toggle { display: none; }
         .mobile-tab-overlay { display: none; }
 
@@ -308,15 +310,51 @@
             font-weight: 700;
         }
 
-        /* ═══════════════════════════════════════════════════════
-           BREAKPOINT MOBILE — MENU OVERLAY
-        ═══════════════════════════════════════════════════════ */
+        .btn-refresh-hero {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff;
+            border-radius: 10px;
+            padding: 0.7rem 1.25rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+        .btn-refresh-hero:hover {
+            background: rgba(255,255,255,0.25);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* ✅ NOUVEAU : encadré des erreurs Symfony par champ */
+        .form-errors-box {
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            border-radius: 12px;
+            padding: 1rem 1.15rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-errors-box .errors-title {
+            color: #991b1b;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin: 0 0 0.5rem 0;
+        }
+        .form-errors-box ul {
+            margin: 0;
+            padding-left: 1.25rem;
+            color: #b91c1c;
+            font-size: 0.85rem;
+        }
+        .form-errors-box ul li { margin-bottom: 0.35rem; }
+        .form-errors-box ul li strong { color: #7f1d1d; }
+
         @media (max-width: 768px) {
-
-            /* Masquer les onglets horizontaux */
             .nav-tabs-modern { display: none !important; }
-
-            /* Bouton toggle mobile */
             .mobile-tab-toggle {
                 display: flex;
                 align-items: center;
@@ -350,8 +388,6 @@
             .mobile-tab-toggle.open .fa-chevron-down {
                 transform: rotate(180deg);
             }
-
-            /* Panneau overlay superposé */
             .mobile-tab-overlay {
                 display: none;
                 position: absolute;
@@ -371,12 +407,10 @@
                 display: block;
                 animation: slideDownMenu 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             }
-
             @keyframes slideDownMenu {
                 from { opacity: 0; transform: translateY(-10px); }
                 to   { opacity: 1; transform: translateY(0); }
             }
-
             .mobile-tab-overlay .overlay-item {
                 display: flex;
                 align-items: center;
@@ -394,19 +428,13 @@
                 border-left: 4px solid transparent;
             }
             .mobile-tab-overlay .overlay-item:last-child { border-bottom: none; }
-            .mobile-tab-overlay .overlay-item:hover {
-                background: #f8fafc;
-                color: #1e293b;
-            }
+            .mobile-tab-overlay .overlay-item:hover { background: #f8fafc; color: #1e293b; }
             .mobile-tab-overlay .overlay-item.active {
                 background: linear-gradient(90deg, rgba(102, 126, 234, 0.10), rgba(102, 126, 234, 0.01));
                 color: #1e293b;
                 border-left-color: #667eea;
             }
-            .mobile-tab-overlay .overlay-item i {
-                width: 22px; text-align: center;
-                font-size: 1rem; flex-shrink: 0;
-            }
+            .mobile-tab-overlay .overlay-item i { width: 22px; text-align: center; font-size: 1rem; flex-shrink: 0; }
             .mobile-tab-overlay .overlay-item .tab-badge {
                 margin-left: auto;
                 display: inline-flex;
@@ -425,8 +453,6 @@
             .mobile-tab-overlay .overlay-item span:first-of-type {
                 flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             }
-
-            /* Ajustements mobiles généraux */
             .form-card { padding: 1.15rem; }
             .form-card-header { gap: 0.65rem; }
             .page-title { font-size: 1.4rem; }
@@ -452,9 +478,7 @@
 </head>
 <body>
 
-{# ============================================
-   NAVBAR
-============================================ #}
+{# NAVBAR #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
@@ -509,6 +533,16 @@
                     {% endif %}
                 </ul>
             </div>
+
+            {# ✅ Bouton Actualiser (navbar) #}
+            <button type="button"
+                    id="btnRefreshNavbar"
+                    class="btn btn-light btn-sm fw-bold px-3 rounded-pill"
+                    title="Actualiser la page">
+                <i class="fas fa-sync-alt me-1"></i>
+                <span class="d-none d-md-inline">Actualiser</span>
+            </button>
+
             <div class="role-pill d-none d-md-inline-flex align-items-center">
                 <i class="fas fa-user-shield text-info me-2"></i>
                 <span class="fw-bold">{{ userRole }}</span>
@@ -520,25 +554,32 @@
     </div>
 </nav>
 
-{# ============================================
-   MAIN CONTAINER — PLEINE LARGEUR
-============================================ #}
+{# MAIN CONTAINER #}
 <div class="main-wrapper py-4">
 
     {# HERO BANNER CHEF DE SERVICE #}
     {% if isChefService|default(false) %}
     <div class="hero-banner">
-        <div class="hero-banner-content">
-            <div class="hero-badge-chef">
-                <i class="fas fa-user-tie"></i>
-                Chef de service
+        <div class="hero-banner-content d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <div class="hero-badge-chef">
+                    <i class="fas fa-user-tie"></i>
+                    Chef de service
+                </div>
+                <h1 class="fw-bold mb-1" style="font-size: 1.7rem; letter-spacing: -0.5px;">
+                    Espace de supervision — {{ app.user.service ? app.user.service.nom : 'Service' }}
+                </h1>
+                <p class="mb-0" style="color: rgba(255,255,255,0.75); font-size: 0.92rem;">
+                    Validez les demandes de votre équipe et suivez les devis émis par vos collaborateurs.
+                </p>
             </div>
-            <h1 class="fw-bold mb-1" style="font-size: 1.7rem; letter-spacing: -0.5px;">
-                Espace de supervision — {{ app.user.service ? app.user.service.nom : 'Service' }}
-            </h1>
-            <p class="mb-0" style="color: rgba(255,255,255,0.75); font-size: 0.92rem;">
-                Validez les demandes de votre équipe et suivez les devis émis par vos collaborateurs.
-            </p>
+
+            <button type="button"
+                    id="btnRefreshHeader"
+                    class="btn-refresh-hero">
+                <i class="fas fa-sync-alt"></i>
+                Actualiser
+            </button>
         </div>
     </div>
     {% else %}
@@ -547,6 +588,12 @@
             <h1 class="page-title">Espace de Gestion des Flux</h1>
             <p class="page-subtitle">Créez vos demandes, rédigez vos devis et traitez les autorisations logistiques.</p>
         </div>
+
+        <button type="button"
+                id="btnRefreshHeader"
+                class="btn btn-modern btn-primary shadow-sm">
+            <i class="fas fa-sync-alt me-2"></i>Actualiser
+        </button>
     </div>
     {% endif %}
 
@@ -599,12 +646,10 @@
         </div>
     </div>
 
-    {# ============================================
-       CARTE PRINCIPALE À ONGLETS
-    ============================================ #}
+    {# CARTE PRINCIPALE À ONGLETS #}
     <div class="main-card">
 
-        {# ═══ TOGGLE MOBILE + OVERLAY (visible ≤ 768px) ═══ #}
+        {# TOGGLE MOBILE + OVERLAY #}
         <div style="position: relative;">
             <button class="mobile-tab-toggle" type="button" id="mobileTabToggle" aria-expanded="false">
                 <span class="toggle-left">
@@ -613,9 +658,7 @@
                 </span>
                 <i class="fas fa-chevron-down"></i>
             </button>
-            <div class="mobile-tab-overlay" id="mobileTabOverlay">
-                {# Rempli dynamiquement par JS depuis les onglets existants #}
-            </div>
+            <div class="mobile-tab-overlay" id="mobileTabOverlay"></div>
         </div>
 
         <ul class="nav nav-tabs nav-tabs-modern" id="mainTabs" role="tablist">
@@ -688,9 +731,7 @@
         <div class="p-4">
             <div class="tab-content">
 
-                {# ============================================================
-                   ONGLET CHEF : DEVIS DU SERVICE
-                ============================================================ #}
+                {# ONGLET CHEF : DEVIS DU SERVICE #}
                 {% if isChefService|default(false) %}
                 <div class="tab-pane fade show active" id="pane-devis-service" role="tabpanel">
 
@@ -815,9 +856,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET DÉDIÉ : BONS À VALIDER PAR LE CHEF
-                ============================================================ #}
+                {# ONGLET DÉDIÉ : BONS À VALIDER PAR LE CHEF #}
                 <div class="tab-pane fade" id="pane-bons-chef" role="tabpanel">
 
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -896,7 +935,6 @@
                                                 <td style="padding:1rem;text-align:center;">
                                                     <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-                                                        {# ✅ VALIDER #}
                                                         <form action="{{ path('app_chef_service_bon_valider', {'id': bon.id}) }}"
                                                               method="POST"
                                                               class="d-inline"
@@ -908,7 +946,6 @@
                                                             </button>
                                                         </form>
 
-                                                        {# ❌ REJETER — ouvre la modal #}
                                                         <button type="button"
                                                                 class="btn btn-sm fw-bold"
                                                                 style="background:#fff;color:#dc2626;border:1.5px solid #fecaca;border-radius:8px;padding:.5rem 1rem;font-size:.78rem;"
@@ -936,9 +973,7 @@
                     {% endif %}
                 </div>
 
-                {# ═══════════════════════════════════════════════════════════════
-                   MODAL : Motif de rejet
-                ═══════════════════════════════════════════════════════════════ #}
+                {# MODAL : Motif de rejet #}
                 <div class="modal fade" id="modalRejetBonChef" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content" style="border:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(15,23,42,.25);">
@@ -991,9 +1026,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET CHEF : MA NOUVELLE DEMANDE
-                ============================================================ #}
+                {# ONGLET CHEF : MA NOUVELLE DEMANDE #}
                 <div class="tab-pane fade" id="pane-ma-demande" role="tabpanel">
 
                     <div class="chef-devis-banner mb-4" style="border-color: rgba(79,172,254,0.35);">
@@ -1040,10 +1073,12 @@
                                                 <small class="text-muted" style="font-size: 0.75rem;">
                                                     <i class="fas fa-search me-1"></i>La liste des machines proposera automatiquement les variantes disponibles.
                                                 </small>
+                                                {{ form_errors(formDemande.materiel) }}
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
+                                                {{ form_errors(formDemande.quantite) }}
                                             </div>
                                         </div>
 
@@ -1056,16 +1091,17 @@
                                                 <small class="text-muted" style="font-size: 0.75rem;">
                                                     <i class="fas fa-info-circle me-1"></i>Chaque variante indique la machine associée.
                                                 </small>
+                                                {{ form_errors(formDemande.attribut) }}
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
                                                     {{ form_label(formDemande.destination, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                     {{ form_widget(formDemande.destination, {'attr': {'class': 'form-select'}}) }}
+                                                    {{ form_errors(formDemande.destination) }}
                                                 </div>
                                             {% endif %}
                                         </div>
 
-                                        {# 🖨️ ENCADRÉ MACHINE (affiché dynamiquement après sélection) #}
                                         <div class="machine-info-box" id="machine-info-chef">
                                             <div class="machine-info-icon">
                                                 <i class="fas fa-industry"></i>
@@ -1079,13 +1115,29 @@
 
                                         {{ form_rest(formDemande) }}
 
-                                        {% if formDemande.vars.errors|length > 0 %}
-                                            <div class="alert alert-danger rounded-3 border-0 mt-3 mb-2" style="font-size:0.85rem;">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Erreurs à corriger :</strong>
-                                                <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                        {# ✅ FIX : afficher TOUTES les erreurs (global + par champ) #}
+                                        {% set hasErrors = formDemande.vars.errors|length > 0 %}
+                                        {% for child in formDemande.children %}
+                                            {% if child.vars.errors|length > 0 %}{% set hasErrors = true %}{% endif %}
+                                        {% endfor %}
+
+                                        {% if hasErrors %}
+                                            <div class="form-errors-box">
+                                                <p class="errors-title">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Erreurs à corriger :
+                                                </p>
+                                                <ul>
                                                     {% for error in formDemande.vars.errors %}
-                                                        <li>{{ error.message }}</li>
+                                                        <li><strong>[Formulaire]</strong> {{ error.message }}</li>
+                                                    {% endfor %}
+                                                    {% for child in formDemande.children %}
+                                                        {% for error in child.vars.errors %}
+                                                            <li>
+                                                                <strong>[{{ child.vars.label ?? child.vars.name }}]</strong>
+                                                                {{ error.message }}
+                                                            </li>
+                                                        {% endfor %}
                                                     {% endfor %}
                                                 </ul>
                                             </div>
@@ -1140,9 +1192,7 @@
                 </div>
                 {% endif %}
 
-                {# ============================================================
-                   ONGLET DEMANDES
-                ============================================================ #}
+                {# ONGLET DEMANDES #}
                 <div class="tab-pane fade {% if not isChefService|default(false) %}show active{% endif %}" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -1236,9 +1286,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET BONS DE SORTIE
-                ============================================================ #}
+                {# ONGLET BONS DE SORTIE #}
                 <div class="tab-pane fade" id="pane-bons" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -1290,9 +1338,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET MEMBRE : MES DEVIS
-                ============================================================ #}
+                {# ONGLET MEMBRE : MES DEVIS #}
                 {% if not isChefService|default(false) %}
                 <div class="tab-pane fade" id="pane-mes-devis" role="tabpanel">
                     <div class="row justify-content-center">
@@ -1379,9 +1425,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET : NOUVELLE DEMANDE (MEMBRE)
-                ============================================================ #}
+                {# ONGLET : NOUVELLE DEMANDE (MEMBRE) #}
                 <div class="tab-pane fade" id="pane-new-demande" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-lg-8">
@@ -1413,10 +1457,12 @@
                                                 <small class="text-muted" style="font-size: 0.75rem;">
                                                     <i class="fas fa-search me-1"></i>La liste des machines proposera automatiquement les variantes disponibles.
                                                 </small>
+                                                {{ form_errors(formDemande.materiel) }}
                                             </div>
                                             <div class="col-md-4 mb-3">
                                                 {{ form_label(formDemande.quantite, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                 {{ form_widget(formDemande.quantite, {'attr': {'class': 'form-control'}}) }}
+                                                {{ form_errors(formDemande.quantite) }}
                                             </div>
                                         </div>
 
@@ -1429,16 +1475,17 @@
                                                 <small class="text-muted" style="font-size: 0.75rem;">
                                                     <i class="fas fa-info-circle me-1"></i>Chaque variante indique la machine associée.
                                                 </small>
+                                                {{ form_errors(formDemande.attribut) }}
                                             </div>
                                             {% if formDemande.destination is defined %}
                                                 <div class="col-md-6 mb-3">
                                                     {{ form_label(formDemande.destination, null, {'label_attr': {'class': 'form-label small fw-bold text-secondary'}}) }}
                                                     {{ form_widget(formDemande.destination, {'attr': {'class': 'form-select'}}) }}
+                                                    {{ form_errors(formDemande.destination) }}
                                                 </div>
                                             {% endif %}
                                         </div>
 
-                                        {# 🖨️ ENCADRÉ MACHINE (affiché dynamiquement après sélection) #}
                                         <div class="machine-info-box" id="machine-info-membre">
                                             <div class="machine-info-icon">
                                                 <i class="fas fa-industry"></i>
@@ -1452,13 +1499,29 @@
 
                                         {{ form_rest(formDemande) }}
 
-                                        {% if formDemande.vars.errors|length > 0 %}
-                                            <div class="alert alert-danger rounded-3 border-0 mt-3 mb-2" style="font-size:0.85rem;">
-                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                <strong>Erreurs à corriger :</strong>
-                                                <ul class="mb-0 mt-2" style="padding-left:1rem;">
+                                        {# ✅ FIX : afficher TOUTES les erreurs (global + par champ) #}
+                                        {% set hasErrors = formDemande.vars.errors|length > 0 %}
+                                        {% for child in formDemande.children %}
+                                            {% if child.vars.errors|length > 0 %}{% set hasErrors = true %}{% endif %}
+                                        {% endfor %}
+
+                                        {% if hasErrors %}
+                                            <div class="form-errors-box">
+                                                <p class="errors-title">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Erreurs à corriger :
+                                                </p>
+                                                <ul>
                                                     {% for error in formDemande.vars.errors %}
-                                                        <li>{{ error.message }}</li>
+                                                        <li><strong>[Formulaire]</strong> {{ error.message }}</li>
+                                                    {% endfor %}
+                                                    {% for child in formDemande.children %}
+                                                        {% for error in child.vars.errors %}
+                                                            <li>
+                                                                <strong>[{{ child.vars.label ?? child.vars.name }}]</strong>
+                                                                {{ error.message }}
+                                                            </li>
+                                                        {% endfor %}
                                                     {% endfor %}
                                                 </ul>
                                             </div>
@@ -1510,9 +1573,7 @@
                     </div>
                 </div>
 
-                {# ============================================================
-                   ONGLET : NOUVEAU BON
-                ============================================================ #}
+                {# ONGLET : NOUVEAU BON #}
                 <div class="tab-pane fade" id="pane-new-bon" role="tabpanel">
                     <div class="row justify-content-center">
                         <div class="col-lg-8">
@@ -1542,9 +1603,7 @@
                 </div>
                 {% endif %}
 
-                {# ============================================================
-                   ONGLET : RÉSERVER UNE VISITE
-                ============================================================ #}
+                {# ONGLET : RÉSERVER UNE VISITE #}
                 {% if not is_granted('ROLE_DG') and not is_granted('ROLE_GUERITE') and formVisite is defined and formVisite is not null %}
                 <div class="tab-pane fade" id="pane-visite" role="tabpanel">
                     <div class="row justify-content-center">
@@ -1587,15 +1646,25 @@
     </div>
 </div>
 
-{# ============================================
-   SCRIPTS
-============================================ #}
+{# SCRIPTS #}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
+        // Boutons Actualiser
+        ['btnRefreshNavbar', 'btnRefreshHeader'].forEach(id => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                if (icon) icon.classList.add('fa-spin');
+                this.disabled = true;
+                setTimeout(() => window.location.reload(), 300);
+            });
+        });
+
         // ============================================================
-        // 1. Recherche d'articles + affichage automatique de la machine
+        // Recherche d'articles — select natif Symfony
         // ============================================================
         document.querySelectorAll('.demande-materiel-input').forEach(champMateriel => {
             const form = champMateriel.closest('form');
@@ -1633,8 +1702,9 @@
                     return;
                 }
 
+                const ancienneValeur = attributSelect.value;
                 attributSelect.innerHTML = '<option value="">Recherche en cours…</option>';
-                attributSelect.disabled = false;
+                attributSelect.disabled = true;
 
                 try {
                     const r = await fetch('/api/recherche-article?nom=' + encodeURIComponent(nom));
@@ -1667,7 +1737,7 @@
 
                             parMachine[machineName].forEach(attr => {
                                 const option = document.createElement('option');
-                                option.value = attr.id;
+                                option.value = attr.id !== null ? attr.id : '';
                                 option.textContent = attr.valeur;
                                 option.dataset.machine = attr.machine || '';
                                 optgroup.appendChild(option);
@@ -1677,6 +1747,8 @@
                         });
 
                         attributSelect.disabled = false;
+
+                        if (ancienneValeur) attributSelect.value = ancienneValeur;
                     }
                     afficherMachineSelectionnee();
                 } catch (e) {
@@ -1697,14 +1769,17 @@
 
             champMateriel.addEventListener('blur', function() {
                 clearTimeout(timeoutId);
-                const nom = this.value.trim();
-                if (nom.length >= 2 && attributSelect.options.length <= 1) {
-                    chargerAttributs(nom);
-                }
             });
 
             attributSelect.addEventListener('change', afficherMachineSelectionnee);
 
+            // Auto-recharger si materiel a déjà une valeur (après re-render POST)
+            const valeurInitiale = champMateriel.value.trim();
+            if (valeurInitiale.length >= 2) {
+                chargerAttributs(valeurInitiale);
+            }
+
+            // Commune obligatoire pour gilets
             if (champDestination) {
                 function verifierCommuneGilet() {
                     const val = champMateriel.value.trim().toLowerCase();
@@ -1722,9 +1797,7 @@
             }
         });
 
-        // ============================================================
-        // 2. Empêcher l'autocomplete navigateur
-        // ============================================================
+        // Autocomplete off
         document.querySelectorAll('input[type="text"], input[type="email"]').forEach(input => {
             input.setAttribute('autocomplete', 'off');
             input.setAttribute('autocorrect', 'off');
@@ -1732,17 +1805,7 @@
             input.setAttribute('spellcheck', 'false');
         });
 
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function() {
-                if (document.activeElement && document.activeElement.blur) {
-                    document.activeElement.blur();
-                }
-            });
-        });
-
-        // ============================================================
-        // 3. Mémorisation de l'onglet actif via hash
-        // ============================================================
+        // Mémorisation onglet
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -1754,31 +1817,24 @@
             });
         });
 
-        // ============================================================
-        // 4. MODAL DE REJET — alimenter les infos du bon
-        // ============================================================
+        // Modal rejet
         const modalRejet = document.getElementById('modalRejetBonChef');
         if (modalRejet) {
             modalRejet.addEventListener('show.bs.modal', function (event) {
-                const btn     = event.relatedTarget;
-                const bonId   = btn.getAttribute('data-bon-id');
+                const btn = event.relatedTarget;
+                const bonId = btn.getAttribute('data-bon-id');
                 const employe = btn.getAttribute('data-bon-employe');
-
                 document.getElementById('rejetBonRecap').textContent = `#${bonId} — ${employe}`;
-                document.getElementById('formRejetBonChef').action =
-                    '/dashboard/chef-service/bon/rejeter/' + bonId;
+                document.getElementById('formRejetBonChef').action = '/dashboard/chef-service/bon/rejeter/' + bonId;
             });
         }
 
-        // ============================================================
-        // 5. MENU MOBILE SUPERPOSÉ (OVERLAY)
-        // ============================================================
+        // Menu mobile (inchangé)
         (function initMobileMenu() {
-            const toggle    = document.getElementById('mobileTabToggle');
-            const overlay   = document.getElementById('mobileTabOverlay');
-            const labelEl   = document.getElementById('currentMobileTabLabel');
-            const tabsRoot  = document.getElementById('mainTabs');
-
+            const toggle = document.getElementById('mobileTabToggle');
+            const overlay = document.getElementById('mobileTabOverlay');
+            const labelEl = document.getElementById('currentMobileTabLabel');
+            const tabsRoot = document.getElementById('mainTabs');
             if (!toggle || !overlay || !tabsRoot) return;
 
             function getTabLabel(tab) {
@@ -1786,13 +1842,11 @@
                 clone.querySelectorAll('.tab-badge, .badge').forEach(b => b.remove());
                 return clone.textContent.trim();
             }
-
             function getTabIconClass(tab) {
                 const icon = tab.querySelector('i');
                 if (!icon) return '';
                 return icon.className.split(' ').filter(c => !c.startsWith('text-')).join(' ');
             }
-
             function getTabIconColorClass(tab) {
                 const icon = tab.querySelector('i');
                 if (!icon) return '';
@@ -1801,33 +1855,27 @@
 
             function buildOverlay() {
                 overlay.innerHTML = '';
-
                 tabsRoot.querySelectorAll('.nav-link').forEach(tab => {
                     const target = tab.getAttribute('data-bs-target');
                     if (!target) return;
-
                     const item = document.createElement('button');
                     item.type = 'button';
                     item.className = 'overlay-item' + (tab.classList.contains('active') ? ' active' : '');
                     item.setAttribute('data-target', target);
-
                     const iconClass = getTabIconClass(tab);
                     const iconColor = getTabIconColorClass(tab);
-                    const label     = getTabLabel(tab);
-                    const badge     = tab.querySelector('.tab-badge');
-
+                    const label = getTabLabel(tab);
+                    const badge = tab.querySelector('.tab-badge');
                     item.innerHTML = `
                         ${iconClass ? `<i class="${iconClass} ${iconColor}"></i>` : ''}
                         <span>${label}</span>
                         ${badge ? `<span class="tab-badge">${badge.textContent.trim()}</span>` : ''}
                     `;
-
                     item.addEventListener('click', () => {
                         const trigger = tabsRoot.querySelector(`button[data-bs-target="${target}"]`);
                         if (trigger) new bootstrap.Tab(trigger).show();
                         closeOverlay();
                     });
-
                     overlay.appendChild(item);
                 });
             }
@@ -1835,69 +1883,40 @@
             function updateToggleLabel(tab) {
                 if (!tab || !labelEl) return;
                 labelEl.textContent = getTabLabel(tab);
-
                 const target = tab.getAttribute('data-bs-target');
                 overlay.querySelectorAll('.overlay-item').forEach(item => {
                     item.classList.toggle('active', item.getAttribute('data-target') === target);
                 });
             }
-
-            function openOverlay() {
-                overlay.classList.add('show');
-                toggle.classList.add('open');
-                toggle.setAttribute('aria-expanded', 'true');
-            }
-
-            function closeOverlay() {
-                overlay.classList.remove('show');
-                toggle.classList.remove('open');
-                toggle.setAttribute('aria-expanded', 'false');
-            }
+            function openOverlay() { overlay.classList.add('show'); toggle.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); }
+            function closeOverlay() { overlay.classList.remove('show'); toggle.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); }
 
             toggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (overlay.classList.contains('show')) {
-                    closeOverlay();
-                } else {
-                    openOverlay();
-                }
+                if (overlay.classList.contains('show')) closeOverlay(); else openOverlay();
             });
-
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#mobileTabToggle') && !e.target.closest('#mobileTabOverlay')) {
                     if (overlay.classList.contains('show')) closeOverlay();
                 }
             });
-
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && overlay.classList.contains('show')) closeOverlay();
             });
-
             tabsRoot.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
                 tab.addEventListener('shown.bs.tab', e => {
                     updateToggleLabel(e.target);
-                    if (window.matchMedia('(max-width: 768px)').matches) {
-                        closeOverlay();
-                    }
+                    if (window.matchMedia('(max-width: 768px)').matches) closeOverlay();
                 });
             });
-
             let lastIsMobile = window.matchMedia('(max-width: 768px)').matches;
             window.addEventListener('resize', () => {
                 const isMobile = window.matchMedia('(max-width: 768px)').matches;
-                if (isMobile !== lastIsMobile) {
-                    closeOverlay();
-                    lastIsMobile = isMobile;
-                }
+                if (isMobile !== lastIsMobile) { closeOverlay(); lastIsMobile = isMobile; }
             });
-
             buildOverlay();
             const initialActive = tabsRoot.querySelector('.nav-link.active');
-            if (initialActive) {
-                updateToggleLabel(initialActive);
-            } else {
-                labelEl.textContent = 'Menu';
-            }
+            if (initialActive) updateToggleLabel(initialActive); else labelEl.textContent = 'Menu';
         })();
     });
 </script>

@@ -214,4 +214,5 @@ public function setIsChefComptable(bool $isChefComptable): static {
         $this->isPDG = $isPDG;
         return $this;
     }
+    
 }

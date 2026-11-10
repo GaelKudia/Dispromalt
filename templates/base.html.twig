@@ -128,6 +128,15 @@
             visibility: visible;
         }
 
+        /* ✅ Animation spin pour le bouton actualiser */
+        @keyframes spinRefresh {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .fa-sync-alt.fa-spin {
+            animation: spinRefresh 0.6s linear infinite;
+        }
+
         /* ═══════════════════════════════════════════════════════
            RESPONSIVE — Mobile (≤ 992px)
         ═══════════════════════════════════════════════════════ */
@@ -225,7 +234,6 @@
                 padding-left: 10px !important;
                 padding-right: 10px !important;
             }
-            /* Logo légèrement réduit sur très petit écran */
             .sidebar .brand-link img {
                 height: 34px;
             }
@@ -378,7 +386,17 @@
                     <i class="fa-solid fa-bars fs-5"></i>
                 </button>
                 {% if app.user %}
-                    <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2 gap-md-3">
+
+                        {# ✅ Bouton Actualiser (navbar) #}
+                        <button type="button"
+                                id="btnRefreshPage"
+                                class="btn btn-light btn-sm fw-bold rounded-pill px-3 border"
+                                title="Actualiser la page">
+                            <i class="fa-solid fa-sync-alt me-1"></i>
+                            <span class="d-none d-sm-inline">Actualiser</span>
+                        </button>
+
                         <span class="text-muted small d-none d-sm-inline">
                             <i class="fa-solid fa-user me-1"></i>{{ app.user.userIdentifier }}
                         </span>
@@ -448,12 +466,10 @@
                     }
                 } else {
                     if (sidebar.classList.contains('collapsed')) {
-                        // Afficher la sidebar
                         sidebar.classList.remove('collapsed');
                         sidebar.style.transform = 'translateX(0)';
                         if (wrapper) wrapper.classList.remove('full-width');
                     } else {
-                        // Cacher la sidebar
                         sidebar.classList.add('collapsed');
                         sidebar.style.transform = 'translateX(-100%)';
                         if (wrapper) wrapper.classList.add('full-width');
@@ -488,8 +504,27 @@
                     lastIsMobile = nowMobile;
                 }
             });
+
+            // ✅ Bouton Actualiser
+            const btnRefresh = document.getElementById('btnRefreshPage');
+            if (btnRefresh) {
+                btnRefresh.addEventListener('click', function () {
+                    const icon = this.querySelector('i');
+                    if (icon) icon.classList.add('fa-spin');
+                    this.disabled = true;
+                    this.style.opacity = '0.7';
+                    setTimeout(() => window.location.reload(), 300);
+                });
+            }
         })();
     </script>
     {% block javascripts %}{% endblock %}
+
+    {# Bouton d'activation des notifications #}
+<button id="enable-notifications" class="btn btn-primary btn-sm" style="position:fixed; bottom:20px; right:20px; z-index:9999; border-radius: 50px; padding: 12px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+    <i class="fas fa-bell"></i> Activer les notifications
+</button>
+
+<script src="{{ asset('js/push.js') }}"></script>
 </body>
 </html>

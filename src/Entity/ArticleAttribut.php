@@ -28,7 +28,9 @@ class ArticleAttribut
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $kilogramme = null;
 
-    // Correspond au 'attributs' dans l'entité Article
+    #[ORM\Column(nullable: true)]
+    private ?int $quantite = null;
+
     #[ORM\ManyToOne(inversedBy: 'attributs')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Article $article = null;
@@ -93,6 +95,17 @@ class ArticleAttribut
         return $this;
     }
 
+    public function getQuantite(): ?int
+    {
+        return $this->quantite;
+    }
+
+    public function setQuantite(?int $quantite): static
+    {
+        $this->quantite = $quantite;
+        return $this;
+    }
+
     public function getArticle(): ?Article
     {
         return $this->article;
@@ -103,16 +116,37 @@ class ArticleAttribut
         $this->article = $article;
         return $this;
     }
-    #[ORM\Column(nullable: true)]
-private ?int $quantite = null;public function getQuantite(): ?int
-{
-    return $this->quantite;
-}
 
-public function setQuantite(?int $quantite): static
-{
-    $this->quantite = $quantite;
-    return $this;
-}
-    
+    // ============================================================
+    // ✅ MÉTHODES DE REPRÉSENTATION (bonne logique : centralisées)
+    // ============================================================
+
+    /**
+     * Libellé lisible de la variante, construit dynamiquement.
+     * Ex : "Couleur: Bleu - Dimension: 120cm - Grammage: 80g"
+     * Retourne "Standard" si tous les champs sont vides.
+     */
+    public function getValeur(): string
+    {
+        $details = [];
+
+        if ($this->couleur    !== null && $this->couleur    !== '') $details[] = 'Couleur: '   . $this->couleur;
+        if ($this->grammage   !== null && $this->grammage   !== '') $details[] = 'Grammage: '  . $this->grammage;
+        if ($this->dimension  !== null && $this->dimension  !== '') $details[] = 'Dimension: ' . $this->dimension;
+        if ($this->longueur   !== null && $this->longueur   !== '') $details[] = 'Longueur: '  . $this->longueur;
+        if ($this->kilogramme !== null && $this->kilogramme !== '') $details[] = 'Kg: '        . $this->kilogramme;
+
+        return implode(' - ', $details) ?: 'Standard';
+    }
+
+    /**
+     * Représentation textuelle pour Symfony.
+     * - Utilisée automatiquement par EntityType (choice_label par défaut)
+     * - Utilisée par les logs / dump()
+     * - Utilisée dans les templates Twig ({{ attribut }})
+     */
+    public function __toString(): string
+    {
+        return $this->getValeur();
+    }
 }

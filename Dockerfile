@@ -1,39 +1,22 @@
-FROM dunglas/frankenphp:latest-php8.2-bookworm
+# ============================================================
+# ÉTAPE 1 : BUILDER
+# ============================================================
+FROM dunglas/frankenphp:1.13.4-php8.4-alpine AS builder
 
-# ============================================================
-# 1. Extensions PHP nécessaires
-# ============================================================
+# Extensions PHP requises par composer.lock (dont ext-gd)
 RUN install-php-extensions \
-    pdo_mysql \
-    intl \
-    zip \
-    opcache \
-    mbstring \
-    gd \
-    imagick \
-    apcu
+    pdo_mysql intl zip opcache mbstring gd imagick apcu
 
-# ============================================================
-# 2. Composer (depuis l'image officielle)
-# ============================================================
+# Outils uniquement nécessaires au build
+RUN apk add --no-cache git unzip
+
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# ============================================================
-# 3. Répertoire de travail
-# ============================================================
 WORKDIR /app
 
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
-# ============================================================
-# 4. Copier UNIQUEMENT les fichiers Composer (cache Docker)
-# ============================================================
+# Dépendances
 COPY composer.json composer.lock symfony.lock ./
-
-# ============================================================
-# 5. Installer les vendors SANS scripts
-#    (--no-scripts car bin/console n'existe pas encore)
-# ============================================================
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
@@ -41,54 +24,42 @@ RUN composer install \
     --prefer-dist \
     --no-scripts
 
-# ============================================================
-# 6. Copier TOUT le code maintenant (.env inclus)
-# ============================================================
+# Code source
 COPY . /app
 
-# ============================================================
-# 7. Variables temporaires requises au build
-#    (Coolify les écrase au runtime avec les vraies valeurs)
-# ============================================================
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
-ENV APP_SECRET=build_time_dummy_secret_change_me
-ENV APP_DEFAULT_URI=http://localhost
+# Scripts Symfony
+RUN composer run-script post-install-cmd --no-interaction
+
+# Compilation des assets & warmup
+RUN php bin/console asset-map:compile --env=prod --no-debug \
+    && php bin/console pwa:compile       --env=prod --no-debug \
+    && php bin/console cache:warmup      --env=prod --no-debug
 
 # ============================================================
-# 8. Exécuter les scripts Symfony MAINTENANT que bin/console existe
+# ÉTAPE 2 : PRODUCTION
 # ============================================================
-RUN composer run-script post-install-cmd --no-interaction || true
+FROM dunglas/frankenphp:1.13.4-php8.4-alpine AS production
 
-# ============================================================
-# 9. Compiler les assets AssetMapper (CSS, JS)
-# ============================================================
-RUN php bin/console asset-map:compile --env=prod --no-debug
+RUN install-php-extensions \
+    pdo_mysql intl zip opcache mbstring gd imagick apcu
 
-# ============================================================
-# 10. Compiler les assets PWA (manifest, SW, favicons, icônes)
-# ============================================================
-RUN php bin/console pwa:compile --env=prod --no-debug
+WORKDIR /app
 
-# ============================================================
-# 11. Warmup du cache pour la production
-# ============================================================
-RUN php bin/console cache:warmup --env=prod --no-debug
+COPY --from=builder --chown=www-data:www-data /app /app
 
-# ============================================================
-# 12. Permissions
-# ============================================================
-RUN mkdir -p var/cache var/log \
-    && chown -R www-data:www-data var public \
+RUN mkdir -p var/cache var/log var/share /data /config \
+    && chown -R www-data:www-data var /data /config \
     && chmod -R 775 var
 
-# ============================================================
-# 13. Configuration FrankenPHP
-# ============================================================
-ENV FRANKENPHP_CONFIG="worker /app/public/index.php"
-ENV SERVER_NAME=":80"
+# Dans l'étape "production", juste après le FROM
+RUN apk upgrade --no-cache curl libcurl
 
-# ============================================================
-# 14. Port HTTP
-# ============================================================
+ENV FRANKENPHP_CONFIG="worker /app/public/index.php" \
+    SERVER_NAME=":80"
+
+USER www-data
+
 EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD wget -qO- http://127.0.0.1/ || exit 1

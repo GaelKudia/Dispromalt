@@ -39,7 +39,6 @@
             overflow-y: auto;
         }
 
-        /* Conteneur pleine largeur */
         .full-width-container {
             width: 100%;
             max-width: 100%;
@@ -112,10 +111,6 @@
             width: 100%;
         }
 
-        /* ═══════════════════════════════════════════════
-           ONGLETS : WRAP AUTOMATIQUE = TOUS VISIBLES
-           (plus de scroll horizontal, empilement vertical)
-        ═══════════════════════════════════════════════ */
         .nav-tabs-modern {
             border-bottom: 1px solid #e2e8f0;
             padding: 0.5rem 1rem;
@@ -124,9 +119,7 @@
             overflow: visible !important;
             display: flex;
         }
-        .nav-tabs-modern .nav-item {
-            flex: 0 1 auto;
-        }
+        .nav-tabs-modern .nav-item { flex: 0 1 auto; }
         .nav-tabs-modern .nav-link {
             border: 1px solid transparent !important;
             color: #64748b;
@@ -139,10 +132,7 @@
             background: #f8fafc;
             margin: 2px;
         }
-        .nav-tabs-modern .nav-link:hover {
-            color: var(--dg-primary);
-            background: #eef2f7;
-        }
+        .nav-tabs-modern .nav-link:hover { color: var(--dg-primary); background: #eef2f7; }
         .nav-tabs-modern .nav-link.active {
             color: #fff !important;
             background: var(--gradient-1) !important;
@@ -151,21 +141,10 @@
         .nav-tabs-modern .nav-link.active::after { display: none; }
         .nav-tabs-modern .nav-link i { margin-right: 0.5rem; }
 
-        /* Sur très petits écrans : onglets sur toute la largeur, empilés */
         @media (max-width: 575.98px) {
-            .nav-tabs-modern {
-                flex-direction: column;
-                gap: 0.4rem;
-                padding: 0.75rem;
-            }
-            .nav-tabs-modern .nav-item {
-                width: 100%;
-            }
-            .nav-tabs-modern .nav-link {
-                width: 100%;
-                text-align: left;
-                border-radius: 10px;
-            }
+            .nav-tabs-modern { flex-direction: column; gap: 0.4rem; padding: 0.75rem; }
+            .nav-tabs-modern .nav-item { width: 100%; }
+            .nav-tabs-modern .nav-link { width: 100%; text-align: left; border-radius: 10px; }
         }
 
         .table-modern { margin: 0; }
@@ -289,7 +268,6 @@
         .text-purple { color: #9333ea !important; }
         .bg-purple-soft { background: rgba(168, 85, 247, 0.12) !important; }
 
-        /* KPI 360 */
         .kpi360 {
             display: flex; justify-content: space-between; align-items: center;
             padding: 1rem 1.25rem; border-radius: 14px;
@@ -301,22 +279,40 @@
         .kpi360 .kpi360-label { font-size: 0.68rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
         .kpi360 .kpi360-icon { font-size: 1.75rem; opacity: 0.4; }
 
-        /* Tableaux responsive : scroll horizontal UNIQUEMENT dans le tableau */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Le contenu des onglets défile verticalement avec la page */
         .tab-content { width: 100%; }
+
+        @keyframes spinRefresh {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .fa-sync-alt.fa-spin {
+            animation: spinRefresh 0.6s linear infinite;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+           🚨 ALERTE DEVIS EN RETARD (admin)
+        ═══════════════════════════════════════════════════════ */
+        .alert-late-devis {
+            border: 1px solid rgba(217, 119, 6, 0.30);
+            border-left: 4px solid #d97706;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0.4));
+            animation: pulseLateDevis 2.5s ease-in-out infinite;
+        }
+        @keyframes pulseLateDevis {
+            0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
+            50%      { box-shadow: 0 8px 28px -6px rgba(217, 119, 6, 0.35); }
+        }
     </style>
 </head>
 <body>
 
-{# ============================================
-   NAVBAR
-============================================ #}
+{# NAVBAR #}
 <nav class="navbar navbar-expand-lg navbar-modern py-3 sticky-top">
     <div class="container-fluid px-3 px-lg-4">
         <a class="navbar-brand navbar-brand-modern text-white d-flex align-items-center" href="#">
@@ -329,6 +325,15 @@
                 <i class="fas fa-user-shield text-warning me-2"></i>
                 <span class="fw-bold">Super-Administrateur</span>
             </div>
+
+            <button type="button"
+                    onclick="this.querySelector('i').classList.add('fa-spin'); setTimeout(() => window.location.reload(), 250);"
+                    class="btn btn-light btn-sm fw-bold px-3 rounded-pill"
+                    title="Actualiser la page">
+                <i class="fas fa-sync-alt me-1"></i>
+                <span class="d-none d-sm-inline">Actualiser</span>
+            </button>
+
             <a href="/logout" class="btn btn-danger btn-sm fw-bold px-3 rounded-pill">
                 <i class="fas fa-sign-out-alt me-1"></i> Déconnexion
             </a>
@@ -336,9 +341,7 @@
     </div>
 </nav>
 
-{# ============================================
-   MAIN CONTAINER — PLEINE LARGEUR
-============================================ #}
+{# MAIN CONTAINER #}
 <div class="full-width-container">
 
     {# En-tête #}
@@ -347,8 +350,18 @@
             <h1 class="page-title">Tableau de Bord Général</h1>
             <p class="page-subtitle">Supervision des flux de l'imprimerie et gestion globale des identifiants.</p>
         </div>
-        <div class="text-muted small font-monospace">
-            <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <button type="button"
+                    id="btnRefreshHeader"
+                    class="btn btn-modern btn-primary shadow-sm"
+                    title="Actualiser les données">
+                <i class="fas fa-sync-alt me-2"></i>Actualiser
+            </button>
+
+            <div class="text-muted small font-monospace">
+                <i class="fas fa-calendar-alt me-1"></i> Système Actif & Sécurisé
+            </div>
         </div>
     </div>
 
@@ -361,6 +374,88 @@
             </div>
         {% endfor %}
     {% endfor %}
+
+    {# ═══════════════════════════════════════════════════════
+       🚨 DEVIS EN RETARD — Alerte globale (visible sur tous les onglets)
+    ═══════════════════════════════════════════════════════ #}
+    {% if nbDevisEnRetard|default(0) > 0 %}
+    <div class="form-card alert-late-devis mb-4">
+        <div class="form-card-header" style="border-bottom-color: rgba(217, 119, 6, 0.20); margin-bottom: 1rem; padding-bottom: 1rem;">
+            <div class="form-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
+                <i class="fas fa-hourglass-end"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold m-0 text-dark">Devis dont le délai de travaux est dépassé</h5>
+                <small class="text-muted">
+                    {{ nbDevisEnRetard }} devis décaissé(s) — travaux non terminés à l'échéance
+                </small>
+            </div>
+            <span class="badge badge-soft badge-soft-danger px-3 py-2" style="font-size: 0.85rem;">
+                <i class="fas fa-exclamation-triangle me-1"></i>{{ nbDevisEnRetard }} à traiter
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Devis</th>
+                        <th>Émetteur</th>
+                        <th>Montant</th>
+                        <th>Décaissé le</th>
+                        <th class="text-center">Délai initial</th>
+                        <th>Échéance</th>
+                        <th class="text-center">Retard</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in devisEnRetard %}
+                        {% set d = item.devis %}
+                        <tr id="admin-retard-{{ d.id }}">
+                            <td class="fw-bold text-secondary">#{{ d.id }}</td>
+                            <td class="small">{{ d.createdBy|split('@')|first }}</td>
+                            <td class="fw-bold">
+                                {% if d.devise == 'CDF' %}
+                                    {{ d.montant|number_format(0, ',', ' ') }} <span class="text-muted small">FC</span>
+                                {% else %}
+                                    {{ d.montant|number_format(2, ',', ' ') }} <span class="text-muted small">$</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {{ d.dateDecaissement ? d.dateDecaissement|date('d/m/Y') : '—' }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-secondary">
+                                    <i class="fas fa-clock me-1"></i>{{ item.delaiInitial ?? '—' }} j
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-soft badge-soft-warning">
+                                    <i class="far fa-calendar me-1"></i>{{ d.dateLimite|date('d/m/Y') }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>+{{ item.joursRetard }} j
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                      onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ? L\'alerte sera désactivée.');"
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-light border btn-sm text-success" title="Marquer terminé">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 
     {# Cartes de statistiques #}
     <div class="row g-3 mb-4">
@@ -410,9 +505,7 @@
         </div>
     </div>
 
-    {# ============================================
-       CARTE PRINCIPALE À ONGLETS
-    ============================================ #}
+    {# CARTE PRINCIPALE À ONGLETS #}
     <div class="main-card">
 
         <ul class="nav nav-tabs nav-tabs-modern" id="adminTabs" role="tablist">
@@ -439,6 +532,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-devis-admin" data-bs-toggle="tab" data-bs-target="#pane-devis-admin" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
+                    {% if nbDevisEnRetard|default(0) > 0 %}
+                        <span class="badge bg-danger ms-2" style="font-size:0.65rem;">{{ nbDevisEnRetard }}</span>
+                    {% endif %}
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -476,16 +572,13 @@
         <div class="p-3 p-lg-4">
             <div class="tab-content">
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 0 : VUE 360°
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 0 : VUE 360° #}
                 <div class="tab-pane fade show active" id="pane-360" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
                         <i class="fas fa-globe text-primary me-2"></i>Vue à 360° de l'activité
                     </h5>
 
-                    {# KPIs globaux #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="kpi360">
@@ -525,10 +618,7 @@
                         </div>
                     </div>
 
-                    {# TRÉSORERIE — 3 SOLDES SÉPARÉS #}
                     <div class="row g-3 mb-4">
-
-                        {# Solde Comptabilité #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-success h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -555,7 +645,6 @@
                             </div>
                         </div>
 
-                        {# Solde Caisse #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-info h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -582,7 +671,6 @@
                             </div>
                         </div>
 
-                        {# Solde Global #}
                         <div class="col-12 col-lg-4">
                             <div class="stat-card stat-primary h-100">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -610,7 +698,6 @@
                         </div>
                     </div>
 
-                    {# OPÉRATIONS EN ATTENTE #}
                     {% if (devisAiguiller|default([])|length > 0)
                        or (devisPretsADecaisser|default([])|length > 0)
                        or (devisEnAttenteCaisse|default([])|length > 0) %}
@@ -751,7 +838,6 @@
                     </div>
                     {% endif %}
 
-                    {# Tableau récapitulatif par module #}
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
@@ -803,7 +889,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 1 : DEMANDES ============ #}
+                {# ONGLET 1 : DEMANDES #}
                 <div class="tab-pane fade" id="pane-demandes" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -892,7 +978,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 2 : BONS DE SORTIE ============ #}
+                {# ONGLET 2 : BONS DE SORTIE #}
                 <div class="tab-pane fade" id="pane-bons" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                         <div>
@@ -953,9 +1039,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 3 : VISITES & RDV
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 3 : VISITES & RDV #}
                 <div class="tab-pane fade" id="pane-visites" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1044,9 +1128,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 4 : DEVIS & FINANCES
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 4 : DEVIS & FINANCES #}
                 <div class="tab-pane fade" id="pane-devis-admin" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1095,6 +1177,72 @@
                         </div>
                     </div>
 
+                    {# 🚨 Résumé dédié aux devis en retard #}
+                    {% if nbDevisEnRetard|default(0) > 0 %}
+                    <div class="form-card mb-4" style="border-color: rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, rgba(220, 38, 38, 0.03), rgba(255,255,255,0.5));">
+                        <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
+                            <div class="form-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;">
+                                <i class="fas fa-hourglass-end"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-danger">Devis en retard critique</h5>
+                                <small class="text-muted">
+                                    {{ nbDevisEnRetard }} devis décaissés dont les travaux devaient être terminés
+                                </small>
+                            </div>
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Action requise
+                            </span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-danger">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Nombre de devis
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-danger">{{ nbDevisEnRetard }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-warning">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Retard maximal
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-warning">
+                                        +{% set maxRetard = 0 %}
+                                        {% for item in devisEnRetard %}
+                                            {% if item.joursRetard > maxRetard %}{% set maxRetard = item.joursRetard %}{% endif %}
+                                        {% endfor %}
+                                        {{ maxRetard }} j
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-primary">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Montant total concerné
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-primary" style="font-size: 1.35rem;">
+                                        {% set totalRetardUSD = 0 %}
+                                        {% set totalRetardCDF = 0 %}
+                                        {% for item in devisEnRetard %}
+                                            {% if item.devis.devise == 'CDF' %}
+                                                {% set totalRetardCDF = totalRetardCDF + item.devis.montant %}
+                                            {% else %}
+                                                {% set totalRetardUSD = totalRetardUSD + item.devis.montant %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if totalRetardUSD > 0 %}{{ totalRetardUSD|number_format(2, ',', ' ') }} ${% endif %}
+                                        {% if totalRetardUSD > 0 and totalRetardCDF > 0 %} + {% endif %}
+                                        {% if totalRetardCDF > 0 %}{{ totalRetardCDF|number_format(0, ',', ' ') }} FC{% endif %}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
@@ -1141,9 +1289,7 @@
                     </div>
                 </div>
 
-                {# ═══════════════════════════════════════════════
-                   ONGLET 5 : MOUVEMENTS DE CAISSE
-                ═══════════════════════════════════════════════ #}
+                {# ONGLET 5 : MOUVEMENTS DE CAISSE #}
                 <div class="tab-pane fade" id="pane-caisse-admin" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1211,7 +1357,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 6 : COMPTES AGENTS ============ #}
+                {# ONGLET 6 : COMPTES AGENTS #}
                 <div class="tab-pane fade" id="pane-agents" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-5">
@@ -1316,6 +1462,8 @@
                                                     {% endif %}
                                                     {% if 'ROLE_CHEF_COMPTA' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-warning"><i class="fas fa-star me-1"></i>CHEF COMPTABLE</span>
+                                                    {% elseif 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}
+                                                        <span class="badge badge-soft badge-soft-purple"><i class="fas fa-user-tie me-1"></i>ADJOINT CHEF COMPTA</span>
                                                     {% elseif 'ROLE_COMPTA' in u.roles %}
                                                         <span class="badge badge-soft badge-soft-success">COMPTABLE</span>
                                                     {% endif %}
@@ -1337,7 +1485,18 @@
                                                         <span class="badge badge-soft badge-soft-gold"><i class="fas fa-crown me-1"></i>DG</span>
                                                     {% endif %}
 
-                                                    {% if not u.isPDG and 'ROLE_ADMIN' not in u.roles and 'ROLE_CHEF_COMPTA' not in u.roles and 'ROLE_COMPTA' not in u.roles and 'ROLE_RECEPTION' not in u.roles and 'ROLE_ACCUEIL' not in u.roles and 'ROLE_GUERITE' not in u.roles and 'ROLE_CAISSIER' not in u.roles and 'ROLE_STOCK' not in u.roles and 'ROLE_COORDON' not in u.roles and 'ROLE_DG' not in u.roles %}
+                                                    {% if not u.isPDG
+                                                          and 'ROLE_ADMIN' not in u.roles
+                                                          and 'ROLE_CHEF_COMPTA' not in u.roles
+                                                          and 'ROLE_ADJOINT_CHEF_COMPTA' not in u.roles
+                                                          and 'ROLE_COMPTA' not in u.roles
+                                                          and 'ROLE_RECEPTION' not in u.roles
+                                                          and 'ROLE_ACCUEIL' not in u.roles
+                                                          and 'ROLE_GUERITE' not in u.roles
+                                                          and 'ROLE_CAISSIER' not in u.roles
+                                                          and 'ROLE_STOCK' not in u.roles
+                                                          and 'ROLE_COORDON' not in u.roles
+                                                          and 'ROLE_DG' not in u.roles %}
                                                         <span class="badge badge-soft badge-soft-secondary font-monospace">{{ u.roles[0]|default('ROLE_USER') }}</span>
                                                     {% endif %}
                                                 </div>
@@ -1373,6 +1532,14 @@
                                                         </button>
                                                     </form>
                                                 {% endif %}
+                                                {% if 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}
+                                                    <form action="{{ path('app_admin_destituer_adjoint_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline"
+                                                          onsubmit="return confirm('Retirer le rôle Adjoint Chef Comptable à {{ u.email }} ?');">
+                                                        <button type="submit" class="btn btn-light border btn-sm text-danger" title="Destituer Adjoint Chef Compta">
+                                                            <i class="fas fa-user-minus"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
                                                 <a href="{{ path('app_admin_user_edit', {'id': u.id}) }}" class="btn btn-light border btn-sm text-primary" title="Modifier">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
@@ -1397,11 +1564,10 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 7 : NOMINATIONS ============ #}
+                {# ONGLET 7 : NOMINATIONS #}
                 <div class="tab-pane fade" id="pane-nominations" role="tabpanel">
                     <div class="row g-4">
 
-                        {# ──────── Nommer un Caissier ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1432,7 +1598,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Nommer un Chef Comptable ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1463,7 +1628,64 @@
                             </div>
                         </div>
 
-                        {# ──────── Nommer le PDG ──────── #}
+                        <div class="col-12 col-lg-6">
+                            <div class="form-card">
+                                <div class="form-card-header">
+                                    <div class="form-card-icon form-card-icon-purple">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold m-0 text-dark">Nommer un Adjoint Chef Comptable</h5>
+                                        <small class="text-muted">Un seul adjoint peut être nommé à la fois.</small>
+                                    </div>
+                                </div>
+
+                                <form method="POST" action="{{ path('app_admin_assigner_adjoint_chef_compta') }}">
+                                    <label class="form-label small fw-bold text-secondary">Sélectionner un agent</label>
+                                    <div class="input-group">
+                                        <select name="user_id" class="form-select" required>
+                                            <option value="" disabled selected>Choisir un agent...</option>
+                                            {% for u in listeComptables|default(users) %}
+                                                {% if 'ROLE_ADJOINT_CHEF_COMPTA' not in u.roles
+                                                      and 'ROLE_CHEF_COMPTA' not in u.roles
+                                                      and 'ROLE_ADMIN' not in u.roles %}
+                                                    <option value="{{ u.id }}">{{ u.email }}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-modern text-white" style="background: var(--gradient-purple);">
+                                            <i class="fas fa-user-tie me-1"></i> Nommer
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% set adjointActuel = null %}
+                                {% for u in users %}
+                                    {% if 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}{% set adjointActuel = u %}{% endif %}
+                                {% endfor %}
+
+                                {% if adjointActuel %}
+                                    <div class="alert alert-secondary rounded-3 mt-3 mb-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <i class="fas fa-user-tie me-2 text-purple"></i>
+                                            <strong>Adjoint actuel :</strong> {{ adjointActuel.email }}
+                                        </div>
+                                        <form method="POST" action="{{ path('app_admin_destituer_adjoint_chef_compta', {'id': adjointActuel.id}) }}"
+                                              onsubmit="return confirm('Retirer le rôle Adjoint Chef Comptable à {{ adjointActuel.email }} ?');"
+                                              class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-user-minus me-1"></i> Destituer
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-light rounded-3 mt-3 mb-0 text-muted small">
+                                        <i class="fas fa-info-circle me-1"></i> Aucun Adjoint Chef Comptable nommé actuellement.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1523,7 +1745,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Créer un Nouveau Service ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1547,7 +1768,6 @@
                             </div>
                         </div>
 
-                        {# ──────── Rôles disponibles ──────── #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card h-100">
                                 <div class="form-card-header">
@@ -1581,6 +1801,13 @@
                                             <div class="text-muted">Supervise la comptabilité et valide les budgets.</div>
                                         </div>
                                     </li>
+                                    <li class="mb-3 d-flex">
+                                        <i class="fas fa-user-tie text-purple me-2 mt-1"></i>
+                                        <div class="small">
+                                            <strong class="text-dark">Adjoint Chef Comptable</strong>
+                                            <div class="text-muted">Assiste le Chef Comptable. Un seul à la fois.</div>
+                                        </div>
+                                    </li>
                                     <li class="d-flex">
                                         <i class="fas fa-building text-success me-2 mt-1"></i>
                                         <div class="small">
@@ -1594,7 +1821,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 8 : CATÉGORIES ============ #}
+                {# ONGLET 8 : CATÉGORIES #}
                 <div class="tab-pane fade" id="pane-structure" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-6">
@@ -1760,7 +1987,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 9 : MACHINES ============ #}
+                {# ONGLET 9 : MACHINES #}
                 <div class="tab-pane fade" id="pane-machines" role="tabpanel">
                     <div class="row g-4">
                         <div class="col-12 col-lg-5">
@@ -1857,7 +2084,7 @@
                     </div>
                 </div>
 
-                {# ============ ONGLET 10 : ÉTAT DU STOCK ============ #}
+                {# ONGLET 10 : ÉTAT DU STOCK #}
                 <div class="tab-pane fade" id="pane-stock" role="tabpanel">
 
                     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
@@ -1869,7 +2096,6 @@
                         </div>
                     </div>
 
-                    {# KPI Stock #}
                     <div class="row g-3 mb-4">
                         <div class="col-6 col-md-3">
                             <div class="stat-card stat-primary">
@@ -1919,7 +2145,6 @@
                         </div>
                     </div>
 
-                    {# ALERTES CRITIQUES PERSISTANTES #}
                     {% if nbAlertesStock|default(0) > 0 %}
                     <div class="form-card mb-4" style="background: rgba(220, 38, 38, 0.03); border-color: rgba(220, 38, 38, 0.15);">
                         <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
@@ -2024,7 +2249,6 @@
                     </div>
                     {% endif %}
 
-                    {# Graphiques #}
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-lg-7">
                             <div class="form-card h-100">
@@ -2056,7 +2280,6 @@
                         </div>
                     </div>
 
-                    {# Synthèse par catégorie #}
                     <div class="form-card mb-4">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list"></i></div>
@@ -2111,7 +2334,83 @@
                         </div>
                     </div>
 
-                    {# LISTE DES ARTICLES AVEC CRUD #}
+                    <div class="form-card mb-4">
+                        <div class="form-card-header">
+                            <div class="form-card-icon form-card-icon-purple"><i class="fas fa-list-ul"></i></div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-dark">Détail des variantes (vue Direction)</h5>
+                                <small class="text-muted">Chaque variante (attributs) affichée séparément — identique à la vue DG</small>
+                            </div>
+                            <span class="badge badge-soft badge-soft-purple ms-auto">
+                                {{ topArticlesAll|default([])|length }} variante(s)
+                            </span>
+                        </div>
+
+                        <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                            <table class="table table-modern table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Article</th>
+                                        <th>Machine</th>
+                                        <th>Variante / Attributs</th>
+                                        <th class="text-center">Quantité</th>
+                                        <th class="text-center">Seuil</th>
+                                        <th class="text-center">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for art in topArticlesAll|default([]) %}
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="fas fa-box text-secondary me-2"></i>{{ art.nom }}
+                                            </td>
+                                            <td>
+                                                {% if art.machine %}
+                                                    <span class="badge badge-soft badge-soft-secondary">
+                                                        <i class="fas fa-cog me-1"></i>{{ art.machine }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if art.attributs|default([])|length > 0 %}
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        {% for att in art.attributs %}
+                                                            <span class="badge badge-soft badge-soft-primary">
+                                                                {{ att.label }}
+                                                                {% if att.quantite is defined %}
+                                                                    <strong class="ms-1">({{ att.quantite }})</strong>
+                                                                {% endif %}
+                                                            </span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-secondary">Standard</span>
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-center fw-bold text-dark">{{ art.quantite }}</td>
+                                            <td class="text-center">{{ art.seuil }}</td>
+                                            <td class="text-center">
+                                                {% if art.quantite <= art.seuil %}
+                                                    <span class="badge badge-soft badge-soft-danger">Bas</span>
+                                                {% else %}
+                                                    <span class="badge badge-soft badge-soft-success">OK</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                Aucune variante enregistrée.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-boxes"></i></div>
@@ -2184,9 +2483,7 @@
     </div>
 </div>
 
-{# ═══════════════════════════════════════════════════════════════
-   MODALS DE MODIFICATION
-═══════════════════════════════════════════════════════════════ #}
+{# MODALS DE MODIFICATION #}
 
 <!-- MODAL : Modifier une Catégorie -->
 <div class="modal fade" id="editCategoryModal" tabindex="-1">
@@ -2312,9 +2609,102 @@
     </div>
 </div>
 
+{# ═══════════════════════════════════════════════════════
+   🚨 MODAL D'ALERTE AUTOMATIQUE — Devis en retard
+   S'ouvre à l'arrivée sur la page (1× par jour)
+═══════════════════════════════════════════════════════ #}
+{% if nbDevisEnRetard|default(0) > 0 %}
+<div class="modal fade" id="modalAlerteRetardAdmin" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
+            <div class="modal-header border-0 text-white py-3" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title mb-0 fw-bold">
+                            ⚠️ {{ nbDevisEnRetard }} devis en retard à traiter
+                        </h5>
+                        <small class="text-white-50">
+                            Des travaux décaissés dépassent le délai prévu
+                        </small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+
+            <div class="modal-body p-4" style="max-height: 420px; overflow-y: auto;">
+                <div class="alert alert-warning border-0 rounded-3 small mb-3">
+                    <i class="fas fa-circle-info me-1"></i>
+                    Ces devis ont été décaissés mais les travaux n'ont pas été marqués comme terminés à la date limite.
+                    Contactez l'émetteur ou marquez-les comme terminés si les travaux sont achevés.
+                </div>
+
+                {% for item in devisEnRetard|slice(0, 5) %}
+                    {% set d = item.devis %}
+                    <div class="d-flex justify-content-between align-items-center py-3 border-bottom flex-wrap gap-2">
+                        <div>
+                            <div class="fw-bold text-dark">Devis #{{ d.id }}</div>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user me-1"></i>{{ d.createdBy|split('@')|first }}
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-coins me-1"></i>{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">
+                                <i class="far fa-calendar me-1"></i>Échéance : <strong>{{ d.dateLimite|date('d/m/Y') }}</strong>
+                            </div>
+                            <span class="badge bg-danger mt-1">+{{ item.joursRetard }} j de retard</span>
+                            <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                  class="d-inline mt-2"
+                                  onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ?');">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check-double"></i> Marquer terminé
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% if nbDevisEnRetard > 5 %}
+                    <div class="text-center mt-3 small text-muted">
+                        <i class="fas fa-ellipsis-h me-1"></i>
+                        ... et {{ nbDevisEnRetard - 5 }} autre(s) devis en retard
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Plus tard
+                </button>
+                <a href="#pane-devis-admin" class="btn btn-danger" data-bs-dismiss="modal"
+                   onclick="setTimeout(() => { const t = document.querySelector('#tab-devis-admin'); if(t) bootstrap.Tab.getOrCreateInstance(t).show(); }, 150);">
+                    <i class="fas fa-list"></i> Voir l'onglet Devis & Finances
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+        const btnRefreshHeader = document.getElementById('btnRefreshHeader');
+        if (btnRefreshHeader) {
+            btnRefreshHeader.addEventListener('click', function () {
+                const icon = this.querySelector('i');
+                icon.classList.add('fa-spin');
+                this.disabled = true;
+                setTimeout(() => window.location.reload(), 300);
+            });
+        }
+
         const urlHash = window.location.hash;
         if (urlHash) {
             const triggerEl = document.querySelector(`button[data-bs-target="${urlHash}"]`);
@@ -2323,12 +2713,10 @@
         document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
             btn.addEventListener('shown.bs.tab', e => {
                 history.replaceState(null, null, e.target.getAttribute('data-bs-target'));
-                // Remonter en haut de page lors du changement d'onglet
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 
-        // Catégorie
         document.querySelectorAll('[data-bs-target="#editCategoryModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editCategoryForm').action = '/admin/category/' + btn.dataset.id + '/edit';
@@ -2337,7 +2725,6 @@
             });
         });
 
-        // Sous-catégorie
         document.querySelectorAll('[data-bs-target="#editSubCategoryModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editSubCategoryForm').action = '/admin/sub-category/' + btn.dataset.id + '/edit';
@@ -2347,7 +2734,6 @@
             });
         });
 
-        // Machine
         document.querySelectorAll('[data-bs-target="#editMachineModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editMachineForm').action = '/admin/machine/' + btn.dataset.id + '/edit';
@@ -2357,7 +2743,6 @@
             });
         });
 
-        // Article
         document.querySelectorAll('[data-bs-target="#editArticleModal"]').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.getElementById('editArticleForm').action = '/admin/article/' + btn.dataset.id + '/edit';
@@ -2368,10 +2753,22 @@
             });
         });
 
-        // Graphique Top Articles
-                    // ═══════════════════════════════════════════════════════
-        // GRAPHIQUE TOP 10 ARTICLES (agrégé par nom + machine)
         // ═══════════════════════════════════════════════════════
+        // 🚨 Alerte automatique — devis en retard (admin)
+        // S'ouvre une fois par jour par session
+        // ═══════════════════════════════════════════════════════
+        const modalAlerteRetardAdmin = document.getElementById('modalAlerteRetardAdmin');
+        if (modalAlerteRetardAdmin) {
+            const key = 'admin_alerte_retard_seen_' + new Date().toISOString().slice(0, 10);
+            if (!sessionStorage.getItem(key)) {
+                setTimeout(function () {
+                    const modal = new bootstrap.Modal(modalAlerteRetardAdmin);
+                    modal.show();
+                    sessionStorage.setItem(key, '1');
+                }, 700);
+            }
+        }
+
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const topArticlesTotal = {{ topArticlesTotal|default(0) }};
         const canvasTA = document.getElementById('chartTopArticlesAdmin');
@@ -2413,7 +2810,7 @@
                             callbacks: {
                                 title: function (items) {
                                     const a = topArticlesAdmin[items[0].dataIndex];
-                                    return a.label || a.nom;
+                                    return a.nom + (a.machine ? ' [' + a.machine + ']' : '');
                                 },
                                 label: function (ctx) {
                                     const a = topArticlesAdmin[ctx.dataIndex];
@@ -2421,9 +2818,15 @@
                                 },
                                 afterLabel: function (context) {
                                     const a = topArticlesAdmin[context.dataIndex];
-                                    const seuilMsg = 'Seuil : ' + a.seuil
-                                        + (a.quantite <= a.seuil ? ' ⚠️ ALERTE' : '');
-                                    return seuilMsg;
+                                    const lignes = [];
+                                    if (a.categorie) lignes.push('Catégorie : ' + a.categorie);
+                                    lignes.push('Seuil : ' + a.seuil + (a.quantite <= a.seuil ? ' ⚠️ ALERTE' : ''));
+                                    if (a.attributs && a.attributs.length > 0) {
+                                        a.attributs.forEach(att => {
+                                            lignes.push('• ' + att.label + ' → ' + att.quantite);
+                                        });
+                                    }
+                                    return lignes;
                                 }
                             }
                         }
@@ -2435,9 +2838,7 @@
                 }
             });
         }
-                // ═══════════════════════════════════════════════════════
-        // GRAPHIQUE RÉPARTITION PAR CATÉGORIE (source unique)
-        // ═══════════════════════════════════════════════════════
+
         const catLabelsAdmin    = {{ categoriesLabels|default([])|json_encode|raw }};
         const catQuantitesAdmin = {{ categoriesQuantites|default([])|json_encode|raw }};
         const canvasCA = document.getElementById('chartCategoriesAdmin');
@@ -2474,9 +2875,7 @@
                             callbacks: {
                                 label: function (ctx) {
                                     const val = ctx.parsed || 0;
-                                    const pct = totalCat > 0
-                                        ? ((val / totalCat) * 100).toFixed(1)
-                                        : 0;
+                                    const pct = totalCat > 0 ? ((val / totalCat) * 100).toFixed(1) : 0;
                                     return ' ' + ctx.label + ' : '
                                         + val.toLocaleString('fr-FR')
                                         + ' unités (' + pct + '%)';
