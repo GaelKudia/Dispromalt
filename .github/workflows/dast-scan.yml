@@ -1,3 +1,4 @@
+```yaml
 # ============================================================
 # DAST SECURITY SCAN
 # OWASP ZAP BASELINE
@@ -7,7 +8,8 @@
 #
 # DÉCLENCHEMENTS :
 # 1. Manuel depuis GitHub Actions.
-# 2. Automatique via repository_dispatch après déploiement.
+# 2. Automatique après réussite du workflow Coolify.
+# 3. Automatique via repository_dispatch.
 #
 # CIBLE AUTORISÉE :
 # gestion-digitale-dispromalt.com
@@ -21,10 +23,7 @@ name: DAST Security Scan
 
 on:
 
-  # ----------------------------------------------------------
-  # 1. DÉCLENCHEMENT MANUEL
-  # ----------------------------------------------------------
-
+  # 1. Déclenchement manuel
   workflow_dispatch:
     inputs:
       target_url:
@@ -33,10 +32,17 @@ on:
         default: "https://gestion-digitale-dispromalt.com"
         type: string
 
-  # ----------------------------------------------------------
-  # 2. DÉCLENCHEMENT AUTOMATIQUE
-  # ----------------------------------------------------------
+  # 2. Après un déploiement Coolify réussi
+  workflow_run:
+    workflows:
+      - "Build and Deploy to Coolify"
+    types:
+      - completed
+    branches:
+      - devis
+      - main
 
+  # 3. Déclenchement externe après déploiement
   repository_dispatch:
     types:
       - coolify-deploy-success
@@ -53,7 +59,7 @@ permissions:
 # ============================================================
 
 concurrency:
-  group: dast-${{ github.workflow }}-${{ github.ref }}
+  group: dast-${{ github.workflow }}-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 # ============================================================
@@ -66,6 +72,12 @@ jobs:
 
     name: OWASP ZAP Baseline Scan
 
+    # Ne lancer le scan après workflow_run
+    # que si le déploiement a réussi.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
     runs-on: ubuntu-24.04
 
     steps:
@@ -75,28 +87,25 @@ jobs:
       # ======================================================
 
       - name: Checkout repository
+
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
 
       # ======================================================
       # 2. VALIDATION DE LA CIBLE
-      #
-      # Sécurité :
-      # - HTTPS uniquement.
-      # - Domaine strictement autorisé.
-      # - Pas d'identifiants dans l'URL.
-      # - Port 443 uniquement.
       # ======================================================
 
       - name: Validate target URL
+
         id: target
 
         env:
           INPUT_URL: ${{ github.event.inputs.target_url }}
           PAYLOAD_URL: ${{ github.event.client_payload.url }}
-
           ALLOWED_HOST: "gestion-digitale-dispromalt.com"
 
         run: |
@@ -112,14 +121,18 @@ jobs:
             URL="https://gestion-digitale-dispromalt.com"
           fi
 
-          python3 - "$URL" "$ALLOWED_HOST" <<'PY'
+          python3 - "$URL" "$ALLOWED_HOST" "$GITHUB_OUTPUT" <<'PY'
           import sys
           from urllib.parse import urlsplit
 
           url = sys.argv[1]
           allowed_host = sys.argv[2].lower()
+          output_file = sys.argv[3]
 
           try:
+              if any(ord(c) < 32 or ord(c) == 127 for c in url):
+                  raise ValueError("Caractères de contrôle interdits")
+
               parsed = urlsplit(url)
 
               if parsed.scheme != "https":
@@ -146,19 +159,14 @@ jobs:
               print("ERREUR : " + str(error))
               sys.exit(1)
 
+          with open(output_file, "a") as file:
+              file.write("url=" + url + "\n")
+
           print("Cible autorisée :", url)
-
-          with open("/tmp/dast_target_url", "w") as file:
-              file.write(url)
           PY
-
-          VALIDATED_URL="$(cat /tmp/dast_target_url)"
-
-          echo "url=$VALIDATED_URL" >> "$GITHUB_OUTPUT"
 
           echo "=========================================="
           echo "DAST TARGET VALIDATED"
-          echo "$VALIDATED_URL"
           echo "=========================================="
 
       # ======================================================
@@ -166,6 +174,7 @@ jobs:
       # ======================================================
 
       - name: Verify ZAP configuration
+
         run: |
           set -euo pipefail
 
@@ -178,15 +187,6 @@ jobs:
 
       # ======================================================
       # 4. OWASP ZAP BASELINE SCAN
-      #
-      # Analyse passive :
-      # - Headers HTTP
-      # - Cookies
-      # - Configurations de sécurité
-      # - Informations exposées
-      #
-      # fail_action: false
-      # Les alertes sont rapportées sans bloquer le workflow.
       # ======================================================
 
       - name: OWASP ZAP Baseline Scan
@@ -195,13 +195,9 @@ jobs:
 
         with:
           target: ${{ steps.target.outputs.url }}
-
           rules_file_name: ".zap/rules.tsv"
-
           cmd_options: "-a -j -T 10"
-
           allow_issue_writing: false
-
           fail_action: false
 
       # ======================================================
@@ -209,6 +205,7 @@ jobs:
       # ======================================================
 
       - name: Check ZAP report
+
         if: always()
 
         run: |
@@ -218,23 +215,13 @@ jobs:
           echo "ZAP REPORTS"
           echo "=========================================="
 
-          if [ -f report_html.html ]; then
-            echo "HTML report: FOUND"
-          else
-            echo "HTML report: NOT FOUND"
-          fi
-
-          if [ -f report_json.json ]; then
-            echo "JSON report: FOUND"
-          else
-            echo "JSON report: NOT FOUND"
-          fi
-
-          if [ -f report_md.md ]; then
-            echo "Markdown report: FOUND"
-          else
-            echo "Markdown report: NOT FOUND"
-          fi
+          for report in report_html.html report_json.json report_md.md; do
+            if [ -f "$report" ]; then
+              echo "$report: FOUND"
+            else
+              echo "$report: NOT FOUND"
+            fi
+          done
 
       # ======================================================
       # 6. ARCHIVAGE DES RAPPORTS
@@ -255,7 +242,6 @@ jobs:
             report_md.md
 
           if-no-files-found: warn
-
           retention-days: 7
 
       # ======================================================
@@ -263,12 +249,17 @@ jobs:
       # ======================================================
 
       - name: DAST Summary
+
         if: always()
+
+        env:
+          TARGET_URL: ${{ steps.target.outputs.url }}
 
         run: |
           echo "=========================================="
           echo "       DAST SECURITY SCAN COMPLETED"
           echo "=========================================="
-          echo "Target: ${{ steps.target.outputs.url }}"
+          echo "Target: ${TARGET_URL:-Not validated}"
           echo "Scanner: OWASP ZAP Baseline"
           echo "=========================================="
+```
