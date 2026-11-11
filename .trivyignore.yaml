@@ -1,3 +1,7 @@
-# Aucune vulnérabilité explicitement exclue pour le moment.
-vulnerabilities: []
-
+# Exceptions de sécurité temporaires
+vulnerabilities:
+  - id: CVE-2026-116587
+    paths:
+      - "usr/local/bin/frankenphp"
+    expired_at: "2026-12-11T23:59:59Z"
+    statement: "Exception temporaire : go-jose/v3 v3.0.5 intégré au binaire FrankenPHP. Aucune version corrigée indiquée par Trivy. Réévaluation obligatoire avant expiration."
