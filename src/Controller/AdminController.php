@@ -167,8 +167,16 @@ class AdminController extends AbstractController
                 $newUser->setRoles([$roleChoisi]);
             }
 
+            // ✅ SÉCURITÉ : Plus AUCUN mot de passe en dur.
+            // Si l'admin ne saisit pas de mot de passe, on en génère un aléatoire et fort.
             $plainPassword = $form->has('password') ? $form->get('password')->getData() : null;
-            $passwordReel  = !empty($plainPassword) ? $plainPassword : 'Passer123*';
+            
+            if (empty($plainPassword)) {
+                $passwordReel = $this->genererMotDePasseFort(14);
+            } else {
+                $passwordReel = $plainPassword;
+            }
+
             $newUser->setPassword($hasher->hashPassword($newUser, $passwordReel));
 
             if (method_exists($newUser, 'setActif')) {
@@ -182,7 +190,7 @@ class AdminController extends AbstractController
 
             $roleLabel = $roleChoisi ?: 'ROLE_USER';
             $this->addFlash('success', sprintf(
-                '✅ Compte créé pour %s — rôle : %s — mot de passe : %s',
+                '✅ Compte créé pour %s — rôle : %s — mot de passe : %s (Notez-le, il ne sera plus affiché)',
                 $newUser->getEmail(),
                 $roleLabel,
                 $passwordReel
