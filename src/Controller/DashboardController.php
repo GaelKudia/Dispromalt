@@ -126,6 +126,48 @@ class DashboardController extends AbstractController
             }
         }
 
+        // ═══════════════════════════════════════════════════════════
+        // ✅ Devis DÉCAISSÉS dont le délai de travaux est dépassé
+        //    - Uniquement statut = DECAISSE (argent sorti)
+        //    - Exclut ceux marqués [TERMINE:...] dans la description
+        //    - Extrait le délai initial depuis [DELAI:XX]
+        // ═══════════════════════════════════════════════════════════
+        $devisEnRetard    = [];
+        $nbDevisEnRetard  = 0;
+        $aujourdhuiRetard = new \DateTime('today');
+
+        $devisEnRetardRaw = $em->getRepository(Devis::class)->createQueryBuilder('d')
+            ->leftJoin('d.user', 'u')->addSelect('u')
+            ->where('d.statut = :decaisse')
+            ->andWhere('d.dateLimite IS NOT NULL')
+            ->andWhere('d.dateLimite < :aujourdhui')
+            ->andWhere('d.description NOT LIKE :termine')
+            ->setParameter('decaisse', Devis::STATUT_DECAISSE)
+            ->setParameter('aujourdhui', $aujourdhuiRetard)
+            ->setParameter('termine', '%[TERMINE:%')
+            ->orderBy('d.dateLimite', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        foreach ($devisEnRetardRaw as $d) {
+            $dateLimit = clone $d->getDateLimite();
+            $dateLimit->setTime(0, 0, 0);
+            $joursRetard = (int) $aujourdhuiRetard->diff($dateLimit)->days;
+
+            // ✅ Extraire le délai initial depuis la description
+            $delaiInitial = null;
+            if (preg_match('/\[DELAI:(\d+)\]/', (string) $d->getDescription(), $m)) {
+                $delaiInitial = (int) $m[1];
+            }
+
+            $devisEnRetard[] = [
+                'devis'        => $d,
+                'joursRetard'  => $joursRetard,
+                'delaiInitial' => $delaiInitial,
+            ];
+        }
+        $nbDevisEnRetard = count($devisEnRetard);
+
         if ($this->isGranted('ROLE_CAISSIER')) {
             $currentUser = $this->getUser();
 
@@ -155,14 +197,16 @@ class DashboardController extends AbstractController
             }
 
             return $this->render('dashboard/caisse/index.html.twig', [
-                'devisListe'     => $devisCaisse,
-                'totalDevisUSD'  => $totalDevisUSD,
-                'totalDevisCDF'  => $totalDevisCDF,
-                'date_debut'     => $dateDebutFiltre,
-                'date_fin'       => $dateFinFiltre,
-                'stats'          => $stats,
-                'userRole'       => $roleLabel,
-                'estSiteDistant' => $estSiteDistant,
+                'devisListe'      => $devisCaisse,
+                'totalDevisUSD'   => $totalDevisUSD,
+                'totalDevisCDF'   => $totalDevisCDF,
+                'date_debut'      => $dateDebutFiltre,
+                'date_fin'        => $dateFinFiltre,
+                'stats'           => $stats,
+                'userRole'        => $roleLabel,
+                'estSiteDistant'  => $estSiteDistant,
+                'devisEnRetard'   => $devisEnRetard,
+                'nbDevisEnRetard' => $nbDevisEnRetard,
             ]);
         }
 
@@ -876,6 +920,8 @@ class DashboardController extends AbstractController
                 'articlesEnAlerte' => $articlesEnAlerte,
                 'nbAlertesStock'   => $nbAlertesStock,
                 'estSiteDistant'   => $estSiteDistant,
+                'devisEnRetard'    => $devisEnRetard,
+                'nbDevisEnRetard'  => $nbDevisEnRetard,
             ]);
         }
 
@@ -1022,6 +1068,8 @@ class DashboardController extends AbstractController
                 'soldeUSD'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_USD),
                 'soldeCDF'             => $mouvementRepo->getSolde(MouvementCaisse::DEVISE_CDF),
                 'estSiteDistant'       => $estSiteDistant,
+                'devisEnRetard'        => $devisEnRetard,
+                'nbDevisEnRetard'      => $nbDevisEnRetard,
             ]);
         }
 
@@ -1209,6 +1257,8 @@ class DashboardController extends AbstractController
                 'totalSortiesCaisseUSD' => $totalSortiesCaisseUSD,
                 'totalEntreesCaisseCDF' => $totalEntreesCaisseCDF,
                 'totalSortiesCaisseCDF' => $totalSortiesCaisseCDF,
+                'devisEnRetard'        => $devisEnRetard,
+                'nbDevisEnRetard'      => $nbDevisEnRetard,
             ];
 
             if ($estVraimentPDG) {
@@ -1523,6 +1573,14 @@ class DashboardController extends AbstractController
                 $devis->setDecaissePar($this->getUser());
                 $devis->setDateDecaissementPar(new \DateTime());
                 $devis->setDateDecaissement(new \DateTime());
+
+                // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
+                $delai = 30;
+                if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
+                    $delai = max(1, (int) $m[1]);
+                }
+                $devis->setDateLimite((new \DateTime())->modify('+' . $delai . ' days'));
+
                 $devis->setPassageDG(false);
                 $this->addFlash('success', '✅ Décaissement direct effectué — devis #' . $devis->getId() . '.');
                 break;
@@ -1852,57 +1910,51 @@ class DashboardController extends AbstractController
         }
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ SEULE MODIFICATION #1 : Chef Comptable OU Adjoint Chef Comptable
-    //    (le corps de la méthode reste strictement identique)
-    // ═══════════════════════════════════════════════════════════
-#[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
-#[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')"))]
-public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
-{
-    if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
-        $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
+    #[Route('/dashboard/devis/valider-chef/{id}', name: 'app_devis_valider_chef', methods: ['POST'])]
+    #[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')"))]
+    public function validerDevisChef(Request $request, Devis $devis, EntityManagerInterface $em): Response
+    {
+        if ($devis->getStatut() !== Devis::STATUT_ATTENTE_CHEF_COMPTABLE) {
+            $this->addFlash('danger', '❌ Ce devis n\'est pas prêt pour le visa du chef comptable.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $nouveauMontant = $request->request->get('nouveau_montant');
+        if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
+            if ($devis->getMontantInitial() === null) {
+                $devis->setMontantInitial((string) $devis->getMontant());
+            }
+            $devis->setMontant((float) $nouveauMontant);
+        }
+
+        $user        = $this->getUser();
+        $identifiant = $user ? $user->getUserIdentifier() : 'Inconnu';
+        $roles       = $user ? $user->getRoles() : [];
+
+        $codeRoleVisa = 'CHEF_COMPTA';
+        $libelleRole  = 'Chef Comptable';
+        if (in_array('ROLE_ADJOINT_CHEF_COMPTA', $roles) && !in_array('ROLE_CHEF_COMPTA', $roles)) {
+            $codeRoleVisa = 'ADJOINT_CHEF_COMPTA';
+            $libelleRole  = 'Adjoint Chef Comptable';
+        }
+
+        $trace = sprintf('[VISA|%s|%s|%s]', date('d/m/Y H:i'), $identifiant, $codeRoleVisa);
+        $devis->setDescription(rtrim((string) $devis->getDescription()) . "\n" . $trace);
+
+        $devis->setPassageDG(true);
+        $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            '📤 Devis #%d visé par %s (%s) et transmis à la Direction Générale.',
+            $devis->getId(),
+            $identifiant,
+            $libelleRole
+        ));
+
         return $this->redirectToRoute('app_dashboard');
     }
 
-    $nouveauMontant = $request->request->get('nouveau_montant');
-    if ($nouveauMontant !== null && is_numeric($nouveauMontant) && $nouveauMontant > 0) {
-        if ($devis->getMontantInitial() === null) {
-            $devis->setMontantInitial((string) $devis->getMontant());
-        }
-        $devis->setMontant((float) $nouveauMontant);
-    }
-
-    // ✅ NOUVEAU : identifier le rôle exact de l'auteur du visa
-    $user        = $this->getUser();
-    $identifiant = $user ? $user->getUserIdentifier() : 'Inconnu';
-    $roles       = $user ? $user->getRoles() : [];
-
-    $codeRoleVisa = 'CHEF_COMPTA';
-    $libelleRole  = 'Chef Comptable';
-    if (in_array('ROLE_ADJOINT_CHEF_COMPTA', $roles) && !in_array('ROLE_CHEF_COMPTA', $roles)) {
-        $codeRoleVisa = 'ADJOINT_CHEF_COMPTA';
-        $libelleRole  = 'Adjoint Chef Comptable';
-    }
-
-    // ✅ NOUVEAU : trace enrichie avec le rôle [VISA|date|email|ROLE]
-    $trace = sprintf('[VISA|%s|%s|%s]', date('d/m/Y H:i'), $identifiant, $codeRoleVisa);
-    $devis->setDescription(rtrim((string) $devis->getDescription()) . "\n" . $trace);
-
-    $devis->setPassageDG(true);
-    $devis->setStatut(Devis::STATUT_ATTENTE_DIR);
-    $em->flush();
-
-    // ✅ NOUVEAU : flash enrichi avec le rôle
-    $this->addFlash('success', sprintf(
-        '📤 Devis #%d visé par %s (%s) et transmis à la Direction Générale.',
-        $devis->getId(),
-        $identifiant,
-        $libelleRole
-    ));
-
-    return $this->redirectToRoute('app_dashboard');
-}
     #[Route('/dashboard/devis/valider-dg/{id}', name: 'app_devis_valider_dg', methods: ['POST'])]
     #[IsGranted('ROLE_DG')]
     public function validerDevisDirecteur(Request $request, Devis $devis, EntityManagerInterface $em): Response
@@ -1926,10 +1978,6 @@ public function validerDevisChef(Request $request, Devis $devis, EntityManagerIn
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ SEULE MODIFICATION #2 : Chef Comptable OU Adjoint Chef Comptable
-    //    (le corps de la méthode reste strictement identique)
-    // ═══════════════════════════════════════════════════════════
     #[Route('/dashboard/devis/rejeter-chef-comptable/{id}', name: 'app_devis_rejeter_chef_comptable', methods: ['POST'])]
     #[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')"))]
     public function rejeterDevisChefComptable(Devis $devis, EntityManagerInterface $em): Response
@@ -1984,6 +2032,13 @@ public function validerDevisChef(Request $request, Devis $devis, EntityManagerIn
         $devis->setDateDecaissementPar(new \DateTime());
         $devis->setDateDecaissement(new \DateTime());
 
+        // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
+        $delai = 30;
+        if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
+            $delai = max(1, (int) $m[1]);
+        }
+        $devis->setDateLimite((new \DateTime())->modify('+' . $delai . ' days'));
+
         $em->flush();
         $this->addFlash('success', '💰 Décaissement effectué — devis #' . $devis->getId() . '.');
         return $this->redirectToRoute('app_dashboard');
@@ -2028,6 +2083,14 @@ public function validerDevisChef(Request $request, Devis $devis, EntityManagerIn
         $devis->setDecaissePar($currentUser);
         $devis->setDateDecaissementPar(new \DateTime());
         $devis->setDateDecaissement(new \DateTime());
+
+        // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
+        $delai = 30;
+        if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
+            $delai = max(1, (int) $m[1]);
+        }
+        $devis->setDateLimite((new \DateTime())->modify('+' . $delai . ' days'));
+
         $em->flush();
 
         $this->addFlash('success', '💰 Décaissement effectué par la Caisse pour le devis #' . $devis->getId() . '.');
@@ -2157,6 +2220,40 @@ public function validerDevisChef(Request $request, Devis $devis, EntityManagerIn
         }
         $em->flush();
         $this->addFlash('warning', '❌ Bon #' . $bonSortie->getId() . ' rejeté.');
+        return $this->redirectToRoute('app_dashboard');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ✅ NOUVELLE MÉTHODE : MARQUER UN DEVIS COMME TERMINÉ
+    //    Éteint l'alerte de retard (ajoute [TERMINE:...] dans description)
+    // ═══════════════════════════════════════════════════════════
+    #[Route('/dashboard/devis/marquer-termine/{id}', name: 'app_devis_marquer_termine', methods: ['POST'])]
+    #[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA') or is_granted('ROLE_ADMIN')"))]
+    public function marquerDevisTermine(Devis $devis, EntityManagerInterface $em): Response
+    {
+        if ($devis->getStatut() !== Devis::STATUT_DECAISSE) {
+            $this->addFlash('danger', '❌ Seuls les devis décaissés peuvent être marqués comme terminés.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        // ✅ Éviter les doublons
+        if (preg_match('/\[TERMINE:/', (string) $devis->getDescription())) {
+            $this->addFlash('info', 'ℹ️ Ce devis est déjà marqué comme terminé.');
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        $identifiant = $this->getUser() ? $this->getUser()->getUserIdentifier() : 'Inconnu';
+        $trace = sprintf('[TERMINE:%s|%s]', date('d/m/Y H:i'), $identifiant);
+
+        $devis->setDescription(rtrim((string) $devis->getDescription()) . "\n" . $trace);
+        $em->flush();
+
+        $this->addFlash('success', sprintf(
+            '✅ Devis #%d marqué comme terminé par %s. L\'alerte de retard est désactivée.',
+            $devis->getId(),
+            $identifiant
+        ));
+
         return $this->redirectToRoute('app_dashboard');
     }
 }

@@ -364,6 +364,28 @@
             box-shadow: 0 4px 12px -4px rgba(220, 38, 38, 0.5);
         }
 
+        /* ✅ Bannière orange pour devis en retard */
+        .alert-banner.is-retard {
+            border-image: linear-gradient(180deg, #f59e0b, #d97706) 1;
+            animation: pulseRetard 2.5s ease-in-out infinite;
+        }
+        .alert-banner.is-retard .alert-banner-header {
+            background: linear-gradient(180deg, rgba(245, 158, 11, 0.04), transparent);
+        }
+        .alert-banner.is-retard .alert-banner-header h6 i {
+            color: var(--warning);
+        }
+        .alert-banner.is-retard .count-chip {
+            background: linear-gradient(135deg, var(--warning), #b45309);
+            box-shadow: 0 4px 12px -4px rgba(217, 119, 6, 0.5);
+        }
+
+        /* ✅ Animation pulse pour attirer l'œil du comptable */
+        @keyframes pulseRetard {
+            0%, 100% { box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08); }
+            50%      { box-shadow: 0 8px 28px -6px rgba(245, 158, 11, 0.35); }
+        }
+
         .card-pro {
             background: #fff;
             border: 1px solid var(--ink-200);
@@ -836,7 +858,7 @@
                 <div class="dropdown">
                     <button class="notif-btn" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-bell"></i>
-                        {% set totalNotifs = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (nbAlertesStock|default(0)) %}
+                        {% set totalNotifs = (reunionsDelegation is defined ? reunionsDelegation|length : 0) + (nbAlertesStock|default(0)) + (nbDevisEnRetard|default(0)) %}
                         {% if totalNotifs > 0 %}
                             <span class="badge-dot">{{ totalNotifs }}</span>
                         {% endif %}
@@ -847,13 +869,31 @@
                                 <i class="fas fa-bell me-2 text-primary"></i>Notifications
                             </span>
                         </li>
+                        {% if nbDevisEnRetard|default(0) > 0 %}
+                            <li class="px-3 pt-2 pb-1">
+                                <small class="text-warning fw-bold" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
+                                    <i class="fas fa-hourglass-end me-1"></i>Devis en retard ({{ nbDevisEnRetard }})
+                                </small>
+                            </li>
+                            {% for item in devisEnRetard|slice(0, 3) %}
+                                {% set d = item.devis %}
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2" href="#retard-devis-{{ d.id }}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="small fw-medium text-dark">Devis #{{ d.id }}</span>
+                                            <span class="tag tag-warn" style="font-size:0.7rem;">+{{ item.joursRetard }}j</span>
+                                        </div>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
                         {% if nbAlertesStock|default(0) > 0 %}
                             <li class="px-3 pt-2 pb-1">
                                 <small class="text-danger fw-bold" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
                                     <i class="fas fa-exclamation-triangle me-1"></i>Alertes stock ({{ nbAlertesStock }})
                                 </small>
                             </li>
-                            {% for art in articlesEnAlerte|slice(0, 4) %}
+                            {% for art in articlesEnAlerte|slice(0, 3) %}
                                 <li>
                                     <a class="dropdown-item rounded-3 py-2" href="#alerte-stock-{{ art.id }}">
                                         <div class="d-flex justify-content-between align-items-center">
@@ -864,24 +904,7 @@
                                 </li>
                             {% endfor %}
                         {% endif %}
-                        {% if reunionsDelegation is defined and reunionsDelegation is not empty %}
-                            <li class="px-3 pt-2 pb-1">
-                                <small class="text-muted fw-bold" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;">
-                                    <i class="fas fa-calendar me-1"></i>Réunions ({{ reunionsDelegation|length }})
-                                </small>
-                            </li>
-                            {% for reunion in reunionsDelegation %}
-                                <li>
-                                    <a class="dropdown-item rounded-3 py-2" href="#">
-                                        <div class="small fw-bold text-dark">{{ reunion.titre }}</div>
-                                        <div class="text-muted" style="font-size:0.72rem;">
-                                            <i class="far fa-clock me-1"></i>{{ reunion.date|date('d/m/Y H:i') }}
-                                        </div>
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        {% endif %}
-                        {% if (nbAlertesStock|default(0) == 0) and (reunionsDelegation is not defined or reunionsDelegation is empty) %}
+                        {% if (nbAlertesStock|default(0) == 0) and (nbDevisEnRetard|default(0) == 0) and (reunionsDelegation is not defined or reunionsDelegation is empty) %}
                             <li class="text-center text-muted py-4 small">
                                 <i class="fas fa-check-circle mb-2 d-block" style="font-size:1.5rem;color:var(--success);"></i>
                                 Aucune notification
@@ -925,6 +948,159 @@
         {% endfor %}
     {% endfor %}
 
+    {# ═══════════════════════════════════════════════════════
+       🚨 MODAL D'ALERTE AUTOMATIQUE — Devis en retard
+       S'ouvre à l'arrivée sur la page si ≥ 1 devis en retard
+       (une seule fois par jour par session)
+    ═══════════════════════════════════════════════════════ #}
+    {% if nbDevisEnRetard|default(0) > 0 and is_granted('ROLE_COMPTA') %}
+    <div class="modal fade" id="modalAlerteRetard" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
+                <div class="modal-header border-0 text-white py-3" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                            <i class="fas fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-0 fw-bold">
+                                ⚠️ {{ nbDevisEnRetard }} devis en retard à traiter
+                            </h5>
+                            <small class="text-white-50">
+                                Des travaux décaissés dépassent le délai prévu
+                            </small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body p-4" style="max-height: 420px; overflow-y: auto;">
+                    <div class="alert alert-warning border-0 rounded-3 small mb-3">
+                        <i class="fas fa-circle-info me-1"></i>
+                        Ces devis ont été décaissés mais les travaux n'ont pas été marqués comme terminés à la date limite.
+                        Contactez l'émetteur ou marquez-les comme terminés si les travaux sont achevés.
+                    </div>
+
+                    {% for item in devisEnRetard|slice(0, 5) %}
+                        {% set d = item.devis %}
+                        <div class="d-flex justify-content-between align-items-center py-3 border-bottom flex-wrap gap-2">
+                            <div>
+                                <div class="fw-bold text-dark">Devis #{{ d.id }}</div>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-user me-1"></i>{{ d.createdBy|split('@')|first }}
+                                </small>
+                                <small class="text-muted d-block">
+                                    <i class="fas fa-coins me-1"></i>{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="small text-muted">
+                                    <i class="far fa-calendar me-1"></i>Échéance : <strong>{{ d.dateLimite|date('d/m/Y') }}</strong>
+                                </div>
+                                <span class="badge bg-danger mt-1">+{{ item.joursRetard }} j de retard</span>
+                                {% if is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA') %}
+                                    <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                          class="d-inline mt-2"
+                                          onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-check-double"></i> Marquer terminé
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% if nbDevisEnRetard > 5 %}
+                        <div class="text-center mt-3 small text-muted">
+                            <i class="fas fa-ellipsis-h me-1"></i>
+                            ... et {{ nbDevisEnRetard - 5 }} autre(s) devis en retard
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Plus tard
+                    </button>
+                    <a href="#devis-retard-section" class="btn btn-danger" data-bs-dismiss="modal">
+                        <i class="fas fa-list"></i> Voir la liste complète
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ═══════════════════════════════════════════════════════
+       ✅ BANNIÈRE VISUELLE : devis en retard (décaissés dont délai dépassé)
+    ═══════════════════════════════════════════════════════ #}
+    {% if nbDevisEnRetard|default(0) > 0 %}
+    <div class="alert-banner is-retard" id="devis-retard-section">
+        <div class="alert-banner-header">
+            <div>
+                <h6><i class="fas fa-hourglass-end"></i>Devis dont le délai de travaux est dépassé</h6>
+                <small>{{ nbDevisEnRetard }} devis décaissé(s) dont les travaux devaient être terminés</small>
+            </div>
+            <span class="count-chip">{{ nbDevisEnRetard }} à traiter</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-pro mb-0">
+                <thead>
+                    <tr>
+                        <th>Devis</th>
+                        <th>Montant</th>
+                        <th>Décaissé le</th>
+                        <th class="text-center">Délai initial</th>
+                        <th>Échéance</th>
+                        <th class="text-center">Retard</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in devisEnRetard %}
+                        {% set d = item.devis %}
+                        <tr id="retard-devis-{{ d.id }}">
+                            <td>
+                                <div class="cell-strong">#{{ d.id }}</div>
+                                <div class="cell-muted">{{ d.createdBy|split('@')|first }}</div>
+                            </td>
+                            <td class="cell-strong">{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}</td>
+                            <td class="cell-muted">{{ d.dateDecaissement ? d.dateDecaissement|date('d/m/Y') : '—' }}</td>
+                            <td class="text-center">
+                                <span class="tag tag-neutral">
+                                    <i class="fas fa-clock"></i>{{ item.delaiInitial ?? '—' }} j
+                                </span>
+                            </td>
+                            <td>
+                                <span class="tag tag-warn">{{ d.dateLimite|date('d/m/Y') }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="tag tag-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>+{{ item.joursRetard }} j
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                {% if is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA') %}
+                                    <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                          onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ? L\'alerte sera désactivée.');"
+                                          class="d-inline">
+                                        <button type="submit" class="btn-pro btn-pro-success btn-pro-sm">
+                                            <i class="fas fa-check-double"></i>Marquer terminé
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="cell-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
     {# STAT CARDS #}
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
@@ -954,9 +1130,9 @@
         <div class="col-6 col-lg-3">
             <div class="stat-tile is-danger">
                 <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
-                <div class="stat-label">Alertes stock</div>
-                <div class="stat-value">{{ nbAlertesStock|default(0) }}</div>
-                <div class="stat-hint">Articles sous le seuil</div>
+                <div class="stat-label">Alertes actives</div>
+                <div class="stat-value">{{ nbAlertesStock|default(0) + nbDevisEnRetard|default(0) }}</div>
+                <div class="stat-hint">{{ nbAlertesStock|default(0) }} stock • {{ nbDevisEnRetard|default(0) }} devis</div>
             </div>
         </div>
     </div>
@@ -1344,17 +1520,19 @@
                             </thead>
                             <tbody>
                                 {% for devis in devisListe %}
+                                    {# ✅ Nettoyage de la description (retire toutes les traces techniques) #}
+                                    {% set descAffichee = devis.description|split('[DELAI:')[0]|split('[VISA|')[0]|split('[REJET|')[0]|split('[TERMINE:')[0]|trim %}
+                                    {% set estTermine = '[TERMINE:' in devis.description %}
+                                    {% set dateLimiteDepassee = devis.dateLimite is not null and devis.dateLimite|date('Y-m-d') < "now"|date('Y-m-d') %}
+                                    {% set estEnRetard = dateLimiteDepassee and not estTermine and devis.statut == 'DECAISSE' %}
+
                                     <tr>
                                         <td class="cell-strong">{{ devis.createdBy }}</td>
                                         <td>
                                             {% if devis.entete is defined and devis.entete %}
                                                 <div class="cell-strong">{{ devis.entete }}</div>
                                             {% endif %}
-                                            {# ✅ Nettoie les traces [VISA|...] et [REJET|...] de la description affichée #}
-                                            {% set descAffichee = devis.description %}
-                                            {% if '[VISA|' in descAffichee %}{% set descAffichee = descAffichee|split('[VISA|')[0] %}{% endif %}
-                                            {% if '[REJET|' in descAffichee %}{% set descAffichee = descAffichee|split('[REJET|')[0] %}{% endif %}
-                                            <span class="cell-muted">{{ descAffichee|trim|nl2br }}</span>
+                                            <span class="cell-muted">{{ descAffichee|nl2br }}</span>
                                         </td>
                                         <td class="cell-strong">
                                             {% if devis.devise == 'CDF' %}
@@ -1394,7 +1572,6 @@
                                                         <strong style="color:var(--ink-700);">{{ viseur|split('@')|first }}</strong>
                                                     </div>
 
-                                                    {# ✅ Badge de rôle bien visible #}
                                                     <div class="mt-1">
                                                         {% if codeRoleVisa == 'ADJOINT_CHEF_COMPTA' %}
                                                             <span class="tag" style="background: rgba(139, 92, 246, 0.14); color: #7c3aed; font-size:0.68rem; padding:0.28rem 0.6rem; font-weight:700;">
@@ -1421,7 +1598,40 @@
                                                 <span class="tag tag-accent"><i class="fas fa-money-check-alt"></i>Caisse</span>
 
                                             {% elseif devis.statut == 'DECAISSE' %}
-                                                <span class="tag tag-success"><i class="fas fa-check-double"></i>Décaissé</span>
+                                                {# ✅ DECAISSE : affiche l'état du délai de travaux #}
+                                                {% set delaiInitialDevis = null %}
+                                                {% if '[DELAI:' in devis.description %}
+                                                    {% set dparts = devis.description|split('[DELAI:') %}
+                                                    {% if dparts|length >= 2 %}
+                                                        {% set delaiInitialDevis = dparts[1]|split(']')|first %}
+                                                    {% endif %}
+                                                {% endif %}
+
+                                                <div class="d-flex flex-column align-items-end gap-1">
+                                                    <span class="tag tag-success">
+                                                        <i class="fas fa-check-double"></i>Décaissé
+                                                    </span>
+                                                    {% if devis.decaissePar %}
+                                                        <small class="cell-muted" style="font-size:0.7rem;">
+                                                            par {{ devis.decaissePar.userIdentifier|split('@')|first }}
+                                                        </small>
+                                                    {% endif %}
+                                                    {% if devis.dateLimite %}
+                                                        <small class="cell-muted" style="font-size:0.7rem;">
+                                                            <i class="far fa-calendar me-1"></i>{{ devis.dateLimite|date('d/m/Y') }}
+                                                            {% if delaiInitialDevis %}<span class="text-muted">({{ delaiInitialDevis }} j)</span>{% endif %}
+                                                        </small>
+                                                    {% endif %}
+                                                    {% if estTermine %}
+                                                        <span class="tag" style="background: rgba(5, 150, 105, 0.15); color: #047857; font-size:0.68rem; padding:0.28rem 0.6rem; font-weight:700;">
+                                                            <i class="fas fa-flag-checkered me-1"></i>Travaux terminés
+                                                        </span>
+                                                    {% elseif estEnRetard %}
+                                                        <span class="tag tag-danger" style="font-size:0.68rem;">
+                                                            <i class="fas fa-exclamation-triangle me-1"></i>En retard
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
 
                                             {% elseif devis.statut == 'REJETE' %}
                                                 <span class="tag tag-danger"><i class="fas fa-ban"></i>Rejeté</span>
@@ -1476,7 +1686,7 @@
                                                         <div class="decision-sep"></div>
 
                                                         <button type="button" class="decision-item is-danger"
-                                                                onclick="ouvrirModalRejet({{ devis.id }}, '{{ devis.createdBy|e('js') }}', '{{ devis.montant|number_format(2, ',', ' ') }}', '{{ devis.devise }}', '{{ devis.description|slice(0, 60)|e('js') }}')">
+                                                                onclick="ouvrirModalRejet({{ devis.id }}, '{{ devis.createdBy|e('js') }}', '{{ devis.montant|number_format(2, ',', ' ') }}', '{{ devis.devise }}', '{{ descAffichee|slice(0, 60)|e('js') }}')">
                                                             <div class="icon-wrap icon-red"><i class="fas fa-ban"></i></div>
                                                             <div class="item-text">
                                                                 <strong>Rejeter le devis</strong>
@@ -1518,12 +1728,21 @@
                                                 </span>
 
                                             {% elseif devis.statut == 'DECAISSE' %}
-                                                <span class="tag tag-success">
-                                                    <i class="fas fa-check-double"></i>Décaissé
-                                                    {% if devis.decaissePar %}
-                                                        <span style="font-size:0.7rem; opacity:0.7; margin-left:4px;">par {{ devis.decaissePar.userIdentifier|split('@')|first }}</span>
-                                                    {% endif %}
-                                                </span>
+                                                {# ✅ Bouton "Marquer terminé" si en retard ET pas déjà marqué #}
+                                                {% if estEnRetard and (is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')) %}
+                                                    <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': devis.id}) }}" class="d-inline"
+                                                          onsubmit="return confirm('Marquer le devis #{{ devis.id }} comme terminé ? L\'alerte sera désactivée.');">
+                                                        <button type="submit" class="btn-pro btn-pro-success btn-pro-sm">
+                                                            <i class="fas fa-check-double"></i>Marquer terminé
+                                                        </button>
+                                                    </form>
+                                                {% elseif estTermine %}
+                                                    <span class="cell-muted" style="font-size:0.78rem;">
+                                                        <i class="fas fa-check-circle text-success me-1"></i>Clôturé
+                                                    </span>
+                                                {% else %}
+                                                    <span class="cell-muted">—</span>
+                                                {% endif %}
 
                                             {% elseif devis.statut == 'REJETE' %}
                                                 <span class="tag tag-danger">
@@ -1819,7 +2038,6 @@
 
             <form method="POST" id="formRejetDevis">
                 <input type="hidden" name="choix_procedure" value="rejeter_devis">
-                <input type="hidden" name="_token" id="rejetCsrfToken" value="">
 
                 <div class="modal-body">
                     <div class="recap-devis">
@@ -1868,7 +2086,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Auto-dismiss uniquement les messages de succès/info (pas les erreurs)
         document.querySelectorAll('.alert-dismissible').forEach(alert => {
+            if (alert.classList.contains('alert-danger')) return;
             setTimeout(() => {
                 alert.style.opacity = '0';
                 setTimeout(() => alert.remove(), 400);
@@ -1894,6 +2114,22 @@
                 document.querySelectorAll('.decision-menu.show').forEach(m => m.classList.remove('show'));
             }
         });
+
+        // ═══════════════════════════════════════════════════════
+        // 🚨 Alerte automatique pour le comptable — devis en retard
+        // S'ouvre une seule fois par session pour ne pas harceler
+        // ═══════════════════════════════════════════════════════
+        const modalAlerteRetard = document.getElementById('modalAlerteRetard');
+        if (modalAlerteRetard) {
+            const key = 'alerte_retard_seen_' + new Date().toISOString().slice(0, 10);
+            if (!sessionStorage.getItem(key)) {
+                setTimeout(function () {
+                    const modal = new bootstrap.Modal(modalAlerteRetard);
+                    modal.show();
+                    sessionStorage.setItem(key, '1');
+                }, 700);
+            }
+        }
     });
 
     function toggleDecisionMenu(devisId, event) {
@@ -1911,7 +2147,7 @@
         document.getElementById('rejetRecapMontant').textContent = montant + ' ' + devise;
         document.getElementById('rejetRecapDesc').textContent = description || '—';
         document.getElementById('formRejetDevis').action = '/dashboard/compta/devis/aiguiller/' + devisId;
-        document.getElementById('rejetMotif') || (document.getElementById('motifRejet').value = '');
+        document.getElementById('motifRejet').value = '';
         const modal = new bootstrap.Modal(document.getElementById('modalRejetDevis'));
         modal.show();
         document.getElementById('modalRejetDevis').addEventListener('shown.bs.modal', function() {

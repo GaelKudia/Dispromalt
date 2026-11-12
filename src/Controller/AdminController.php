@@ -371,6 +371,42 @@ class AdminController extends AbstractController
             ->getQuery()
             ->getResult();
 
+        // ═══════════════════════════════════════════════════════════
+        // ✅ Devis DÉCAISSÉS dont le délai de travaux est dépassé
+        //    - Uniquement statut = DECAISSE (argent sorti)
+        //    - Exclut ceux marqués [TERMINE:...] dans la description
+        //    - Extrait le délai initial depuis [DELAI:XX]
+        // ═══════════════════════════════════════════════════════════
+        $devisEnRetard    = [];
+        $aujourdhuiRetard = new \DateTime('today');
+
+        foreach ($tousDevis as $d) {
+            if ($d->getStatut() !== 'DECAISSE') continue;
+            if ($d->getDateLimite() === null) continue;
+
+            // Exclusion si marqué terminé
+            if (preg_match('/\[TERMINE:/', (string) $d->getDescription())) continue;
+
+            $dateLimit = clone $d->getDateLimite();
+            $dateLimit->setTime(0, 0, 0);
+            if ($dateLimit >= $aujourdhuiRetard) continue;
+
+            $joursRetard = (int) $aujourdhuiRetard->diff($dateLimit)->days;
+
+            $delaiInitial = null;
+            if (preg_match('/\[DELAI:(\d+)\]/', (string) $d->getDescription(), $m)) {
+                $delaiInitial = (int) $m[1];
+            }
+
+            $devisEnRetard[] = [
+                'devis'        => $d,
+                'joursRetard'  => $joursRetard,
+                'delaiInitial' => $delaiInitial,
+            ];
+        }
+        usort($devisEnRetard, fn($a, $b) => $b['joursRetard'] <=> $a['joursRetard']);
+        $nbDevisEnRetard = count($devisEnRetard);
+
         $nbDevisTotal     = count($tousDevis);
         $nbDevisEnCours   = 0;
         $nbDevisDecaisses = 0;
@@ -527,6 +563,10 @@ class AdminController extends AbstractController
             'devisAiguiller'       => $devisAiguiller,
             'devisPretsADecaisser' => $devisPretsADecaisser,
             'devisEnAttenteCaisse' => $devisEnAttenteCaisse,
+
+            // ✅ NOUVEAU : devis en retard (décaissés dont délai dépassé)
+            'devisEnRetard'        => $devisEnRetard,
+            'nbDevisEnRetard'      => $nbDevisEnRetard,
         ]);
     }
 

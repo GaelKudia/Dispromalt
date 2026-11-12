@@ -294,6 +294,20 @@
         .fa-sync-alt.fa-spin {
             animation: spinRefresh 0.6s linear infinite;
         }
+
+        /* ═══════════════════════════════════════════════════════
+           🚨 ALERTE DEVIS EN RETARD (admin)
+        ═══════════════════════════════════════════════════════ */
+        .alert-late-devis {
+            border: 1px solid rgba(217, 119, 6, 0.30);
+            border-left: 4px solid #d97706;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(255, 255, 255, 0.4));
+            animation: pulseLateDevis 2.5s ease-in-out infinite;
+        }
+        @keyframes pulseLateDevis {
+            0%, 100% { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
+            50%      { box-shadow: 0 8px 28px -6px rgba(217, 119, 6, 0.35); }
+        }
     </style>
 </head>
 <body>
@@ -360,6 +374,88 @@
             </div>
         {% endfor %}
     {% endfor %}
+
+    {# ═══════════════════════════════════════════════════════
+       🚨 DEVIS EN RETARD — Alerte globale (visible sur tous les onglets)
+    ═══════════════════════════════════════════════════════ #}
+    {% if nbDevisEnRetard|default(0) > 0 %}
+    <div class="form-card alert-late-devis mb-4">
+        <div class="form-card-header" style="border-bottom-color: rgba(217, 119, 6, 0.20); margin-bottom: 1rem; padding-bottom: 1rem;">
+            <div class="form-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;">
+                <i class="fas fa-hourglass-end"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold m-0 text-dark">Devis dont le délai de travaux est dépassé</h5>
+                <small class="text-muted">
+                    {{ nbDevisEnRetard }} devis décaissé(s) — travaux non terminés à l'échéance
+                </small>
+            </div>
+            <span class="badge badge-soft badge-soft-danger px-3 py-2" style="font-size: 0.85rem;">
+                <i class="fas fa-exclamation-triangle me-1"></i>{{ nbDevisEnRetard }} à traiter
+            </span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-modern table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Devis</th>
+                        <th>Émetteur</th>
+                        <th>Montant</th>
+                        <th>Décaissé le</th>
+                        <th class="text-center">Délai initial</th>
+                        <th>Échéance</th>
+                        <th class="text-center">Retard</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in devisEnRetard %}
+                        {% set d = item.devis %}
+                        <tr id="admin-retard-{{ d.id }}">
+                            <td class="fw-bold text-secondary">#{{ d.id }}</td>
+                            <td class="small">{{ d.createdBy|split('@')|first }}</td>
+                            <td class="fw-bold">
+                                {% if d.devise == 'CDF' %}
+                                    {{ d.montant|number_format(0, ',', ' ') }} <span class="text-muted small">FC</span>
+                                {% else %}
+                                    {{ d.montant|number_format(2, ',', ' ') }} <span class="text-muted small">$</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {{ d.dateDecaissement ? d.dateDecaissement|date('d/m/Y') : '—' }}
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-secondary">
+                                    <i class="fas fa-clock me-1"></i>{{ item.delaiInitial ?? '—' }} j
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-soft badge-soft-warning">
+                                    <i class="far fa-calendar me-1"></i>{{ d.dateLimite|date('d/m/Y') }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-soft badge-soft-danger">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>+{{ item.joursRetard }} j
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                      onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ? L\'alerte sera désactivée.');"
+                                      class="d-inline">
+                                    <button type="submit" class="btn btn-light border btn-sm text-success" title="Marquer terminé">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 
     {# Cartes de statistiques #}
     <div class="row g-3 mb-4">
@@ -436,6 +532,9 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-devis-admin" data-bs-toggle="tab" data-bs-target="#pane-devis-admin" type="button" role="tab">
                     <i class="fas fa-file-invoice-dollar text-warning"></i>Devis & Finances
+                    {% if nbDevisEnRetard|default(0) > 0 %}
+                        <span class="badge bg-danger ms-2" style="font-size:0.65rem;">{{ nbDevisEnRetard }}</span>
+                    {% endif %}
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -473,7 +572,7 @@
         <div class="p-3 p-lg-4">
             <div class="tab-content">
 
-                {# ONGLET 0 : VUE 360° (inchangé) #}
+                {# ONGLET 0 : VUE 360° #}
                 <div class="tab-pane fade show active" id="pane-360" role="tabpanel">
 
                     <h5 class="fw-bold text-dark mb-4">
@@ -1078,6 +1177,72 @@
                         </div>
                     </div>
 
+                    {# 🚨 Résumé dédié aux devis en retard #}
+                    {% if nbDevisEnRetard|default(0) > 0 %}
+                    <div class="form-card mb-4" style="border-color: rgba(220, 38, 38, 0.25); background: linear-gradient(135deg, rgba(220, 38, 38, 0.03), rgba(255,255,255,0.5));">
+                        <div class="form-card-header" style="border-bottom-color: rgba(220, 38, 38, 0.15);">
+                            <div class="form-card-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;">
+                                <i class="fas fa-hourglass-end"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h5 class="fw-bold m-0 text-danger">Devis en retard critique</h5>
+                                <small class="text-muted">
+                                    {{ nbDevisEnRetard }} devis décaissés dont les travaux devaient être terminés
+                                </small>
+                            </div>
+                            <span class="badge badge-soft badge-soft-danger px-3 py-2">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Action requise
+                            </span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-danger">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Nombre de devis
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-danger">{{ nbDevisEnRetard }}</h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-warning">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Retard maximal
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-warning">
+                                        +{% set maxRetard = 0 %}
+                                        {% for item in devisEnRetard %}
+                                            {% if item.joursRetard > maxRetard %}{% set maxRetard = item.joursRetard %}{% endif %}
+                                        {% endfor %}
+                                        {{ maxRetard }} j
+                                    </h3>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="stat-card stat-primary">
+                                    <h6 class="text-muted text-uppercase fw-bold mb-1" style="font-size: 0.68rem;">
+                                        Montant total concerné
+                                    </h6>
+                                    <h3 class="fw-bold m-0 text-primary" style="font-size: 1.35rem;">
+                                        {% set totalRetardUSD = 0 %}
+                                        {% set totalRetardCDF = 0 %}
+                                        {% for item in devisEnRetard %}
+                                            {% if item.devis.devise == 'CDF' %}
+                                                {% set totalRetardCDF = totalRetardCDF + item.devis.montant %}
+                                            {% else %}
+                                                {% set totalRetardUSD = totalRetardUSD + item.devis.montant %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if totalRetardUSD > 0 %}{{ totalRetardUSD|number_format(2, ',', ' ') }} ${% endif %}
+                                        {% if totalRetardUSD > 0 and totalRetardCDF > 0 %} + {% endif %}
+                                        {% if totalRetardCDF > 0 %}{{ totalRetardCDF|number_format(0, ',', ' ') }} FC{% endif %}
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="form-card">
                         <div class="form-card-header">
                             <div class="form-card-icon form-card-icon-blue"><i class="fas fa-list"></i></div>
@@ -1367,7 +1532,6 @@
                                                         </button>
                                                     </form>
                                                 {% endif %}
-                                                {# ✅ NOUVEAU : Destituer Adjoint Chef Comptable #}
                                                 {% if 'ROLE_ADJOINT_CHEF_COMPTA' in u.roles %}
                                                     <form action="{{ path('app_admin_destituer_adjoint_chef_compta', {'id': u.id}) }}" method="POST" class="d-inline"
                                                           onsubmit="return confirm('Retirer le rôle Adjoint Chef Comptable à {{ u.email }} ?');">
@@ -1464,7 +1628,6 @@
                             </div>
                         </div>
 
-                        {# ✅ NOUVEAU : Nommer un Adjoint Chef Comptable #}
                         <div class="col-12 col-lg-6">
                             <div class="form-card">
                                 <div class="form-card-header">
@@ -1638,7 +1801,6 @@
                                             <div class="text-muted">Supervise la comptabilité et valide les budgets.</div>
                                         </div>
                                     </li>
-                                    {# ✅ NOUVEAU : Adjoint Chef Comptable #}
                                     <li class="mb-3 d-flex">
                                         <i class="fas fa-user-tie text-purple me-2 mt-1"></i>
                                         <div class="small">
@@ -2447,6 +2609,88 @@
     </div>
 </div>
 
+{# ═══════════════════════════════════════════════════════
+   🚨 MODAL D'ALERTE AUTOMATIQUE — Devis en retard
+   S'ouvre à l'arrivée sur la page (1× par jour)
+═══════════════════════════════════════════════════════ #}
+{% if nbDevisEnRetard|default(0) > 0 %}
+<div class="modal fade" id="modalAlerteRetardAdmin" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 22px; overflow: hidden;">
+            <div class="modal-header border-0 text-white py-3" style="background: linear-gradient(135deg, #dc2626, #b91c1c);">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title mb-0 fw-bold">
+                            ⚠️ {{ nbDevisEnRetard }} devis en retard à traiter
+                        </h5>
+                        <small class="text-white-50">
+                            Des travaux décaissés dépassent le délai prévu
+                        </small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+
+            <div class="modal-body p-4" style="max-height: 420px; overflow-y: auto;">
+                <div class="alert alert-warning border-0 rounded-3 small mb-3">
+                    <i class="fas fa-circle-info me-1"></i>
+                    Ces devis ont été décaissés mais les travaux n'ont pas été marqués comme terminés à la date limite.
+                    Contactez l'émetteur ou marquez-les comme terminés si les travaux sont achevés.
+                </div>
+
+                {% for item in devisEnRetard|slice(0, 5) %}
+                    {% set d = item.devis %}
+                    <div class="d-flex justify-content-between align-items-center py-3 border-bottom flex-wrap gap-2">
+                        <div>
+                            <div class="fw-bold text-dark">Devis #{{ d.id }}</div>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-user me-1"></i>{{ d.createdBy|split('@')|first }}
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="fas fa-coins me-1"></i>{{ d.montant|number_format(2, ',', ' ') }} {{ d.devise }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <div class="small text-muted">
+                                <i class="far fa-calendar me-1"></i>Échéance : <strong>{{ d.dateLimite|date('d/m/Y') }}</strong>
+                            </div>
+                            <span class="badge bg-danger mt-1">+{{ item.joursRetard }} j de retard</span>
+                            <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': d.id}) }}"
+                                  class="d-inline mt-2"
+                                  onsubmit="return confirm('Marquer le devis #{{ d.id }} comme terminé ?');">
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-check-double"></i> Marquer terminé
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% if nbDevisEnRetard > 5 %}
+                    <div class="text-center mt-3 small text-muted">
+                        <i class="fas fa-ellipsis-h me-1"></i>
+                        ... et {{ nbDevisEnRetard - 5 }} autre(s) devis en retard
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Plus tard
+                </button>
+                <a href="#pane-devis-admin" class="btn btn-danger" data-bs-dismiss="modal"
+                   onclick="setTimeout(() => { const t = document.querySelector('#tab-devis-admin'); if(t) bootstrap.Tab.getOrCreateInstance(t).show(); }, 150);">
+                    <i class="fas fa-list"></i> Voir l'onglet Devis & Finances
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -2508,6 +2752,22 @@
                 document.getElementById('editArticleToken').value = btn.dataset.token;
             });
         });
+
+        // ═══════════════════════════════════════════════════════
+        // 🚨 Alerte automatique — devis en retard (admin)
+        // S'ouvre une fois par jour par session
+        // ═══════════════════════════════════════════════════════
+        const modalAlerteRetardAdmin = document.getElementById('modalAlerteRetardAdmin');
+        if (modalAlerteRetardAdmin) {
+            const key = 'admin_alerte_retard_seen_' + new Date().toISOString().slice(0, 10);
+            if (!sessionStorage.getItem(key)) {
+                setTimeout(function () {
+                    const modal = new bootstrap.Modal(modalAlerteRetardAdmin);
+                    modal.show();
+                    sessionStorage.setItem(key, '1');
+                }, 700);
+            }
+        }
 
         const topArticlesAdmin = {{ topArticles|default([])|json_encode|raw }};
         const topArticlesTotal = {{ topArticlesTotal|default(0) }};
