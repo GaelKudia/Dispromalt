@@ -1,0 +1,8 @@
+webpush:
+    vapid:
+        enabled: true
+        subject: 'mailto:admin@dispromalt.cd'
+        web_token:
+            enabled: true
+            public_key: '%env(WEBPUSH_PUBLIC_KEY)%'
+            private_key: '%env(WEBPUSH_PRIVATE_KEY)%'

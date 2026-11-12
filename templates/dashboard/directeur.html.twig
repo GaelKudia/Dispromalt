@@ -274,6 +274,23 @@
                 box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
             }
             .mobile-tab-overlay .overlay-item span:first-of-type { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+            /* 📱 RESPONSIVE NOTIFICATIONS (CENTRÉ SUR MOBILE) */
+            .notification-dropdown {
+                position: fixed !important;
+                top: 75px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 92vw !important;
+                max-width: 380px !important;
+                max-height: 80vh;
+                overflow-y: auto;
+                margin: 0 !important;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+            .notification-bell { width: 38px; height: 38px; }
+            .notification-bell i { font-size: 0.9rem; }
         }
         @media (max-width: 576px) {
             .container-fluid { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
@@ -322,7 +339,8 @@
                         <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem;">{{ totalMessages }}</span>
                     {% endif %}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3" style="width: 340px;">
+                {# Ajout de la classe notification-dropdown ici #}
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 p-2 mt-3 notification-dropdown">
                     {% if msgsDevisAttente > 0 %}
                         <li class="dropdown-header text-danger fw-bold small"><i class="fas fa-gavel me-1"></i>Devis à arbitrer ({{ msgsDevisAttente }})</li>
                         {% for devis in devisListe|default([])|filter(d => d.statut == 'ATTENTE_DIRECTEUR')|slice(0, 3) %}
@@ -1573,6 +1591,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
-</script>
+</script>   
 </body>
 </html>

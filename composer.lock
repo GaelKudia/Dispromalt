@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7a707a0b26bfd362d95d4397b1586e1e",
+    "content-hash": "6b6e507851327382569fd1b118b0432f",
     "packages": [
         {
             "name": "composer/pcre",
@@ -2730,6 +2730,143 @@
                 }
             ],
             "time": "2026-05-15T19:01:42+00:00"
+        },
+        {
+            "name": "spomky-labs/web-push-bundle",
+            "version": "3.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Spomky-Labs/web-push-bundle.git",
+                "reference": "67bc7781139a90b3747d100d565eed855d4561ef"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Spomky-Labs/web-push-bundle/zipball/67bc7781139a90b3747d100d565eed855d4561ef",
+                "reference": "67bc7781139a90b3747d100d565eed855d4561ef",
+                "shasum": ""
+            },
+            "require": {
+                "spomky-labs/web-push-lib": "^3.0",
+                "symfony/config": "^6.2|^7.0|^8.0",
+                "symfony/dependency-injection": "^6.2|^7.0|^8.0",
+                "symfony/framework-bundle": "^6.2|^7.0|^8.0"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "WebPush\\Bundle\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Spomky-Labs",
+                    "homepage": "https://github.com/Spomky-Labs"
+                },
+                {
+                    "name": "All contributors",
+                    "homepage": "https://github.com/Spomky-Labs/web-push-bundle/contributors"
+                }
+            ],
+            "description": "Web-Push bundle for Symfony",
+            "homepage": "https://github.com/Spomky-Labs/web-push",
+            "keywords": [
+                "Push API",
+                "WebPush",
+                "notifications",
+                "push",
+                "web"
+            ],
+            "support": {
+                "source": "https://github.com/Spomky-Labs/web-push-bundle/tree/3.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Spomky",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/FlorentMorselli",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2026-01-21T13:58:51+00:00"
+        },
+        {
+            "name": "spomky-labs/web-push-lib",
+            "version": "3.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Spomky-Labs/web-push-lib.git",
+                "reference": "ee8cfee262c758cc0d480c0710c868776d327e3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Spomky-Labs/web-push-lib/zipball/ee8cfee262c758cc0d480c0710c868776d327e3b",
+                "reference": "ee8cfee262c758cc0d480c0710c868776d327e3b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": ">=8.2",
+                "psr/cache": "^1.0|^2.0|^3.0",
+                "psr/clock": "^1.0",
+                "psr/log": "^1.1|^2.0|^3.0",
+                "symfony/http-kernel": "^6.2|^7.0|^8.0"
+            },
+            "suggest": {
+                "ext-mbstring": "Mandatory when using Payload or VAPID extensions",
+                "ext-openssl": "Mandatory when using Payload or VAPID extensions",
+                "lcobucci/jwt": "Mandatory if you want to use VAPID using lcobucci/jwt",
+                "psr/log-implementation": "Recommended to receive logs from the library",
+                "web-token/jwt-library": "Mandatory if you want to use VAPID using web-token/jwt-framework"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "WebPush\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Spomky-Labs",
+                    "homepage": "https://github.com/Spomky-Labs"
+                },
+                {
+                    "name": "All contributors",
+                    "homepage": "https://github.com/Spomky-Labs/web-push-lib/contributors"
+                }
+            ],
+            "description": "Web-Push library for PHP",
+            "homepage": "https://github.com/spomky-labs/web-push",
+            "keywords": [
+                "Push API",
+                "WebPush",
+                "notifications",
+                "push",
+                "web"
+            ],
+            "support": {
+                "source": "https://github.com/Spomky-Labs/web-push-lib/tree/3.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/Spomky",
+                    "type": "github"
+                },
+                {
+                    "url": "https://www.patreon.com/FlorentMorselli",
+                    "type": "patreon"
+                }
+            ],
+            "time": "2026-01-21T13:58:51+00:00"
         },
         {
             "name": "symfony/asset",
@@ -11023,7 +11160,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -11031,6 +11168,6 @@
         "ext-ctype": "*",
         "ext-iconv": "*"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.6.0"
 }

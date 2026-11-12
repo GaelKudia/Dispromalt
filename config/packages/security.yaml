@@ -59,6 +59,8 @@ security:
     access_control:
 
         - { path: ^/dashboard/rapport/, roles: [ROLE_STOCK, ROLE_COMPTA] }
+        - { path: '^/api/push/public-key', roles: PUBLIC_ACCESS }
+        - { path: '^/api/push/subscribe',  roles: IS_AUTHENTICATED_FULLY }
 
         - {
             path: ^/dashboard,
