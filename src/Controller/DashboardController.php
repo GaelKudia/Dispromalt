@@ -1027,14 +1027,23 @@ class DashboardController extends AbstractController
             //    - TOUS les décaissements, tous users, toutes périodes
             //    - Alimente l'onglet dédié « Décaissements »
             // ═══════════════════════════════════════════════════════════
-            $tousDecaissements = $em->getRepository(Devis::class)->createQueryBuilder('d')
-                ->leftJoin('d.user', 'u')->addSelect('u')
-                ->leftJoin('d.decaissePar', 'dp')->addSelect('dp')
-                ->where('d.statut = :statut')
-                ->setParameter('statut', Devis::STATUT_DECAISSE)
-                ->orderBy('d.dateDecaissement', 'DESC')
-                ->getQuery()
-                ->getResult();
+          // ═══════════════════════════════════════════════════════════
+// ✅ HISTORIQUE DES DÉCAISSEMENTS — UNIQUEMENT CEUX DE LA COMPTABILITÉ
+//    Exclut les décaissements faits par la Caisse.
+//    Inclut ROLE_COMPTA, ROLE_CHEF_COMPTA, ROLE_ADJOINT_CHEF_COMPTA
+// ═══════════════════════════════════════════════════════════
+$tousDecaissements = $em->getRepository(Devis::class)->createQueryBuilder('d')
+    ->leftJoin('d.user', 'u')->addSelect('u')
+    ->leftJoin('d.decaissePar', 'dp')->addSelect('dp')
+    ->where('d.statut = :statut')
+    ->andWhere('dp.roles LIKE :roleCompta OR dp.roles LIKE :roleChef OR dp.roles LIKE :roleAdjoint')
+    ->setParameter('statut', Devis::STATUT_DECAISSE)
+    ->setParameter('roleCompta',  '%ROLE_COMPTA%')
+    ->setParameter('roleChef',    '%ROLE_CHEF_COMPTA%')
+    ->setParameter('roleAdjoint', '%ROLE_ADJOINT_CHEF_COMPTA%')
+    ->orderBy('d.dateDecaissement', 'DESC')
+    ->getQuery()
+    ->getResult();
 
             $nbDecaissementsTotal      = count($tousDecaissements);
             $totalTousDecaissementsUSD = 0;
