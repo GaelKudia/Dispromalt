@@ -364,7 +364,6 @@
             box-shadow: 0 4px 12px -4px rgba(220, 38, 38, 0.5);
         }
 
-        /* ✅ Bannière orange pour devis en retard */
         .alert-banner.is-retard {
             border-image: linear-gradient(180deg, #f59e0b, #d97706) 1;
             animation: pulseRetard 2.5s ease-in-out infinite;
@@ -380,7 +379,6 @@
             box-shadow: 0 4px 12px -4px rgba(217, 119, 6, 0.5);
         }
 
-        /* ✅ Animation pulse pour attirer l'œil du comptable */
         @keyframes pulseRetard {
             0%, 100% { box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08); }
             50%      { box-shadow: 0 8px 28px -6px rgba(245, 158, 11, 0.35); }
@@ -950,8 +948,6 @@
 
     {# ═══════════════════════════════════════════════════════
        🚨 MODAL D'ALERTE AUTOMATIQUE — Devis en retard
-       S'ouvre à l'arrivée sur la page si ≥ 1 devis en retard
-       (une seule fois par jour par session)
     ═══════════════════════════════════════════════════════ #}
     {% if nbDevisEnRetard|default(0) > 0 and is_granted('ROLE_COMPTA') %}
     <div class="modal fade" id="modalAlerteRetard" tabindex="-1" data-bs-backdrop="static">
@@ -1033,7 +1029,7 @@
     {% endif %}
 
     {# ═══════════════════════════════════════════════════════
-       ✅ BANNIÈRE VISUELLE : devis en retard (décaissés dont délai dépassé)
+       ✅ BANNIÈRE VISUELLE : devis en retard
     ═══════════════════════════════════════════════════════ #}
     {% if nbDevisEnRetard|default(0) > 0 %}
     <div class="alert-banner is-retard" id="devis-retard-section">
@@ -1225,6 +1221,15 @@
             <li class="nav-item">
                 <button class="nav-link" id="tresorerie-tab" data-bs-toggle="tab" data-bs-target="#tresorerie-pane" type="button">
                     <i class="fas fa-vault"></i>Trésorerie
+                </button>
+            </li>
+            {# ✅ NOUVEL ONGLET : DÉCAISSEMENTS #}
+            <li class="nav-item">
+                <button class="nav-link" id="decaissements-tab" data-bs-toggle="tab" data-bs-target="#decaissements-pane" type="button">
+                    <i class="fas fa-money-bill-transfer"></i>Décaissements
+                    {% if nbDecaissementsTotal|default(0) > 0 %}
+                        <span class="badge bg-success ms-1" style="font-size:0.65rem;">{{ nbDecaissementsTotal }}</span>
+                    {% endif %}
                 </button>
             </li>
             <li class="nav-item">
@@ -1468,6 +1473,152 @@
                     </div>
                 </div>
 
+                {# ═══ ONGLET : DÉCAISSEMENTS (HISTORIQUE COMPLET) ═══ #}
+                <div class="tab-pane fade" id="decaissements-pane" role="tabpanel">
+                    <div class="section-heading">
+                        <div>
+                            <h5><i class="fas fa-money-bill-transfer"></i>Historique des décaissements</h5>
+                            <small>Toutes les sorties de fonds effectuées — toutes équipes et toutes périodes confondues</small>
+                        </div>
+                        <a href="{{ path('app_rapport_excel', {'date_debut': date_debut, 'date_fin': date_fin}) }}"
+                           class="btn-pro btn-pro-ghost btn-pro-sm no-print">
+                            <i class="fas fa-file-excel"></i>Exporter
+                        </a>
+                    </div>
+
+                    {# KPIs globaux #}
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-lg-4">
+                            <div class="stat-tile is-accent">
+                                <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+                                <div class="stat-label">Décaissements effectués</div>
+                                <div class="stat-value">{{ nbDecaissementsTotal|default(0) }}</div>
+                                <div class="stat-hint">Toutes périodes confondues</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-4">
+                            <div class="stat-tile is-success">
+                                <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                                <div class="stat-label">Total USD décaissé</div>
+                                <div class="stat-value">
+                                    {{ totalTousDecaissementsUSD|default(0)|number_format(2, ',', ' ') }}
+                                    <small style="font-size:1rem;color:var(--ink-400);font-weight:600;">$</small>
+                                </div>
+                                <div class="stat-hint">Cumul historique en USD</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-4">
+                            <div class="stat-tile is-warning">
+                                <div class="stat-icon"><i class="fas fa-coins"></i></div>
+                                <div class="stat-label">Total CDF décaissé</div>
+                                <div class="stat-value">
+                                    {{ totalTousDecaissementsCDF|default(0)|number_format(0, ',', ' ') }}
+                                    <small style="font-size:1rem;color:var(--ink-400);font-weight:600;">FC</small>
+                                </div>
+                                <div class="stat-hint">Cumul historique en CDF</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Tableau historique #}
+                    <div class="table-responsive">
+                        <table class="table table-pro">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date décaissement</th>
+                                    <th>Émetteur</th>
+                                    <th>Montant</th>
+                                    <th>Décaissé par</th>
+                                    <th class="text-center">Délai initial</th>
+                                    <th>Échéance</th>
+                                    <th>État</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for d in tousDecaissements|default([]) %}
+                                    {% set descAffichee = d.description|split('[DELAI:')[0]|split('[VISA|')[0]|split('[REJET|')[0]|split('[TERMINE:')[0]|trim %}
+                                    {% set estTermine = '[TERMINE:' in d.description %}
+                                    {% set enRetard = d.dateLimite and d.dateLimite|date('Y-m-d') < "now"|date('Y-m-d') and not estTermine %}
+                                    {% set delaiInitial = null %}
+                                    {% if '[DELAI:' in d.description %}
+                                        {% set dparts = d.description|split('[DELAI:') %}
+                                        {% if dparts|length >= 2 %}
+                                            {% set delaiInitial = dparts[1]|split(']')|first %}
+                                        {% endif %}
+                                    {% endif %}
+
+                                    <tr>
+                                        <td class="cell-strong">#{{ d.id }}</td>
+                                        <td class="cell-muted">
+                                            {{ d.dateDecaissement ? d.dateDecaissement|date('d/m/Y') : '—' }}
+                                        </td>
+                                        <td>
+                                            <div class="cell-strong">{{ d.createdBy|split('@')|first }}</div>
+                                            {% if d.entete is defined and d.entete %}
+                                                <div class="cell-muted" style="font-size:0.72rem;">{{ d.entete|slice(0, 40) }}{% if d.entete|length > 40 %}…{% endif %}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="cell-strong">
+                                            {% if d.devise == 'CDF' %}
+                                                {{ d.montant|number_format(0, ',', ' ') }} <span class="text-muted small">FC</span>
+                                            {% else %}
+                                                {{ d.montant|number_format(2, ',', ' ') }} <span class="text-muted small">$</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="cell-muted">
+                                            {% if d.decaissePar %}
+                                                <i class="fas fa-user-check me-1 text-success"></i>{{ d.decaissePar.userIdentifier|split('@')|first }}
+                                            {% else %}
+                                                —
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="tag tag-neutral">
+                                                <i class="fas fa-clock"></i>{{ delaiInitial ?? '—' }} j
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if d.dateLimite %}
+                                                <span class="tag {{ enRetard ? 'tag-danger' : (estTermine ? 'tag-success' : 'tag-warn') }}">
+                                                    <i class="far fa-calendar"></i>{{ d.dateLimite|date('d/m/Y') }}
+                                                </span>
+                                            {% else %}
+                                                <span class="cell-muted">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if estTermine %}
+                                                <span class="tag tag-success">
+                                                    <i class="fas fa-check-double"></i>Terminé
+                                                </span>
+                                            {% elseif enRetard %}
+                                                <span class="tag tag-danger">
+                                                    <i class="fas fa-exclamation-triangle"></i>En retard
+                                                </span>
+                                            {% else %}
+                                                <span class="tag tag-neutral">
+                                                    <i class="fas fa-hourglass-half"></i>En cours
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="8">
+                                            <div class="empty-pro">
+                                                <i class="fas fa-receipt"></i>
+                                                <div class="title">Aucun décaissement enregistré</div>
+                                                <div class="sub">Les décaissements apparaîtront ici dès qu'un devis sera payé</div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 {# ═══ ONGLET 2 : WORKFLOW DEVIS ═══ #}
                 <div class="tab-pane fade" id="devis-pane" role="tabpanel">
                     <div class="section-heading">
@@ -1520,7 +1671,6 @@
                             </thead>
                             <tbody>
                                 {% for devis in devisListe %}
-                                    {# ✅ Nettoyage de la description (retire toutes les traces techniques) #}
                                     {% set descAffichee = devis.description|split('[DELAI:')[0]|split('[VISA|')[0]|split('[REJET|')[0]|split('[TERMINE:')[0]|trim %}
                                     {% set estTermine = '[TERMINE:' in devis.description %}
                                     {% set dateLimiteDepassee = devis.dateLimite is not null and devis.dateLimite|date('Y-m-d') < "now"|date('Y-m-d') %}
@@ -1550,7 +1700,6 @@
                                                 <span class="tag tag-neutral"><i class="fas fa-user-shield"></i>Chef compta</span>
 
                                             {% elseif devis.statut == 'ATTENTE_DIR' %}
-                                                {# ✅ Extraction du visa enrichi [VISA|date|email|ROLE] #}
                                                 {% set viseur = null %}
                                                 {% set dateVisa = null %}
                                                 {% set codeRoleVisa = 'CHEF_COMPTA' %}
@@ -1598,7 +1747,6 @@
                                                 <span class="tag tag-accent"><i class="fas fa-money-check-alt"></i>Caisse</span>
 
                                             {% elseif devis.statut == 'DECAISSE' %}
-                                                {# ✅ DECAISSE : affiche l'état du délai de travaux #}
                                                 {% set delaiInitialDevis = null %}
                                                 {% if '[DELAI:' in devis.description %}
                                                     {% set dparts = devis.description|split('[DELAI:') %}
@@ -1696,7 +1844,6 @@
                                                     </div>
                                                 </div>
 
-                                            {# ✅ Chef Comptable OU Adjoint Chef Comptable #}
                                             {% elseif devis.statut == 'ATTENTE_CHEF_COMPTABLE' and (is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')) %}
                                                 <form method="POST" action="{{ path('app_devis_valider_chef', {'id': devis.id}) }}" class="d-inline"
                                                       onsubmit="return confirm('Viser ce devis et l\'envoyer à la Direction ?');">
@@ -1728,7 +1875,6 @@
                                                 </span>
 
                                             {% elseif devis.statut == 'DECAISSE' %}
-                                                {# ✅ Bouton "Marquer terminé" si en retard ET pas déjà marqué #}
                                                 {% if estEnRetard and (is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA')) %}
                                                     <form method="POST" action="{{ path('app_devis_marquer_termine', {'id': devis.id}) }}" class="d-inline"
                                                           onsubmit="return confirm('Marquer le devis #{{ devis.id }} comme terminé ? L\'alerte sera désactivée.');">
@@ -2115,10 +2261,7 @@
             }
         });
 
-        // ═══════════════════════════════════════════════════════
         // 🚨 Alerte automatique pour le comptable — devis en retard
-        // S'ouvre une seule fois par session pour ne pas harceler
-        // ═══════════════════════════════════════════════════════
         const modalAlerteRetard = document.getElementById('modalAlerteRetard');
         if (modalAlerteRetard) {
             const key = 'alerte_retard_seen_' + new Date().toISOString().slice(0, 10);

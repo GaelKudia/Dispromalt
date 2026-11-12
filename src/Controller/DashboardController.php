@@ -128,9 +128,6 @@ class DashboardController extends AbstractController
 
         // ═══════════════════════════════════════════════════════════
         // ✅ Devis DÉCAISSÉS dont le délai de travaux est dépassé
-        //    - Uniquement statut = DECAISSE (argent sorti)
-        //    - Exclut ceux marqués [TERMINE:...] dans la description
-        //    - Extrait le délai initial depuis [DELAI:XX]
         // ═══════════════════════════════════════════════════════════
         $devisEnRetard    = [];
         $nbDevisEnRetard  = 0;
@@ -154,7 +151,6 @@ class DashboardController extends AbstractController
             $dateLimit->setTime(0, 0, 0);
             $joursRetard = (int) $aujourdhuiRetard->diff($dateLimit)->days;
 
-            // ✅ Extraire le délai initial depuis la description
             $delaiInitial = null;
             if (preg_match('/\[DELAI:(\d+)\]/', (string) $d->getDescription(), $m)) {
                 $delaiInitial = (int) $m[1];
@@ -1026,6 +1022,33 @@ class DashboardController extends AbstractController
                 }
             }
 
+            // ═══════════════════════════════════════════════════════════
+            // ✅ HISTORIQUE COMPLET DES DÉCAISSEMENTS
+            //    - TOUS les décaissements, tous users, toutes périodes
+            //    - Alimente l'onglet dédié « Décaissements »
+            // ═══════════════════════════════════════════════════════════
+            $tousDecaissements = $em->getRepository(Devis::class)->createQueryBuilder('d')
+                ->leftJoin('d.user', 'u')->addSelect('u')
+                ->leftJoin('d.decaissePar', 'dp')->addSelect('dp')
+                ->where('d.statut = :statut')
+                ->setParameter('statut', Devis::STATUT_DECAISSE)
+                ->orderBy('d.dateDecaissement', 'DESC')
+                ->getQuery()
+                ->getResult();
+
+            $nbDecaissementsTotal      = count($tousDecaissements);
+            $totalTousDecaissementsUSD = 0;
+            $totalTousDecaissementsCDF = 0;
+
+            foreach ($tousDecaissements as $d) {
+                if ($d->getDevise() === 'CDF') {
+                    $totalTousDecaissementsCDF += (float) $d->getMontant();
+                } else {
+                    $totalTousDecaissementsUSD += (float) $d->getMontant();
+                }
+            }
+
+            // ✅ Totaux « mes décaissements » (conservés pour compatibilité)
             $totalDevisUSD = 0;
             $totalDevisCDF = 0;
             foreach ($mesDecaissements as $d) {
@@ -1045,6 +1068,13 @@ class DashboardController extends AbstractController
                 'rapportGlobal'        => $rapportGlobal,
                 'devisListe'           => $devisListe,
                 'mesDecaissements'     => $mesDecaissements,
+
+                // ✅ NOUVEAU : historique complet des décaissements
+                'tousDecaissements'         => $tousDecaissements,
+                'nbDecaissementsTotal'      => $nbDecaissementsTotal,
+                'totalTousDecaissementsUSD' => $totalTousDecaissementsUSD,
+                'totalTousDecaissementsCDF' => $totalTousDecaissementsCDF,
+
                 'devisA_Aiguiller'     => $devisA_Aiguiller,
                 'devisPretsADecaisser' => $devisPretsADecaisser,
                 'devisEnAttenteCaisse' => $devisEnAttenteCaisse,
@@ -1574,7 +1604,6 @@ class DashboardController extends AbstractController
                 $devis->setDateDecaissementPar(new \DateTime());
                 $devis->setDateDecaissement(new \DateTime());
 
-                // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
                 $delai = 30;
                 if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
                     $delai = max(1, (int) $m[1]);
@@ -2032,7 +2061,6 @@ class DashboardController extends AbstractController
         $devis->setDateDecaissementPar(new \DateTime());
         $devis->setDateDecaissement(new \DateTime());
 
-        // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
         $delai = 30;
         if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
             $delai = max(1, (int) $m[1]);
@@ -2084,7 +2112,6 @@ class DashboardController extends AbstractController
         $devis->setDateDecaissementPar(new \DateTime());
         $devis->setDateDecaissement(new \DateTime());
 
-        // ✅ NOUVEAU : calcul de la date limite = décaissement + délai
         $delai = 30;
         if (preg_match('/\[DELAI:(\d+)\]/', (string) $devis->getDescription(), $m)) {
             $delai = max(1, (int) $m[1]);
@@ -2223,10 +2250,6 @@ class DashboardController extends AbstractController
         return $this->redirectToRoute('app_dashboard');
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ✅ NOUVELLE MÉTHODE : MARQUER UN DEVIS COMME TERMINÉ
-    //    Éteint l'alerte de retard (ajoute [TERMINE:...] dans description)
-    // ═══════════════════════════════════════════════════════════
     #[Route('/dashboard/devis/marquer-termine/{id}', name: 'app_devis_marquer_termine', methods: ['POST'])]
     #[IsGranted(new Expression("is_granted('ROLE_CHEF_COMPTA') or is_granted('ROLE_ADJOINT_CHEF_COMPTA') or is_granted('ROLE_ADMIN')"))]
     public function marquerDevisTermine(Devis $devis, EntityManagerInterface $em): Response
@@ -2236,7 +2259,6 @@ class DashboardController extends AbstractController
             return $this->redirectToRoute('app_dashboard');
         }
 
-        // ✅ Éviter les doublons
         if (preg_match('/\[TERMINE:/', (string) $devis->getDescription())) {
             $this->addFlash('info', 'ℹ️ Ce devis est déjà marqué comme terminé.');
             return $this->redirectToRoute('app_dashboard');
