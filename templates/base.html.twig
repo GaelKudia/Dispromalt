@@ -28,7 +28,6 @@
             overflow-y: auto;
             overflow-x: hidden;
         }
-        /* ✅ Brand link avec logo */
         .sidebar .brand-link {
             padding: 15px;
             font-size: 1.25rem;
@@ -128,7 +127,6 @@
             visibility: visible;
         }
 
-        /* ✅ Animation spin pour le bouton actualiser */
         @keyframes spinRefresh {
             from { transform: rotate(0deg); }
             to   { transform: rotate(360deg); }
@@ -137,9 +135,6 @@
             animation: spinRefresh 0.6s linear infinite;
         }
 
-        /* ═══════════════════════════════════════════════════════
-           RESPONSIVE — Mobile (≤ 992px)
-        ═══════════════════════════════════════════════════════ */
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -151,31 +146,18 @@
             .sidebar.show {
                 transform: translateX(0);
             }
-            .main-wrapper {
-                margin-left: 0;
-            }
-            .main-wrapper.full-width {
-                margin-left: 0;
-            }
-            .sidebar-overlay {
-                display: block;
-            }
+            .main-wrapper { margin-left: 0; }
+            .main-wrapper.full-width { margin-left: 0; }
+            .sidebar-overlay { display: block; }
         }
 
         @media (min-width: 993px) {
             .sidebar-overlay { display: none !important; }
         }
 
-        /* ═══════════════════════════════════════════════════════
-           RESPONSIVE — Smartphone (≤ 768px)
-        ═══════════════════════════════════════════════════════ */
         @media (max-width: 768px) {
-            .content-body {
-                padding: 12px;
-            }
-            .top-navbar {
-                padding: 8px 12px;
-            }
+            .content-body { padding: 12px; }
+            .top-navbar { padding: 8px 12px; }
             .content-body h1.h3,
             .content-body h1.h2 {
                 font-size: 1.15rem !important;
@@ -185,17 +167,11 @@
             .content-body h4 { font-size: 1rem; }
             .content-body h5 { font-size: 0.95rem; }
 
-            .card-body {
-                padding: 1rem !important;
-            }
+            .card-body { padding: 1rem !important; }
 
-            .table {
-                font-size: 0.82rem;
-            }
+            .table { font-size: 0.82rem; }
             .table th,
-            .table td {
-                padding: 0.55rem 0.5rem;
-            }
+            .table td { padding: 0.55rem 0.5rem; }
 
             .badge {
                 font-size: 0.7rem;
@@ -206,9 +182,7 @@
                 padding: 0.5rem 0.85rem;
             }
 
-            .form-label {
-                font-size: 0.78rem;
-            }
+            .form-label { font-size: 0.78rem; }
             .form-control,
             .form-select {
                 font-size: 0.9rem;
@@ -227,19 +201,13 @@
         }
 
         @media (max-width: 576px) {
-            .content-body {
-                padding: 10px;
-            }
+            .content-body { padding: 10px; }
             .container-fluid {
                 padding-left: 10px !important;
                 padding-right: 10px !important;
             }
-            .sidebar .brand-link img {
-                height: 34px;
-            }
-            .sidebar .brand-link {
-                font-size: 1.1rem;
-            }
+            .sidebar .brand-link img { height: 34px; }
+            .sidebar .brand-link { font-size: 1.1rem; }
         }
 
         .table-responsive {
@@ -256,7 +224,12 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/192.png">
     <link rel="apple-touch-icon" href="/images/icons/512.png">
 
-    {% if app.environment == 'prod' %}
+    {# ═══════════════════════════════════════════════════════════════════
+       ENREGISTREMENT UNIQUE DU SERVICE WORKER  ⬅️ MODIFIÉ
+       - Un seul SW : /service-worker.js (statique, dans public/)
+       - Nettoyage des anciens SW (/sw.js, workbox) qui créaient un conflit
+       - Actif en dev ET en prod (nécessaire pour l'installation PWA + push)
+       ═══════════════════════════════════════════════════════════════════ #}
     <script>
     (function () {
         if (!('serviceWorker' in navigator)) return;
@@ -265,18 +238,19 @@
                 var pending = [];
                 regs.forEach(function (reg) {
                     var url = (reg.active && reg.active.scriptURL) || '';
-                    if (url.indexOf('/sw.js') === -1 || url.indexOf('workbox') !== -1) {
+                    // Supprime TOUT Service Worker qui n'est pas /service-worker.js
+                    if (url.indexOf('/service-worker.js') === -1) {
                         pending.push(reg.unregister());
                     }
                 });
                 return Promise.all(pending);
             }).then(function () {
-                return navigator.serviceWorker.register('/sw.js', {
+                return navigator.serviceWorker.register('/service-worker.js', {
                     scope: '/',
                     updateViaCache: 'none'
                 });
             }).then(function (reg) {
-                reg.update();
+                return reg.update();
             }).catch(function (err) {
                 console.warn('SW KO:', err);
             });
@@ -289,9 +263,15 @@
         });
     })();
     </script>
-    {% endif %}
 
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@khmyznikov/pwa-install@0.4.5/dist/index.min.js"></script>
+    {# ═══════════════════════════════════════════════════════════════════
+       pwa-install — SUPPRIMÉ  ⬅️ MODIFIÉ
+       Le script CDN jsdelivr était bloqué par la CSP + MIME + CORS.
+       Il n'était de toute façon pas utilisé (aucune balise <pwa-install>
+       dans la page). Sur Chrome/Edge le bouton natif d'installation
+       apparaît tout seul ; sur iOS l'utilisateur passe par Partager →
+       « Sur l'écran d'accueil ».
+       ═══════════════════════════════════════════════════════════════════ #}
 </head>
 <body class="{% if app.request.attributes.get('_route') == 'app_login' %}login-page{% endif %}">
 
@@ -302,7 +282,6 @@
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
         <div class="sidebar" id="sidebar">
-            {# ✅ LOGO + NOM DANS LA SIDEBAR #}
             <a href="{{ path('app_dashboard') }}" class="brand-link">
                 <img src="{{ asset('images/logo.png') }}"
                      alt="Logo Dispromalt">
@@ -313,19 +292,16 @@
             <div class="p-3">
                 <nav class="nav flex-column">
 
-                    {# ── Dashboard ── #}
                     <a class="nav-link {% if app.request.attributes.get('_route') == 'app_dashboard' %}active{% endif %} mb-1 rounded"
                        href="{{ path('app_dashboard') }}">
                         <i class="fa-solid fa-gauge-high me-2"></i> Dashboard
                     </a>
 
-                    {# ── Catégories ── #}
                     <a class="nav-link {% if app.request.attributes.get('_route') starts with 'app_category' %}active{% endif %} mb-1 rounded"
                        href="{{ path('app_category_index') }}">
                         <i class="fa-solid fa-layer-group me-2"></i> Catégories
                     </a>
 
-                    {# ── Espace Caisse ── #}
                     {% if is_granted('ROLE_CAISSIER') or is_granted('ROLE_ADMIN') %}
                         <div class="nav-section-title">Espace Caisse</div>
 
@@ -355,7 +331,6 @@
                         </a>
                     {% endif %}
 
-                    {# ── Espace Comptabilité ── #}
                     {% if is_granted('ROLE_COMPTA') or is_granted('ROLE_CHEF_COMPTA') %}
                         <div class="nav-section-title">Comptabilité</div>
 
@@ -370,7 +345,6 @@
                         </a>
                     {% endif %}
 
-                    {# ── Rapports ── #}
                     <a class="nav-link {% if app.request.attributes.get('_route') == 'app_rapport' %}active{% endif %} mb-1 rounded"
                        href="{{ path('app_rapport') }}">
                         <i class="fa-solid fa-chart-line me-2"></i> Rapports
@@ -388,7 +362,6 @@
                 {% if app.user %}
                     <div class="d-flex align-items-center gap-2 gap-md-3">
 
-                        {# ✅ Bouton Actualiser (navbar) #}
                         <button type="button"
                                 id="btnRefreshPage"
                                 class="btn btn-light btn-sm fw-bold rounded-pill px-3 border"
@@ -409,7 +382,6 @@
             </div>
 
             <div class="content-body">
-                {# AFFICHAGE DES MESSAGES FLASH #}
                 {% for type, messages in app.flashes %}
                     {% for message in messages %}
                         <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
@@ -450,11 +422,6 @@
                 document.body.style.overflow = '';
             }
 
-            // ═══════════════════════════════════════════════════════
-            // ✅ GESTION DU CLICK SUR LE BOUTON HAMBURGER
-            //   → Mobile  : ouvre/ferme l'overlay
-            //   → Desktop : cache/affiche complètement la sidebar
-            // ═══════════════════════════════════════════════════════
             toggleBtn.addEventListener('click', function (e) {
                 e.preventDefault();
 
@@ -505,7 +472,6 @@
                 }
             });
 
-            // ✅ Bouton Actualiser
             const btnRefresh = document.getElementById('btnRefreshPage');
             if (btnRefresh) {
                 btnRefresh.addEventListener('click', function () {

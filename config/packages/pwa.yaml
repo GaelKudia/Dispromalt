@@ -38,10 +38,17 @@ pwa:
         default:
             src: 'images/icons/512.png'
 
-    # ✅ SW ACTIVÉ avec TON propre code (pas de Workbox)
+    # ═════════════════════════════════════════════════════════════════════
+    # SERVICE WORKER — DÉSACTIVÉ  ⬅️ MODIFIÉ
+    # ═════════════════════════════════════════════════════════════════════
+    # On utilise directement public/service-worker.js (fichier statique,
+    # complet : push + notificationclick + skipWaiting + clients.claim()).
+    #
+    # Le bundle PWA générait un /sw.js à partir de assets/sw.js — or
+    # assets/sw.js est VIDE, donc le bundle produisait un SW cassé qui
+    # entrait en conflit de scope avec /service-worker.js et empêchait
+    # les notifications de fonctionner (Chrome + iOS + Firefox).
+    #
+    # ⚠️ NE PAS RÉACTIVER tant que public/service-worker.js est utilisé.
     serviceworker:
-        enabled: true           # ⬅️ On l'active pour que {{ pwa() }} enregistre le SW
-        src: 'sw.js'            # ⬅️ Lit assets/sw.js → compile vers public/sw.js
-        skip_waiting: true
-        workbox:
-            enabled: false      # ⬅️ CRITIQUE : pas de Workbox, utilise TON code
+        enabled: false
