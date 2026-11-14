@@ -33,6 +33,13 @@ RUN composer install \
 # Code source
 COPY . /app
 
+# 👇 AJOUT : Créer un .env temporaire pour le build Symfony
+# (Coolify ne fournit pas de .env dans le contexte de build)
+RUN touch .env && \
+    echo "APP_ENV=prod" > .env && \
+    echo "APP_DEBUG=0" >> .env && \
+    echo "APP_SECRET=build_placeholder_change_at_runtime" >> .env
+
 # Scripts Symfony
 RUN composer run-script post-install-cmd --no-interaction
 
