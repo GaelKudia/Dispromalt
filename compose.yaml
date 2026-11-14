@@ -6,7 +6,7 @@ services:
     container_name: dispromalt_app
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "8001:80"
     depends_on:
       database:
         condition: service_healthy
