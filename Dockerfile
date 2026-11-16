@@ -33,12 +33,23 @@ RUN composer install \
 # Code source
 COPY . /app
 
-# 👇 AJOUT : Créer un .env temporaire pour le build Symfony
+# 👇 Créer un .env temporaire COMPLET pour le build Symfony
 # (Coolify ne fournit pas de .env dans le contexte de build)
-RUN touch .env && \
-    echo "APP_ENV=prod" > .env && \
-    echo "APP_DEBUG=0" >> .env && \
-    echo "APP_SECRET=build_placeholder_change_at_runtime" >> .env
+# Ce fichier écrase le .env du repo — les vraies valeurs viendront
+# des variables d'environnement Coolify au runtime.
+RUN touch .env \
+    && echo "APP_ENV=prod" > .env \
+    && echo "APP_DEBUG=0" >> .env \
+    && echo "APP_SECRET=build_placeholder_change_at_runtime" >> .env \
+    && echo "DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db" >> .env \
+    && echo "MAILER_DSN=null://null" >> .env \
+    && echo "MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0" >> .env \
+    && echo "DEFAULT_URI=http://localhost" >> .env \
+    && echo "TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR" >> .env \
+    && echo "TRUSTED_HEADERS=x-forwarded-for,x-forwarded-proto,x-forwarded-host,x-forwarded-port" >> .env \
+    && echo "WEBPUSH_PUBLIC_KEY=" >> .env \
+    && echo "WEBPUSH_PRIVATE_KEY=" >> .env \
+    && echo "WEBPUSH_SUBJECT=mailto:admin@example.com" >> .env
 
 # Scripts Symfony
 RUN composer run-script post-install-cmd --no-interaction
@@ -54,34 +65,27 @@ RUN php bin/console asset-map:compile --env=prod --no-debug \
 # ============================================================
 FROM dunglas/frankenphp:1.13.5-php8.4-alpine AS production
 
-# Mise à jour de curl et libcurl
 RUN apk update \
     && apk upgrade --no-cache curl libcurl \
     && apk info -v curl libcurl
 
-# Extensions PHP nécessaires à l'exécution
 RUN install-php-extensions \
     pdo_mysql intl zip opcache mbstring gd imagick apcu
 
 WORKDIR /app
 
-# Copie du projet depuis le builder
 COPY --from=builder --chown=www-data:www-data /app /app
 
-# Préparation des répertoires
 RUN mkdir -p var/cache var/log var/share /data /config \
     && chown -R www-data:www-data var /data /config \
     && chmod -R 775 var
 
-# Configuration FrankenPHP
 ENV FRANKENPHP_CONFIG="worker /app/public/index.php" \
     SERVER_NAME=":80"
 
-# Utilisateur non privilégié
 USER www-data
 
 EXPOSE 80
 
-# Vérification de santé
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD wget -qO- http://127.0.0.1/ || exit 1
